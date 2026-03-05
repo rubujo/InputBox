@@ -6,5 +6,10 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+
+  <Folder Name="/方案項目/.github/workflows/">
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
+
   <Project Path="src/InputBox/InputBox.csproj" />
 </Solution>

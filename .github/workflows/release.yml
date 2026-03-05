@@ -1,0 +1,71 @@
+name: 建置與發布 InputBox
+
+on:
+  push:
+    tags:
+      - 'v*' # 當推送 tag 如 v1.0.0 時觸發。
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: 簽出程式碼
+      uses: actions/checkout@v4
+
+    - name: 安裝 .NET 環境
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: 執行專案建置
+      working-directory: ./src/InputBox
+      run: dotnet build -c Release
+
+    - name: 執行專案發布
+      working-directory: ./src/InputBox
+      run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true
+
+    - name: 產生檔案雜湊值
+      shell: pwsh
+      run: |
+        # 指定發布後的預設 .exe 輸出路徑
+        $exePath = "./src/InputBox/bin/Release/net10.0-windows/win-x64/publish/InputBox.exe"
+        $hash = (Get-FileHash $exePath -Algorithm SHA256).Hash
+        echo "SHA256_HASH=$hash" >> $env:GITHUB_ENV
+        echo "產生的雜湊值為: $hash"
+
+    - name: 建立並壓縮發布檔案
+      shell: pwsh
+      run: |
+        $exePath = "./src/InputBox/bin/Release/net10.0-windows/win-x64/publish/InputBox.exe"
+
+        # 建立 InputBox 資料夾作為壓縮檔的根目錄
+        New-Item -ItemType Directory -Force -Path ./InputBox
+
+        # 複製單一執行檔
+        Copy-Item -Path $exePath -Destination ./InputBox/
+
+        # 複製方案根目錄的 LICENSE 與 README.md
+        if (Test-Path "LICENSE") { Copy-Item -Path "LICENSE" -Destination ./InputBox/ }
+        if (Test-Path "README.md") { Copy-Item -Path "README.md" -Destination ./InputBox/ }
+
+        # 壓縮「整個 InputBox 資料夾」
+        Compress-Archive -Path ./InputBox -DestinationPath InputBox-win-x64.zip
+
+    - name: 建立 GitHub 發布版本
+      uses: softprops/action-gh-release@v2
+      with:
+        files: InputBox-win-x64.zip
+        body: |
+          ## 📦 InputBox 發布摘要
+          - **目標平台**: Windows x64
+          - **執行環境**: .NET 10（已內含，無需安裝 Runtime）
+          - **檔案指紋（SHA256）**: `${{ env:SHA256_HASH }}`
+
+          ---
+          *本版本由 GitHub Actions 自動建置並發布。*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
