@@ -1,4 +1,4 @@
-﻿name: 建置與發布輸入框（InputBox）
+﻿name: 建置與發布輸入框
 
 on:
   push:
@@ -73,7 +73,7 @@ jobs:
         # 使用上一步驟產生的動態檔名。
         files: ${{ env.ZIP_FILENAME }}
         body: |
-          ## 📦 輸入框（InputBox）發布摘要
+          ## 📦 輸入框發布摘要
           - **目標平台**：Windows x64
           - **壓縮檔名**：${{ env.ZIP_FILENAME }}
           - **執行環境**：.NET 10（已內含，無需安裝 Runtime）
