@@ -560,10 +560,23 @@ public partial class MainForm : Form
             // 控制器 → 鍵長按重複：將游標連續向右移動一個字元。
             _gamepadController.RightRepeat += MoveCursorRight;
 
-            // 控制器 Start 鍵：將輸入焦點拉回文字文字方塊。
+            // 控制器 Start 鍵（情境智慧切換）：
+            // - 若文字方塊「未」取得焦點：將焦點拉回文字方塊（焦點救援）。
+            // - 若文字方塊「已」取得焦點：功能等同控制器 A 鍵（開啟觸控式鍵盤或複製文字）。
             _gamepadController.StartPressed += () =>
             {
-                this.SafeInvoke(() => TBInput.Focus());
+                this.SafeInvoke(() => 
+                {
+                    if (TBInput.CanFocus &&
+                        !TBInput.Focused)
+                    {
+                        TBInput.Focus();
+                    }
+                    else
+                    {
+                        ExecuteConfirmAction();
+                    }
+                });
             };
 
             // 控制器 Back 鍵：嘗試將焦點切換回先前的前景視窗。
@@ -582,19 +595,7 @@ public partial class MainForm : Form
             {
                 this.SafeInvoke(() =>
                 {
-                    if (string.IsNullOrWhiteSpace(TBInput.Text))
-                    {
-                        ShowTouchKeyboard();
-
-                        return;
-                    }
-
-                    if (!BtnCopy.Enabled)
-                    {
-                        return;
-                    }
-
-                    BtnCopy.PerformClick();
+                    ExecuteConfirmAction();
                 });
             };
 
@@ -617,7 +618,7 @@ public partial class MainForm : Form
                 });
             };
 
-            // 控制器 X 鍵：刪除游標前一個字元（等同鍵盤 Backspace）。
+            // 控制器 X 鍵：刪除游標前一個字元（等同鍵盤 Backspace 鍵）。
             _gamepadController.XPressed += () =>
             {
                 this.SafeInvoke(() =>
@@ -636,6 +637,26 @@ public partial class MainForm : Form
         {
             Debug.WriteLine($"控制器初始化失敗：{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 執行確認操作（共用於 A 鍵與 Start 鍵）
+    /// </summary>
+    private void ExecuteConfirmAction()
+    {
+        if (string.IsNullOrWhiteSpace(TBInput.Text))
+        {
+            ShowTouchKeyboard();
+
+            return;
+        }
+
+        if (!BtnCopy.Enabled)
+        {
+            return;
+        }
+
+        BtnCopy.PerformClick();
     }
 
     /// <summary>
