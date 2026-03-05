@@ -8,18 +8,24 @@ namespace InputBox.Core.Extensions;
 public static class TaskExtensions
 {
     /// <summary>
-    /// 安全地啟動並忽略異
+    /// 安全地啟動並忽略異步任務的結果
     /// </summary>
-    /// <param name="task">Task</param>
-    public static void SafeFireAndForget(this Task task)
+    /// <param name="task">要執行的非同步任務</param>
+    /// <param name="onException">當例外發生時的處理動作（選用）</param>
+    public static async void SafeFireAndForget(this Task task, Action<Exception>? onException = null)
     {
-        task.ContinueWith(t =>
+        try
         {
-            if (t.Exception != null)
-            {
-                Debug.WriteLine($"[背景任務例外] {t.Exception.Flatten().InnerException?.Message}");
-            }
-        }, 
-        TaskContinuationOptions.OnlyOnFaulted);
+            // 等待任務完成。
+            await task.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // 記錄至 Debug 視窗。
+            Debug.WriteLine($"[背景任務例外] {ex.Message}");
+
+            // 如果有提供額外的處理動作（如記錄至日誌或彈出視窗），則執行它。
+            onException?.Invoke(ex);
+        }
     }
 }
