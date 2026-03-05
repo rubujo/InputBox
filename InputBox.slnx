@@ -1,3 +1,10 @@
 <Solution>
-  <Project Path="InputBox.csproj" />
+  <Folder Name="/方案項目/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/InputBox/InputBox.csproj" />
 </Solution>
