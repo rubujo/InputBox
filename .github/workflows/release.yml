@@ -53,7 +53,7 @@ jobs:
         if (Test-Path "README.md") { Copy-Item -Path "README.md" -Destination ./InputBox/ }
 
         # 壓縮「整個 InputBox 資料夾」。
-        Compress-Archive -Path ./InputBox -DestinationPath InputBox-win-x64.zip
+        Compress-Archive -Path ./InputBox -DestinationPath InputBox-win-x64.zip -CompressionLevel Optimal
 
     - name: 建立 GitHub 發布版本
       uses: softprops/action-gh-release@v2
