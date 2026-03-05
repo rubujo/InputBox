@@ -1,4 +1,4 @@
-name: 建置與發布 InputBox
+﻿name: 建置與發布 InputBox
 
 on:
   push:
@@ -31,28 +31,28 @@ jobs:
     - name: 產生檔案雜湊值
       shell: pwsh
       run: |
-        # 指定發布後的預設 .exe 輸出路徑
+        # 指定發布後的預設 .exe 輸出路徑。
         $exePath = "./src/InputBox/bin/Release/net10.0-windows/win-x64/publish/InputBox.exe"
         $hash = (Get-FileHash $exePath -Algorithm SHA256).Hash
         echo "SHA256_HASH=$hash" >> $env:GITHUB_ENV
-        echo "產生的雜湊值為: $hash"
+        echo "產生的雜湊值為：$hash"
 
     - name: 建立並壓縮發布檔案
       shell: pwsh
       run: |
         $exePath = "./src/InputBox/bin/Release/net10.0-windows/win-x64/publish/InputBox.exe"
 
-        # 建立 InputBox 資料夾作為壓縮檔的根目錄
+        # 建立 InputBox 資料夾作為壓縮檔的根目錄。
         New-Item -ItemType Directory -Force -Path ./InputBox
 
-        # 複製單一執行檔
+        # 複製單一執行檔。
         Copy-Item -Path $exePath -Destination ./InputBox/
 
-        # 複製方案根目錄的 LICENSE 與 README.md
+        # 複製方案根目錄的 LICENSE 與 README.md。
         if (Test-Path "LICENSE") { Copy-Item -Path "LICENSE" -Destination ./InputBox/ }
         if (Test-Path "README.md") { Copy-Item -Path "README.md" -Destination ./InputBox/ }
 
-        # 壓縮「整個 InputBox 資料夾」
+        # 壓縮「整個 InputBox 資料夾」。
         Compress-Archive -Path ./InputBox -DestinationPath InputBox-win-x64.zip
 
     - name: 建立 GitHub 發布版本
@@ -61,13 +61,13 @@ jobs:
         files: InputBox-win-x64.zip
         body: |
           ## 📦 InputBox 發布摘要
-          - **目標平台**: Windows x64
-          - **執行環境**: .NET 10（已內含，無需安裝 Runtime）
-          - **檔案指紋 (SHA256)**: ${{ env.RELEASE_SHA256 }}
+          - **目標平台**：Windows x64
+          - **執行環境**：.NET 10（已內含，無需安裝 Runtime）
+          - **檔案指紋（SHA256）**：${{ env.RELEASE_SHA256 }}
 
           ---
           *本版本由 GitHub Actions 自動建置並發布。*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # 關鍵修正：將先前步驟存入 GITHUB_ENV 的值，在此步驟重新映射給一個變數
+        # 將先前步驟存入 GITHUB_ENV 的值，在此步驟重新映射給一個變數。
         RELEASE_SHA256: ${{ env.SHA256_HASH }}
