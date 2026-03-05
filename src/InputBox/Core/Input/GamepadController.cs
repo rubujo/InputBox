@@ -341,52 +341,9 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
         // 嘗試讀取目前控制器狀態（本 Tick 只讀一次）。
         int result = Win32.XInputGetState(_userIndex, out Win32.XInputState currentState);
 
-        // 判斷目前控制器是否「無效」：
-        // 1. 讀取失敗（result != 0）。
-        // 2. 或是雖然讀取成功，但完全沒反應（PacketNumber 沒變，且不是剛連線的第一幀）。
-        bool isSilent = (result != 0) ||
-            (_hasPreviousState && currentState.dwPacketNumber == _previousState.dwPacketNumber);
-
-        // 如果目前控制器「很安靜」，嘗試掃描其他控制器是否有訊號。
-        if (isSilent)
-        {
-            // 如果有過度頻繁掃描造成效能影響的情況出現，可以加一個簡單的計數器。
-            // 但因為 XInputGetState 效能很高，直接掃描通常也沒問題。
-            for (int i = 0; i < MaxControllerCount; i++)
-            {
-                if (i == _userIndex)
-                {
-                    // 跳過自己。
-                    continue;
-                }
-
-                if (Win32.XInputGetState(i, out Win32.XInputState otherState) == 0)
-                {
-                    // 只要連線且 PacketNumber > 0，通常就是活躍的實體控制器。
-                    if (otherState.dwPacketNumber != 0)
-                    {
-                        // 找到活躍的控制器！切換過去！
-                        _userIndex = i;
-
-                        currentState = otherState;
-
-                        result = 0;
-
-                        // 重置狀態，避免切換瞬間誤觸發。
-                        _hasPreviousState = false;
-                        _previousState = default;
-
-                        // 找到就跳出迴圈。
-                        break;
-                    }
-                }
-            }
-        }
-
-        // 處理斷線／重連邏輯。
-        // 如果讀取失敗（例如 ERROR_DEVICE_NOT_CONNECTED）。
         if (result != 0)
         {
+            // 斷線狀態：執行降頻重連邏輯。
             _hasPreviousState = false;
             _repeatCounter = 0;
             _repeatDirection = null;
@@ -401,8 +358,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
 
             _reconnectCounter = 0;
 
-            // 嘗試搜尋其他可用的控制器，這種搜尋不用太頻繁，
-            // 可以加個計數器降頻，但在這裡為了簡單直接寫。
+            // 嘗試搜尋其他可用的控制器。
             for (int i = 0; i < MaxControllerCount; i++)
             {
                 if (Win32.XInputGetState(i, out Win32.XInputState newState) == 0)
@@ -420,12 +376,54 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
 
             return;
         }
+        else
+        {
+            // 連線狀態：重置斷線計數器。
+            _reconnectCounter = 0;
 
-        _reconnectCounter = 0;
+            // 判斷目前控制器是否「無效」：雖然讀取成功，但完全沒反應（PacketNumber 沒變，且不是剛連線的第一幀）。
+            bool isIdle = _hasPreviousState && 
+                currentState.dwPacketNumber == _previousState.dwPacketNumber;
+
+            // 如果目前控制器「很安靜」，嘗試掃描其他控制器是否有訊號。
+            if (isIdle)
+            {
+                for (int i = 0; i < MaxControllerCount; i++)
+                {
+                    if (i == _userIndex)
+                    {
+                        // 跳過自己。
+                        continue;
+                    }
+
+                    if (Win32.XInputGetState(i, out Win32.XInputState otherState) == 0)
+                    {
+                        // 只要連線且 PacketNumber > 0，通常就是活躍的實體控制器。
+                        if (otherState.dwPacketNumber != 0)
+                        {
+                            // 找到活躍的控制器！如果它有不同的封包，切換過去！
+                            if (!_hasPreviousState || 
+                                otherState.dwPacketNumber != _previousState.dwPacketNumber)
+                            {
+                                _userIndex = i;
+
+                                currentState = otherState;
+
+                                // 重置狀態，避免切換瞬間誤觸發。
+                                _hasPreviousState = false;
+
+                                _previousState = default;
+
+                                // 找到就跳出迴圈。
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // 將搖桿訊號合併到按鍵狀態中。
-        // 注意：這必須在 IsInputActive 檢查之前或之後皆可，
-        // 但建議在取得 State 後儘早處理，讓邏輯一致。
         ApplyStickToButtons(ref currentState, _previousState);
 
         // 只有在 Input 啟用時才處理按鍵。
@@ -433,6 +431,10 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
         {
             _repeatCounter = 0;
             _repeatDirection = null;
+
+            // 即使輸入不活躍，也更新狀態，避免重新啟用時瞬間觸發 Rising Edge。
+            _previousState = currentState;
+            _hasPreviousState = true;
 
             return;
         }
@@ -568,8 +570,8 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// <param name="gamepadButton">控制器按鍵</param>
     /// <param name="action">Action</param>
     private static void Detect(
-        Win32.XInputState currentState,
-        Win32.XInputState previousState,
+        in Win32.XInputState currentState,
+        in Win32.XInputState previousState,
         Win32.GamepadButton gamepadButton,
         Action? action)
     {
