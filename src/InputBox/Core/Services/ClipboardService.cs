@@ -44,7 +44,10 @@ internal class ClipboardService
                 await Task.Delay(Delay_ClipboardBuffer);
 
                 // 驗證：真的寫進去了嗎？
-                if (Clipboard.GetText() == text)
+                // 在比對前將兩者的換行符標準化為 \n，避免 Windows 剪貼簿自動轉換為 \r\n 導致的比對失敗。
+                string clipboardText = Clipboard.GetText();
+
+                if (clipboardText.Replace("\r\n", "\n") == text.Replace("\r\n", "\n"))
                 {
                     return true;
                 }

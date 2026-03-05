@@ -166,11 +166,6 @@ public partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // 呼叫 Service 註銷。
-        _hotKeyService.UnregisterShowInputHotkey(Handle);
-
-        _gamepadController?.Dispose();
-
         // 應用程式關閉時，主動清除所有輸入歷程記錄。
         _historyService.Clear();
 
@@ -214,6 +209,28 @@ public partial class MainForm : Form
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+
+        #region 依據 DPI 調整 MinimumSize
+
+        // 96 DPI = 100%。
+        float scale = DeviceDpi / BaseDpi;
+
+        int minWidth = (int)Math.Round(BaseMinWidth * scale),
+            minHeight = (int)Math.Round(BaseMinHeight * scale);
+
+        // 依據 DPI 調整最小尺寸，確保在高 DPI 顯示器上不會太小。
+        MinimumSize = new Size(minWidth, minHeight);
+
+        #endregion
+
+        // 註冊全域快速鍵：Ctrl + Alt + Shift + I。
+        // 放在 OnHandleCreated 是為了確保當 WinForms 重建 Handle 時（如屬性變更），熱鍵能重新註冊。
+        RegisterHotKeyInternal();
+    }
+
     private void MainForm_Activated(object sender, EventArgs e)
     {
         // 確保視窗還原時，文字方塊直接取得焦點，不用再點一次。
@@ -227,19 +244,6 @@ public partial class MainForm : Form
     {
         try
         {
-            #region 依據 DPI 調整 MinimumSize
-
-            // 96 DPI = 100%。
-            float scale = DeviceDpi / BaseDpi;
-
-            int minWidth = (int)Math.Round(BaseMinWidth * scale),
-                minHeight = (int)Math.Round(BaseMinHeight * scale);
-
-            // 依據 DPI 調整最小尺寸，確保在高 DPI 顯示器上不會太小。
-            MinimumSize = new Size(minWidth, minHeight);
-
-            #endregion
-
             // Windows 平板模式會在 Shown 後強制最大化。
             // 延遲 50ms 讓系統完成動畫與視窗狀態更新，再強制還原。
             await Task.Delay(AppSettings.Current.WindowRestoreDelay);
@@ -259,48 +263,6 @@ public partial class MainForm : Form
 
             // 啟動時自動取得焦點。
             TBInput.Focus();
-
-            // 註冊全域快速鍵：Ctrl + Alt + Shift + I。
-            bool isOkay = _hotKeyService.RegisterShowInputHotkey(Handle);
-
-            if (!isOkay)
-            {
-                // 動態組合出目前設定的快速鍵字串，例如 "Ctrl + Alt + Shift + I"。
-                List<string> keys = [];
-
-                int mods = AppSettings.Current.HotKeyModifiers;
-
-                // 檢查位元遮罩包含哪些修飾鍵。
-                if ((mods & 2) == 2)
-                {
-                    keys.Add("Ctrl");
-                }
-
-                if ((mods & 1) == 1)
-                {
-                    keys.Add("Alt");
-                }
-
-                if ((mods & 4) == 4)
-                {
-                    keys.Add("Shift");
-                }
-
-                if ((mods & 8) == 8)
-                {
-                    keys.Add("Win");
-                }
-
-                keys.Add(AppSettings.Current.HotKeyKey.ToUpper());
-
-                string currentHotkeyStr = string.Join(" + ", keys);
-
-                MessageBox.Show(
-                    string.Format(Strings.Err_HotkeyRegFail, $"[{currentHotkeyStr}]"),
-                    caption: Strings.Wrn_Title,
-                    buttons: MessageBoxButtons.OK,
-                    icon: MessageBoxIcon.Exclamation);
-            }
         }
         catch (Exception ex)
         {
@@ -464,6 +426,53 @@ public partial class MainForm : Form
             }
 
             Debug.WriteLine($"複製到剪貼簿失敗：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 註冊全域快速鍵的內部方法，並在註冊失敗時顯示包含目前設定的快速鍵組合的錯誤訊息
+    /// </summary>
+    private void RegisterHotKeyInternal()
+    {
+        bool isOkay = _hotKeyService.RegisterShowInputHotkey(Handle);
+
+        if (!isOkay)
+        {
+            // 動態組合出目前設定的快速鍵字串，例如 "Ctrl + Alt + Shift + I"。
+            List<string> keys = [];
+
+            int mods = AppSettings.Current.HotKeyModifiers;
+
+            // 檢查位元遮罩包含哪些修飾鍵。
+            if ((mods & 2) == 2)
+            {
+                keys.Add("Ctrl");
+            }
+
+            if ((mods & 1) == 1)
+            {
+                keys.Add("Alt");
+            }
+
+            if ((mods & 4) == 4)
+            {
+                keys.Add("Shift");
+            }
+
+            if ((mods & 8) == 8)
+            {
+                keys.Add("Win");
+            }
+
+            keys.Add(AppSettings.Current.HotKeyKey.ToUpper());
+
+            string currentHotkeyStr = string.Join(" + ", keys);
+
+            MessageBox.Show(
+                string.Format(Strings.Err_HotkeyRegFail, $"[{currentHotkeyStr}]"),
+                caption: Strings.Wrn_Title,
+                buttons: MessageBoxButtons.OK,
+                icon: MessageBoxIcon.Exclamation);
         }
     }
 
@@ -1041,6 +1050,9 @@ public partial class MainForm : Form
     /// <param name="message">要朗讀的訊息</param>
     private void AnnounceA11y(string message)
     {
-        _lblA11yAnnouncer?.Announce(message);
+        this.SafeInvoke(() =>
+        {
+            _lblA11yAnnouncer?.Announce(message);
+        });
     }
 }

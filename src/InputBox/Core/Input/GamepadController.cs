@@ -202,7 +202,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     public bool IsBHeld { get; private set; }
 
     /// <summary>
-    /// 震動 Token（用於追蹤當前的震動狀態，確保在非同步震動期間不會重複觸發震動或錯誤停止震動）
+    /// 震動 Token（用於追蹤目前的震動狀態，確保在非同步震動期間不會重複觸發震動或錯誤停止震動）
     /// </summary>
     private int _vibrationToken = 0;
 
@@ -260,7 +260,9 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
 
         _ctsPolling = new CancellationTokenSource();
 
-        _taskPolling = Task.Run(PollingLoopAsync, _ctsPolling.Token);
+        CancellationToken token = _ctsPolling.Token;
+
+        _taskPolling = Task.Run(() => PollingLoopAsync(token), token);
     }
 
     /// <summary>
@@ -272,8 +274,18 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
 
         if (cts != null)
         {
-            cts.Cancel();
-            cts.Dispose();
+            try
+            {
+                cts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // 已釋放則忽略。
+            }
+            finally
+            {
+                cts.Dispose();
+            }
         }
     }
 
@@ -283,7 +295,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// <returns>Task</returns>
     private Task StopPollingAsync()
     {
-        _ctsPolling?.Cancel();
+        StopPolling();
 
         // 回傳 Task，讓開啟者決定是否要等待。
         return _taskPolling ?? Task.CompletedTask;
@@ -292,11 +304,8 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// <summary>
     /// 背景輪詢迴圈
     /// </summary>
-    private async Task PollingLoopAsync()
+    private async Task PollingLoopAsync(CancellationToken cancellationToken)
     {
-        // 取得 Token，若無則使用 CancellationToken.None。
-        CancellationToken cancellationToken = _ctsPolling?.Token ?? CancellationToken.None;
-
         try
         {
             // 使用 PeriodicTimer。
@@ -304,14 +313,9 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
 
             while (await periodicTimer.WaitForNextTickAsync(cancellationToken))
             {
-                // 再次檢查是否已取消。
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
                 // 在執行 Poll 前檢查是否已處置，避免觸發事件。
-                if (_disposed)
+                if (_disposed ||
+                    cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
@@ -322,7 +326,6 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
         catch (OperationCanceledException)
         {
             // 這是預期中的行為：當 StopPolling 開啟 Cancel() 時會觸發此處。
-            // 捕捉後什麼都不做，讓 Task 正常結束。
         }
         catch (Exception ex)
         {

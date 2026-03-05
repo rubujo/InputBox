@@ -159,6 +159,8 @@ public class AppSettings
     /// </summary>
     public static void Save()
     {
+        string strTempPath = ConfigPath + ".tmp";
+
         try
         {
             // 確保資料夾存在。
@@ -169,11 +171,29 @@ public class AppSettings
 
             string strJsonContent = JsonSerializer.Serialize(Current, Options);
 
-            File.WriteAllText(ConfigPath, strJsonContent);
+            // 先寫入臨時檔案。
+            File.WriteAllText(strTempPath, strJsonContent);
+
+            // 寫入成功後，再原子性地替換原有檔案。
+            // 使用 File.Move 的覆蓋模式（true）是最快速且支援跨磁區的安全替換方式。
+            File.Move(strTempPath, ConfigPath, true);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"無法儲存設定檔：{ex.Message}");
+
+            // 嘗試清理殘留的臨時檔。
+            try
+            {
+                if (File.Exists(strTempPath))
+                {
+                    File.Delete(strTempPath);
+                }
+            }
+            catch
+            {
+                // 忽略清理錯誤。
+            }
         }
     }
 }

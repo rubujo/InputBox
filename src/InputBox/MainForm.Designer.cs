@@ -20,6 +20,12 @@ partial class MainForm
             // 確保視窗被釋放時，一定會解除全域事件的綁定，避免靜態事件導致的記憶體洩漏。
             SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
 
+            // 註銷全域快速鍵保險（無論視窗是如何關閉的）。
+            _hotKeyService?.UnregisterShowInputHotkey(Handle);
+
+            // 釋放遊戲手把控制器（停止輪詢線程、停止震動、釋放 CTS）。
+            _gamepadController?.Dispose();
+
             if (components != null)
             {
                 components.Dispose();

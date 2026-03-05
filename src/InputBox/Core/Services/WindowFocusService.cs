@@ -23,13 +23,29 @@ public class WindowFocusService
     private const int Retry_WindowSwitch = 3;
 
     /// <summary>
-    /// 捕捉當前的前景視窗作為返回目標
+    /// 捕捉目前的前景視窗作為返回目標
     /// </summary>
     public void CaptureCurrentWindow()
     {
-        _previousWindowHwnd = Win32.GetForegroundWindow();
-    }
+        nint hwnd = Win32.GetForegroundWindow();
 
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
+        // 取得該視窗所屬的進程 PID。
+        _ = Win32.GetWindowThreadProcessId(hwnd, out uint processId);
+
+        // 如果該視窗就是「我們自己」，就不要捕捉。
+        // 這能防止使用者在 InputBox 已經開啟時再次按下熱鍵，導致捕捉到自己。
+        if (processId == Environment.ProcessId)
+        {
+            return;
+        }
+
+        _previousWindowHwnd = hwnd;
+    }
     /// <summary>
     /// 清除捕捉的視窗記錄
     /// </summary>

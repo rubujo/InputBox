@@ -8,6 +8,9 @@ internal static partial class Win32
     public static partial nint GetForegroundWindow();
 
     [LibraryImport("user32.dll")]
+    public static partial uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
+
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool IsWindow(nint hWnd);
 
