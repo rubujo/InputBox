@@ -63,9 +63,11 @@ jobs:
           ## 📦 InputBox 發布摘要
           - **目標平台**: Windows x64
           - **執行環境**: .NET 10（已內含，無需安裝 Runtime）
-          - **檔案指紋（SHA256）**: `${{ env:SHA256_HASH }}`
+          - **檔案指紋 (SHA256)**: ${{ env.RELEASE_SHA256 }}
 
           ---
           *本版本由 GitHub Actions 自動建置並發布。*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # 關鍵修正：將先前步驟存入 GITHUB_ENV 的值，在此步驟重新映射給一個變數
+        RELEASE_SHA256: ${{ env.SHA256_HASH }}
