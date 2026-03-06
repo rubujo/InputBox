@@ -147,7 +147,7 @@
 このアプリケーションが複数起動していないか、または他のアプリケーションがこのショートカットを使用していないか確認してください。</value>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
-    <value>コピーしました！</value>
+    <value>コピーしました</value>
   </data>
   <data name="Msg_CopyFail" xml:space="preserve">
     <value>コピー失敗</value>
@@ -156,7 +156,7 @@
     <value>テキストを入力してください…</value>
   </data>
   <data name="Wrn_Title" xml:space="preserve">
-    <value>ご注意！</value>
+    <value>ご注意</value>
   </data>
   <data name="Err_ClipboardLocked" xml:space="preserve">
     <value>クリップボードがロックされています。</value>
@@ -172,5 +172,29 @@
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>入力がクリアされました</value>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>先頭に到達しました。</value>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>末尾に到達しました。</value>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>これ以上古い履歴はありません。</value>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>最新の入力に戻りました。</value>
+  </data>
+  <data name="A11y_History_Prefix" xml:space="preserve">
+    <value>履歴：{0}</value>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>コピーするテキストがありません。</value>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>{0} を削除しました</value>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>これ以上削除できません。</value>
   </data>
 </root>

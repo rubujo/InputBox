@@ -142,12 +142,12 @@
     <value>複製到剪貼簿</value>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
-    <value>全域快速鍵 {0} 註冊失敗！
+    <value>全域快速鍵 {0} 註冊失敗。
 
 請注意是否有同時執行多個本應用程式的執行個體，或是有其他應用程式已經註冊使用此組快速鍵。</value>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
-    <value>已複製！</value>
+    <value>已複製</value>
   </data>
   <data name="Msg_CopyFail" xml:space="preserve">
     <value>複製失敗</value>
@@ -156,7 +156,7 @@
     <value>請輸入文字……</value>
   </data>
   <data name="Wrn_Title" xml:space="preserve">
-    <value>注意！</value>
+    <value>警告</value>
   </data>
   <data name="Err_ClipboardLocked" xml:space="preserve">
     <value>剪貼簿已鎖定。</value>
@@ -172,5 +172,29 @@
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>輸入已清除</value>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>已到頂端。</value>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>已到底部。</value>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>沒有更舊的記錄</value>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>已回到最新輸入。</value>
+  </data>
+  <data name="A11y_History_Prefix" xml:space="preserve">
+    <value>歷史記錄：{0}</value>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>沒有可以複製的文字</value>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>刪除 {0}</value>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>無法刪除，已在最前面。</value>
   </data>
 </root>

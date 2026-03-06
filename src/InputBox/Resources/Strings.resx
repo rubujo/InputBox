@@ -156,19 +156,19 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>錯誤訊息</comment>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
-    <value>Copied!</value>
-    <comment>按鈕點擊後</comment>
+    <value>Copied</value>
+    <comment>訊息／按鈕文字</comment>
   </data>
   <data name="Msg_CopyFail" xml:space="preserve">
     <value>Copy failed</value>
-    <comment>錯誤處理</comment>
+    <comment>訊息／按鈕文字</comment>
   </data>
   <data name="Pht_TBInput" xml:space="preserve">
-    <value>Enter text...</value>
+    <value>Enter text…</value>
     <comment>TextBox PlaceholderText</comment>
   </data>
   <data name="Wrn_Title" xml:space="preserve">
-    <value>Attention!</value>
+    <value>Warning</value>
     <comment>MessageBox 標題</comment>
   </data>
   <data name="Err_ClipboardLocked" xml:space="preserve">
@@ -189,6 +189,38 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>Input cleared</value>
-    <comment>輸入已清除</comment>
+    <comment>訊息</comment>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>Start of text reached.</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>End of text reached.</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>No older history items.</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>Returned to latest input.</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_History_Prefix" xml:space="preserve">
+    <value>History: {0}</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>No text to copy.</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>Deleted {0}</value>
+    <comment>無障礙訊息</comment>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>Cannot delete; at the start.</value>
+    <comment>無障礙訊息</comment>
   </data>
 </root>

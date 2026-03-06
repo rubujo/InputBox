@@ -19,7 +19,7 @@ internal class FeedbackService
     /// <param name="controller">控制器實例（允許為 null）</param>
     /// <param name="profile">震動設定檔</param>
     /// <returns>Task</returns>
-    public Task VibrateAsync(GamepadController? controller, VibrationProfile profile)
+    public Task VibrateAsync(IGamepadController? controller, VibrationProfile profile)
     {
         return VibrateAsync(controller, profile.Strength, profile.Duration);
     }
@@ -32,7 +32,7 @@ internal class FeedbackService
     /// <param name="milliseconds">毫秒</param>
     /// <returns>Task</returns>
 #pragma warning disable CA1822 // 將成員標記為靜態
-    public Task VibrateAsync(GamepadController? controller, ushort strength, int milliseconds)
+    public Task VibrateAsync(IGamepadController? controller, ushort strength, int milliseconds)
 #pragma warning restore CA1822 // 將成員標記為靜態
     {
         // 讀取設定檔開關。
@@ -60,7 +60,7 @@ internal class FeedbackService
         float calculatedStrength = strength * multiplier;
 
         // 數值邊界防護（Clamping）。
-        ushort finalStrength = (ushort)Math.Clamp(calculatedStrength, 0, ushort.MaxValue);
+        ushort finalStrength = (ushort)Math.Clamp(calculatedStrength, ushort.MinValue, ushort.MaxValue);
 
         // 如果計算後太弱變成 0，也不用開啟了。
         if (finalStrength == 0)

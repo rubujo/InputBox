@@ -79,6 +79,33 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Cannot delete; at the start. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Cannot_Delete {
+            get {
+                return ResourceManager.GetString("A11y_Cannot_Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Deleted {0} 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Delete_Char {
+            get {
+                return ResourceManager.GetString("A11y_Delete_Char", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 History: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_History_Prefix {
+            get {
+                return ResourceManager.GetString("A11y_History_Prefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 After entering text, select Copy to clipboard. 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
@@ -93,6 +120,51 @@ namespace InputBox.Resources {
         internal static string A11y_MainFormName {
             get {
                 return ResourceManager.GetString("A11y_MainFormName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 End of text reached. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Nav_Bottom {
+            get {
+                return ResourceManager.GetString("A11y_Nav_Bottom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Returned to latest input. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Nav_Newest {
+            get {
+                return ResourceManager.GetString("A11y_Nav_Newest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 No older history items. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Nav_Oldest {
+            get {
+                return ResourceManager.GetString("A11y_Nav_Oldest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Start of text reached. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Nav_Top {
+            get {
+                return ResourceManager.GetString("A11y_Nav_Top", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 No text to copy. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_No_Text_To_Copy {
+            get {
+                return ResourceManager.GetString("A11y_No_Text_To_Copy", resourceCulture);
             }
         }
         
@@ -180,7 +252,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Copied! 的當地語系化字串。
+        ///   查詢類似 Copied 的當地語系化字串。
         /// </summary>
         internal static string Msg_Copied {
             get {
@@ -207,7 +279,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Enter text... 的當地語系化字串。
+        ///   查詢類似 Enter text… 的當地語系化字串。
         /// </summary>
         internal static string Pht_TBInput {
             get {
@@ -216,7 +288,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Attention! 的當地語系化字串。
+        ///   查詢類似 Warning 的當地語系化字串。
         /// </summary>
         internal static string Wrn_Title {
             get {

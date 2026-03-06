@@ -5,9 +5,9 @@ using System.Diagnostics;
 namespace InputBox.Core.Input;
 
 /// <summary>
-/// 遊戲手把控制器
+/// 遊戲手把控制器（XInput 實作）
 /// </summary>
-internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
+internal sealed partial class XInputGamepadController : IGamepadController
 {
     /// <summary>
     /// IInputContext
@@ -212,7 +212,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// <param name="context">IInputContext</param>
     /// <param name="userIndex">控制器的 UserIndex，預設值為 0，有效值為 0~3。</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public GamepadController(
+    public XInputGamepadController(
         IInputContext context,
         uint userIndex = 0,
         GamepadRepeatSettings? repeatSettings = null)

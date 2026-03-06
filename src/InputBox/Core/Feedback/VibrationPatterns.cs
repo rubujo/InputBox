@@ -11,37 +11,44 @@ public static class VibrationPatterns
     public static float GlobalIntensityMultiplier { get; set; } = 1.0f;
 
     /// <summary>
-    /// 游標移動（輕微短促）
+    /// 游標移動（輕微短促的點擊感）
+    /// 說明：強度足以克服馬達啟動閾值，時間短暫以模擬「滴答」聲，避免連按時糊在一起。
     /// </summary>
-    public static readonly VibrationProfile CursorMove = new(8000, 30);
+    public static readonly VibrationProfile CursorMove = new(18000, 50);
 
     /// <summary>
-    /// 複製成功（強烈且稍長，確認感）
+    /// 複製成功（強烈且明確的確認感）
+    /// 說明：提供約 60% 的強度與 150ms 的持續時間，給予使用者明確「任務已完成」的安全感。
     /// </summary>
-    public static readonly VibrationProfile CopySuccess = new(20000, 50);
+    public static readonly VibrationProfile CopySuccess = new(40000, 150);
 
     /// <summary>
-    /// 清除文字方塊（中等強度）
+    /// 清除文字方塊（中等強度的提示）
+    /// 說明：比游標移動強烈，但不及複製成功，表示狀態重置。
     /// </summary>
-    public static readonly VibrationProfile ClearInput = new(10000, 40);
+    public static readonly VibrationProfile ClearInput = new(25000, 100);
 
     /// <summary>
-    /// 邊界撞擊、錯誤操作（低沈提示）
+    /// 邊界撞擊、錯誤操作（極強烈且較長的警告）
+    /// 說明：接近 100% 滿載強度與 200ms 長時間，打破原本的節奏，確保操作錯誤不被忽視。
     /// </summary>
-    public static readonly VibrationProfile ActionFail = new(6000, 25);
+    public static readonly VibrationProfile ActionFail = new(65000, 200);
 
     /// <summary>
-    /// 顯示輸入視窗（喚醒感）
+    /// 顯示輸入視窗（明確的喚醒感）
+    /// 說明：中高強度，用以告知 UI 焦點已發生重大轉移並準備好接收輸入。
     /// </summary>
-    public static readonly VibrationProfile ShowInput = new(12000, 40);
+    public static readonly VibrationProfile ShowInput = new(35000, 120);
 
     /// <summary>
     /// 準備切換視窗（開始動作）
+    /// 說明：起步階段給予中輕度提示，作為動作的開端。
     /// </summary>
-    public static readonly VibrationProfile ReturnStart = new(5000, 20);
+    public static readonly VibrationProfile ReturnStart = new(20000, 80);
 
     /// <summary>
     /// 視窗切換完成（結束動作）
+    /// 說明：稍微加強並延長，與 ReturnStart 組合形成「起->落」的完整切換體驗。
     /// </summary>
-    public static readonly VibrationProfile ReturnSuccess = new(8000, 30);
+    public static readonly VibrationProfile ReturnSuccess = new(30000, 120);
 }

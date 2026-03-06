@@ -47,7 +47,7 @@ internal class WindowNavigationService(
     /// </summary>
     /// <param name="controller">目前的控制器實例（用於檢查按鍵狀態）</param>
     /// <returns>Task</returns>
-    public async Task NavigateBackAsync(GamepadController? controller)
+    public async Task NavigateBackAsync(IGamepadController? controller)
     {
         // 播放音效／震動，給予即時回饋，讓使用者知道「收到了」。
         _feedbackService.PlaySound(SystemSounds.Exclamation);
@@ -91,7 +91,7 @@ internal class WindowNavigationService(
     /// </summary>
     /// <param name="controller">控制器</param>
     /// <returns>是否需要等待</returns>
-    private static bool ShouldWaitForKeyRelease(GamepadController? controller)
+    private static bool ShouldWaitForKeyRelease(IGamepadController? controller)
     {
         if (controller == null)
         {

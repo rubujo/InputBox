@@ -73,7 +73,7 @@ public class AppSettings
 
     /// <summary>
     /// 喚醒輸入框的修飾鍵組合值。
-    /// <para>預設值 7 代表：Alt (1) + Ctrl (2) + Shift (4)</para>
+    /// <para>預設值 7 代表：Alt（1） + Ctrl（2） + Shift（4）</para>
     /// </summary>
     public int HotKeyModifiers { get; set; } = 7;
 
@@ -99,6 +99,26 @@ public class AppSettings
     #endregion
 
     #region GamepadController 控制器設定
+
+    /// <summary>
+    /// 遊戲手把控制器提供者類型
+    /// </summary>
+    public enum GamepadProvider
+    {
+        /// <summary>
+        /// XInput
+        /// </summary>
+        XInput = 0,
+        /// <summary>
+        /// GameInput
+        /// </summary>
+        GameInput = 1
+    }
+
+    /// <summary>
+    /// 遊戲手把控制器提供者（預設為 XInput）
+    /// </summary>
+    public GamepadProvider GamepadProviderType { get; set; } = GamepadProvider.XInput;
 
     /// <summary>
     /// 搖桿死區觸發閾值（Enter）- 預設 7849
@@ -134,6 +154,11 @@ public class AppSettings
                 string strJsonContent = File.ReadAllText(ConfigPath);
 
                 Current = JsonSerializer.Deserialize<AppSettings>(strJsonContent) ?? new();
+
+                // 讀取成功後立即存檔一次。
+                // 這樣如果 C# 類別有新增欄位（而 JSON 裡沒有），
+                // 這些新欄位的預設值會立即被寫入 JSON 檔，達成 Schema 同步。
+                Save();
             }
             catch
             {

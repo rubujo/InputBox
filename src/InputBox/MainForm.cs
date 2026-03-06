@@ -55,9 +55,9 @@ public partial class MainForm : Form
     private IInputContext? _inputContext;
 
     /// <summary>
-    /// GamepadController
+    /// IGamepadController
     /// </summary>
-    private GamepadController? _gamepadController;
+    private IGamepadController? _gamepadController;
 
     /// <summary>
     /// 是否正在切換回先前的前景視窗
@@ -103,6 +103,21 @@ public partial class MainForm : Form
     /// 是否正在閃爍（用於防止重複觸發閃爍效果）
     /// </summary>
     private bool _isFlashing = false;
+
+    /// <summary>
+    /// 原始字型，在閃爍效果中會用到，確保能夠正確還原，即使系統主題改變也能適應。
+    /// </summary>
+    private Font? _originalBtnFont;
+
+    /// <summary>
+    /// 原始背景色，在閃爍效果中會用到，確保能夠正確還原，即使系統主題改變也能適應。
+    /// </summary>
+    private Color _originalBtnBackColor;
+
+    /// <summary>
+    /// 原始前景色（文字顏色），在閃爍效果中會用到，確保能夠正確還原，即使系統主題改變也能適應。
+    /// </summary>
+    private Color _originalBtnForeColor;
 
     public MainForm()
     {
@@ -166,6 +181,15 @@ public partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
+        // 確保視窗被釋放時，一定會解除全域事件的綁定，避免靜態事件導致的記憶體洩漏。
+        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+
+        // 註銷全域快速鍵保險（無論視窗是如何關閉的）。
+        _hotKeyService?.UnregisterShowInputHotkey(Handle);
+
+        // 釋放遊戲手把控制器（停止輪詢線程、停止震動、釋放 CTS）。
+        _gamepadController?.Dispose();
+
         // 應用程式關閉時，主動清除所有輸入歷程記錄。
         _historyService.Clear();
 
@@ -333,6 +357,36 @@ public partial class MainForm : Form
         HandleKeyDown(e);
     }
 
+    private void BtnCopy_MouseEnter(object sender, EventArgs e)
+    {
+        // 第一次觸發時，記錄按鈕的原始樣式。
+        _originalBtnFont ??= BtnCopy.Font;
+        _originalBtnBackColor = BtnCopy.BackColor;
+        _originalBtnForeColor = BtnCopy.ForeColor;
+
+        // A11y 凝視回饋 1：顏色變化。
+        // 使用系統的高亮色（通常是藍底白字），確保在任何 Windows 佈景主題與高對比模式下都具備最高對比度。
+        BtnCopy.BackColor = SystemColors.Highlight;
+        BtnCopy.ForeColor = SystemColors.HighlightText;
+
+        // A11y 凝視回饋 2：形狀與輪廓變化（非顏色提示）。
+        // 將字體加粗。這對於全色盲使用者來說，是確認「游標已精準鎖定按鈕」的絕對視覺指標。
+        BtnCopy.Font = new Font(_originalBtnFont, FontStyle.Bold);
+    }
+
+    private void BtnCopy_MouseLeave(object sender, EventArgs e)
+    {
+        // 還原為原始顏色。
+        BtnCopy.BackColor = _originalBtnBackColor;
+        BtnCopy.ForeColor = _originalBtnForeColor;
+
+        // 還原為原始字體粗細。
+        if (_originalBtnFont != null)
+        {
+            BtnCopy.Font = _originalBtnFont;
+        }
+    }
+
     private async void BtnCopy_Click(object sender, EventArgs e)
     {
         // 在最開頭建立快照。
@@ -346,9 +400,22 @@ public partial class MainForm : Form
                 // 發出警告音。
                 _feedbackService.PlaySound(SystemSounds.Beep);
 
+                // 觸覺回饋：錯誤操作。
                 await VibrateAsync(VibrationPatterns.ActionFail);
 
+                // 視覺回饋（雙重提示）。
+                FlashAlertAsync().SafeFireAndForget();
+
+                AnnounceA11y(Strings.A11y_No_Text_To_Copy);
+
                 return;
+            }
+
+            // 在停用按鈕之前，先主動把焦點移走（移回輸入框）。
+            // 這樣螢幕閱讀器就會平順地唸出「輸入文字……」，而不會因為按鈕突然消失而發生焦點錯亂。
+            if (BtnCopy.Focused)
+            {
+                TBInput.Focus();
             }
 
             BtnCopy.Enabled = false;
@@ -369,6 +436,9 @@ public partial class MainForm : Form
                 _feedbackService.PlaySound(SystemSounds.Hand);
 
                 await VibrateAsync(VibrationPatterns.ActionFail);
+
+                // 視覺回饋（寫入失敗警告）。
+                FlashAlertAsync().SafeFireAndForget();
 
                 BtnCopy.Text = Strings.Msg_CopyFail;
                 BtnCopy.Enabled = true;
@@ -412,6 +482,9 @@ public partial class MainForm : Form
             _feedbackService.PlaySound(SystemSounds.Hand);
 
             await VibrateAsync(VibrationPatterns.ActionFail);
+
+            // 視覺回饋（系統錯誤警告）。
+            FlashAlertAsync().SafeFireAndForget();
 
             // 如果視窗還在，顯示錯誤。
             if (!IsDisposed)
@@ -506,9 +579,6 @@ public partial class MainForm : Form
     {
         _inputContext = new FormInputContext(this);
 
-        // 自動偵測有效的控制器索引。
-        uint activeUserIndex = GamepadController.GetFirstConnectedUserIndex();
-
         // 建立 GamepadRepeatSettings。
         GamepadRepeatSettings gamepadRepeatSettings = new()
         {
@@ -518,11 +588,26 @@ public partial class MainForm : Form
 
         try
         {
-            // 使用偵測到的索引初始化。
-            _gamepadController = new GamepadController(
-                _inputContext,
-                activeUserIndex,
-                gamepadRepeatSettings);
+            // 根據設定建立遊戲手把實作。
+            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.GameInput)
+            {
+                // 使用 GameInput 實作。
+                _gamepadController = new GameInputGamepadController(
+                    _inputContext,
+                    // GameInput 通常不需要指定 index，內部會處理。
+                    0,
+                    gamepadRepeatSettings);
+            }
+            else
+            {
+                // 預設使用 XInput 實作。
+                uint activeUserIndex = XInputGamepadController.GetFirstConnectedUserIndex();
+
+                _gamepadController = new XInputGamepadController(
+                    _inputContext,
+                    activeUserIndex,
+                    gamepadRepeatSettings);
+            }
 
             // 控制器 ↑ 鍵：瀏覽上一筆輸入歷史（等同鍵盤 ↑）。
             _gamepadController.UpPressed += () =>
@@ -565,7 +650,7 @@ public partial class MainForm : Form
             // - 若文字方塊「已」取得焦點：功能等同控制器 A 鍵（開啟觸控式鍵盤或複製文字）。
             _gamepadController.StartPressed += () =>
             {
-                this.SafeInvoke(() => 
+                this.SafeInvoke(() =>
                 {
                     if (TBInput.CanFocus &&
                         !TBInput.Focused)
@@ -627,8 +712,24 @@ public partial class MainForm : Form
                     {
                         int position = TBInput.SelectionStart;
 
-                        TBInput.Text = TBInput.Text.Remove(position - 1, 1);
-                        TBInput.SelectionStart = position - 1;
+                        // 先抓出準備要刪除的字元。
+                        char deletedChar = TBInput.Text[position - 1];
+
+                        // 用 SelectedText 刪除，這樣不會破壞 Ctrl + Z 的復原歷史。
+                        TBInput.Select(position - 1, 1);
+                        TBInput.SelectedText = string.Empty;
+
+                        // 報讀被刪除的字元。
+                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar));
+                    }
+                    else
+                    {
+                        _feedbackService.PlaySound(SystemSounds.Beep);
+
+                        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+                        // 撞到最左邊無法刪除時的語音提示。
+                        AnnounceA11y(Strings.A11y_Cannot_Delete);
                     }
                 });
             };
@@ -678,19 +779,39 @@ public partial class MainForm : Form
         // ↑：上一筆。
         if (e.KeyCode == Keys.Up)
         {
-            NavigateHistory(-1);
+            // 取得游標目前所在的行數（0 代表第一行）。
+            int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart);
 
-            e.SuppressKeyPress = true;
+            // 只有在第一行時，按「上」才觸發歷史紀錄。
+            if (currentLine == 0)
+            {
+                NavigateHistory(-1);
 
+                e.SuppressKeyPress = true;
+            }
+
+            // 若不在第一行，就不攔截，讓 Windows 原生的多行游標往上移動。
             return;
         }
 
         // ↓：下一筆。
         if (e.KeyCode == Keys.Down)
         {
-            NavigateHistory(+1);
+            // 取得游標目前所在的行數。
+            int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart);
 
-            e.SuppressKeyPress = true;
+            // 取得文字方塊總共的行數（最後一行的 Index）。
+            int totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
+
+            // 只有在最後一行時，按「下」才觸發歷史紀錄。
+            if (currentLine == totalLines)
+            {
+                NavigateHistory(+1);
+
+                e.SuppressKeyPress = true;
+            }
+
+            return;
         }
     }
 
@@ -711,7 +832,7 @@ public partial class MainForm : Form
 
         // 執行 UI 更新（自動回到 UI 執行緒）。
         BtnCopy.Text = Strings.Btn_CopyDefault;
-        BtnCopy.AccessibleDescription = Strings.Btn_CopyDefault;
+        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
         BtnCopy.Enabled = true;
     }
 
@@ -737,11 +858,21 @@ public partial class MainForm : Form
             {
                 TBInput.SelectionStart--;
                 TBInput.ScrollToCaret();
+
+                // 手動報讀游標右側的字元，讓使用者知道跨過了什麼字。
+                char crossedChar = TBInput.Text[TBInput.SelectionStart];
+
+                AnnounceA11y(crossedChar.ToString());
             }
             else
             {
-                // 只有在撞牆時才震動，避免長按時一直震動
+                _feedbackService.PlaySound(SystemSounds.Beep);
+
+                // 只有在撞牆時才震動，避免長按時一直震動。
                 VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+                // 撞到最左邊。
+                AnnounceA11y(Strings.A11y_Nav_Top);
             }
         });
     }
@@ -755,13 +886,24 @@ public partial class MainForm : Form
         {
             if (TBInput.SelectionStart < TBInput.Text.Length)
             {
+                // 往右移之前，先抓取要跨過的字元。
+                char crossedChar = TBInput.Text[TBInput.SelectionStart];
+
                 TBInput.SelectionStart++;
                 TBInput.ScrollToCaret();
+
+                // 報讀該字元。
+                AnnounceA11y(crossedChar.ToString());
             }
             else
             {
+                _feedbackService.PlaySound(SystemSounds.Beep);
+
                 // 只有在撞牆時才震動，避免長按時一直震動。
                 VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+                // 撞到最右邊。
+                AnnounceA11y(Strings.A11y_Nav_Bottom);
             }
         });
     }
@@ -771,6 +913,16 @@ public partial class MainForm : Form
     /// </summary>
     private void ClearInput()
     {
+        // 如果已經是空的，不需要大動作清除。
+        if (string.IsNullOrEmpty(TBInput.Text))
+        {
+            _feedbackService.PlaySound(SystemSounds.Beep);
+
+            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+            return;
+        }
+
         _feedbackService.PlaySound(SystemSounds.Beep);
 
         VibrateAsync(VibrationPatterns.ClearInput).SafeFireAndForget();
@@ -791,16 +943,29 @@ public partial class MainForm : Form
     {
         InputHistoryService.NavigationResult navigationResult = _historyService.Navigate(direction);
 
-        // 處理震動（邊界或錯誤）。
+        // 處理震動與視覺（邊界或錯誤）。
         if (navigationResult.IsBoundaryHit)
         {
+            _feedbackService.PlaySound(SystemSounds.Beep);
+
             VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+            // 視覺回饋（提示已經到底了）。
+            FlashAlertAsync().SafeFireAndForget();
+
+            AnnounceA11y(direction < 0 ? Strings.A11y_Nav_Oldest : Strings.A11y_Nav_Newest);
         }
 
         // 處理文字更新。
         if (navigationResult.IsCleared)
         {
             TBInput.Clear();
+
+            // 如果不是因為撞牆才清空，才獨立報讀（避免雙重語音）。
+            if (!navigationResult.IsBoundaryHit)
+            {
+                AnnounceA11y(Strings.Msg_InputCleared);
+            }
         }
         else if (navigationResult.Success &&
             navigationResult.Text != null)
@@ -809,6 +974,9 @@ public partial class MainForm : Form
             // 游標移到最後。
             TBInput.SelectionStart = TBInput.Text.Length;
             TBInput.ScrollToCaret();
+
+            // 強制朗讀切換後的歷史紀錄內容。
+            AnnounceA11y(string.Format(Strings.A11y_History_Prefix, navigationResult.Text));
         }
     }
 
@@ -929,11 +1097,13 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 讓輸入框邊框閃爍
+    /// 讓輸入框邊框閃爍與脈衝加粗（符合 A11y 雙重反饋，且對眼動追蹤極度友善）
     /// </summary>
     /// <returns>Task</returns>
     private async Task FlashAlertAsync()
     {
+        // 尊重系統動畫開關，避免對前庭神經系統敏感的使用者造成暈眩。
+        // 同時檢查是否正在閃爍或視窗已被處置，防止重複觸發或報錯。
         if (!SystemInformation.UIEffectsEnabled ||
             _isFlashing ||
             IsDisposed ||
@@ -944,6 +1114,10 @@ public partial class MainForm : Form
 
         _isFlashing = true;
 
+        // 為避免實體座標位移（Margin）干擾眼動儀的停留點擊（Dwell-Click），
+        // 改為記錄原始的 Padding（內部邊距），透過動態加粗邊框來產生「原位脈衝」效果。
+        Padding originalPadding = PInputHost.Padding;
+
         try
         {
             // 決定閃爍顏色。
@@ -952,26 +1126,28 @@ public partial class MainForm : Form
             // 檢查系統是否開啟了「高對比模式」。
             if (SystemInformation.HighContrast)
             {
-                // 在高對比模式下，使用系統定義的「選取文字顏色」，
-                // 這通常是高亮度的（如鮮黃色、青色或白色），在黑色背景下極為醒目。
                 flashColor = SystemColors.HighlightText;
             }
             else
             {
-                // 一般模式：改用 OrangeRed，
-                // 紅色盲看 OrangeRed 會像「亮黃色／亮褐色」，與原本灰色的對比度遠高於純紅。
+                // 一般模式：改用 OrangeRed，紅色盲看 OrangeRed 會像「亮黃色／亮褐色」，對比度高。
                 flashColor = Color.OrangeRed;
             }
 
             int flashCount = 3,
-                // 稍微放慢速度到 150ms，讓眼睛更容易捕捉變化。
-                interval = 150;
+                // 節奏維持 100ms，製造急促的警告感。
+                interval = 100;
 
             for (int i = 0; i < flashCount; i++)
             {
-                // 變更顏色。
+                // A11y 第一重反饋：顏色警告。
                 PInputHost.BackColor = flashColor;
 
+                // A11y 第二重反饋：形狀／厚度變化（原位脈衝）。
+                // 將四周邊框同時加粗 4 個像素，目標物本身不會左右移動，對眼動使用者完全安全。
+                PInputHost.Padding = new Padding(originalPadding.Left + 4);
+
+                // 脈衝維持時間。
                 await Task.Delay(interval);
 
                 if (IsDisposed)
@@ -979,8 +1155,10 @@ public partial class MainForm : Form
                     return;
                 }
 
-                // 還原顏色。
+                // 還原顏色與厚度（製造一縮一放的跳動感）。
                 UpdateBorderColor();
+
+                PInputHost.Padding = originalPadding;
 
                 await Task.Delay(interval);
             }
@@ -991,7 +1169,10 @@ public partial class MainForm : Form
 
             if (!IsDisposed)
             {
+                // 確保無論發生什麼事（例如迴圈中途被中斷），邊框顏色與厚度最後一定會完全復原。
                 UpdateBorderColor();
+
+                PInputHost.Padding = originalPadding;
             }
         }
     }
