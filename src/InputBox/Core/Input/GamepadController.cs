@@ -17,7 +17,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// <summary>
     /// 控制器的 User Index
     /// </summary>
-    private volatile int _userIndex;
+    private volatile uint _userIndex;
 
     /// <summary>
     /// GamepadRepeatSettings
@@ -214,16 +214,12 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public GamepadController(
         IInputContext context,
-        int userIndex = 0,
+        uint userIndex = 0,
         GamepadRepeatSettings? repeatSettings = null)
     {
         _context = context;
 
-        if (userIndex < 0 ||
-            userIndex > 3)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userIndex));
-        }
+        ArgumentOutOfRangeException.ThrowIfGreaterThan<uint>(userIndex, 3);
 
         _userIndex = userIndex;
 
@@ -339,7 +335,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     private void Poll()
     {
         // 嘗試讀取目前控制器狀態（本 Tick 只讀一次）。
-        int result = Win32.XInputGetState(_userIndex, out Win32.XInputState currentState);
+        uint result = Win32.XInputGetState(_userIndex, out Win32.XInputState currentState);
 
         if (result != 0)
         {
@@ -359,7 +355,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
             _reconnectCounter = 0;
 
             // 嘗試搜尋其他可用的控制器。
-            for (int i = 0; i < MaxControllerCount; i++)
+            for (uint i = 0; i < MaxControllerCount; i++)
             {
                 if (Win32.XInputGetState(i, out Win32.XInputState newState) == 0)
                 {
@@ -388,7 +384,7 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
             // 如果目前控制器「很安靜」，嘗試掃描其他控制器是否有訊號。
             if (isIdle)
             {
-                for (int i = 0; i < MaxControllerCount; i++)
+                for (uint i = 0; i < MaxControllerCount; i++)
                 {
                     if (i == _userIndex)
                     {
@@ -586,9 +582,9 @@ internal sealed partial class GamepadController : IDisposable, IAsyncDisposable
     /// 尋找第一個已連接的控制器索引
     /// </summary>
     /// <returns>回傳 0-3 代表找到的控制器，若都沒找到則回傳 0（預設）</returns>
-    public static int GetFirstConnectedUserIndex()
+    public static uint GetFirstConnectedUserIndex()
     {
-        for (int i = 0; i < 4; i++)
+        for (uint i = 0; i < 4; i++)
         {
             // 開啟 Win32.XInputGetState，若回傳 0（ERROR_SUCCESS）代表該控制器已連接。
             if (Win32.XInputGetState(i, out _) == 0)

@@ -60,7 +60,7 @@ internal static class Program
         // 嘗試緊急停止所有手把震動。
         try
         {
-            for (int i = 0; i < 4; i++)
+            for (uint i = 0; i < 4; i++)
             {
                 Win32.XInputVibration stopVibration = default;
 

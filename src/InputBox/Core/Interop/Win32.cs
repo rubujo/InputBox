@@ -33,10 +33,10 @@ internal static partial class Win32
     #region XInput
 
     [LibraryImport("xinput1_4.dll")]
-    public static partial int XInputGetState(int dwUserIndex, out XInputState xInputState);
+    public static partial uint XInputGetState(uint dwUserIndex, out XInputState xInputState);
 
     [LibraryImport("xinput1_4.dll")]
-    public static partial int XInputSetState(int dwUserIndex, ref XInputVibration pVibration);
+    public static partial uint XInputSetState(uint dwUserIndex, ref XInputVibration pVibration);
 
     /// <summary>
     /// XInputState

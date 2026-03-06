@@ -507,7 +507,7 @@ public partial class MainForm : Form
         _inputContext = new FormInputContext(this);
 
         // 自動偵測有效的控制器索引。
-        int activeUserIndex = GamepadController.GetFirstConnectedUserIndex();
+        uint activeUserIndex = GamepadController.GetFirstConnectedUserIndex();
 
         // 建立 GamepadRepeatSettings。
         GamepadRepeatSettings gamepadRepeatSettings = new()
