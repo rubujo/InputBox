@@ -159,7 +159,7 @@ public class AppSettings
             {
                 string strJsonContent = File.ReadAllText(ConfigPath);
 
-                Current = JsonSerializer.Deserialize<AppSettings>(strJsonContent) ?? new();
+                Current = JsonSerializer.Deserialize<AppSettings>(strJsonContent, Options) ?? new();
 
                 // 讀取成功後立即存檔一次。
                 // 這樣如果 C# 類別有新增欄位（而 JSON 裡沒有），
