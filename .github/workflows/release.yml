@@ -60,9 +60,10 @@ jobs:
         New-Item -ItemType Directory -Force -Path ./dist/InputBox
         Copy-Item -Path ${{ env.EXE_RELATIVE_PATH }} -Destination ./dist/InputBox/
         
-        # 複製方案根目錄的 LICENSE 與 README.md。
+        # 複製方案根目錄的 LICENSE、README.md 與 ThirdPartyNotices.txt。
         if (Test-Path "LICENSE") { Copy-Item -Path "LICENSE" -Destination ./dist/InputBox/ }
         if (Test-Path "README.md") { Copy-Item -Path "README.md" -Destination ./dist/InputBox/ }
+        if (Test-Path "ThirdPartyNotices.txt") { Copy-Item -Path "ThirdPartyNotices.txt" -Destination ./dist/InputBox/ }
 
         # 壓縮「整個 InputBox 資料夾」（使用動態檔名）。
         Compress-Archive -Path ./dist/InputBox -DestinationPath $zipName -CompressionLevel Optimal
