@@ -1,6 +1,7 @@
 ﻿using InputBox.Resources;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace InputBox.Core.Configuration;
 
@@ -20,7 +21,12 @@ public class AppSettings
     /// </summary>
     static readonly JsonSerializerOptions Options = new()
     {
-        WriteIndented = true
+        WriteIndented = true,
+        Converters =
+        {
+            new JsonStringEnumConverter(),
+            new FloatingPointFormatConverter()
+        }
     };
 
     /// <summary>
