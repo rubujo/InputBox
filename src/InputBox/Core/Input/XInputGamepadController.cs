@@ -1,5 +1,7 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Interop;
+using InputBox.Core.Services;
+using InputBox.Resources;
 using System.Diagnostics;
 
 namespace InputBox.Core.Input;
@@ -42,7 +44,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 前一次的 XInputState
     /// </summary>
-    private Win32.XInputState _previousState;
+    private XInput.XInputState _previousState;
 
     /// <summary>
     /// 重複計數器
@@ -52,7 +54,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 是否有前一次的 XInputState
     /// </summary>
-    private bool _hasPreviousState;
+    private volatile bool _hasPreviousState;
 
     /// <summary>
     /// 是否已處置
@@ -62,7 +64,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 控制器按鈕重複方向
     /// </summary>
-    private Win32.GamepadButton? _repeatDirection;
+    private XInput.GamepadButton? _repeatDirection;
 
     /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
@@ -80,16 +82,34 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private const int MaxControllerCount = 4;
 
     /// <summary>
-    /// XInput 左搖桿死區觸發閾值（Enter）- 標準值 7849
-    /// 當搖桿推動超過此數值時，視為「按下」。
+    /// XInput 左搖桿死區觸發閾值（Enter）
+    /// 當搖桿推動超過此數值時，才視為「推動」。
     /// </summary>
-    private readonly int _thumbDeadzoneEnter;
+    private int _thumbDeadzoneEnter;
 
     /// <summary>
     /// XInput 左搖桿死區重置閾值（Exit）- 遲滯緩衝值
     /// 當搖桿回彈低於此數值時，才視為「放開」。此數值必須夠低以吸收硬體抖動。
     /// </summary>
-    private readonly int _thumbDeadzoneExit;
+    private int _thumbDeadzoneExit;
+
+    /// <summary>
+    /// 取得或設定搖桿進入死區閾值
+    /// </summary>
+    public int ThumbDeadzoneEnter
+    {
+        get => _thumbDeadzoneEnter;
+        set => _thumbDeadzoneEnter = value;
+    }
+
+    /// <summary>
+    /// 取得或設定搖桿離開死區閾值
+    /// </summary>
+    public int ThumbDeadzoneExit
+    {
+        get => _thumbDeadzoneExit;
+        set => _thumbDeadzoneExit = value;
+    }
 
     /// <summary>
     /// 觸發鍵閾值（XInput 標準：30）
@@ -127,6 +147,34 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? BackPressed;
 
     /// <summary>
+    /// 快取的裝置名稱
+    /// </summary>
+    private string _cachedDeviceName = string.Empty;
+
+    /// <summary>
+    /// 取得目前使用的裝置名稱（XInput 則回傳格式化後的 User Index）
+    /// </summary>
+    public string DeviceName => _cachedDeviceName;
+
+    /// <summary>
+    /// 更新快取的裝置名稱
+    /// </summary>
+    private void UpdateCachedDeviceName()
+    {
+        _cachedDeviceName = string.Format(Strings.App_Gamepad_XInput_Format, _userIndex);
+    }
+
+    /// <summary>
+    /// 當控制器連線狀態改變時觸發（true: 已連線, false: 已斷開）
+    /// </summary>
+    public event Action<bool>? ConnectionChanged;
+
+    /// <summary>
+    /// 取得目前是否已連線
+    /// </summary>
+    public bool IsConnected => _hasPreviousState;
+
+    /// <summary>
     /// 控制器 A 鍵
     /// </summary>
     public event Action? APressed;
@@ -140,6 +188,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 控制器 X 鍵
     /// </summary>
     public event Action? XPressed;
+
+    /// <summary>
+    /// 控制器 Y 鍵
+    /// </summary>
+    public event Action? YPressed;
 
     /// <summary>
     /// 控制器上鍵重複
@@ -207,7 +260,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private int _vibrationToken = 0;
 
     /// <summary>
-    /// GamepadController
+    /// 震動延遲任務的取消權杖來源
+    /// </summary>
+    private CancellationTokenSource? _vibrationCts;
+
+    /// <summary>
+    /// XInputGamepadController
     /// </summary>
     /// <param name="context">IInputContext</param>
     /// <param name="userIndex">控制器的 UserIndex，預設值為 0，有效值為 0~3。</param>
@@ -226,22 +284,15 @@ internal sealed partial class XInputGamepadController : IGamepadController
         _repeatSettings = repeatSettings ?? new();
         _repeatSettings.Validate();
 
-        // 從 AppSettings 載入死區設定。
         AppSettings settings = AppSettings.Current;
 
         _thumbDeadzoneEnter = settings.ThumbDeadzoneEnter;
+        _thumbDeadzoneExit = settings.ThumbDeadzoneExit;
 
-        // 防抖機制強制介入：
-        // 如果 Exit 設定得太靠近 Enter（兩者差距小於 4000），極易造成搖桿微小抖動時的連點誤判。
-        // 此時強制將 Exit 壓低至 2500，確保有足夠的遲滯緩衝區。
-        if (settings.ThumbDeadzoneExit >= _thumbDeadzoneEnter - 4000)
-        {
-            _thumbDeadzoneExit = Math.Min(2500, _thumbDeadzoneEnter / 2);
-        }
-        else
-        {
-            _thumbDeadzoneExit = settings.ThumbDeadzoneExit;
-        }
+        // 註冊至回饋服務以供緊急停止追蹤。
+        FeedbackService.RegisterController(this);
+
+        UpdateCachedDeviceName();
 
         StartPolling();
     }
@@ -266,21 +317,24 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private void StopPolling()
     {
+        // 取得目前的 CTS 並將欄位設為 null，確保只會由一個執行緒處理取消。
         CancellationTokenSource? cts = Interlocked.Exchange(ref _ctsPolling, null);
 
         if (cts != null)
         {
             try
             {
-                cts.Cancel();
+                // 發出取消訊號。
+                if (!cts.IsCancellationRequested)
+                {
+                    cts.Cancel();
+                }
+
+                cts.Dispose();
             }
             catch (ObjectDisposedException)
             {
                 // 已釋放則忽略。
-            }
-            finally
-            {
-                cts.Dispose();
             }
         }
     }
@@ -300,6 +354,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 背景輪詢迴圈
     /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>Task</returns>
     private async Task PollingLoopAsync(CancellationToken cancellationToken)
     {
         try
@@ -316,16 +372,28 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     break;
                 }
 
-                Poll();
+                // 將 try-catch 包裝在迴圈內部，防止 UI 尚未準備好時的跨執行緒例外殺死整個輪詢任務！
+                try
+                {
+                    Poll();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"XInput Poll 發生未預期錯誤：{ex.Message}");
+                }
             }
         }
         catch (OperationCanceledException)
         {
             // 這是預期中的行為：當 StopPolling 開啟 Cancel() 時會觸發此處。
         }
+        catch (ObjectDisposedException)
+        {
+            // Timer 已處置。
+        }
         catch (Exception ex)
         {
-            Debug.WriteLine($"輪詢迴圈發生錯誤：{ex.Message}");
+            Debug.WriteLine($"輪詢迴圈發生致命錯誤：{ex.Message}");
         }
     }
 
@@ -335,12 +403,21 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private void Poll()
     {
         // 嘗試讀取目前控制器狀態（本 Tick 只讀一次）。
-        uint result = Win32.XInputGetState(_userIndex, out Win32.XInputState currentState);
+        uint result = XInput.XInputGetState(_userIndex, out XInput.XInputState currentState);
 
         if (result != 0)
         {
+            if (_hasPreviousState)
+            {
+                _hasPreviousState = false;
+
+                // 斷線時立即重置所有按住狀態，防止邏輯鎖死。
+                ResetHoldStates();
+
+                ConnectionChanged?.Invoke(false);
+            }
+
             // 斷線狀態：執行降頻重連邏輯。
-            _hasPreviousState = false;
             _repeatCounter = 0;
             _repeatDirection = null;
 
@@ -357,7 +434,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 嘗試搜尋其他可用的控制器。
             for (uint i = 0; i < MaxControllerCount; i++)
             {
-                if (Win32.XInputGetState(i, out Win32.XInputState newState) == 0)
+                if (XInput.XInputGetState(i, out XInput.XInputState newState) == 0)
                 {
                     // 找到新的控制器，更新 Index。
                     _userIndex = i;
@@ -365,6 +442,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     _previousState = newState;
 
                     _hasPreviousState = true;
+
+                    UpdateCachedDeviceName();
+
+                    ConnectionChanged?.Invoke(true);
 
                     break;
                 }
@@ -374,48 +455,34 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
         else
         {
-            // 連線狀態：重置斷線計數器。
-            _reconnectCounter = 0;
+            if (!_hasPreviousState)
+            {
+                _hasPreviousState = true;
 
-            // 判斷目前控制器是否「無效」：雖然讀取成功，但完全沒反應（PacketNumber 沒變，且不是剛連線的第一幀）。
-            bool isIdle = _hasPreviousState && 
-                currentState.dwPacketNumber == _previousState.dwPacketNumber;
+                ConnectionChanged?.Invoke(true);
+            }
 
-            // 如果目前控制器「很安靜」，嘗試掃描其他控制器是否有訊號。
+            // 閒置偵測：若 PacketNumber 相同，代表搖桿與按鍵狀態完全沒變（完全閒置）
+            bool isIdle = _previousState.PacketNumber == currentState.PacketNumber;
+
             if (isIdle)
             {
-                for (uint i = 0; i < MaxControllerCount; i++)
+                _reconnectCounter++;
+
+                if (_reconnectCounter >= ReconnectThreshold)
                 {
-                    if (i == _userIndex)
+                    _reconnectCounter = 0;
+
+                    // 若掃描到並切換了新裝置，本幀提早結束，等待下一幀處理新裝置的狀態。
+                    if (ScanForActiveDevice())
                     {
-                        // 跳過自己。
-                        continue;
-                    }
-
-                    if (Win32.XInputGetState(i, out Win32.XInputState otherState) == 0)
-                    {
-                        // 只要連線且 PacketNumber > 0，通常就是活躍的實體控制器。
-                        if (otherState.dwPacketNumber != 0)
-                        {
-                            // 找到活躍的控制器！如果它有不同的封包，切換過去！
-                            if (!_hasPreviousState || 
-                                otherState.dwPacketNumber != _previousState.dwPacketNumber)
-                            {
-                                _userIndex = i;
-
-                                currentState = otherState;
-
-                                // 重置狀態，避免切換瞬間誤觸發。
-                                _hasPreviousState = false;
-
-                                _previousState = default;
-
-                                // 找到就跳出迴圈。
-                                break;
-                            }
-                        }
+                        return;
                     }
                 }
+            }
+            else
+            {
+                _reconnectCounter = 0;
             }
         }
 
@@ -427,48 +494,46 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             _repeatCounter = 0;
             _repeatDirection = null;
-
-            // 即使輸入不活躍，也更新狀態，避免重新啟用時瞬間觸發 Rising Edge。
-            _previousState = currentState;
             _hasPreviousState = true;
 
             return;
         }
 
         // 備註：
-        // dwPacketNumber 僅用於捷徑處理「狀態變更驅動」的邏輯。
+        // PacketNumber 僅用於捷徑處理「狀態變更驅動」的邏輯。
         // 即使控制器狀態未發生變化，仍必須持續執行「時間驅動」的行為（例如重複輸入、長按判斷）。
         bool isStateChanged = !_hasPreviousState ||
-            currentState.dwPacketNumber != _previousState.dwPacketNumber;
+            currentState.PacketNumber != _previousState.PacketNumber;
 
         // 檢查狀態是否改變。
         if (isStateChanged)
         {
             // 更新一般按鈕的「按住」狀態。
-            IsLeftShoulderHeld = currentState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_LEFT_SHOULDER);
-            IsRightShoulderHeld = currentState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_RIGHT_SHOULDER);
-            IsBackHeld = currentState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_BACK);
-            IsBHeld = currentState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_B);
+            IsLeftShoulderHeld = currentState.Has(XInput.GamepadButton.LeftShoulder);
+            IsRightShoulderHeld = currentState.Has(XInput.GamepadButton.RightShoulder);
+            IsBackHeld = currentState.Has(XInput.GamepadButton.Back);
+            IsBHeld = currentState.Has(XInput.GamepadButton.B);
 
             // 處理觸發鍵。
             // 更新「按住」狀態。
-            IsLeftTriggerHeld = currentState.Gamepad.bLeftTrigger > TriggerThreshold;
-            IsRightTriggerHeld = currentState.Gamepad.bRightTrigger > TriggerThreshold;
+            IsLeftTriggerHeld = currentState.Gamepad.LeftTrigger > TriggerThreshold;
+            IsRightTriggerHeld = currentState.Gamepad.RightTrigger > TriggerThreshold;
 
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_UP, UpPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_DOWN, DownPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_LEFT, LeftPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_RIGHT, RightPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_START, StartPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_BACK, BackPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_A, APressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_B, BPressed);
-            Detect(currentState, _previousState, Win32.GamepadButton.XINPUT_GAMEPAD_X, XPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.DpadUp, UpPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.DpadDown, DownPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.DpadLeft, LeftPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.DpadRight, RightPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.Start, StartPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.Back, BackPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.A, APressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.B, BPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
 
             // 偵測事件觸發（Rising Edge：原本沒按 -> 現在按了）。
             // 處理 LT。
             bool wasLtDownBefore = _hasPreviousState &&
-                _previousState.Gamepad.bLeftTrigger > TriggerThreshold;
+                _previousState.Gamepad.LeftTrigger > TriggerThreshold;
 
             if (IsLeftTriggerHeld &&
                 !wasLtDownBefore)
@@ -478,7 +543,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             // 處理 RT。
             bool wasRtDownBefore = _hasPreviousState &&
-                _previousState.Gamepad.bRightTrigger > TriggerThreshold;
+                _previousState.Gamepad.RightTrigger > TriggerThreshold;
 
             if (IsRightTriggerHeld &&
                 !wasRtDownBefore)
@@ -494,17 +559,61 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 掃描目前是否有其他正在活動的裝置，若有則切換
+    /// </summary>
+    /// <returns>是否有成功切換至新裝置</returns>
+    private bool ScanForActiveDevice()
+    {
+        for (uint i = 0; i < MaxControllerCount; i++)
+        {
+            // 略過目前正在使用的索引
+            if (i == _userIndex)
+            {
+                continue;
+            }
+
+            // 取得其他 Index 的狀態
+            if (XInput.XInputGetState(i, out XInput.XInputState state) == 0)
+            {
+                // 若其他控制器有明顯動作（按下按鈕、扳機超過閾值、搖桿超出基本死區）。
+                // 註：這裡的 8000 約為 XInput 類比搖桿（最大 32767）25% 的推動量。
+                if (state.Gamepad.Buttons != 0 ||
+                    state.Gamepad.LeftTrigger > TriggerThreshold ||
+                    state.Gamepad.RightTrigger > TriggerThreshold ||
+                    Math.Abs(state.Gamepad.ThumbLeftX) > 8000 ||
+                    Math.Abs(state.Gamepad.ThumbLeftY) > 8000 ||
+                    Math.Abs(state.Gamepad.ThumbRightX) > 8000 ||
+                    Math.Abs(state.Gamepad.ThumbRightY) > 8000)
+                {
+                    // 重置原本的按鍵狀態，避免按住的按鍵殘留。
+                    ResetHoldStates();
+
+                    // 切換過去。
+                    _userIndex = i;
+                    _hasPreviousState = false;
+
+                    UpdateCachedDeviceName();
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// 處裡重複
     /// </summary>
-    /// <param name="state">Win32.XInputState</param>
-    private void HandleRepeat(Win32.XInputState state)
+    /// <param name="state">XInput.XInputState</param>
+    private void HandleRepeat(XInput.XInputState state)
     {
         // 支援上下左右四個方向的長按重複判斷。
-        Win32.GamepadButton? gbCurrentDirection =
-            state.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_LEFT) ? Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_LEFT :
-            state.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_RIGHT) ? Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_RIGHT :
-            state.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_UP) ? Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_UP :
-            state.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_DOWN) ? Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_DOWN :
+        XInput.GamepadButton? gbCurrentDirection =
+            state.Has(XInput.GamepadButton.DpadLeft) ? XInput.GamepadButton.DpadLeft :
+            state.Has(XInput.GamepadButton.DpadRight) ? XInput.GamepadButton.DpadRight :
+            state.Has(XInput.GamepadButton.DpadUp) ? XInput.GamepadButton.DpadUp :
+            state.Has(XInput.GamepadButton.DpadDown) ? XInput.GamepadButton.DpadDown :
             null;
 
         // 沒有按方向鍵 → 重置狀態。
@@ -540,19 +649,19 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
 
         // 觸發對應的重複事件。
-        if (gbCurrentDirection == Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_LEFT)
+        if (gbCurrentDirection == XInput.GamepadButton.DpadLeft)
         {
             LeftRepeat?.Invoke();
         }
-        else if (gbCurrentDirection == Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_RIGHT)
+        else if (gbCurrentDirection == XInput.GamepadButton.DpadRight)
         {
             RightRepeat?.Invoke();
         }
-        else if (gbCurrentDirection == Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_UP)
+        else if (gbCurrentDirection == XInput.GamepadButton.DpadUp)
         {
             UpRepeat?.Invoke();
         }
-        else if (gbCurrentDirection == Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_DOWN)
+        else if (gbCurrentDirection == XInput.GamepadButton.DpadDown)
         {
             DownRepeat?.Invoke();
         }
@@ -566,9 +675,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <param name="gamepadButton">控制器按鍵</param>
     /// <param name="action">Action</param>
     private static void Detect(
-        in Win32.XInputState currentState,
-        in Win32.XInputState previousState,
-        Win32.GamepadButton gamepadButton,
+        in XInput.XInputState currentState,
+        in XInput.XInputState previousState,
+        XInput.GamepadButton gamepadButton,
         Action? action)
     {
         if (currentState.Has(gamepadButton) &&
@@ -586,8 +695,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
     {
         for (uint i = 0; i < 4; i++)
         {
-            // 開啟 Win32.XInputGetState，若回傳 0（ERROR_SUCCESS）代表該控制器已連接。
-            if (Win32.XInputGetState(i, out _) == 0)
+            // 開啟 XInput.XInputGetState，若回傳 0（ERROR_SUCCESS）代表該控制器已連接。
+            if (XInput.XInputGetState(i, out _) == 0)
             {
                 return i;
             }
@@ -600,16 +709,18 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 將左搖桿的類比輸入映射為 D-Pad 數位訊號
     /// </summary>
-    /// <param name="currentState">目前的 Win32.XInputState</param>
-    /// <param name="previousState">前一次的 Win32.XInputState（用於遲滯判斷）</param>
-    private void ApplyStickToButtons(ref Win32.XInputState currentState, Win32.XInputState previousState)
+    /// <param name="currentState">目前的 XInput.XInputState</param>
+    /// <param name="previousState">前一次的 XInput.XInputState（用於遲滯判斷）</param>
+    private void ApplyStickToButtons(
+        ref XInput.XInputState currentState,
+        XInput.XInputState previousState)
     {
         // 注意：previousState 包含了上一幀的「實體按鍵」+「虛擬搖桿按鍵」的結果，
         // 這正好符合我們需要的遲滯行為（保持狀態）。
-        bool wasLeft = previousState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_LEFT),
-            wasRight = previousState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_RIGHT),
-            wasUp = previousState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_UP),
-            wasDown = previousState.Has(Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_DOWN);
+        bool wasLeft = previousState.Has(XInput.GamepadButton.DpadLeft),
+            wasRight = previousState.Has(XInput.GamepadButton.DpadRight),
+            wasUp = previousState.Has(XInput.GamepadButton.DpadUp),
+            wasDown = previousState.Has(XInput.GamepadButton.DpadDown);
 
         // 決定閾值：
         // - 如果原本是 ON，使用較低的 Exit 閾值（讓它更容易保持 ON，不容易斷）。
@@ -620,27 +731,27 @@ internal sealed partial class XInputGamepadController : IGamepadController
             thresholdDown = wasDown ? _thumbDeadzoneExit : _thumbDeadzoneEnter;
 
         // 處理 X 軸（左右）。
-        if (currentState.Gamepad.sThumbLX < -thresholdLeft)
+        if (currentState.Gamepad.ThumbLeftX < -thresholdLeft)
         {
             // 搖桿向左 -> 視為按下 D-Pad Left。
-            currentState.Gamepad.wButtons |= (ushort)Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_LEFT;
+            currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadLeft;
         }
-        else if (currentState.Gamepad.sThumbLX > thresholdRight)
+        else if (currentState.Gamepad.ThumbLeftX > thresholdRight)
         {
             // 搖桿向右 -> 視為按下 D-Pad Right。
-            currentState.Gamepad.wButtons |= (ushort)Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_RIGHT;
+            currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadRight;
         }
 
         // 處理 Y 軸（上下）。
-        if (currentState.Gamepad.sThumbLY < -thresholdDown)
+        if (currentState.Gamepad.ThumbLeftY < -thresholdDown)
         {
             // 搖桿向下 -> 視為按下 D-Pad Down。
-            currentState.Gamepad.wButtons |= (ushort)Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_DOWN;
+            currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadDown;
         }
-        else if (currentState.Gamepad.sThumbLY > thresholdUp)
+        else if (currentState.Gamepad.ThumbLeftY > thresholdUp)
         {
             // 搖桿向上 -> 視為按下 D-Pad Up。
-            currentState.Gamepad.wButtons |= (ushort)Win32.GamepadButton.XINPUT_GAMEPAD_DPAD_UP;
+            currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadUp;
         }
     }
 
@@ -654,30 +765,62 @@ internal sealed partial class XInputGamepadController : IGamepadController
         ushort strength,
         int milliseconds = 60)
     {
+        // 捕獲目前的索引快照，確保開始與停止動作作用於同一個 Port。
+        uint userIndex = _userIndex;
+
         // 每次呼叫時產生一個新的通行證（Token）。
         int currentToken = Interlocked.Increment(ref _vibrationToken);
 
-        Win32.XInputVibration vibration = new()
+        // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
+        CancellationTokenSource newCts = new();
+
+        CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newCts);
+
+        if (oldCts != null)
         {
-            wLeftMotorSpeed = strength,
-            wRightMotorSpeed = strength
+            try
+            {
+                oldCts.Cancel();
+                oldCts.Dispose();
+            }
+            catch
+            {
+
+            }
+        }
+
+        CancellationToken token = newCts.Token;
+
+        XInput.XInputVibration vibration = new()
+        {
+            LeftMotorSpeed = strength,
+            RightMotorSpeed = strength
         };
 
-        _ = Win32.XInputSetState(_userIndex, ref vibration);
+        _ = XInput.XInputSetState(userIndex, in vibration);
 
-        await Task.Delay(milliseconds).ConfigureAwait(false);
+        try
+        {
+            await Task.Delay(milliseconds, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // 任務被新的震動請求或釋放動作取消。
+            return;
+        }
 
-        // 檢查：1. 是否已處置／2. 我的通行證是不是最新的？
-        // 如果通行證過期了（代表有新的震動蓋過去了），就不要去停止它。
+        // 檢查：
+        // 1. 是否已處置。
+        // 2. 我的通行證是不是最新的？
         if (_disposed ||
             currentToken != _vibrationToken)
         {
             return;
         }
 
-        Win32.XInputVibration stopVibration = default;
+        XInput.XInputVibration stopVibration = default;
 
-        _ = Win32.XInputSetState(_userIndex, ref stopVibration);
+        _ = XInput.XInputSetState(userIndex, in stopVibration);
     }
 
     /// <summary>
@@ -693,22 +836,29 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     public void Resume()
     {
-        if (_disposed)
-        {
-            return;
-        }
-
-        // 如果為 null（已停止）或已被取消，都重新啟動。
-        if (_ctsPolling == null ||
-            _ctsPolling.IsCancellationRequested)
+        if (!_disposed)
         {
             StartPolling();
         }
     }
 
     /// <summary>
+    /// 取得或設定連發設定
+    /// </summary>
+    public GamepadRepeatSettings RepeatSettings
+    {
+        get => _repeatSettings;
+        set
+        {
+            _repeatSettings.InitialDelayFrames = value.InitialDelayFrames;
+            _repeatSettings.IntervalFrames = value.IntervalFrames;
+        }
+    }
+
+    /// <summary>
     /// 非同步處置
     /// </summary>
+    /// <returns>ValueTask</returns>
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -717,6 +867,25 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
 
         _disposed = true;
+
+        // 取消註冊。
+        FeedbackService.UnregisterController(this);
+
+        // 取消震動任務。
+        CancellationTokenSource? vCts = Interlocked.Exchange(ref _vibrationCts, null);
+
+        if (vCts != null)
+        {
+            try
+            {
+                vCts.Cancel();
+                vCts.Dispose();
+            }
+            catch
+            {
+
+            }
+        }
 
         // 發出取消訊號。
         Task pollingTask = StopPollingAsync();
@@ -733,6 +902,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         // 停止震動與釋放資源。
         DisposeResources();
+
+        // 關鍵安全措施：解除所有事件訂閱。
+        ClearAllEvents();
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -747,8 +921,30 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         _disposed = true;
 
+        // 取消註冊。
+        FeedbackService.UnregisterController(this);
+
+        // 取消震動任務。
+        CancellationTokenSource? vCts = Interlocked.Exchange(ref _vibrationCts, null);
+        if (vCts != null)
+        {
+            try
+            {
+                vCts.Cancel();
+                vCts.Dispose();
+            }
+            catch
+            {
+
+            }
+        }
+
         // 發出取消訊號。
         StopPolling();
+
+        // 移除 GetAwaiter().GetResult() 避免在 UI 執行緒上發生死結。
+        // 背景輪詢任務會在收到取消訊號後自然結束，且接下來的 ClearAllEvents() 
+        // 能確保即使任務多執行一次，也不會觸發任何 UI 更新。
 
         // 清除所有事件訂閱。
         // 這是 Dispose() 中的關鍵安全措施：
@@ -758,6 +954,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         // 停止震動與釋放資源。
         DisposeResources();
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -766,13 +964,25 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private void DisposeResources()
     {
         // 停止震動。
-        Win32.XInputVibration stopVibration = default;
+        XInput.XInputVibration stopVibration = default;
 
-        _ = Win32.XInputSetState(_userIndex, ref stopVibration);
+        _ = XInput.XInputSetState(_userIndex, in stopVibration);
 
-        // 處置 Token Source。
-        _ctsPolling?.Dispose();
-        _ctsPolling = null;
+        // 此處不再呼叫 StopPolling，因為它已在 Dispose/DisposeAsync 中被呼叫過，
+        // 且 StopPolling 內部已包含原子處置邏輯。
+    }
+
+    /// <summary>
+    /// 重置所有按鍵按住狀態
+    /// </summary>
+    private void ResetHoldStates()
+    {
+        IsLeftShoulderHeld = false;
+        IsRightShoulderHeld = false;
+        IsLeftTriggerHeld = false;
+        IsRightTriggerHeld = false;
+        IsBackHeld = false;
+        IsBHeld = false;
     }
 
     /// <summary>
@@ -789,11 +999,13 @@ internal sealed partial class XInputGamepadController : IGamepadController
         APressed = null;
         BPressed = null;
         XPressed = null;
+        YPressed = null;
         UpRepeat = null;
         DownRepeat = null;
         LeftRepeat = null;
         RightRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
+        ConnectionChanged = null;
     }
 }

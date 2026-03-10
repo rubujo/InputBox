@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,84 +117,406 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="A11y_TBInputDesc" xml:space="preserve">
-    <value>クリップボードにコピーするテキストをここに入力します。</value>
-  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>入力ボックスのテキストをクリップボードにコピーします。</value>
-  </data>
-  <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>テキストを入力した後、コピーボタンを押してクリップボードにコピーします。</value>
-  </data>
-  <data name="A11y_TBInputName" xml:space="preserve">
-    <value>テキスト入力</value>
+    <comment>コピーボタンのアクセシビリティ記述。ボタンの機能（クリップボードへのコピー）を説明します。</comment>
   </data>
   <data name="A11y_BtnCopyName" xml:space="preserve">
     <value>クリップボードにコピー</value>
+    <comment>コピーボタンのアクセシビリティ名称ラベルです。</comment>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>先頭に到達したため、削除できません。</value>
+    <comment>アクセシビリティメッセージ。テキストの先頭でバックスペースを押して削除できなかった場合に再生されます。</comment>
+  </data>
+  <data name="A11y_Capture_Cancelled" xml:space="preserve">
+    <value>ホットキーのキャプチャをキャンセルしました。</value>
+    <comment>アクセシビリティメッセージ。ユーザーがホットキーのキャプチャをキャンセルしたときに再生されます。</comment>
+  </data>
+  <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
+    <value>ESC キーを押すとキャンセルされます。</value>
+    <comment>アクセシビリティメッセージ。ESC キーを押してキャプチャをキャンセルできることをユーザーに通知します。</comment>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>{0} を削除しました。</value>
+    <comment>1文字削除されたときに再生されるアクセシビリティメッセージ。{0} は削除された文字です。</comment>
+  </data>
+  <data name="A11y_CurrentValue" xml:space="preserve">
+    <value>現在の数値：{0}。</value>
+    <comment>アクセシビリティメッセージ。設定ダイアログでの現在の数値を表示します。{0} は現在の値です。</comment>
+  </data>
+  <data name="A11y_Hotkey_Captured" xml:space="preserve">
+    <value>ホットキーを {0} に設定しました。</value>
+    <comment>新しいホットキーが正常にキャプチャされたときに再生されるアクセシビリティメッセージ。{0} は設定されたホットキーの文字列です。</comment>
+  </data>
+  <data name="A11y_MainFormDesc" xml:space="preserve">
+    <value>テキスト空欄時はAまたはStartでキーボード起動、入力後はコピーして戻ります。Xで削除、十字キーで移動。Backで戻ります。LB+RB+Bでクイック戻る。キーボード：Enterでコピー/起動、Escでクリア、上下で履歴、Alt+Bで戻る。</value>
+    <comment>メインウィンドウの詳細なアクセシビリティ記述。各種コントローラーやキーボードの操作方法を説明します。</comment>
+  </data>
+  <data name="A11y_Returning" xml:space="preserve">
+    <value>前のウィンドウに戻っています。</value>
+    <comment>アクセシビリティメッセージ。アクション（コピーなど）が完了し、前のウィンドウにフォーカスを戻す準備ができたときに再生されます。</comment>
   </data>
   <data name="A11y_MainFormName" xml:space="preserve">
     <value>テキスト入力とコピー</value>
+    <comment>メインウィンドウのアクセシビリティ名称ラベルです。</comment>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>末尾に到達しました。</value>
+    <comment>アクセシビリティメッセージ。カーソルがテキストの末尾に到達したときに再生されます。</comment>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>最新の入力に戻りました。</value>
+    <comment>アクセシビリティメッセージ。履歴を移動して最新の入力に戻ったときに再生されます。</comment>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>これ以上古い履歴はありません。</value>
+    <comment>アクセシビリティメッセージ。履歴を一番古い項目まで遡り、それ以上記録がない場合に再生されます。</comment>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>先頭に到達しました。</value>
+    <comment>アクセシビリティメッセージ。カーソルがテキストの先頭に到達したときに再生されます。</comment>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>コピーするテキストがありません。</value>
+    <comment>アクセシビリティメッセージ。テキストが空の状態でコピーしようとしたときに再生されます。</comment>
+  </data>
+  <data name="A11y_TBInputDesc" xml:space="preserve">
+    <value>クリップボードにコピーするテキストをここに入力します。</value>
+    <comment>入力フィールドのアクセシビリティ記述。テキストの入力をユーザーに促します。</comment>
+  </data>
+  <data name="A11y_TBInputName" xml:space="preserve">
+    <value>テキスト入力</value>
+    <comment>テキスト入力フィールドのアクセシビリティ名称ラベルです。</comment>
+  </data>
+  <data name="A11y_Layout_Main" xml:space="preserve">
+    <value>メインレイアウト</value>
+    <comment>メインレイアウトコンテナのアクセシビリティラベルです。</comment>
+  </data>
+  <data name="A11y_Layout_Main_Desc" xml:space="preserve">
+    <value>テキスト入力と操作ボタンを含むメインコンテナ。</value>
+    <comment>メインレイアウトコンテナのアクセシビリティ記述です。</comment>
+  </data>
+  <data name="A11y_Layout_Input" xml:space="preserve">
+    <value>入力エリア</value>
+    <comment>入力エリアコンテナのアクセシビリティラベルです。</comment>
+  </data>
+  <data name="A11y_Layout_Input_Desc" xml:space="preserve">
+    <value>テキスト入力フィールドを含むコンテナ。</value>
+    <comment>入力エリアコンテナのアクセシビリティ記述です。</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
     <value>入力ボックス</value>
+    <comment>アプリケーション名。ウィンドウタイトルやメッセージダイアログで使用されます。</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>クリップボードにコピー</value>
+    <comment>コピーボタンのデフォルト表示テキストです。</comment>
+  </data>
+  <data name="Err_ConfigInvalid" xml:space="preserve">
+    <value>設定ファイルの形式が正しくないため、既定の設定で起動します。</value>
+    <comment>エラーメッセージ。設定ファイルが破損しているか形式が正しくない場合に表示されます。</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
     <value>グローバルショートカット {0} の登録に失敗しました。
 
 このアプリケーションが複数起動していないか、または他のアプリケーションがこのショートカットを使用していないか確認してください。</value>
-  </data>
-  <data name="Msg_Copied" xml:space="preserve">
-    <value>コピーしました</value>
-  </data>
-  <data name="Msg_CopyFail" xml:space="preserve">
-    <value>コピー失敗</value>
-  </data>
-  <data name="Pht_TBInput" xml:space="preserve">
-    <value>テキストを入力してください…</value>
-  </data>
-  <data name="Wrn_Title" xml:space="preserve">
-    <value>ご注意</value>
-  </data>
-  <data name="Err_ClipboardLocked" xml:space="preserve">
-    <value>クリップボードがロックされています。</value>
-  </data>
-  <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
-    <value>タッチキーボードが見つかりません。</value>
-  </data>
-  <data name="Err_ConfigInvalid" xml:space="preserve">
-    <value>設定ファイルの形式が正しくないため、既定の設定で起動します。</value>
+    <comment>詳細なエラーメッセージ。グローバルホットキーの登録に失敗した場合に表示されます。{0} は登録に失敗したホットキーです。</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
     <value>エラー</value>
+    <comment>エラーダイアログボックスのタイトルテキストです。</comment>
+  </data>
+  <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
+    <value>タッチキーボードが見つかりません。</value>
+    <comment>エラーメッセージ。システムのタッチキーボードを起動できない場合に表示されます。</comment>
+  </data>
+  <data name="Menu_CaptureKey" xml:space="preserve">
+    <value>キーのキャプチャ...</value>
+    <comment>右クリックメニュー項目。新しい起動キーのキャプチャを開始するために使用します。</comment>
+  </data>
+  <data name="Menu_CaptureKey_Desc" xml:space="preserve">
+    <value>キーボードで新しいキーのキャプチャを開始します。</value>
+    <comment>「キーのキャプチャ」メニュー項目のアクセシビリティ記述です。</comment>
+  </data>
+  <data name="Menu_ClearHistory" xml:space="preserve">
+    <value>履歴のクリア</value>
+    <comment>右クリックメニュー項目。入力履歴を消去するために使用します。</comment>
+  </data>
+  <data name="Menu_ClearHistory_Desc" xml:space="preserve">
+    <value>現在メモリにあるすべての入力記録を完全に消去します。</value>
+    <comment>「履歴のクリア」メニュー項目のアクセシビリティ記述です。</comment>
+  </data>
+  <data name="Menu_HotkeySettings" xml:space="preserve">
+    <value>ホットキーの設定</value>
+    <comment>ホットキー関連の設定用右クリックサブメニューの名称です。</comment>
+  </data>
+  <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
+    <value>入力ボックスを呼び出すためのグローバルホットキーを設定します。</value>
+    <comment>「ホットキーの設定」サブメニューのアクセシビリティ記述です。</comment>
+  </data>
+  <data name="Menu_PrivacyMode" xml:space="preserve">
+    <value>プライバシー モード</value>
+    <comment>右クリックメニュー項目。プライバシーモード（入力を記録しない）を切り替えるために使用します。</comment>
+  </data>
+  <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
+    <value>有効にすると、新しい入力は履歴に保存されません。</value>
+    <comment>「プライバシー モード」メニュー項目のアクセシビリティ記述です。</comment>
+  </data>
+  <data name="Mod_Alt" xml:space="preserve">
+    <value>Alt</value>
+    <comment>設定メニューにおける Alt 修飾キーの表示名称です。</comment>
+  </data>
+  <data name="Mod_Ctrl" xml:space="preserve">
+    <value>Ctrl</value>
+    <comment>設定メニューにおける Ctrl 修飾キーの表示名称です。</comment>
+  </data>
+  <data name="Mod_Shift" xml:space="preserve">
+    <value>Shift</value>
+    <comment>設定メニューにおける Shift 修飾キーの表示名称です。</comment>
+  </data>
+  <data name="Mod_Win" xml:space="preserve">
+    <value>Win</value>
+    <comment>設定メニューにおける Windows ロゴキー修飾キーの表示名称です。</comment>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>コピーしました</value>
+    <comment>コピー操作に成功した後に、ボタン上に一時的に表示される状態テキストです。</comment>
+  </data>
+  <data name="Msg_CopyFail" xml:space="preserve">
+    <value>コピー失敗</value>
+    <comment>コピー操作に失敗したときに、ボタン上に表示される状態テキストです。</comment>
+  </data>
+  <data name="Msg_HotkeyUpdated" xml:space="preserve">
+    <value>ホットキーを更新しました</value>
+    <comment>ホットキーの更新に成功した後に、ウィンドウタイトルまたはボタンに表示される状態メッセージです。</comment>
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>入力がクリアされました</value>
+    <comment>入力フィールドの内容がクリアされた後に表示される状態メッセージです。</comment>
   </data>
-  <data name="A11y_Nav_Top" xml:space="preserve">
-    <value>先頭に到達しました。</value>
+  <data name="Msg_PressAnyKey" xml:space="preserve">
+    <value>いずれかのキーを押してください...</value>
+    <comment>キャプチャモードに入ったときに、ユーザーにキーを押すよう促すメッセージです。</comment>
   </data>
-  <data name="A11y_Nav_Bottom" xml:space="preserve">
-    <value>末尾に到達しました。</value>
+  <data name="Pht_TBInput" xml:space="preserve">
+    <value>テキストを入力してください...</value>
+    <comment>入力フィールドが空のときに表示されるヒントテキスト（プレースホルダー）です。</comment>
   </data>
-  <data name="A11y_Nav_Oldest" xml:space="preserve">
-    <value>これ以上古い履歴はありません。</value>
+  <data name="Wrn_Title" xml:space="preserve">
+    <value>警告</value>
+    <comment>警告ダイアログボックスのタイトルテキストです。</comment>
   </data>
-  <data name="A11y_Nav_Newest" xml:space="preserve">
-    <value>最新の入力に戻りました。</value>
+  <data name="A11y_Gamepad_Connected" xml:space="preserve">
+    <value>コントローラー {0} が接続されました。</value>
+    <comment>アクセシビリティメッセージ。コントローラーの接続が検出されたときに再生されます。{0} はコントローラーのインデックスまたは名称です。</comment>
   </data>
-  <data name="A11y_History_Prefix" xml:space="preserve">
-    <value>履歴：{0}</value>
+  <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
+    <value>コントローラー {0} が切断されました。</value>
+    <comment>アクセシビリティメッセージ。コントローラーが切断されたときに再生されます。{0} はコントローラーのインデックスまたは名称です。</comment>
   </data>
-  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
-    <value>コピーするテキストがありません。</value>
+  <data name="A11y_Delete_Multiple" xml:space="preserve">
+    <value>{0} 文字を削除しました。</value>
+    <comment>アクセシビリティメッセージ。一度に複数の文字が削除されたときに再生されます。{0} は削除された文字数です。</comment>
   </data>
-  <data name="A11y_Delete_Char" xml:space="preserve">
-    <value>{0} を削除しました</value>
+  <data name="A11y_New_Line" xml:space="preserve">
+    <value>改行しました。</value>
+    <comment>アクセシビリティメッセージ。入力フィールドに改行が追加されたときに再生されます。</comment>
   </data>
-  <data name="A11y_Cannot_Delete" xml:space="preserve">
-    <value>これ以上削除できません。</value>
+  <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
+    <value>ホットキーの登録に失敗しました。以前の設定に戻しました。</value>
+    <comment>簡潔なエラーメッセージ。ホットキーの登録に失敗し、設定が戻された場合に表示されます。</comment>
+  </data>
+  <data name="A11y_Gamepad_Fallback" xml:space="preserve">
+    <value>GameInput の初期化に失敗しました。XInput 互換モードに切り替えました。</value>
+    <comment>アクセシビリティメッセージ。GameInput が使用できず、自動的に XInput 互換モードに切り替わったときに再生されます。</comment>
+  </data>
+  <data name="A11y_PrivacyMode_On" xml:space="preserve">
+    <value>プライバシーモードがオンになりました。</value>
+    <comment>アクセシビリティメッセージ。プライバシーモードが有効になったときに再生されます。</comment>
+  </data>
+  <data name="A11y_PrivacyMode_Off" xml:space="preserve">
+    <value>プライバシーモードがオフになりました。</value>
+    <comment>アクセシビリティメッセージ。プライバシーモードが無効になったときに再生されます。</comment>
+  </data>
+  <data name="A11y_History_Navigation" xml:space="preserve">
+    <value>履歴 {0} / {1}：{2}。</value>
+    <comment>履歴を移動する際に使用されるアクセシビリティメッセージです。{0} は現在のインデックス、{1} は総件数、{2} はその項目の内容です。</comment>
+  </data>
+  <data name="A11y_Startup_Status" xml:space="preserve">
+    <value>{0}起動ショートカット：{1}。</value>
+    <comment>起動時のアクセシビリティステータスの概要です。{0} はプライバシーモードの状態、{1} は現在の起動ホットキーです。</comment>
+  </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>設定</value>
+    <comment>各種詳細設定オプションを含む右クリックサブメニューの名称です。</comment>
+  </data>
+  <data name="Menu_Settings_Window" xml:space="preserve">
+    <value>ウィンドウと操作</value>
+    <comment>右クリックメニュー項目。ウィンドウと操作に関連する設定に移動するために使用します。</comment>
+  </data>
+  <data name="Menu_Settings_Feedback" xml:space="preserve">
+    <value>フィードバック</value>
+    <comment>右クリックメニュー項目。振動フィードバックに関連する設定に移動するために使用します。</comment>
+  </data>
+  <data name="Menu_Settings_Gamepad" xml:space="preserve">
+    <value>ゲームパッド</value>
+    <comment>右クリックメニュー項目。ゲームパッドに関連する設定に移動するために使用します。</comment>
+  </data>
+  <data name="Menu_Settings_Vibration" xml:space="preserve">
+    <value>振動</value>
+    <comment>右クリックメニュー項目。振動機能のオン/オフを切り替えるために使用します。</comment>
+  </data>
+  <data name="Menu_Settings_Intensity" xml:space="preserve">
+    <value>振動の強さ: {0}</value>
+    <comment>右クリックメニュー項目。振動の強さを表示および設定します。{0} は現在のパーセント値です。</comment>
+  </data>
+  <data name="Menu_Settings_Provider" xml:space="preserve">
+    <value>API プロバイダー</value>
+    <comment>右クリックメニュー項目。現在のコントローラー API プロバイダー情報を表示します。</comment>
+  </data>
+  <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
+    <value>履歴の保持数: {0}</value>
+    <comment>右クリックメニュー項目。履歴の保持数を表示および設定します。{0} は現在の保持数値です。</comment>
+  </data>
+  <data name="Settings_WindowRestoreDelay" xml:space="preserve">
+    <value>ウィンドウ復元遅延</value>
+    <comment>設定項目の名称。ウィンドウが復元される際の遅延時間を指します。</comment>
+  </data>
+  <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
+    <value>クリップボード再試行遅延</value>
+    <comment>設定項目の名称。クリップボードへのアクセスが失敗したときの再試行間隔を指します。</comment>
+  </data>
+  <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
+    <value>タッチキーボード終了遅延</value>
+    <comment>設定項目の名称。タッチキーボードが閉じる際の遅延時間を指します。</comment>
+  </data>
+  <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
+    <value>ウィンドウ切り替えバッファのベース</value>
+    <comment>設定項目の名称。ウィンドウ切り替え時の基礎的なバッファ時間を指します。</comment>
+  </data>
+  <data name="Settings_InputJitterRange" xml:space="preserve">
+    <value>入力ジッター範囲</value>
+    <comment>設定項目の名称。パッド入力時のランダムなジッター（ゆらぎ）の範囲を指します。</comment>
+  </data>
+  <data name="Settings_HistoryCapacity" xml:space="preserve">
+    <value>履歴の保持数</value>
+    <comment>設定項目の名称。履歴として保持される入力の最大件数を指します。</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
+    <value>スティックのデッドゾーン：ターゲット閾値</value>
+    <comment>設定項目の名称。スティックがデッドゾーン（反応しない範囲）に入ると判定される閾値を指します。</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
+    <value>スティックのデッドゾーン：リセット閾値</value>
+    <comment>設定項目の名称。スティックがデッドゾーンから抜けたと判定される閾値を指します。</comment>
+  </data>
+  <data name="Settings_RepeatDelay" xml:space="preserve">
+    <value>リピート遅延</value>
+    <comment>設定項目の名称。ゲームパッドのボタンを押し続けたときのリピート開始までの遅延時間を指します。</comment>
+  </data>
+  <data name="Settings_RepeatSpeed" xml:space="preserve">
+    <value>リピート速度</value>
+    <comment>設定項目の名称。ゲームパッドのボタンを押し続けたときのリピート速度を指します。</comment>
+  </data>
+  <data name="Msg_RestartRequired" xml:space="preserve">
+    <value>この変更を有効にするには再起動が必要です。今すぐ再起動しますか？</value>
+    <comment>提示メッセージ。一部の設定変更を反映させるためにアプリケーションの再起動が必要であることをユーザーに知らせます。</comment>
+  </data>
+  <data name="Msg_EnterValue" xml:space="preserve">
+    <value>{0}の新しい値を入力してください：</value>
+    <comment>数値入力ダイアログのプロンプトテキストです。{0} は設定中の項目名です。</comment>
+  </data>
+  <data name="Btn_OK" xml:space="preserve">
+    <value>OK</value>
+    <comment>ダイアログボックス内の確定ボタンのテキストです。</comment>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+    <comment>ダイアログボックス内のキャンセルボタンのテキストです。</comment>
+  </data>
+  <data name="Btn_SetDefault" xml:space="preserve">
+    <value>既定値にリセット</value>
+    <comment>ダイアログボックス内の「既定値に戻す」ボタンのテキストです。</comment>
+  </data>
+  <data name="Settings_VibrationIntensity" xml:space="preserve">
+    <value>振動の強さ</value>
+    <comment>設定項目の名称。振動の強さを調整するために使用します。</comment>
+  </data>
+  <data name="A11y_Menu_NumericDesc" xml:space="preserve">
+    <value>{0}。現在の値：{1}、範囲：{2} から {3} まで。</value>
+    <comment>数値型メニュー項目のアクセシビリティ記述テンプレートです。{0} は項目名、{1} は現在の値、{2} は最小値、{3} は最大値です。</comment>
+  </data>
+  <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
+    <value>{0}をホットキーの修飾キーとして切り替えます。</value>
+    <comment>修飾キー切り替え項目のアクセシビリティ記述です。{0} は修飾キーの名称です。</comment>
+  </data>
+  <data name="A11y_Value_Range_Desc" xml:space="preserve">
+    <value>現在の値：{0}。有効な範囲：{1} から {2} まで。</value>
+    <comment>数値入力フィールドのアクセシビリティ記述。有効な範囲情報を含みます。{0} は現在の値、{1} は最小値、{2} は最大値です。</comment>
+  </data>
+  <data name="A11y_Btn_OK_Desc" xml:space="preserve">
+    <value>現在の値を確定して適用します。</value>
+    <comment>確定（OK）ボタンのアクセシビリティ記述です。</comment>
+  </data>
+  <data name="A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>変更を破棄してダイアログを閉じます。</value>
+    <comment>キャンセルボタンのアクセシビリティ記述です。</comment>
+  </data>
+  <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
+    <value>値を初期設定のリセットします。デフォルト：{0}。</value>
+    <comment>既定値リセットボタンのアクセシビリティ記述です。{0} はその項目の工場出荷時の既定値です。</comment>
+  </data>
+  <data name="A11y_Mod_On" xml:space="preserve">
+    <value>{0} がオンになりました。</value>
+    <comment>アクセシビリティメッセージ。修飾キーが有効になったときに再生されます。{0} は修飾キーの名前です。</comment>
+  </data>
+  <data name="A11y_Mod_Off" xml:space="preserve">
+    <value>{0} がオフになりました。</value>
+    <comment>アクセシビリティメッセージ。修飾キーが無効になったときに再生されます。{0} は修飾キーの名前です。</comment>
+  </data>
+  <data name="A11y_Mod_Key_Missing" xml:space="preserve">
+    <value>（メインキーが設定されていません）</value>
+    <comment>アクセシビリティメッセージ。起動用のメインキーがまだ設定されていないことをユーザーに通知します。</comment>
+  </data>
+  <data name="A11y_Clipboard_Retrying" xml:space="preserve">
+    <value>クリップボードが使用中です。再試行しています...</value>
+    <comment>アクセシビリティメッセージ。クリップボードが他で使用中で、自動的に再試行しているときに再生されます。</comment>
+  </data>
+  <data name="A11y_Cancelled" xml:space="preserve">
+    <value>操作がキャンセルされました。</value>
+    <comment>アクセシビリティメッセージ。一般的な操作がキャンセルされたときに再生されます。</comment>
+  </data>
+  <data name="A11y_Opening_Keyboard" xml:space="preserve">
+    <value>タッチキーボードを開いています。</value>
+    <comment>アクセシビリティメッセージ。タッチキーボードを起動する準備をしているときに再生されます。</comment>
+  </data>
+  <data name="App_Privacy_Suffix" xml:space="preserve">
+    <value> (🔒)</value>
+    <comment>プライバシーモードがオンのときに、ウィンドウタイトルの後ろに付加されるアイコン記号です。</comment>
+  </data>
+  <data name="App_Gamepad_Suffix" xml:space="preserve">
+    <value>GameInput：{0}</value>
+    <comment>ウィンドウタイトルに表示されるコントローラー情報です。{0} はコントローラーの名称です。</comment>
+  </data>
+  <data name="App_Gamepad_XInput_Format" xml:space="preserve">
+    <value>XInput：{0}</value>
+    <comment>XInput デバイスの名称形式です。{0} はコントローラーのインデックス番号です。</comment>
+  </data>
+  <data name="A11y_Background_Error" xml:space="preserve">
+    <value>バックグラウンドタスク エラー：{0}</value>
+    <comment>アクセシビリティメッセージ。バックグラウンドタスクのエラーを報告します。{0} は詳細なエラー情報内容です。</comment>
+  </data>
+  <data name="A11y_ButtonArea" xml:space="preserve">
+    <value>操作ボタンエリア</value>
+    <comment>メインボタンエリアのアクセシビリティグループラベルの名称です。</comment>
+  </data>
+  <data name="Menu_Exit" xml:space="preserve">
+    <value>終了</value>
+    <comment>右クリックメニュー項目。アプリケーションを終了するために使用します。</comment>
+  </data>
+  <data name="A11y_TargetWindowLost" xml:space="preserve">
+    <value>切り替えられません：対象のウィンドウが閉じられています。</value>
+    <comment>前のウィンドウに戻ろうとしたが、そのウィンドウが既に閉じられている場合の音声プロンプト。</comment>
   </data>
 </root>

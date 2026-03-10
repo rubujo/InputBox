@@ -13,13 +13,13 @@ internal sealed class GamepadRepeatSettings
     /// 初始延遲
     /// <para>約 320ms（20 * 16ms）</para>
     /// </summary>
-    public int InitialDelayFrames { get; init; } = 20;
+    public int InitialDelayFrames { get; set; } = 20;
 
     /// <summary>
     /// Repeat 速度
     /// <para>約 48ms（3 * 16ms）</para>
     /// </summary>
-    public int IntervalFrames { get; init; } = 3;
+    public int IntervalFrames { get; set; } = 3;
 
     /// <summary>
     /// 驗證

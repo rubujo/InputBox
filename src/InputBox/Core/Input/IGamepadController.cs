@@ -6,6 +6,21 @@
 internal interface IGamepadController : IDisposable, IAsyncDisposable
 {
     /// <summary>
+    /// 取得目前使用的裝置名稱
+    /// </summary>
+    string DeviceName { get; }
+
+    /// <summary>
+    /// 當控制器連線狀態改變時觸發（true: 已連線, false: 已斷開）
+    /// </summary>
+    event Action<bool>? ConnectionChanged;
+
+    /// <summary>
+    /// 取得目前是否已連線
+    /// </summary>
+    bool IsConnected { get; }
+
+    /// <summary>
     /// 控制器上鍵按下事件
     /// </summary>
     event Action? UpPressed;
@@ -49,6 +64,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     /// 控制器 X 鍵按下事件
     /// </summary>
     event Action? XPressed;
+
+    /// <summary>
+    /// 控制器 Y 鍵按下事件
+    /// </summary>
+    event Action? YPressed;
 
     /// <summary>
     /// 控制器上鍵重複事件
@@ -114,7 +134,7 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     /// 讓控制器震動
     /// </summary>
     /// <param name="strength">強度</param>
-    /// <param name="milliseconds">持續時間（毫秒）</param>
+    /// <param name="milliseconds">持續時間（毫秒），預設值為 60 毫秒</param>
     /// <returns>Task。</returns>
     Task VibrateAsync(ushort strength, int milliseconds = 60);
 
@@ -127,4 +147,19 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     /// 恢復輪詢
     /// </summary>
     void Resume();
+
+    /// <summary>
+    /// 取得或設定連發設定
+    /// </summary>
+    GamepadRepeatSettings RepeatSettings { get; set; }
+
+    /// <summary>
+    /// 取得或設定搖桿進入死區閾值
+    /// </summary>
+    int ThumbDeadzoneEnter { get; set; }
+
+    /// <summary>
+    /// 取得或設定搖桿離開死區閾值
+    /// </summary>
+    int ThumbDeadzoneExit { get; set; }
 }

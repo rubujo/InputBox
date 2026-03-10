@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,84 +117,406 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="A11y_TBInputDesc" xml:space="preserve">
-    <value>請在此輸入要複製到剪貼簿的文字。</value>
-  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
-    <value>將文字方塊中的文字複製到剪貼簿。</value>
-  </data>
-  <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>輸入文字後，可按下按鈕將內容複製到剪貼簿。</value>
-  </data>
-  <data name="A11y_TBInputName" xml:space="preserve">
-    <value>輸入文字</value>
+    <value>將輸入框中的文字複製到剪貼簿。</value>
+    <comment>複製按鈕的無障礙描述，解釋按鈕的功能（複製到剪貼簿）。</comment>
   </data>
   <data name="A11y_BtnCopyName" xml:space="preserve">
     <value>複製到剪貼簿</value>
+    <comment>複製按鈕的無障礙名稱標籤。</comment>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>已到開頭，無法刪除。</value>
+    <comment>無障礙訊息，當在文字開頭按下退格鍵無法刪除時播放。</comment>
+  </data>
+  <data name="A11y_Capture_Cancelled" xml:space="preserve">
+    <value>已取消快速鍵擷取。</value>
+    <comment>無障礙訊息，當使用者取消快速鍵擷取流程時播放。</comment>
+  </data>
+  <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
+    <value>按下 ESC 鍵可取消。</value>
+    <comment>無障礙訊息，提示使用者可以按下 ESC 鍵來取消擷取。</comment>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>已刪除 {0}。</value>
+    <comment>無障礙訊息，當刪除單一字元時播放。{0} 是被刪除的字元。</comment>
+  </data>
+  <data name="A11y_CurrentValue" xml:space="preserve">
+    <value>目前數值：{0}。</value>
+    <comment>無障礙訊息，顯示設定對話框中的目前數值。{0} 是目前的值。</comment>
+  </data>
+  <data name="A11y_Hotkey_Captured" xml:space="preserve">
+    <value>快速鍵已設定為 {0}。</value>
+    <comment>無障礙訊息，當新的快速鍵擷取成功時播放。{0} 是設定後的快速鍵字串。</comment>
+  </data>
+  <data name="A11y_MainFormDesc" xml:space="preserve">
+    <value>空文字時按 A 或 Start 開啟鍵盤，有文字時複製並返回。按 X 刪除，方向鍵移動游標或歷程記錄。按 Back 返回。LB+RB+B 快速返回。鍵盤：Enter 複製/開啟，Esc 清除，上下鍵切換歷程記錄，Alt+B 返回。</value>
+    <comment>主視窗的無障礙詳細描述，解釋各種控制器與鍵盤的操作方式。</comment>
+  </data>
+  <data name="A11y_Returning" xml:space="preserve">
+    <value>正在返回前一個視窗。</value>
+    <comment>無障礙訊息，當執行完動作（如複製）並準備返回前一個視窗時播放。</comment>
   </data>
   <data name="A11y_MainFormName" xml:space="preserve">
     <value>文字輸入與複製</value>
+    <comment>主視窗的無障礙名稱標籤。</comment>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>已到底部。</value>
+    <comment>無障礙訊息，當游標移動到文字末尾時播放。</comment>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>已回到最新輸入。</value>
+    <comment>無障礙訊息，當瀏覽歷程記錄並回到最新一筆輸入時播放。</comment>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>沒有更舊的歷程記錄。</value>
+    <comment>無障礙訊息，當瀏覽歷程記錄到最舊一筆且無更多記錄時播放。</comment>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>已到頂部。</value>
+    <comment>無障礙訊息，當游標移動到文字開頭時播放。</comment>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>沒有文字可供複製。</value>
+    <comment>無障礙訊息，當嘗試複製空文字時播放。</comment>
+  </data>
+  <data name="A11y_TBInputDesc" xml:space="preserve">
+    <value>請在此輸入要複製到剪貼簿的文字。</value>
+    <comment>輸入框的無障礙描述，引導使用者輸入文字內容。</comment>
+  </data>
+  <data name="A11y_TBInputName" xml:space="preserve">
+    <value>輸入文字</value>
+    <comment>輸入框的無障礙名稱標籤。</comment>
+  </data>
+  <data name="A11y_Layout_Main" xml:space="preserve">
+    <value>主要版面</value>
+    <comment>主要佈局容器的無障礙標籤。</comment>
+  </data>
+  <data name="A11y_Layout_Main_Desc" xml:space="preserve">
+    <value>包含文字輸入與操作按鈕的主要容器。</value>
+    <comment>主要佈局容器的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Layout_Input" xml:space="preserve">
+    <value>輸入區</value>
+    <comment>輸入區域容器的無障礙標籤。</comment>
+  </data>
+  <data name="A11y_Layout_Input_Desc" xml:space="preserve">
+    <value>包含文字輸入欄位的容器。</value>
+    <comment>輸入區域容器的無障礙描述。</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
     <value>輸入框</value>
+    <comment>應用程式名稱，用於視窗標題與訊息對話框。</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>複製到剪貼簿</value>
+    <comment>複製按鈕的預設顯示文字。</comment>
+  </data>
+  <data name="Err_ConfigInvalid" xml:space="preserve">
+    <value>設定檔格式錯誤，將以預設值啟動。</value>
+    <comment>錯誤訊息，當設定檔損壞或格式不正確時顯示。</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
     <value>全域快速鍵 {0} 註冊失敗。
 
-請注意是否有同時執行多個本應用程式的執行個體，或是有其他應用程式已經註冊使用此組快速鍵。</value>
-  </data>
-  <data name="Msg_Copied" xml:space="preserve">
-    <value>已複製</value>
-  </data>
-  <data name="Msg_CopyFail" xml:space="preserve">
-    <value>複製失敗</value>
-  </data>
-  <data name="Pht_TBInput" xml:space="preserve">
-    <value>請輸入文字……</value>
-  </data>
-  <data name="Wrn_Title" xml:space="preserve">
-    <value>警告</value>
-  </data>
-  <data name="Err_ClipboardLocked" xml:space="preserve">
-    <value>剪貼簿已鎖定。</value>
-  </data>
-  <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
-    <value>找不到觸控式鍵盤。</value>
-  </data>
-  <data name="Err_ConfigInvalid" xml:space="preserve">
-    <value>設定檔格式錯誤，將以預設值啟動。</value>
+請確認沒有同時執行多個此應用程式，或是有其他程式已佔用此快速鍵。</value>
+    <comment>詳細錯誤訊息，當全域快速鍵註冊失敗時顯示。{0} 是嘗試註冊的快速鍵。</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
     <value>錯誤</value>
+    <comment>錯誤對話框的標題文字。</comment>
+  </data>
+  <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
+    <value>找不到觸控式鍵盤。</value>
+    <comment>錯誤訊息，當無法啟動系統觸控鍵盤時顯示。</comment>
+  </data>
+  <data name="Menu_CaptureKey" xml:space="preserve">
+    <value>擷取主要按鍵...</value>
+    <comment>右鍵選單項目，用於開始擷取新的喚醒按鍵。</comment>
+  </data>
+  <data name="Menu_CaptureKey_Desc" xml:space="preserve">
+    <value>開始從鍵盤擷取新的喚醒按鍵。</value>
+    <comment>擷取按鍵選單項目的無障礙描述。</comment>
+  </data>
+  <data name="Menu_ClearHistory" xml:space="preserve">
+    <value>清除歷程記錄</value>
+    <comment>右鍵選單項目，用於清空輸入歷程記錄。</comment>
+  </data>
+  <data name="Menu_ClearHistory_Desc" xml:space="preserve">
+    <value>永久清空目前記憶體中的所有輸入記錄。</value>
+    <comment>清除歷程記錄選單項目的無障礙描述。</comment>
+  </data>
+  <data name="Menu_HotkeySettings" xml:space="preserve">
+    <value>快速鍵設定</value>
+    <comment>右鍵選單子選單名稱，用於快速鍵相關設定。</comment>
+  </data>
+  <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
+    <value>配置用於喚醒輸入框的全域快速鍵組合。</value>
+    <comment>快速鍵設定子選單的無障礙描述。</comment>
+  </data>
+  <data name="Menu_PrivacyMode" xml:space="preserve">
+    <value>隱私模式</value>
+    <comment>右鍵選單項目，用於切換隱私模式（不記錄輸入）。</comment>
+  </data>
+  <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
+    <value>開啟時，新的輸入內容將不會存入歷程記錄。</value>
+    <comment>隱私模式選單項目的無障礙描述。</comment>
+  </data>
+  <data name="Mod_Alt" xml:space="preserve">
+    <value>Alt</value>
+    <comment>設定選單中 Alt 修飾鍵的顯示名稱。</comment>
+  </data>
+  <data name="Mod_Ctrl" xml:space="preserve">
+    <value>Ctrl</value>
+    <comment>設定選單中 Ctrl 修飾鍵的顯示名稱。</comment>
+  </data>
+  <data name="Mod_Shift" xml:space="preserve">
+    <value>Shift</value>
+    <comment>設定選單中 Shift 修飾鍵的顯示名稱。</comment>
+  </data>
+  <data name="Mod_Win" xml:space="preserve">
+    <value>Win</value>
+    <comment>設定選單中 Windows 標誌鍵修飾鍵的顯示名稱。</comment>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>已複製</value>
+    <comment>成功複製後，按鈕上暫時顯示的狀態文字。</comment>
+  </data>
+  <data name="Msg_CopyFail" xml:space="preserve">
+    <value>複製失敗</value>
+    <comment>複製失敗後，按鈕上顯示的狀態文字。</comment>
+  </data>
+  <data name="Msg_HotkeyUpdated" xml:space="preserve">
+    <value>快速鍵已更新</value>
+    <comment>快速鍵更新成功後，在視窗標題或按鈕上顯示的狀態訊息。</comment>
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>輸入已清除</value>
+    <comment>輸入框內容清除後顯示的狀態訊息。</comment>
   </data>
-  <data name="A11y_Nav_Top" xml:space="preserve">
-    <value>已到頂端。</value>
+  <data name="Msg_PressAnyKey" xml:space="preserve">
+    <value>請按下任意按鍵...</value>
+    <comment>進入擷取模式時，提示使用者按下按鍵的訊息。</comment>
   </data>
-  <data name="A11y_Nav_Bottom" xml:space="preserve">
-    <value>已到底部。</value>
+  <data name="Pht_TBInput" xml:space="preserve">
+    <value>輸入文字…</value>
+    <comment>輸入框為空時顯示的提示文字（佔位符）。</comment>
   </data>
-  <data name="A11y_Nav_Oldest" xml:space="preserve">
-    <value>沒有更舊的記錄</value>
+  <data name="Wrn_Title" xml:space="preserve">
+    <value>警告</value>
+    <comment>警告對話框的標題文字。</comment>
   </data>
-  <data name="A11y_Nav_Newest" xml:space="preserve">
-    <value>已回到最新輸入。</value>
+  <data name="A11y_Gamepad_Connected" xml:space="preserve">
+    <value>控制器 {0} 已連線。</value>
+    <comment>無障礙訊息，當偵測到控制器連線時播放。{0} 是控制器的編號或名稱。</comment>
   </data>
-  <data name="A11y_History_Prefix" xml:space="preserve">
-    <value>歷史記錄：{0}</value>
+  <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
+    <value>控制器 {0} 已斷開。</value>
+    <comment>無障礙訊息，當控制器斷開連線時播放。{0} 是控制器的編號或名稱。</comment>
   </data>
-  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
-    <value>沒有可以複製的文字</value>
+  <data name="A11y_Delete_Multiple" xml:space="preserve">
+    <value>已刪除 {0} 個字元。</value>
+    <comment>無障礙訊息，當一次刪除多個字元時播放。{0} 是被刪除的字元數量。</comment>
   </data>
-  <data name="A11y_Delete_Char" xml:space="preserve">
-    <value>刪除 {0}</value>
+  <data name="A11y_New_Line" xml:space="preserve">
+    <value>已換行。</value>
+    <comment>無障礙訊息，當在輸入框中加入新行時播放。</comment>
   </data>
-  <data name="A11y_Cannot_Delete" xml:space="preserve">
-    <value>無法刪除，已在最前面。</value>
+  <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
+    <value>快速鍵註冊失敗，已還原至先前設定。</value>
+    <comment>簡短錯誤訊息，當快速鍵註冊失敗並還原先前設定時顯示。</comment>
+  </data>
+  <data name="A11y_Gamepad_Fallback" xml:space="preserve">
+    <value>GameInput 初始化失敗，已切換至 XInput 相容模式。</value>
+    <comment>無障礙訊息，當 GameInput 無法使用並自動切換到 XInput 相容模式時播放。</comment>
+  </data>
+  <data name="A11y_PrivacyMode_On" xml:space="preserve">
+    <value>隱私模式已開啟。</value>
+    <comment>無障礙訊息，當開啟隱私模式時播放。</comment>
+  </data>
+  <data name="A11y_PrivacyMode_Off" xml:space="preserve">
+    <value>隱私模式已關閉。</value>
+    <comment>無障礙訊息，當關閉隱私模式時播放。</comment>
+  </data>
+  <data name="A11y_History_Navigation" xml:space="preserve">
+    <value>歷程記錄第 {0} 筆，共 {1} 筆：{2}</value>
+    <comment>無障礙訊息，用於在歷程記錄間瀏覽時播放。{0} 是目前索引，{1} 是總筆數，{2} 是該筆內容。</comment>
+  </data>
+  <data name="A11y_Startup_Status" xml:space="preserve">
+    <value>{0}喚醒快速鍵為：{1}。</value>
+    <comment>啟動時的無障礙狀態摘要。{0} 是隱私模式狀態，{1} 是目前的喚醒快速鍵。</comment>
+  </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>設定</value>
+    <comment>右鍵選單子選單名稱，包含各種進階設定選項。</comment>
+  </data>
+  <data name="Menu_Settings_Window" xml:space="preserve">
+    <value>視窗與操作</value>
+    <comment>右鍵選單項目，用於進入視窗與操作相關設定。</comment>
+  </data>
+  <data name="Menu_Settings_Feedback" xml:space="preserve">
+    <value>回饋</value>
+    <comment>右鍵選單項目，用於進入震動回饋相關設定。</comment>
+  </data>
+  <data name="Menu_Settings_Gamepad" xml:space="preserve">
+    <value>遊戲手把</value>
+    <comment>右鍵選單項目，用於進入遊戲手把相關設定。</comment>
+  </data>
+  <data name="Menu_Settings_Vibration" xml:space="preserve">
+    <value>震動</value>
+    <comment>右鍵選單項目，用於切換震動功能開關。</comment>
+  </data>
+  <data name="Menu_Settings_Intensity" xml:space="preserve">
+    <value>震動強度: {0}</value>
+    <comment>右鍵選單項目，顯示並設定震動強度。{0} 是目前的百分比數值。</comment>
+  </data>
+  <data name="Menu_Settings_Provider" xml:space="preserve">
+    <value>控制器 API</value>
+    <comment>右鍵選單項目，顯示目前的控制器 API 供應商資訊。</comment>
+  </data>
+  <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
+    <value>歷程記錄容量: {0}</value>
+    <comment>右鍵選單項目，顯示並設定歷程記錄容量。{0} 是目前的容量數值。</comment>
+  </data>
+  <data name="Settings_WindowRestoreDelay" xml:space="preserve">
+    <value>視窗還原延遲</value>
+    <comment>設定項目名稱，指視窗還原時的延遲時間。</comment>
+  </data>
+  <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
+    <value>剪貼簿重試間隔</value>
+    <comment>設定項目名稱，指剪貼簿存取失敗時的重試間隔。</comment>
+  </data>
+  <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
+    <value>觸控鍵盤關閉延遲</value>
+    <comment>設定項目名稱，指觸控鍵盤關閉時的延遲時間。</comment>
+  </data>
+  <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
+    <value>視窗切換緩衝時間</value>
+    <comment>設定項目名稱，指視窗切換時的基礎緩衝時間。</comment>
+  </data>
+  <data name="Settings_InputJitterRange" xml:space="preserve">
+    <value>隨機抖動範圍</value>
+    <comment>設定項目名稱，指手把輸入時的隨機抖動範圍。</comment>
+  </data>
+  <data name="Settings_HistoryCapacity" xml:space="preserve">
+    <value>歷程記錄容量</value>
+    <comment>設定項目名稱，指歷程記錄的筆數限制。</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
+    <value>搖桿死區：觸發閾值</value>
+    <comment>設定項目名稱，指搖桿進入死區的觸發閾值。</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
+    <value>搖桿死區：重置閾值</value>
+    <comment>設定項目名稱，指搖桿離開死區的重置閾值。</comment>
+  </data>
+  <data name="Settings_RepeatDelay" xml:space="preserve">
+    <value>重複輸入延遲</value>
+    <comment>設定項目名稱，指手把按鍵重複輸入的延遲時間。</comment>
+  </data>
+  <data name="Settings_RepeatSpeed" xml:space="preserve">
+    <value>重複輸入速度</value>
+    <comment>設定項目名稱，指手把按鍵重複輸入的速度。</comment>
+  </data>
+  <data name="Msg_RestartRequired" xml:space="preserve">
+    <value>此變更需要重啟程式才能生效。是否立即重啟？</value>
+    <comment>提示訊息，告知使用者某些設定變更需要重啟程式才能生效。</comment>
+  </data>
+  <data name="Msg_EnterValue" xml:space="preserve">
+    <value>請輸入{0}的新數值：</value>
+    <comment>數值輸入對話框的提示文字。{0} 是正在設定的項目名稱。</comment>
+  </data>
+  <data name="Btn_OK" xml:space="preserve">
+    <value>確定</value>
+    <comment>對話框中的確定按鈕文字。</comment>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>取消</value>
+    <comment>對話框中的取消按鈕文字。</comment>
+  </data>
+  <data name="Btn_SetDefault" xml:space="preserve">
+    <value>重設為預設值</value>
+    <comment>對話框中的重設預設值按鈕文字。</comment>
+  </data>
+  <data name="Settings_VibrationIntensity" xml:space="preserve">
+    <value>震動強度</value>
+    <comment>設定項目名稱，用於調整震動強度。</comment>
+  </data>
+  <data name="A11y_Menu_NumericDesc" xml:space="preserve">
+    <value>{0}。目前值：{1}，範圍：{2} 至 {3}。</value>
+    <comment>數值型選單項目的無障礙描述範本。{0} 是項目名稱，{1} 是目前值，{2} 是最小值，{3} 是最大值。</comment>
+  </data>
+  <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
+    <value>切換使用 {0} 作為喚醒快速鍵的修飾鍵。</value>
+    <comment>修飾鍵切換項目的無障礙描述。{0} 是修飾鍵的名稱。</comment>
+  </data>
+  <data name="A11y_Value_Range_Desc" xml:space="preserve">
+    <value>目前值：{0}。有效範圍：{1} 至 {2}。</value>
+    <comment>數值輸入框的無障礙描述，包含有效範圍資訊。{0} 是目前值，{1} 是最小值，{2} 是最大值。</comment>
+  </data>
+  <data name="A11y_Btn_OK_Desc" xml:space="preserve">
+    <value>確認並套用目前的值。</value>
+    <comment>確定按鈕的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>放棄變更並關閉對話框。</value>
+    <comment>取消按鈕的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
+    <value>將數值重設為預設值：{0}。</value>
+    <comment>重設預設值按鈕的無障礙描述。{0} 是該項目的出廠預設值。</comment>
+  </data>
+  <data name="A11y_Mod_On" xml:space="preserve">
+    <value>{0} 已開啟。</value>
+    <comment>無障礙訊息，當修飾鍵被啟用時播放。{0} 是修飾鍵名稱。</comment>
+  </data>
+  <data name="A11y_Mod_Off" xml:space="preserve">
+    <value>{0} 已關閉。</value>
+    <comment>無障礙訊息，當修飾鍵被停用時播放。{0} 是修飾鍵名稱。</comment>
+  </data>
+  <data name="A11y_Mod_Key_Missing" xml:space="preserve">
+    <value>（尚未設定主按鍵）</value>
+    <comment>無障礙訊息，提醒使用者尚未設定主喚醒按鍵。</comment>
+  </data>
+  <data name="A11y_Clipboard_Retrying" xml:space="preserve">
+    <value>剪貼簿忙碌中，正在重試...</value>
+    <comment>無障礙訊息，當剪貼簿被佔用正在自動重試時播放。</comment>
+  </data>
+  <data name="A11y_Cancelled" xml:space="preserve">
+    <value>已取消操作。</value>
+    <comment>無障礙訊息，當一般操作被取消時播放。</comment>
+  </data>
+  <data name="A11y_Opening_Keyboard" xml:space="preserve">
+    <value>正在開啟觸控式鍵盤。</value>
+    <comment>無障礙訊息，當準備啟動觸控鍵盤時播放。</comment>
+  </data>
+  <data name="App_Privacy_Suffix" xml:space="preserve">
+    <value> (🔒)</value>
+    <comment>隱私模式開啟時，附加在視窗標題後的圖示標記。</comment>
+  </data>
+  <data name="App_Gamepad_Suffix" xml:space="preserve">
+    <value>GameInput：{0}</value>
+    <comment>視窗標題顯示的控制器資訊。{0} 是控制器的名稱。</comment>
+  </data>
+  <data name="App_Gamepad_XInput_Format" xml:space="preserve">
+    <value>XInput：{0}</value>
+    <comment>XInput 裝置的名稱格式。{0} 是控制器的索引編號。</comment>
+  </data>
+  <data name="A11y_Background_Error" xml:space="preserve">
+    <value>背景工作發生錯誤：{0}</value>
+    <comment>無障礙訊息，報告背景工作錯誤。{0} 是錯誤的詳細資訊內容。</comment>
+  </data>
+  <data name="A11y_ButtonArea" xml:space="preserve">
+    <value>按鈕區</value>
+    <comment>主要按鈕區域的無障礙群組標籤名稱。</comment>
+  </data>
+  <data name="Menu_Exit" xml:space="preserve">
+    <value>離開</value>
+    <comment>右鍵選單項目，用於關閉並結束應用程式流程。</comment>
+  </data>
+  <data name="A11y_TargetWindowLost" xml:space="preserve">
+    <value>無法切換：目標視窗已關閉。</value>
+    <comment>當使用者嘗試返回前一個視窗，但該視窗已不存在時的語音提示。</comment>
   </data>
 </root>

@@ -3,10 +3,12 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="GEMINI.md" />
     <File Path="LICENSE" />
     <File Path="README.md" />
     <File Path="ThirdPartyNotices.txt" />
   </Folder>
+  <Folder Name="/方案項目/.github/" />
 
   <Folder Name="/方案項目/.github/workflows/">
     <File Path=".github/workflows/release.yml" />

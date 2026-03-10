@@ -1,6 +1,7 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
+using InputBox.Core.Interop;
 using System.Media;
 
 namespace InputBox.Core.Services;
@@ -12,20 +13,12 @@ namespace InputBox.Core.Services;
 /// 負責處理視窗切換的流程控制，包含安全檢查、隨機延遲與執行切換。
 /// </remarks>
 /// <param name="windowFocusManager">視窗焦點管理器</param>
-/// <param name="feedbackService">回饋服務</param>
-internal class WindowNavigationService(
-    WindowFocusService windowFocusManager,
-    FeedbackService feedbackService)
+internal class WindowNavigationService(WindowFocusService windowFocusManager)
 {
     /// <summary>
     /// WindowFocusManager
     /// </summary>
     private readonly WindowFocusService _windowFocusManager = windowFocusManager;
-
-    /// <summary>
-    /// FeedbackService
-    /// </summary>
-    private readonly FeedbackService _feedbackService = feedbackService;
 
     /// <summary>
     /// 用於產生隨機延遲，使操作更自然
@@ -43,47 +36,87 @@ internal class WindowNavigationService(
     private const int Timeout_KeyRelease = 2000;
 
     /// <summary>
+    /// 檢查目前是否具備有效的返回目標
+    /// </summary>
+    public bool CanNavigateBack => _windowFocusManager.CapturedHwnd != IntPtr.Zero &&
+        User32.IsWindow(_windowFocusManager.CapturedHwnd);
+
+    /// <summary>
     /// 執行返回前一個視窗的流程
     /// </summary>
     /// <param name="controller">目前的控制器實例（用於檢查按鍵狀態）</param>
+    /// <param name="announceErrorAction">若切換失敗時的廣播委派（選用）</param>
     /// <returns>Task</returns>
-    public async Task NavigateBackAsync(IGamepadController? controller)
+    public async Task NavigateBackAsync(
+        IGamepadController? controller,
+        Action<string>? announceErrorAction = null,
+        CancellationToken cancellationToken = default)
     {
-        // 播放音效／震動，給予即時回饋，讓使用者知道「收到了」。
-        _feedbackService.PlaySound(SystemSounds.Exclamation);
+        // 1. 取得先前捕捉的視窗 Handle。
+        IntPtr targetHwnd = _windowFocusManager.CapturedHwnd;
 
-        // 這裡震動可以短一點，因為還沒真正切換。
-        _ = _feedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart);
+        // 2. 預先檢查目標視窗是否仍然有效。
+        // 若視窗已被使用者手動關閉，我們應立即停止流程。
+        if (targetHwnd == IntPtr.Zero ||
+            !User32.IsWindow(targetHwnd))
+        {
+            // 播放警告音效與失敗震動。
+            FeedbackService.PlaySound(SystemSounds.Exclamation);
 
-        using CancellationTokenSource ctsTimeout = new(Timeout_KeyRelease);
+            _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail);
+
+            announceErrorAction?.Invoke(Resources.Strings.A11y_TargetWindowLost);
+
+            return;
+        }
+
+        // 播放音效／震動，給予即時回饋。
+        FeedbackService.PlaySound(SystemSounds.Exclamation);
+
+        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart);
+
+        using CancellationTokenSource ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        ctsTimeout.CancelAfter(Timeout_KeyRelease);
 
         try
         {
             // 等待所有「危險按鍵」被放開，檢查頻率 10ms ~ 16ms（約 60fps）即可。
-            // 將判斷邏輯封裝在此，避免 UI 層過度依賴控制器細節。
-            while (ShouldWaitForKeyRelease(controller) &&
-                !ctsTimeout.IsCancellationRequested)
+            // 增加 IsConnected 檢查，若控制器斷開則停止等待。
+            while (controller != null &&
+                controller.IsConnected &&
+                ShouldWaitForKeyRelease(controller) &&
+                !ctsTimeout.Token.IsCancellationRequested)
             {
                 await Task.Delay(Delay_KeyReleaseCheck, ctsTimeout.Token);
             }
         }
         catch (OperationCanceledException)
         {
-            // 捕捉到超時例外（TaskCanceledException 繼承自此），
-            // 這是預期中的行為：代表等待超時了，直接放行往下執行視窗切換。
+            // 捕捉到取消或超時。
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
         }
 
-        // 讀取設定 + 隨機抖動。
+        // 捕捉設定快照（包含隨機抖動），確保延遲邏輯的一致性與可重複性。
         int baseDelay = AppSettings.Current.WindowSwitchBufferBase,
             jitter = _random.Next(0, AppSettings.Current.InputJitterRange);
 
-        await Task.Delay(baseDelay + jitter);
+        try
+        {
+            await Task.Delay(baseDelay + jitter, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        { 
+            return;
+        }
 
         // 執行視窗切換。
-        await _windowFocusManager.RestorePreviousWindowAsync();
+        await _windowFocusManager.RestorePreviousWindowAsync(cancellationToken);
 
         // 切換完成後的震動。
-        _ = _feedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess);
+        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess);
     }
 
     /// <summary>

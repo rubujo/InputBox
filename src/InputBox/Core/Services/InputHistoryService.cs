@@ -1,7 +1,7 @@
 ﻿namespace InputBox.Core.Services;
 
 /// <summary>
-/// 輸入歷程記錄管理器
+/// 輸入歷程記錄服務
 /// </summary>
 /// <param name="maxHistory">最大輸入歷程記錄資料筆數，預設值為 100</param>
 public class InputHistoryService(int maxHistory = 100)
@@ -26,7 +26,15 @@ public class InputHistoryService(int maxHistory = 100)
     /// </summary>
     private const int MaxHistoryEntryLength = 10000;
 
-    private readonly object _lockObj = new();
+    /// <summary>
+    /// 鎖物件，用於保護輸入歷程記錄的線程安全
+    /// </summary>
+    private readonly Lock _lockObj = new();
+
+    /// <summary>
+    /// 是否為隱私模式（不紀錄新的輸入）
+    /// </summary>
+    public bool IsPrivacyMode { get; set; }
 
     /// <summary>
     /// 加入新的輸入歷程記錄
@@ -36,7 +44,8 @@ public class InputHistoryService(int maxHistory = 100)
     {
         lock (_lockObj)
         {
-            if (string.IsNullOrEmpty(text))
+            if (IsPrivacyMode ||
+                string.IsNullOrEmpty(text))
             {
                 return;
             }
@@ -48,25 +57,24 @@ public class InputHistoryService(int maxHistory = 100)
             }
 
             // 防止連續重複輸入。
-            // 如果使用者連續按兩次複製，雖然現在 UI 會擋，但邏輯層多一層保護會更好。
             if (_listHistory.Count > 0 &&
-                _listHistory.Last() == text)
+                _listHistory[0] == text)
             {
-                ResetIndex();
+                _currentIndex = -1;
 
                 return;
             }
 
-            _listHistory.Add(text);
+            _listHistory.Insert(0, text);
 
             if (_listHistory.Count > _maxHistory)
             {
-                _listHistory.RemoveAt(0);
+                _listHistory.RemoveAt(_listHistory.Count - 1);
             }
-        }
 
-        // 加入後重置索引，回到「新輸入」狀態。
-        ResetIndex();
+            // 加入後重置索引，回到「新輸入」狀態。
+            _currentIndex = -1;
+        }
     }
 
     /// <summary>
@@ -100,7 +108,15 @@ public class InputHistoryService(int maxHistory = 100)
     /// <param name="Text">文字</param>
     /// <param name="IsBoundaryHit">是否已撞到邊界</param>
     /// <param name="IsCleared">是否已清除</param>
-    public record struct NavigationResult(bool Success, string? Text, bool IsBoundaryHit, bool IsCleared);
+    /// <param name="CurrentIndex">目前索引（0-based）</param>
+    /// <param name="TotalCount">總筆數</param>
+    public record struct NavigationResult(
+        bool Success,
+        string? Text,
+        bool IsBoundaryHit,
+        bool IsCleared,
+        int CurrentIndex,
+        int TotalCount);
 
     /// <summary>
     /// 導覽輸入歷程
@@ -113,7 +129,13 @@ public class InputHistoryService(int maxHistory = 100)
         {
             if (_listHistory.Count == 0)
             {
-                return new NavigationResult(Success: false, Text: null, IsBoundaryHit: true, IsCleared: false);
+                return new NavigationResult(
+                    Success: false,
+                    Text: null,
+                    IsBoundaryHit: true,
+                    IsCleared: false,
+                    CurrentIndex: -1,
+                    TotalCount: 0);
             }
 
             int previousIndex = _currentIndex,
@@ -129,7 +151,13 @@ public class InputHistoryService(int maxHistory = 100)
                 else
                 {
                     // 按「下」：保持原狀（撞牆）。
-                    return new NavigationResult(Success: false, Text: null, IsBoundaryHit: true, IsCleared: false);
+                    return new NavigationResult(
+                        Success: false,
+                        Text: null,
+                        IsBoundaryHit: true,
+                        IsCleared: false,
+                        CurrentIndex: -1,
+                        TotalCount: _listHistory.Count);
                 }
             }
             else
@@ -149,19 +177,37 @@ public class InputHistoryService(int maxHistory = 100)
                 _currentIndex = -1;
 
                 // 超過最新一筆時，清除輸入，但視為 ActionFail（震動）。
-                return new NavigationResult(Success: true, Text: string.Empty, IsBoundaryHit: true, IsCleared: true);
+                return new NavigationResult(
+                    Success: true,
+                    Text: string.Empty,
+                    IsBoundaryHit: true,
+                    IsCleared: true,
+                    CurrentIndex: -1,
+                    TotalCount: _listHistory.Count);
             }
 
             // 如果索引沒有變動（撞牆）。
             if (newIndex == previousIndex)
             {
-                return new NavigationResult(Success: false, Text: null, IsBoundaryHit: true, IsCleared: false);
+                return new NavigationResult(
+                    Success: false,
+                    Text: null,
+                    IsBoundaryHit: true,
+                    IsCleared: false,
+                    CurrentIndex: _currentIndex,
+                    TotalCount: _listHistory.Count);
             }
 
             // 成功移動。
             _currentIndex = newIndex;
 
-            return new NavigationResult(Success: true, Text: _listHistory[_currentIndex], IsBoundaryHit: false, IsCleared: false);
+            return new NavigationResult(
+                Success: true,
+                Text: _listHistory[_currentIndex],
+                IsBoundaryHit: false,
+                IsCleared: false,
+                CurrentIndex: _currentIndex,
+                TotalCount: _listHistory.Count);
         }
     }
 }

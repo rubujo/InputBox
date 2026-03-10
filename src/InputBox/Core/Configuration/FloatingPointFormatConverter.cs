@@ -29,7 +29,9 @@ public class FloatingPointFormatConverter : JsonConverterFactory
     /// <param name="options">JsonSerializerOptions</param>
     /// <returns>JsonConverter</returns>
     /// <exception cref="NotSupportedException"></exception>
-    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    public override JsonConverter CreateConverter(
+        Type typeToConvert,
+        JsonSerializerOptions options)
     {
         if (typeToConvert == typeof(float))
         {
@@ -61,7 +63,23 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         /// <param name="typeToConvert">Type</param>
         /// <param name="options">JsonSerializerOptions</param>
         /// <returns>float</returns>
-        public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetSingle();
+        public override float Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Number)
+            {
+                return reader.GetSingle();
+            }
+
+            // 支援從字串解析，並強制使用 InvariantCulture。
+            string? str = reader.GetString();
+
+            return float.TryParse(str, CultureInfo.InvariantCulture, out float result) ?
+                result :
+                0f;
+        }
 
         /// <summary>
         /// 寫
@@ -69,7 +87,10 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         /// <param name="writer">Utf8JsonWriter</param>
         /// <param name="value">float</param>
         /// <param name="options">JsonSerializerOptions</param>
-        public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            float value,
+            JsonSerializerOptions options)
         {
             if (value % 1 == 0)
             {
@@ -94,7 +115,22 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         /// <param name="typeToConvert">Type</param>
         /// <param name="options">JsonSerializerOptions</param>
         /// <returns>double</returns>
-        public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetDouble();
+        public override double Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Number)
+            {
+                return reader.GetDouble();
+            }
+
+            string? str = reader.GetString();
+
+            return double.TryParse(str, CultureInfo.InvariantCulture, out double result) ?
+                result :
+                0.0;
+        }
 
         /// <summary>
         /// 寫
@@ -102,7 +138,10 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         /// <param name="writer">Utf8JsonWriter</param>
         /// <param name="value">double</param>
         /// <param name="options">JsonSerializerOptions</param>
-        public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            double value,
+            JsonSerializerOptions options)
         {
             if (value % 1 == 0)
             {
@@ -127,7 +166,22 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         /// <param name="typeToConvert">Type</param>
         /// <param name="options">JsonSerializerOptions</param>
         /// <returns>decimal</returns>
-        public override decimal Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetDecimal();
+        public override decimal Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Number)
+            {
+                return reader.GetDecimal();
+            }
+
+            string? str = reader.GetString();
+
+            return decimal.TryParse(str, CultureInfo.InvariantCulture, out decimal result) ?
+                result :
+                0m;
+        }
 
         /// <summary>
         /// 寫
@@ -135,7 +189,10 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         /// <param name="writer">Utf8JsonWriter</param>
         /// <param name="value">decimal</param>
         /// <param name="options">JsonSerializerOptions</param>
-        public override void Write(Utf8JsonWriter writer, decimal value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            decimal value,
+            JsonSerializerOptions options)
         {
             if (value % 1 == 0)
             {

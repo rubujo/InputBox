@@ -3,7 +3,7 @@
 /// <summary>
 /// IInputContext
 /// </summary>
-public interface IInputContext 
+public interface IInputContext : IDisposable
 {
     /// <summary>
     /// Input 是否啟用

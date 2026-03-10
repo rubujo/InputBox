@@ -8,26 +8,31 @@ public static class ControlExtensions
     /// <summary>
     /// 安全的同步 Invoke
     /// </summary>
-    /// <remarks>
-    /// 會阻塞開啟端執行緒，直到 UI 執行緒完成操作。
-    /// 適用於「連續輸入」或「游標移動」等需要視覺平滑的情境。
-    /// </remarks>
     /// <param name="control">要執行的控制項</param>
     /// <param name="action">要執行的動作</param>
-    public static void SafeInvoke(this Control control, Action action)
+    public static void SafeInvoke(
+        this Control control,
+        Action action)
     {
         if (control == null ||
-            control.IsDisposed ||
-            !control.IsHandleCreated)
+            control.IsDisposed)
         {
             return;
         }
 
         try
         {
+            // 如果控制代碼尚未建立，無法使用 Invoke，直接在當前執行緒執行。
+            // 這種情境通常發生在建構子或 Load 事件前，本來就還在同一執行緒。
+            if (!control.IsHandleCreated)
+            {
+                action();
+
+                return;
+            }
+
             if (control.InvokeRequired)
             {
-                // 使用 Invoke，會等待 UI 處理完畢。
                 control.Invoke(new MethodInvoker(() =>
                 {
                     if (!control.IsDisposed &&
@@ -39,24 +44,121 @@ public static class ControlExtensions
                         }
                         catch (ObjectDisposedException)
                         {
-                            // 忽略執行過程中的釋放錯誤。
+
                         }
                     }
                 }));
             }
             else
             {
-                // 如果已經在 UI 執行緒，直接執行。
                 action();
             }
         }
         catch (ObjectDisposedException)
         {
-            // 捕捉：在開啟 Invoke 的瞬間視窗被釋放。
+
         }
         catch (InvalidOperationException)
         {
-            // 捕捉：Handle 尚未建立或已失效。
+
+        }
+    }
+
+    /// <summary>
+    /// 安全的非同步 Invoke（支援 await）
+    /// </summary>
+    /// <param name="control">要執行的控制項</param>
+    /// <param name="action">要執行的非同步動作</param>
+    /// <returns>Task</returns>
+    public static async Task SafeInvokeAsync(
+        this Control control,
+        Func<Task> action)
+    {
+        if (control == null ||
+            control.IsDisposed)
+        {
+            return;
+        }
+
+        // 如果控制代碼尚未建立，直接執行（因為此時通常還沒跨執行緒）。
+        if (!control.IsHandleCreated)
+        {
+            try
+            {
+                await action();
+            }
+            catch (ObjectDisposedException)
+            {
+                // 忽略執行過程中的釋放錯誤。
+            }
+            catch (Exception)
+            {
+                // 重新拋出業務邏輯例外。
+                throw;
+            }
+
+            return;
+        }
+
+        if (control.InvokeRequired)
+        {
+            TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            try
+            {
+                control.BeginInvoke(new MethodInvoker(async () =>
+                {
+                    try
+                    {
+                        // 再次檢查狀態，因為排程到執行可能有延遲。
+                        if (control.IsDisposed ||
+                            !control.IsHandleCreated)
+                        {
+                            tcs.TrySetResult();
+
+                            return;
+                        }
+
+                        await action();
+
+                        tcs.TrySetResult();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        tcs.TrySetCanceled();
+                    }
+                    catch (Exception ex)
+                    {
+                        // 確保例外能傳回呼叫端。
+                        tcs.TrySetException(ex);
+                    }
+                }));
+            }
+            catch (ObjectDisposedException)
+            {
+                tcs.TrySetResult();
+            }
+            catch (InvalidOperationException)
+            {
+                tcs.TrySetResult();
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+            }
+
+            await tcs.Task;
+        }
+        else
+        {
+            try
+            {
+                await action();
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
         }
     }
 
@@ -69,7 +171,9 @@ public static class ControlExtensions
     /// </remarks>
     /// <param name="control">要執行的控制項</param>
     /// <param name="action">要執行的動作</param>
-    public static void SafeBeginInvoke(this Control control, Action action)
+    public static void SafeBeginInvoke(
+        this Control control,
+        Action action)
     {
         // 第一層檢查：如果控制項已經無效，直接放棄，不要排程。
         if (control == null ||
@@ -111,5 +215,28 @@ public static class ControlExtensions
         {
             // 捕捉：Handle 尚未建立或已失效。
         }
+    }
+
+    /// <summary>
+    /// 依據語言習慣產生包含助記鍵的文字
+    /// </summary>
+    /// <param name="text">原始文字</param>
+    /// <param name="mnemonic">助記鍵字母</param>
+    /// <returns>格式化後的文字</returns>
+    public static string GetMnemonicText(string text, char mnemonic)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return $"&{mnemonic}";
+        }
+
+        // 簡單判斷：如果第一個字元是 ASCII（通常是英文），則使用前綴式 &。
+        // 如果是非 ASCII（如中日文），則使用後綴括號式 (&X)。
+        if (text[0] < 128)
+        {
+            return $"&{text}";
+        }
+
+        return $"{text} (&{mnemonic})";
     }
 }

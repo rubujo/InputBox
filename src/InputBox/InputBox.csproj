@@ -22,6 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Remove="Core\Controls\NumericInputDialog.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove=".gitattributes" />
     <None Remove=".gitignore" />
     <None Remove="LICENSE" />
@@ -49,6 +53,7 @@
 
   <ItemGroup>
     <PackageReference Include="GameInput.Net" Version="1.2.2" />
+    <PackageReference Include="UsbVendorsLibrary" Version="1.0.12" />
   </ItemGroup>
 
   <ItemGroup>

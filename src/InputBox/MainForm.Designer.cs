@@ -39,6 +39,9 @@ partial class MainForm
         // 
         // TLPHost
         // 
+        TLPHost.AccessibleDescription = "包含文字輸入與操作按鈕的主要容器。";
+        TLPHost.AccessibleName = "主要版面";
+        TLPHost.AccessibleRole = AccessibleRole.Grouping;
         TLPHost.ColumnCount = 2;
         TLPHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         TLPHost.ColumnStyles.Add(new ColumnStyle());
@@ -49,17 +52,20 @@ partial class MainForm
         TLPHost.Name = "TLPHost";
         TLPHost.RowCount = 1;
         TLPHost.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        TLPHost.Size = new Size(384, 46);
+        TLPHost.Size = new Size(384, 60);
         TLPHost.TabIndex = 0;
         // 
         // PInputHost
         // 
+        PInputHost.AccessibleDescription = "包含文字輸入欄位的容器。";
+        PInputHost.AccessibleName = "輸入區";
+        PInputHost.AccessibleRole = AccessibleRole.Grouping;
         PInputHost.Controls.Add(TBInput);
         PInputHost.Dock = DockStyle.Fill;
         PInputHost.Location = new Point(3, 3);
         PInputHost.Name = "PInputHost";
         PInputHost.Padding = new Padding(3);
-        PInputHost.Size = new Size(257, 40);
+        PInputHost.Size = new Size(230, 54);
         PInputHost.TabIndex = 0;
         // 
         // TBInput
@@ -69,14 +75,14 @@ partial class MainForm
         TBInput.AccessibleRole = AccessibleRole.Text;
         TBInput.BorderStyle = BorderStyle.None;
         TBInput.Dock = DockStyle.Fill;
-        TBInput.Font = new Font("Microsoft JhengHei UI", 18F, FontStyle.Regular, GraphicsUnit.Point, 136);
+        TBInput.Font = new Font("Microsoft JhengHei UI", 28F, FontStyle.Regular, GraphicsUnit.Point, 136);
         TBInput.ImeMode = ImeMode.On;
         TBInput.Location = new Point(3, 3);
         TBInput.Margin = new Padding(4);
         TBInput.Multiline = true;
         TBInput.Name = "TBInput";
-        TBInput.PlaceholderText = "請輸入文字……";
-        TBInput.Size = new Size(251, 34);
+        TBInput.PlaceholderText = "輸入文字…";
+        TBInput.Size = new Size(224, 48);
         TBInput.TabIndex = 0;
         TBInput.Enter += TBInput_Enter;
         TBInput.KeyDown += TBInput_KeyDown;
@@ -87,17 +93,20 @@ partial class MainForm
         BtnCopy.AccessibleDescription = "將文字方塊中的文字複製到剪貼簿。";
         BtnCopy.AccessibleName = "複製到剪貼簿";
         BtnCopy.AccessibleRole = AccessibleRole.PushButton;
+        BtnCopy.AutoSize = true;
+        BtnCopy.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         BtnCopy.Dock = DockStyle.Fill;
         BtnCopy.Font = new Font("Microsoft JhengHei UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-        BtnCopy.Location = new Point(267, 4);
+        BtnCopy.Location = new Point(240, 4);
         BtnCopy.Margin = new Padding(4);
         BtnCopy.Name = "BtnCopy";
-        BtnCopy.Size = new Size(113, 38);
+        BtnCopy.Size = new Size(140, 52);
         BtnCopy.TabIndex = 1;
-        BtnCopy.Text = "複製到剪貼簿";
-        BtnCopy.UseMnemonic = false;
+        BtnCopy.Text = "複製到剪貼簿 (&A)";
         BtnCopy.UseVisualStyleBackColor = true;
         BtnCopy.Click += BtnCopy_Click;
+        BtnCopy.Enter += BtnCopy_Enter;
+        BtnCopy.Leave += BtnCopy_Leave;
         BtnCopy.MouseEnter += BtnCopy_MouseEnter;
         BtnCopy.MouseLeave += BtnCopy_MouseLeave;
         // 
@@ -108,7 +117,7 @@ partial class MainForm
         AccessibleRole = AccessibleRole.Dialog;
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
-        ClientSize = new Size(384, 46);
+        ClientSize = new Size(384, 60);
         Controls.Add(TLPHost);
         Font = new Font("Microsoft JhengHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 136);
         Icon = (Icon)resources.GetObject("$this.Icon");
@@ -118,6 +127,7 @@ partial class MainForm
         Activated += MainForm_Activated;
         Shown += MainForm_Shown;
         TLPHost.ResumeLayout(false);
+        TLPHost.PerformLayout();
         PInputHost.ResumeLayout(false);
         PInputHost.PerformLayout();
         ResumeLayout(false);

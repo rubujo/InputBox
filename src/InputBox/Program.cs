@@ -1,19 +1,41 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Interop;
+using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
 
 namespace InputBox;
 
 internal static class Program
 {
     /// <summary>
+    /// 單一執行個體 Mutex
+    /// </summary>
+    private static Mutex? _mutex;
+
+    /// <summary>
     /// The main entry point for the application.
     /// </summary>
     [STAThread]
     static void Main()
     {
+        // 使用 Mutex 確保單一執行個體。
+        // 使用 Local\ 前綴確保僅在目前 User Session 中唯一，避免干擾其他使用者。
+        // 加入 GUID 以增加唯一性，防止與其他應用程式衝突。
+        _mutex = new Mutex(true, @"Local\InputBox_40A57F4D-4C7E-45FD-9DC7-BE96DC026D66_SingleInstance", out bool createdNew);
+
+        if (!createdNew)
+        {
+            // 如果已經有實例在執行，直接退出。
+            _mutex.Dispose();
+            _mutex = null;
+
+            return;
+        }
+
         // 強制將所有 UI 執行緒例外路由到 ThreadException 事件。
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
@@ -24,7 +46,7 @@ internal static class Program
         try
         {
             // 載入 XInput DLL。
-            NativeLibrary.SetDllImportResolver(typeof(Win32).Assembly, DllResolver.ResolveXInput);
+            NativeLibrary.SetDllImportResolver(typeof(XInput).Assembly, DllResolver.ResolveXInput);
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
@@ -40,6 +62,42 @@ internal static class Program
         {
             // 捕捉 Main 函式本身的嚴重錯誤。
             HandleException(ex);
+        }
+        finally
+        {
+            ReleaseMutex();
+        }
+    }
+
+    /// <summary>
+    /// 釋放單一執行個體 Mutex（用於重啟情境）
+    /// </summary>
+    public static void ReleaseMutex()
+    {
+        if (_mutex != null)
+        {
+            try
+            {
+                // 如果我們擁有 Mutex，則釋放它。
+                _mutex.ReleaseMutex();
+            }
+            catch (ObjectDisposedException)
+            {
+                // 已釋放則忽略。
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // 不具備所有權時呼叫 ReleaseMutex 會拋出此例外，可忽略。
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"釋放 Mutex 時發生錯誤：{ex.Message}");
+            }
+            finally
+            {
+                _mutex.Dispose();
+                _mutex = null;
+            }
         }
     }
 
@@ -57,20 +115,8 @@ internal static class Program
         // 記錄錯誤。
         Debug.WriteLine($"[嚴重] 未捕捉例外：{ex}");
 
-        // 嘗試緊急停止所有手把震動。
-        try
-        {
-            for (uint i = 0; i < 4; i++)
-            {
-                Win32.XInputVibration stopVibration = default;
-
-                Win32.XInputSetState(i, ref stopVibration);
-            }
-        }
-        catch
-        {
-            // 忽略崩潰關閉時的 API 錯誤。
-        }
+        // 緊急停止所有控制器震動，防止崩潰後手把持續震動。
+        FeedbackService.EmergencyStopAllActiveControllers();
 
         MessageBox.Show(
             ex.Message,

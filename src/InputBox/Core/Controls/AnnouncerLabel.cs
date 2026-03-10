@@ -1,29 +1,111 @@
-﻿namespace InputBox.Core.Controls;
+﻿using System.Diagnostics;
+using System.Windows.Forms.Automation;
+
+namespace InputBox.Core.Controls;
 
 /// <summary>
 /// 專門用於無障礙廣播的 Label
 /// </summary>
 /// <remarks>
-/// 因 AccessibilityNotifyClients 為 protected 方法，
-/// 需透過繼承 Label 來公開此功能。
+/// 利用 WinForms 內建的 RaiseLiveRegionChanged 支援，確保與 NVDA 等現代螢幕閱讀器的最佳相容性。
 /// </remarks>
 internal sealed class AnnouncerLabel : Label
 {
+    /// <summary>
+    /// 最後一次廣播的訊息，用於處理重複訊息的特殊情況
+    /// </summary>
+    private string _lastMessage = string.Empty;
+
+    /// <summary>
+    /// 切換旗標，用於在重複訊息時添加零寬字元以觸發 UIA 事件
+    /// </summary>
+    private bool _toggleFlag = false;
+
+    /// <summary>
+    /// AnnouncerLabel
+    /// </summary>
+    public AnnouncerLabel()
+    {
+        // 使用 StatusBar 角色，NVDA 預設會自動監控此區域。
+        AccessibleRole = AccessibleRole.StatusBar;
+        // 設定 LiveSetting 為 Polite，確保訊息會在語音空閒時報讀。
+        LiveSetting = AutomationLiveSetting.Polite;
+        Visible = true;
+        Size = new Size(20, 20);
+        Location = new Point(0, 0);
+        Text = string.Empty;
+        BackColor = SystemColors.Control;
+        ForeColor = SystemColors.Control;
+    }
+
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            CreateParams createParams = base.CreateParams;
+
+            // 確保有適當的樣式以利 UIA 識別。
+            return createParams;
+        }
+    }
+
+    /// <summary>
+    /// 清除內容
+    /// </summary>
+    public void Clear()
+    {
+        Text = "\u00A0";
+        AccessibleName = "\u00A0";
+
+        AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+    }
+
     /// <summary>
     /// 發送無障礙廣播
     /// </summary>
     /// <param name="message">訊息內容</param>
     public void Announce(string message)
     {
-        // 如果訊息跟上次一樣，先清除，確保 NameChange 事件能被觸發。
-        if (string.Equals(Text, message, StringComparison.Ordinal))
+        if (string.IsNullOrEmpty(message))
         {
-            Text = string.Empty;
+            return;
         }
 
-        Text = message;
+        Debug.WriteLine($"[A11y 廣播] {message}");
 
-        // 通知輔助科技（AT）此控制項名稱已變更，觸發朗讀。
+        string finalMsg = message;
+
+        if (message == _lastMessage)
+        {
+            _toggleFlag = !_toggleFlag;
+
+            finalMsg = _toggleFlag ?
+                message + "\u200B" :
+                message + "\u200C";
+        }
+
+        _lastMessage = message;
+
+        Text = finalMsg;
+        AccessibleName = finalMsg;
+
+        // 發送標準通知。
         AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+
+        try
+        {
+            // 觸發內建的 LiveRegion 變更事件。
+            // 這會自動引發 UIA LiveRegionChanged 事件（0x4e08）。
+            if (!IsDisposed &&
+                IsHandleCreated)
+            {
+                // 嘗試觸發 UIA 通知。
+                AccessibilityObject.RaiseLiveRegionChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[A11y] 廣播時發生非預期錯誤：{ex.GetType().Name} - {message}");
+        }
     }
 }

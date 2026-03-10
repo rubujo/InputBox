@@ -7,7 +7,6 @@ using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using Microsoft.Win32;
-using System.Diagnostics;
 using System.Media;
 
 namespace InputBox;
@@ -25,34 +24,14 @@ public partial class MainForm : Form
     private readonly WindowFocusService _windowFocusService;
 
     /// <summary>
-    /// GlobalHotKeyService
-    /// </summary>
-    private readonly GlobalHotKeyService _hotKeyService;
-
-    /// <summary>
-    /// FeedbackService
-    /// </summary>
-    private readonly FeedbackService _feedbackService;
-
-    /// <summary>
-    /// ClipboardService
-    /// </summary>
-    private readonly ClipboardService _clipboardService;
-
-    /// <summary>
-    /// TouchKeyboardService
-    /// </summary>
-    private readonly TouchKeyboardService _touchKeyboardService;
-
-    /// <summary>
     /// WindowNavigationService
     /// </summary>
     private readonly WindowNavigationService _navigationService;
 
     /// <summary>
-    /// IInputContext
+    /// FormInputContext
     /// </summary>
-    private IInputContext? _inputContext;
+    private FormInputContext? _inputContext;
 
     /// <summary>
     /// IGamepadController
@@ -62,15 +41,20 @@ public partial class MainForm : Form
     /// <summary>
     /// 是否正在切換回先前的前景視窗
     /// </summary>
-    private bool _isReturning;
+    private volatile int _isReturning;
 
     /// <summary>
     /// 是否正在顯示觸控式鍵盤
     /// </summary>
-    private bool _isShowingTouchKeyboard;
+    private volatile int _isShowingTouchKeyboard;
 
     /// <summary>
-    /// 用於無障礙廣播的隱藏標籤
+    /// 輸入框標籤（用於 A11y 關聯）
+    /// </summary>
+    private Label? _lblInput;
+
+    /// <summary>
+    /// A11y 廣播用的標籤
     /// </summary>
     private AnnouncerLabel? _lblA11yAnnouncer;
 
@@ -87,7 +71,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 基礎最小高度
     /// </summary>
-    private const int BaseMinHeight = 85;
+    private const int BaseMinHeight = 100;
 
     /// <summary>
     /// 按鈕文字復原
@@ -102,53 +86,129 @@ public partial class MainForm : Form
     /// <summary>
     /// 是否正在閃爍（用於防止重複觸發閃爍效果）
     /// </summary>
-    private bool _isFlashing = false;
+    private volatile int _isFlashing = 0;
 
     /// <summary>
-    /// 原始字型，在閃爍效果中會用到，確保能夠正確還原，即使系統主題改變也能適應。
+    /// 是否正在處理 Activated 事件（防止焦點競爭）
+    /// </summary>
+    private volatile int _isProcessingActivated = 0;
+
+    /// <summary>
+    /// 是否正在擷取快速鍵（原子旗標：0=否, 1=是）
+    /// </summary>
+    private volatile int _isCapturingHotkey = 0;
+
+    /// <summary>
+    /// 用於管理視窗生命週期內所有非同步任務的取消權杖來源
+    /// </summary>
+    private readonly CancellationTokenSource _formCts = new();
+
+    /// <summary>
+    /// 控制器初始化鎖（防止重複建立實例）
+    /// </summary>
+    private readonly SemaphoreSlim _gamepadInitLock = new(1, 1);
+
+    /// <summary>
+    /// 右鍵選單
+    /// </summary>
+    private ContextMenuStrip? _cmsInput;
+
+    /// <summary>
+    /// 隱私模式選單項
+    /// </summary>
+    private ToolStripMenuItem? _tsmiPrivacyMode;
+
+    /// <summary>
+    /// 上一次的遊戲手把連線狀態（用於防止重複廣播）
+    /// </summary>
+    private bool? _lastGamepadConnectedState;
+
+    /// <summary>
+    /// 原始字型
     /// </summary>
     private Font? _originalBtnFont;
 
     /// <summary>
-    /// 原始背景色，在閃爍效果中會用到，確保能夠正確還原，即使系統主題改變也能適應。
+    /// 快取的加粗字型（A11y 視覺強化，需手動 Dispose）
+    /// </summary>
+    private Font? _boldBtnFont;
+
+    /// <summary>
+    /// 原始背景色
     /// </summary>
     private Color _originalBtnBackColor;
 
     /// <summary>
-    /// 原始前景色（文字顏色），在閃爍效果中會用到，確保能夠正確還原，即使系統主題改變也能適應。
+    /// 原始前景色
     /// </summary>
     private Color _originalBtnForeColor;
+
+    /// <summary>
+    /// 快取的視窗標題前綴（包含標題、隱私狀態與快速鍵）
+    /// </summary>
+    private string _cachedTitlePrefix = string.Empty;
+
+    /// <summary>
+    /// 更新快取的視窗標題前綴
+    /// </summary>
+    private void UpdateTitlePrefix()
+    {
+        string hotkeyInfo = $"[{GlobalHotKeyService.GetHotKeyDisplayString()}]",
+            privacyInfo = AppSettings.Current.IsPrivacyMode ?
+                Strings.App_Privacy_Suffix :
+                string.Empty;
+
+        _cachedTitlePrefix = $"{Strings.App_Title}{privacyInfo} {hotkeyInfo}";
+    }
 
     public MainForm()
     {
         InitializeComponent();
 
+        Disposed += (s, e) =>
+        {
+            _formCts?.Dispose();
+        };
+
         // 套用全域震動強度設定。
         VibrationPatterns.GlobalIntensityMultiplier = AppSettings.Current.VibrationIntensity;
 
         // 使用設定檔容量初始化 InputHistoryManager。
-        _historyService = new InputHistoryService(AppSettings.Current.HistoryCapacity);
+        _historyService = new InputHistoryService(AppSettings.Current.HistoryCapacity)
+        {
+            IsPrivacyMode = AppSettings.Current.IsPrivacyMode
+        };
         _windowFocusService = new WindowFocusService();
-
-        // 這裡採用手動依賴注入（DI）的方式。
-        _hotKeyService = new GlobalHotKeyService();
-        _feedbackService = new FeedbackService();
-        _navigationService = new WindowNavigationService(_windowFocusService, _feedbackService);
-        _clipboardService = new ClipboardService();
-        _touchKeyboardService = new TouchKeyboardService();
+        _navigationService = new WindowNavigationService(_windowFocusService);
 
         // 在初始化完成後，套用本地化。
         ApplyLocalization();
 
+        // 初始化標題快取。
+        UpdateTitlePrefix();
+
         // 初始化無障礙廣播。
         InitializeA11yAnnouncer();
 
-        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+        // 註冊背景任務全域例外處理。
+        Core.Extensions.TaskExtensions.GlobalExceptionHandler = (ex) =>
+        {
+            this.SafeInvoke(() => AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message)));
+        };
+
+        // 初始化右鍵選單。
+        InitializeContextMenu();
+
+        // 綁定剪貼簿重試通知。
+        ClipboardService.OnRetry = () => AnnounceA11y(Strings.A11y_Clipboard_Retrying);
+
+        // 限制輸入字數，與 InputHistoryService 的上限保持一致。
+        TBInput.MaxLength = 10000;
     }
 
     protected override void WndProc(ref Message m)
     {
-        if (m.Msg == Win32.WM_HOTKEY &&
+        if (m.Msg == (int)User32.WindowMessage.HotKey &&
             m.WParam.ToInt32() == HotKey.ShowInput)
         {
             ShowForInput();
@@ -170,42 +230,212 @@ public partial class MainForm : Form
     {
         base.OnDeactivate(e);
 
-        if (_isShowingTouchKeyboard)
+        if (_isShowingTouchKeyboard != 0)
         {
-            // 這次失焦是「預期內的」。
             return;
         }
 
-        _gamepadController?.Pause();
+        // 使用 SafeBeginInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期。
+        this.SafeBeginInvoke(() =>
+        {
+            // 如果還有其他視窗（例如數值輸入對話框）是活躍的，不應停止手把輪詢。
+            if (ActiveForm != null)
+            {
+                return;
+            }
+
+            FeedbackService.StopAllVibrationsAsync(_gamepadController).SafeFireAndForget();
+
+            _gamepadController?.Pause();
+        });
+    }
+
+    protected override void OnHandleDestroyed(EventArgs e)
+    {
+        GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
+
+        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+
+        base.OnHandleDestroyed(e);
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // 確保視窗被釋放時，一定會解除全域事件的綁定，避免靜態事件導致的記憶體洩漏。
-        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        // 1. 立即發出全域取消訊號，中止所有 UI 相關的非同步任務。
+        _formCts.Cancel();
 
-        // 註銷全域快速鍵保險（無論視窗是如何關閉的）。
-        _hotKeyService?.UnregisterShowInputHotkey(Handle);
+        // 確保系統快速鍵資源在視窗關閉前已被徹底釋放。
+        GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
 
-        // 釋放遊戲手把控制器（停止輪詢線程、停止震動、釋放 CTS）。
+        // 優先停止輸入源，防止其在通道關閉後仍嘗試寫入廣播。
         _gamepadController?.Dispose();
 
-        // 應用程式關閉時，主動清除所有輸入歷程記錄。
+        // 停止 A11y 背景工作者。
+        // 先標記 Writer 完成，讓 ReadAllAsync 平順結束。
+        _a11yChannel?.Writer.TryComplete();
+
+        // 原子性地取出並清理 CTS。
+        CancellationTokenSource? cts = Interlocked.Exchange(ref _a11yCts, null);
+
+        if (cts != null)
+        {
+            try
+            {
+                cts.Cancel();
+                cts.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+        }
+
+        // 確保在視窗關閉、物件釋放前，硬體震動已被同步切斷。
+        FeedbackService.EmergencyStopAllActiveControllers();
+
+        // 清理靜態引用，防止記憶體洩漏。
+        ClipboardService.OnRetry = null;
+        Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
+
+        // 處置輸入上下文，解除事件訂閱。
+        _inputContext?.Dispose();
+
         _historyService.Clear();
+
+        // 釋放鎖資源。
+        _gamepadInitLock.Dispose();
+
+        // 釋放 GDI 與選單資源。
+        _boldBtnFont?.Dispose();
+        _boldBtnFont = null;
+
+        if (_cmsInput != null)
+        {
+            _cmsInput.Font?.Dispose();
+            _cmsInput.Dispose();
+            _cmsInput = null;
+        }
 
         base.OnFormClosing(e);
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
-        // 檢查焦點是否在 TBInput 上。
+        if (_isCapturingHotkey != 0)
+        {
+            Keys key = keyData & Keys.KeyCode;
+
+            if (key == Keys.Escape)
+            {
+                RestoreUIFromCaptureMode();
+
+                AnnounceA11y(Strings.A11y_Capture_Cancelled);
+
+                FeedbackService.PlaySound(SystemSounds.Beep);
+
+                return true;
+            }
+
+            if (key != Keys.ControlKey &&
+                key != Keys.ShiftKey &&
+                key != Keys.Menu &&
+                key != Keys.LWin &&
+                key != Keys.RWin &&
+                key != Keys.None &&
+                key != Keys.ProcessKey)
+            {
+                string oldKey = AppSettings.Current.HotKeyKey;
+
+                AppSettings.Current.HotKeyKey = key.ToString();
+
+                if (RegisterHotKeyInternal())
+                {
+                    AppSettings.Save();
+
+                    // 使用統一的方法還原 UI 狀態。
+                    RestoreUIFromCaptureMode();
+
+                    string fullHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
+
+                    Text = $"{Strings.App_Title} - [{Strings.Msg_HotkeyUpdated}: {fullHotkeyStr}]";
+
+                    BtnCopy.Enabled = false;
+                    BtnCopy.Text = Strings.Msg_HotkeyUpdated;
+
+                    // A11y 廣播：延後播報（1200ms），確保在視窗標題變更引發的語音中斷結束後再進行播報。
+                    async Task DelayedAnnounce()
+                    {
+                        try
+                        {
+                            await Task.Delay(1200, _formCts.Token);
+
+                            if (IsDisposed) return;
+
+                            AnnounceA11y(string.Format(Strings.A11y_Hotkey_Captured, fullHotkeyStr));
+                        }
+                        catch (OperationCanceledException) { }
+                    }
+
+                    DelayedAnnounce().SafeFireAndForget();
+
+                    FeedbackService.PlaySound(SystemSounds.Asterisk);
+                }
+                else
+                {
+                    AppSettings.Current.HotKeyKey = oldKey;
+
+                    RegisterHotKeyInternal();
+
+                    // 發生錯誤，仍需還原 UI。
+                    RestoreUIFromCaptureMode();
+
+                    Text = $"{Strings.App_Title} - [{Strings.Err_Title}]";
+
+                    BtnCopy.Enabled = false;
+                    BtnCopy.Text = Strings.Err_Title;
+
+                    AnnounceA11y(Strings.Err_HotkeyRegFail_Brief);
+
+                    FeedbackService.PlaySound(SystemSounds.Hand);
+                }
+
+                _ = ResetButtonStateAsync();
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(1500, _formCts.Token);
+
+                        this.SafeInvoke(() =>
+                        {
+                            if (IsDisposed) return;
+
+                            UpdateTitle();
+                        });
+                    }
+                    catch (OperationCanceledException)
+                    {
+
+                    }
+
+                }, _formCts.Token);
+
+                return true;
+            }
+
+            // A11y 語音引導：當使用者只按住修飾鍵（尚未按下主要按鍵）時，重新廣播提示語並給予輕微震動回饋。
+            string strA11yMsg = $"{Strings.Msg_PressAnyKey} ({Strings.A11y_Capture_Esc_Cancel})";
+
+            AnnounceA11y(strA11yMsg);
+
+            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+            return true;
+        }
+
         if (ActiveControl == TBInput)
         {
-            // 當按下 Enter 鍵，且沒有同時按住 Shift 時：
-            // - 阻止 TextBox 的預設行為（插入換行字元）。
-            // - 讓 Enter 鍵只用來觸發自訂邏輯。
-            // - Shift + Enter 則保留原本的換行功能。
-            // 注意：ProcessCmdKey 的 keyData 已經包含所有修飾鍵資訊。
             if (keyData == Keys.Enter)
             {
                 if (string.IsNullOrWhiteSpace(TBInput.Text))
@@ -217,1044 +447,117 @@ public partial class MainForm : Form
                     BtnCopy.PerformClick();
                 }
 
-                // 告訴 Windows 這個按鍵已經處理掉了，不要再傳給 TextBox。
                 return true;
             }
 
-            // Shift + Enter：換行。
-            // 不攔截（回傳 base.ProcessCmdKey）。
             if (keyData == (Keys.Enter | Keys.Shift))
             {
+                // A11y 廣播：告知使用者已換行。
+                AnnounceA11y(Strings.A11y_New_Line);
+
                 return base.ProcessCmdKey(ref msg, keyData);
             }
         }
 
-        // 其他按鍵照常處理。
         return base.ProcessCmdKey(ref msg, keyData);
     }
+
+    /// <summary>
+    /// 上一次套用佈局時的 DPI 值（用於防抖）
+    /// </summary>
+    private float _lastAppliedDpi = -1;
 
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
 
-        #region 依據 DPI 調整 MinimumSize
+        UpdateMinimumSize();
 
-        // 96 DPI = 100%。
-        float scale = DeviceDpi / BaseDpi;
+        RegisterHotKeyInternal();
+
+        // 先解除再訂閱靜態事件，防止 Handle 重建時產生重複訂閱。
+        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+    }
+
+    protected override void OnDpiChanged(DpiChangedEventArgs e)
+    {
+        base.OnDpiChanged(e);
+
+        UpdateMinimumSize();
+    }
+
+    /// <summary>
+    /// 更新最小尺寸以適應 DPI 變化
+    /// </summary>
+    private void UpdateMinimumSize()
+    {
+        float currentDpi = DeviceDpi;
+
+        // 防抖：如果 DPI 沒有實質變動，則跳過計算。
+        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        {
+            return;
+        }
+
+        _lastAppliedDpi = currentDpi;
+
+        float scale = currentDpi / BaseDpi;
 
         int minWidth = (int)Math.Round(BaseMinWidth * scale),
             minHeight = (int)Math.Round(BaseMinHeight * scale);
 
-        // 依據 DPI 調整最小尺寸，確保在高 DPI 顯示器上不會太小。
         MinimumSize = new Size(minWidth, minHeight);
-
-        #endregion
-
-        // 註冊全域快速鍵：Ctrl + Alt + Shift + I。
-        // 放在 OnHandleCreated 是為了確保當 WinForms 重建 Handle 時（如屬性變更），熱鍵能重新註冊。
-        RegisterHotKeyInternal();
-    }
-
-    private void MainForm_Activated(object sender, EventArgs e)
-    {
-        // 確保視窗還原時，文字方塊直接取得焦點，不用再點一次。
-        if (WindowState == FormWindowState.Normal)
-        {
-            TBInput.Focus();
-        }
-    }
-
-    private async void MainForm_Shown(object sender, EventArgs e)
-    {
-        try
-        {
-            // Windows 平板模式會在 Shown 後強制最大化。
-            // 延遲 50ms 讓系統完成動畫與視窗狀態更新，再強制還原。
-            await Task.Delay(AppSettings.Current.WindowRestoreDelay);
-
-            if (IsDisposed ||
-                !IsHandleCreated)
-            {
-                return;
-            }
-
-            // 強制還原視窗，避免在 Windows 桌面（平板模式）下自動最大化。
-            // 對「Windows 遊戲：全螢幕體驗」（Xbox 全螢幕體驗）不受影響，一樣會自動最大化。
-            Win32.ShowWindow(Handle, Win32.SW_RESTORE);
-
-            // 初始化 GamepadController。
-            InitializeGamepadController();
-
-            // 啟動時自動取得焦點。
-            TBInput.Focus();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                ex.Message,
-                Strings.Err_Title,
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-        }
-    }
-
-    private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
-    {
-        if (e.Category == UserPreferenceCategory.Color ||
-            e.Category == UserPreferenceCategory.Accessibility)
-        {
-            this.SafeInvoke(() =>
-            {
-                if (TBInput.Focused)
-                {
-                    TBInput_Enter(TBInput, EventArgs.Empty);
-                }
-                else
-                {
-                    UpdateBorderColor();
-                }
-            });
-        }
-    }
-
-    private void TBInput_Enter(object sender, EventArgs e)
-    {
-        // 判斷是否為高對比模式，如果系統已經開啟高對比，
-        // 就完全尊重系統設定，不要自己改顏色。
-        if (SystemInformation.HighContrast)
-        {
-            TBInput.BackColor = SystemColors.Window;
-            TBInput.ForeColor = SystemColors.WindowText;
-            PInputHost.BackColor = SystemColors.Highlight;
-
-            return;
-        }
-
-        // 背景改為「純黑色」，這樣可以跟 Windows 預設的藍色選取範圍區隔開來。
-        TBInput.BackColor = Color.Black;
-
-        // 文字改為「純白色」，黑底白字，對比度最高，藍黃色盲也能清楚看見。
-        TBInput.ForeColor = Color.White;
-
-        // 邊框維持系統高亮色（藍色），這樣在黑色方塊外圍會有一圈藍光，
-        // 視覺效果非常現代且清晰。
-        PInputHost.BackColor = SystemColors.Highlight;
-    }
-
-    private void TBInput_Leave(object sender, EventArgs e)
-    {
-        // 還原為一般視窗背景（白色）。
-        TBInput.BackColor = SystemColors.Window;
-        // 還原為一般視窗文字（黑色）。
-        TBInput.ForeColor = SystemColors.WindowText;
-
-        // 設定邊框顏色為灰色。
-        PInputHost.BackColor = SystemColors.ControlDark;
-    }
-
-    private void TBInput_KeyDown(object sender, KeyEventArgs e)
-    {
-        HandleKeyDown(e);
-    }
-
-    private void BtnCopy_MouseEnter(object sender, EventArgs e)
-    {
-        // 第一次觸發時，記錄按鈕的原始樣式。
-        _originalBtnFont ??= BtnCopy.Font;
-        _originalBtnBackColor = BtnCopy.BackColor;
-        _originalBtnForeColor = BtnCopy.ForeColor;
-
-        // A11y 凝視回饋 1：顏色變化。
-        // 使用系統的高亮色（通常是藍底白字），確保在任何 Windows 佈景主題與高對比模式下都具備最高對比度。
-        BtnCopy.BackColor = SystemColors.Highlight;
-        BtnCopy.ForeColor = SystemColors.HighlightText;
-
-        // A11y 凝視回饋 2：形狀與輪廓變化（非顏色提示）。
-        // 將字體加粗。這對於全色盲使用者來說，是確認「游標已精準鎖定按鈕」的絕對視覺指標。
-        BtnCopy.Font = new Font(_originalBtnFont, FontStyle.Bold);
-    }
-
-    private void BtnCopy_MouseLeave(object sender, EventArgs e)
-    {
-        // 還原為原始顏色。
-        BtnCopy.BackColor = _originalBtnBackColor;
-        BtnCopy.ForeColor = _originalBtnForeColor;
-
-        // 還原為原始字體粗細。
-        if (_originalBtnFont != null)
-        {
-            BtnCopy.Font = _originalBtnFont;
-        }
-    }
-
-    private async void BtnCopy_Click(object sender, EventArgs e)
-    {
-        // 在最開頭建立快照。
-        string strTextToCopy = TBInput.Text;
-
-        try
-        {
-            // 使用快照檢查。
-            if (string.IsNullOrEmpty(strTextToCopy))
-            {
-                // 發出警告音。
-                _feedbackService.PlaySound(SystemSounds.Beep);
-
-                // 觸覺回饋：錯誤操作。
-                await VibrateAsync(VibrationPatterns.ActionFail);
-
-                // 視覺回饋（雙重提示）。
-                FlashAlertAsync().SafeFireAndForget();
-
-                AnnounceA11y(Strings.A11y_No_Text_To_Copy);
-
-                return;
-            }
-
-            // 在停用按鈕之前，先主動把焦點移走（移回輸入框）。
-            // 這樣螢幕閱讀器就會平順地唸出「輸入文字……」，而不會因為按鈕突然消失而發生焦點錯亂。
-            if (BtnCopy.Focused)
-            {
-                TBInput.Focus();
-            }
-
-            BtnCopy.Enabled = false;
-
-            // 加入輸入歷程記錄。
-            _historyService.Add(strTextToCopy);
-
-            bool isCopySuccess = await _clipboardService.TrySetTextAsync(strTextToCopy);
-
-            if (IsDisposed ||
-                BtnCopy == null)
-            {
-                return;
-            }
-
-            if (!isCopySuccess)
-            {
-                _feedbackService.PlaySound(SystemSounds.Hand);
-
-                await VibrateAsync(VibrationPatterns.ActionFail);
-
-                // 視覺回饋（寫入失敗警告）。
-                FlashAlertAsync().SafeFireAndForget();
-
-                BtnCopy.Text = Strings.Msg_CopyFail;
-                BtnCopy.Enabled = true;
-
-                // 確保按鈕重新啟用後，如果目前視窗還是活著的，將焦點還給輸入框或按鈕。
-                if (ContainsFocus)
-                {
-                    // 失敗後將焦點還給輸入框讓使用者修改，是很好的體驗。
-                    TBInput.Focus();
-                }
-
-                AnnounceA11y(Strings.Msg_CopyFail);
-
-                await ResetButtonStateAsync();
-
-                return;
-            }
-
-            // 複製成功後的處理。
-            _feedbackService.PlaySound(SystemSounds.Asterisk);
-
-            await VibrateAsync(VibrationPatterns.CopySuccess);
-
-            BtnCopy.Text = Strings.Msg_Copied;
-            BtnCopy.AccessibleDescription = Strings.Msg_Copied;
-
-            AnnounceA11y(Strings.Msg_Copied);
-
-            // 複製後清除。
-            TBInput.Clear();
-
-            await ReturnToPreviousWindowAsync();
-
-            // 恢復按鈕狀態。
-            await ResetButtonStateAsync();
-        }
-        catch (Exception ex)
-        {
-            // 捕捉所有異常，包括 ExternalException 和其他可能的錯誤。
-
-            _feedbackService.PlaySound(SystemSounds.Hand);
-
-            await VibrateAsync(VibrationPatterns.ActionFail);
-
-            // 視覺回饋（系統錯誤警告）。
-            FlashAlertAsync().SafeFireAndForget();
-
-            // 如果視窗還在，顯示錯誤。
-            if (!IsDisposed)
-            {
-                BtnCopy.Text = Strings.Msg_CopyFail;
-                BtnCopy.AccessibleDescription = Strings.Msg_CopyFail;
-                // 確保按鈕被重新啟用，否則使用者無法重試。
-                BtnCopy.Enabled = true;
-
-                // 恢復按鈕狀態。
-                await ResetButtonStateAsync();
-            }
-
-            Debug.WriteLine($"複製到剪貼簿失敗：{ex.Message}");
-        }
     }
 
     /// <summary>
-    /// 註冊全域快速鍵的內部方法，並在註冊失敗時顯示包含目前設定的快速鍵組合的錯誤訊息
+    /// 重設按鈕狀態
     /// </summary>
-    private void RegisterHotKeyInternal()
-    {
-        bool isOkay = _hotKeyService.RegisterShowInputHotkey(Handle);
-
-        if (!isOkay)
-        {
-            // 動態組合出目前設定的快速鍵字串，例如 "Ctrl + Alt + Shift + I"。
-            List<string> keys = [];
-
-            int mods = AppSettings.Current.HotKeyModifiers;
-
-            // 檢查位元遮罩包含哪些修飾鍵。
-            if ((mods & 2) == 2)
-            {
-                keys.Add("Ctrl");
-            }
-
-            if ((mods & 1) == 1)
-            {
-                keys.Add("Alt");
-            }
-
-            if ((mods & 4) == 4)
-            {
-                keys.Add("Shift");
-            }
-
-            if ((mods & 8) == 8)
-            {
-                keys.Add("Win");
-            }
-
-            keys.Add(AppSettings.Current.HotKeyKey.ToUpper());
-
-            string currentHotkeyStr = string.Join(" + ", keys);
-
-            MessageBox.Show(
-                string.Format(Strings.Err_HotkeyRegFail, $"[{currentHotkeyStr}]"),
-                caption: Strings.Wrn_Title,
-                buttons: MessageBoxButtons.OK,
-                icon: MessageBoxIcon.Exclamation);
-        }
-    }
-
-    /// <summary>
-    /// 套用本地化
-    /// </summary>
-    private void ApplyLocalization()
-    {
-        // 設定視窗標題。
-        Text = Strings.App_Title;
-
-        // 設定按鈕文字。
-        BtnCopy.Text = Strings.Btn_CopyDefault;
-
-        // 設定 PlaceholderText。
-        TBInput.PlaceholderText = Strings.Pht_TBInput;
-
-        // 設定無障礙資訊。
-        AccessibleName = Strings.A11y_MainFormName;
-        AccessibleDescription = Strings.A11y_MainFormDesc;
-        TBInput.AccessibleName = Strings.A11y_TBInputName;
-        TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
-        BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
-        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
-    }
-
-    /// <summary>
-    /// 初始化 GamepadController
-    /// </summary>
-    private void InitializeGamepadController()
-    {
-        _inputContext = new FormInputContext(this);
-
-        // 建立 GamepadRepeatSettings。
-        GamepadRepeatSettings gamepadRepeatSettings = new()
-        {
-            InitialDelayFrames = AppSettings.Current.RepeatInitialDelayFrames,
-            IntervalFrames = AppSettings.Current.RepeatIntervalFrames
-        };
-
-        try
-        {
-            // 根據設定建立遊戲手把實作。
-            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.GameInput)
-            {
-                // 使用 GameInput 實作。
-                _gamepadController = new GameInputGamepadController(
-                    _inputContext,
-                    // GameInput 通常不需要指定 index，內部會處理。
-                    0,
-                    gamepadRepeatSettings);
-            }
-            else
-            {
-                // 預設使用 XInput 實作。
-                uint activeUserIndex = XInputGamepadController.GetFirstConnectedUserIndex();
-
-                _gamepadController = new XInputGamepadController(
-                    _inputContext,
-                    activeUserIndex,
-                    gamepadRepeatSettings);
-            }
-
-            // 控制器 ↑ 鍵：瀏覽上一筆輸入歷史（等同鍵盤 ↑）。
-            _gamepadController.UpPressed += () =>
-            {
-                this.SafeInvoke(() => NavigateHistory(-1));
-            };
-
-            // 控制器 ↓ 鍵：瀏覽下一筆輸入歷史（等同鍵盤 ↓）。
-            _gamepadController.DownPressed += () =>
-            {
-                this.SafeInvoke(() => NavigateHistory(+1));
-            };
-
-            // 控制器 ↑ 鍵長按重複：瀏覽上一筆輸入歷史（等同鍵盤 ↑）。
-            _gamepadController.UpRepeat += () =>
-            {
-                this.SafeInvoke(() => NavigateHistory(-1));
-            };
-
-            // 控制器 ↓ 鍵長按重複：瀏覽下一筆輸入歷史（等同鍵盤 ↓）。
-            _gamepadController.DownRepeat += () =>
-            {
-                this.SafeInvoke(() => NavigateHistory(+1));
-            };
-
-            // 控制器 ← 鍵：將游標向左移動一個字元。
-            _gamepadController.LeftPressed += MoveCursorLeft;
-
-            // 控制器 ← 鍵長按重複：將游標連續向左移動一個字元。
-            _gamepadController.LeftRepeat += MoveCursorLeft;
-
-            // 控制器 → 鍵：將游標向右移動一個字元。
-            _gamepadController.RightPressed += MoveCursorRight;
-
-            // 控制器 → 鍵長按重複：將游標連續向右移動一個字元。
-            _gamepadController.RightRepeat += MoveCursorRight;
-
-            // 控制器 Start 鍵（情境智慧切換）：
-            // - 若文字方塊「未」取得焦點：將焦點拉回文字方塊（焦點救援）。
-            // - 若文字方塊「已」取得焦點：功能等同控制器 A 鍵（開啟觸控式鍵盤或複製文字）。
-            _gamepadController.StartPressed += () =>
-            {
-                this.SafeInvoke(() =>
-                {
-                    if (TBInput.CanFocus &&
-                        !TBInput.Focused)
-                    {
-                        TBInput.Focus();
-                    }
-                    else
-                    {
-                        ExecuteConfirmAction();
-                    }
-                });
-            };
-
-            // 控制器 Back 鍵：嘗試將焦點切換回先前的前景視窗。
-            _gamepadController.BackPressed += () =>
-            {
-                this.SafeInvoke(() =>
-                {
-                    HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-                });
-            };
-
-            // 控制器 A 鍵 = Enter 鍵：
-            // - 若文字方塊為空，開啟觸控式鍵盤開始輸入。
-            // - 若文字方塊已有文字，執行複製到剪貼簿並完成輸入流程。
-            _gamepadController.APressed += () =>
-            {
-                this.SafeInvoke(() =>
-                {
-                    ExecuteConfirmAction();
-                });
-            };
-
-            // 控制器 B 鍵：
-            // - 單獨按下時清除輸入內容（等同 Esc 鍵）。
-            // - 同時按住 LB + RB 時，嘗試將焦點切換回先前的前景視窗。
-            _gamepadController.BPressed += () =>
-            {
-                this.SafeInvoke(() =>
-                {
-                    if (_gamepadController.IsLeftShoulderHeld &&
-                        _gamepadController.IsRightShoulderHeld)
-                    {
-                        HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-                    }
-                    else
-                    {
-                        ClearInput();
-                    }
-                });
-            };
-
-            // 控制器 X 鍵：刪除游標前一個字元（等同鍵盤 Backspace 鍵）。
-            _gamepadController.XPressed += () =>
-            {
-                this.SafeInvoke(() =>
-                {
-                    if (TBInput.SelectionStart > 0)
-                    {
-                        int position = TBInput.SelectionStart;
-
-                        // 先抓出準備要刪除的字元。
-                        char deletedChar = TBInput.Text[position - 1];
-
-                        // 用 SelectedText 刪除，這樣不會破壞 Ctrl + Z 的復原歷史。
-                        TBInput.Select(position - 1, 1);
-                        TBInput.SelectedText = string.Empty;
-
-                        // 報讀被刪除的字元。
-                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar));
-                    }
-                    else
-                    {
-                        _feedbackService.PlaySound(SystemSounds.Beep);
-
-                        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-                        // 撞到最左邊無法刪除時的語音提示。
-                        AnnounceA11y(Strings.A11y_Cannot_Delete);
-                    }
-                });
-            };
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"控制器初始化失敗：{ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 執行確認操作（共用於 A 鍵與 Start 鍵）
-    /// </summary>
-    private void ExecuteConfirmAction()
-    {
-        if (string.IsNullOrWhiteSpace(TBInput.Text))
-        {
-            ShowTouchKeyboard();
-
-            return;
-        }
-
-        if (!BtnCopy.Enabled)
-        {
-            return;
-        }
-
-        BtnCopy.PerformClick();
-    }
-
-    /// <summary>
-    /// 處理 KeyDown
-    /// </summary>
-    /// <param name="e">KeyEventArgs</param>
-    private void HandleKeyDown(KeyEventArgs e)
-    {
-        // Esc：清除。
-        if (e.KeyCode == Keys.Escape)
-        {
-            ClearInput();
-
-            e.SuppressKeyPress = true;
-
-            return;
-        }
-
-        // ↑：上一筆。
-        if (e.KeyCode == Keys.Up)
-        {
-            // 取得游標目前所在的行數（0 代表第一行）。
-            int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart);
-
-            // 只有在第一行時，按「上」才觸發歷史紀錄。
-            if (currentLine == 0)
-            {
-                NavigateHistory(-1);
-
-                e.SuppressKeyPress = true;
-            }
-
-            // 若不在第一行，就不攔截，讓 Windows 原生的多行游標往上移動。
-            return;
-        }
-
-        // ↓：下一筆。
-        if (e.KeyCode == Keys.Down)
-        {
-            // 取得游標目前所在的行數。
-            int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart);
-
-            // 取得文字方塊總共的行數（最後一行的 Index）。
-            int totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
-
-            // 只有在最後一行時，按「下」才觸發歷史紀錄。
-            if (currentLine == totalLines)
-            {
-                NavigateHistory(+1);
-
-                e.SuppressKeyPress = true;
-            }
-
-            return;
-        }
-    }
-
-    /// <summary>
-    /// 重置按鈕狀態（延遲後執行）
-    /// </summary>
+    /// <returns>Task</returns>
     private async Task ResetButtonStateAsync()
     {
-        // 等待設定的時間。
-        await Task.Delay(Delay_ButtonReset);
+        try
+        {
+            await Task.Delay(Delay_ButtonReset, _formCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
 
-        // 檢查物件是否還存在（這是 async 處理 UI 必備的防護）。
         if (IsDisposed ||
             BtnCopy == null)
         {
             return;
         }
 
-        // 執行 UI 更新（自動回到 UI 執行緒）。
-        BtnCopy.Text = Strings.Btn_CopyDefault;
+        // 還原文字與無障礙描述。
+        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
         BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+
+        // 還原視覺樣式（顏色與粗細）。
+        RestoreButtonDefaultStyle();
+
+        // 最後重新啟用按鈕。
         BtnCopy.Enabled = true;
     }
 
     /// <summary>
-    /// 讓控制器震動
+    /// 要求使用者重啟應用程式以套用變更
     /// </summary>
-    /// <param name="profile">VibrationProfile</param>
-    /// <returns>Task</returns>
-    private Task VibrateAsync(VibrationProfile profile)
+    private static void AskForRestart()
     {
-        // 委派給 Service 處理。
-        return _feedbackService.VibrateAsync(_gamepadController, profile);
-    }
-
-    /// <summary>
-    /// 游標左移
-    /// </summary>
-    private void MoveCursorLeft()
-    {
-        this.SafeInvoke(() =>
+        if (MessageBox.Show(
+            Strings.Msg_RestartRequired,
+            Strings.Wrn_Title,
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question) == DialogResult.Yes)
         {
-            if (TBInput.SelectionStart > 0)
-            {
-                TBInput.SelectionStart--;
-                TBInput.ScrollToCaret();
+            Program.ReleaseMutex();
 
-                // 手動報讀游標右側的字元，讓使用者知道跨過了什麼字。
-                char crossedChar = TBInput.Text[TBInput.SelectionStart];
+            Application.Restart();
 
-                AnnounceA11y(crossedChar.ToString());
-            }
-            else
-            {
-                _feedbackService.PlaySound(SystemSounds.Beep);
-
-                // 只有在撞牆時才震動，避免長按時一直震動。
-                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-                // 撞到最左邊。
-                AnnounceA11y(Strings.A11y_Nav_Top);
-            }
-        });
-    }
-
-    /// <summary>
-    /// 游標右移
-    /// </summary>
-    private void MoveCursorRight()
-    {
-        this.SafeInvoke(() =>
-        {
-            if (TBInput.SelectionStart < TBInput.Text.Length)
-            {
-                // 往右移之前，先抓取要跨過的字元。
-                char crossedChar = TBInput.Text[TBInput.SelectionStart];
-
-                TBInput.SelectionStart++;
-                TBInput.ScrollToCaret();
-
-                // 報讀該字元。
-                AnnounceA11y(crossedChar.ToString());
-            }
-            else
-            {
-                _feedbackService.PlaySound(SystemSounds.Beep);
-
-                // 只有在撞牆時才震動，避免長按時一直震動。
-                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-                // 撞到最右邊。
-                AnnounceA11y(Strings.A11y_Nav_Bottom);
-            }
-        });
-    }
-
-    /// <summary>
-    /// 清除文字方塊
-    /// </summary>
-    private void ClearInput()
-    {
-        // 如果已經是空的，不需要大動作清除。
-        if (string.IsNullOrEmpty(TBInput.Text))
-        {
-            _feedbackService.PlaySound(SystemSounds.Beep);
-
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-            return;
+            Environment.Exit(0);
         }
-
-        _feedbackService.PlaySound(SystemSounds.Beep);
-
-        VibrateAsync(VibrationPatterns.ClearInput).SafeFireAndForget();
-
-        TBInput.Clear();
-
-        // 重置 InputHistoryManager 索引值。
-        _historyService.ResetIndex();
-
-        AnnounceA11y(Strings.Msg_InputCleared);
-    }
-
-    /// <summary>
-    /// 導覽輸入歷程記錄
-    /// </summary>
-    /// <param name="direction">數值</param>
-    private void NavigateHistory(int direction)
-    {
-        InputHistoryService.NavigationResult navigationResult = _historyService.Navigate(direction);
-
-        // 處理震動與視覺（邊界或錯誤）。
-        if (navigationResult.IsBoundaryHit)
-        {
-            _feedbackService.PlaySound(SystemSounds.Beep);
-
-            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-
-            // 視覺回饋（提示已經到底了）。
-            FlashAlertAsync().SafeFireAndForget();
-
-            AnnounceA11y(direction < 0 ? Strings.A11y_Nav_Oldest : Strings.A11y_Nav_Newest);
-        }
-
-        // 處理文字更新。
-        if (navigationResult.IsCleared)
-        {
-            TBInput.Clear();
-
-            // 如果不是因為撞牆才清空，才獨立報讀（避免雙重語音）。
-            if (!navigationResult.IsBoundaryHit)
-            {
-                AnnounceA11y(Strings.Msg_InputCleared);
-            }
-        }
-        else if (navigationResult.Success &&
-            navigationResult.Text != null)
-        {
-            TBInput.Text = navigationResult.Text;
-            // 游標移到最後。
-            TBInput.SelectionStart = TBInput.Text.Length;
-            TBInput.ScrollToCaret();
-
-            // 強制朗讀切換後的歷史紀錄內容。
-            AnnounceA11y(string.Format(Strings.A11y_History_Prefix, navigationResult.Text));
-        }
-    }
-
-    /// <summary>
-    /// 顯示觸控式鍵盤
-    /// </summary>
-    private void ShowTouchKeyboard()
-    {
-        if ((DateTime.UtcNow - _lastTouchKeyboardOpened).TotalMilliseconds < 500)
-        {
-            return;
-        }
-
-        _lastTouchKeyboardOpened = DateTime.UtcNow;
-
-        // 確保文字方塊取得焦點。
-        if (TBInput.CanFocus &&
-            !TBInput.Focused)
-        {
-            TBInput.Focus();
-        }
-
-        try
-        {
-            _isShowingTouchKeyboard = true;
-
-            bool isTouchKeyboardOpened = _touchKeyboardService.TryOpen();
-
-            if (isTouchKeyboardOpened)
-            {
-                _feedbackService.PlaySound(SystemSounds.Asterisk);
-            }
-            else
-            {
-                // 找不到檔案時的處理。
-                _feedbackService.PlaySound(SystemSounds.Hand);
-
-                VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-
-                // 錯誤時觸發視覺閃爍。
-                FlashAlertAsync().SafeFireAndForget();
-
-                AnnounceA11y(Strings.Err_TouchKeyboardNotFound);
-            }
-        }
-        catch
-        {
-            _feedbackService.PlaySound(SystemSounds.Hand);
-
-            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-
-            // 錯誤時觸發視覺閃爍。
-            FlashAlertAsync().SafeFireAndForget();
-
-            AnnounceA11y(Strings.Err_TouchKeyboardNotFound);
-        }
-        finally
-        {
-            // 改為呼叫獨立的非同步方法，並加上 _ = 捨棄回傳值以防堵編譯警告。
-            _ = ResetTouchKeyboardFlagAsync();
-        }
-    }
-
-    /// <summary>
-    /// 顯示輸入
-    /// </summary>
-    public void ShowForInput()
-    {
-        // 捕捉目前視窗。
-        _windowFocusService.CaptureCurrentWindow();
-
-        // 顯示視窗。
-        Show();
-
-        // 還原視窗。
-        Win32.ShowWindow(Handle, Win32.SW_RESTORE);
-
-        // 帶至前方。
-        BringToFront();
-
-        // 啟用視窗。
-        Activate();
-
-        // 確保文字方塊取得焦點。
-        TBInput.Focus();
-
-        _feedbackService.PlaySound(SystemSounds.Asterisk);
-
-        VibrateAsync(VibrationPatterns.ShowInput).SafeFireAndForget();
-    }
-
-    /// <summary>
-    /// 重置觸控式鍵盤顯示旗標
-    /// </summary>
-    /// <returns>Task</returns>
-    private async Task ResetTouchKeyboardFlagAsync()
-    {
-        try
-        {
-            await Task.Delay(AppSettings.Current.TouchKeyboardDismissDelay);
-
-            _isShowingTouchKeyboard = false;
-        }
-        catch
-        {
-            // 忽略因視窗關閉或取消引發的錯誤。
-        }
-    }
-
-    /// <summary>
-    /// 返回前一個視窗
-    /// </summary>
-    /// <returns>Task</returns>
-    private async Task ReturnToPreviousWindowAsync()
-    {
-        // 呼叫導航服務，並傳入目前的控制器實例以進行安全檢查與震動。
-        await _navigationService.NavigateBackAsync(_gamepadController);
-    }
-
-    /// <summary>
-    /// 讓輸入框邊框閃爍與脈衝加粗（符合 A11y 雙重反饋，且對眼動追蹤極度友善）
-    /// </summary>
-    /// <returns>Task</returns>
-    private async Task FlashAlertAsync()
-    {
-        // 尊重系統動畫開關，避免對前庭神經系統敏感的使用者造成暈眩。
-        // 同時檢查是否正在閃爍或視窗已被處置，防止重複觸發或報錯。
-        if (!SystemInformation.UIEffectsEnabled ||
-            _isFlashing ||
-            IsDisposed ||
-            !IsHandleCreated)
-        {
-            return;
-        }
-
-        _isFlashing = true;
-
-        // 為避免實體座標位移（Margin）干擾眼動儀的停留點擊（Dwell-Click），
-        // 改為記錄原始的 Padding（內部邊距），透過動態加粗邊框來產生「原位脈衝」效果。
-        Padding originalPadding = PInputHost.Padding;
-
-        try
-        {
-            // 決定閃爍顏色。
-            Color flashColor;
-
-            // 檢查系統是否開啟了「高對比模式」。
-            if (SystemInformation.HighContrast)
-            {
-                flashColor = SystemColors.HighlightText;
-            }
-            else
-            {
-                // 一般模式：改用 OrangeRed，紅色盲看 OrangeRed 會像「亮黃色／亮褐色」，對比度高。
-                flashColor = Color.OrangeRed;
-            }
-
-            int flashCount = 3,
-                // 節奏維持 100ms，製造急促的警告感。
-                interval = 100;
-
-            for (int i = 0; i < flashCount; i++)
-            {
-                // A11y 第一重反饋：顏色警告。
-                PInputHost.BackColor = flashColor;
-
-                // A11y 第二重反饋：形狀／厚度變化（原位脈衝）。
-                // 將四周邊框同時加粗 4 個像素，目標物本身不會左右移動，對眼動使用者完全安全。
-                PInputHost.Padding = new Padding(originalPadding.Left + 4);
-
-                // 脈衝維持時間。
-                await Task.Delay(interval);
-
-                if (IsDisposed)
-                {
-                    return;
-                }
-
-                // 還原顏色與厚度（製造一縮一放的跳動感）。
-                UpdateBorderColor();
-
-                PInputHost.Padding = originalPadding;
-
-                await Task.Delay(interval);
-            }
-        }
-        finally
-        {
-            _isFlashing = false;
-
-            if (!IsDisposed)
-            {
-                // 確保無論發生什麼事（例如迴圈中途被中斷），邊框顏色與厚度最後一定會完全復原。
-                UpdateBorderColor();
-
-                PInputHost.Padding = originalPadding;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 依據焦點狀態更新邊框顏色
-    /// </summary>
-    private void UpdateBorderColor()
-    {
-        if (TBInput.Focused)
-        {
-            // 取得焦點時：邊框變為系統高亮色（通常是藍色）。
-            PInputHost.BackColor = SystemColors.Highlight;
-        }
-        else
-        {
-            // 失去焦點時：邊框變回一般的灰色。
-            PInputHost.BackColor = SystemColors.ControlDark;
-        }
-    }
-
-    /// <summary>
-    /// 安全地處理返回前一個視窗的流程，避免重複觸發導致的問題
-    /// </summary>
-    /// <returns>Task</returns>
-    private async Task HandleReturnToPreviousWindowSafeAsync()
-    {
-        if (_isReturning)
-        {
-            return;
-        }
-
-        _isReturning = true;
-
-        try
-        {
-            await ReturnToPreviousWindowAsync();
-        }
-        finally
-        {
-            _isReturning = false;
-        }
-    }
-
-    /// <summary>
-    /// 初始化無障礙廣播用的隱藏標籤
-    /// </summary>
-    /// <remarks>
-    /// WinForms 沒有原生的 Live Region，透過一個螢幕外的 Label 搭配 NameChange 事件
-    /// 來模擬即時朗讀，且不搶佔輸入焦點。
-    /// </remarks>
-    private void InitializeA11yAnnouncer()
-    {
-        _lblA11yAnnouncer = new AnnouncerLabel
-        {
-            // 設定名稱以便識別。
-            Name = "LblA11yAnnouncer",
-            // 必須設為 Visible，螢幕閱讀器才抓得到。
-            Visible = true,
-            // 自動調整大小
-            AutoSize = true,
-            // 移出可視範圍，避免影響視覺排版。
-            Location = new Point(-10000, -10000),
-            // 設定為 StaticText 角色。
-            AccessibleRole = AccessibleRole.StaticText,
-            // 避免被 Tab 鍵選中。
-            TabStop = false,
-            TabIndex = 0,
-            // 加入至表單控制項集合。
-            Parent = this
-        };
-    }
-
-    /// <summary>
-    /// 發送無障礙廣播訊息
-    /// </summary>
-    /// <param name="message">要朗讀的訊息</param>
-    private void AnnounceA11y(string message)
-    {
-        this.SafeInvoke(() =>
-        {
-            _lblA11yAnnouncer?.Announce(message);
-        });
     }
 }

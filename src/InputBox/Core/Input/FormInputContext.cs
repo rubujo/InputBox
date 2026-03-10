@@ -1,4 +1,6 @@
-﻿namespace InputBox.Core.Input;
+﻿using System.Diagnostics;
+
+namespace InputBox.Core.Input;
 
 /// <summary>
 /// FormInputContext
@@ -34,9 +36,14 @@ internal sealed class FormInputContext : IInputContext, IDisposable
 
         // 訂閱事件以被動更新狀態。
         _form.VisibleChanged += OnFormStateChanged;
+        _form.Activated += OnFormStateChanged;
+        _form.Deactivate += OnFormStateChanged;
         // 處理最小化。
         _form.SizeChanged += OnFormStateChanged;
         _form.FormClosed += OnFormClosed;
+
+        // 輔助捕捉子對話框的焦點轉移與切換空窗期。
+        Application.Idle += OnApplicationIdle;
     }
 
     /// <summary>
@@ -63,7 +70,31 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     /// <param name="e">EventArgs</param>
     private void OnFormStateChanged(object? sender, EventArgs e)
     {
-        UpdateState();
+        try
+        {
+            UpdateState();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[事件] Form 狀態變更處理失敗：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 系統閒置時的輔助更新
+    /// </summary>
+    /// <param name="sender">object?</param>
+    /// <param name="e">EventArgs</param>
+    private void OnApplicationIdle(object? sender, EventArgs e)
+    {
+        try
+        {
+            UpdateState();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[事件] ApplicationIdle處理失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -73,7 +104,14 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     /// <param name="e">EventArgs</param>
     private void OnFormClosed(object? sender, FormClosedEventArgs e)
     {
-        _isInputActive = false;
+        try
+        {
+            _isInputActive = false;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[事件] FormClosed處理失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -90,10 +128,12 @@ internal sealed class FormInputContext : IInputContext, IDisposable
 
         // 這些判斷只會在 UI 執行緒觸發事件時執行，不會影響背景輪詢效能。
         bool isVisible = _form.Visible,
-            isNotMinimized = _form.WindowState != FormWindowState.Minimized;
+            isNotMinimized = _form.WindowState != FormWindowState.Minimized,
+            isActive = Form.ActiveForm != null;
 
         _isInputActive = isVisible &&
-            isNotMinimized;
+            isNotMinimized &&
+            isActive;
     }
 
     /// <summary>
@@ -110,7 +150,21 @@ internal sealed class FormInputContext : IInputContext, IDisposable
 
         // 解除訂閱，防止記憶體洩漏。
         _form.VisibleChanged -= OnFormStateChanged;
+        _form.Activated -= OnFormStateChanged;
+        _form.Deactivate -= OnFormStateChanged;
         _form.SizeChanged -= OnFormStateChanged;
         _form.FormClosed -= OnFormClosed;
+
+        // 解除閒置訂閱。
+        // 注意：Application.Idle 與 UI 訊息迴圈掛鉤，
+        // 建議在 UI 執行緒執行解除。
+        try
+        {
+            Application.Idle -= OnApplicationIdle;
+        }
+        catch
+        {
+            // 忽略解除訂閱時的任何異常（通常發生在 App 已經關閉時）。
+        }
     }
 }
