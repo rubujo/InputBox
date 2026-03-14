@@ -13,7 +13,7 @@ namespace InputBox.Resources {
     
     
     /// <summary>
-    ///   用於查詢當地語系化字串等的強類型資源類別。
+    /// 用於查詢當地語系化字串等的強類型資源類別
     /// </summary>
     // 這個類別是自動產生的，是利用 StronglyTypedResourceBuilder
     // 類別透過 ResGen 或 Visual Studio 這類工具。
