@@ -15,6 +15,11 @@ partial class DesignerBlocker { };
 public partial class MainForm
 {
     /// <summary>
+    /// 追蹤 Back 鍵是否已作為組合鍵使用（用於防止放開時觸發返回動作）
+    /// </summary>
+    private bool _isBackUsedAsModifier = false;
+
+    /// <summary>
     /// 初始化 GamepadController
     /// </summary>
     private async Task InitializeGamepadControllerAsync()
@@ -118,6 +123,36 @@ public partial class MainForm
                 };
 
                 // 控制器事件綁定。
+                controller.BackPressed += () => this.SafeInvoke(() =>
+                {
+                    // 按下時重置旗標。
+                    _isBackUsedAsModifier = false;
+                });
+
+                controller.BackReleased += () => this.SafeInvoke(() =>
+                {
+                    if (HandleContextMenuGamepadInput("Cancel"))
+                    {
+                        return;
+                    }
+
+                    if (ActiveForm != this ||
+                        _isCapturingHotkey != 0)
+                    {
+                        return;
+                    }
+
+                    // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
+                    if (_isBackUsedAsModifier)
+                    {
+                        _isBackUsedAsModifier = false;
+
+                        return;
+                    }
+
+                    HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
+                });
+
                 controller.UpPressed += () => this.SafeInvoke(() =>
                 {
                     if (HandleContextMenuGamepadInput("Up"))
@@ -128,6 +163,16 @@ public partial class MainForm
                     if (ActiveForm != this ||
                         _isCapturingHotkey != 0)
                     {
+                        return;
+                    }
+
+                    // 組合鍵：Back + Up 增加不透明度（5%）。
+                    if (controller.IsBackHeld)
+                    {
+                        _isBackUsedAsModifier = true;
+
+                        AdjustOpacity(0.05f);
+
                         return;
                     }
 
@@ -146,6 +191,16 @@ public partial class MainForm
                         return;
                     }
 
+                    // 組合鍵：Back + Down 減少不透明度（5%）。
+                    if (controller.IsBackHeld)
+                    {
+                        _isBackUsedAsModifier = true;
+
+                        AdjustOpacity(-0.05f);
+
+                        return;
+                    }
+
                     NavigateHistory(+1);
                 });
                 controller.UpRepeat += () => this.SafeInvoke(() =>
@@ -161,6 +216,16 @@ public partial class MainForm
                         return;
                     }
 
+                    // 組合鍵連發。
+                    if (controller.IsBackHeld)
+                    {
+                        _isBackUsedAsModifier = true;
+
+                        AdjustOpacity(0.05f);
+
+                        return;
+                    }
+
                     NavigateHistory(-1);
                 });
                 controller.DownRepeat += () => this.SafeInvoke(() =>
@@ -173,6 +238,16 @@ public partial class MainForm
                     if (ActiveForm != this ||
                         _isCapturingHotkey != 0)
                     {
+                        return;
+                    }
+
+                    // 組合鍵連發。
+                    if (controller.IsBackHeld)
+                    {
+                        _isBackUsedAsModifier = true;
+
+                        AdjustOpacity(-0.05f);
+
                         return;
                     }
 
@@ -266,25 +341,6 @@ public partial class MainForm
                         {
                             ExecuteConfirmAction();
                         }
-                    });
-                };
-
-                controller.BackPressed += () =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        if (HandleContextMenuGamepadInput("Cancel"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
                     });
                 };
 
@@ -389,6 +445,28 @@ public partial class MainForm
                         if (ActiveForm != this ||
                             _isCapturingHotkey != 0)
                         {
+                            return;
+                        }
+
+                        // 組合鍵：LB + RB + X 直接結束應用程式。
+                        if (controller.IsLeftShoulderHeld &&
+                            controller.IsRightShoulderHeld)
+                        {
+                            // A11y 廣播：告知使用者正在關閉程式。
+                            AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
+
+                            this.SafeInvoke(Close);
+
+                            return;
+                        }
+
+                        // 組合鍵：Back + X 重設透明度（100%）。
+                        if (controller.IsBackHeld)
+                        {
+                            _isBackUsedAsModifier = true;
+
+                            ResetOpacity();
+
                             return;
                         }
 

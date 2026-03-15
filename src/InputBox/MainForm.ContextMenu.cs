@@ -191,6 +191,62 @@ public partial class MainForm
             AccessibleDescription = Strings.A11y_Menu_WinOps_Desc
         };
 
+        // 不透明度。
+        ToolStripMenuItem tsmiOpacity = new(Strings.Settings_WindowOpacity)
+        {
+            AccessibleName = "OpacityGroup",
+        };
+        tsmiOpacity.DropDownOpening += (s, e) =>
+        {
+            tsmiOpacity.AccessibleDescription = string.Format(
+                Strings.A11y_Menu_OpacityDesc,
+                Strings.Settings_WindowOpacity,
+                AppSettings.Current.WindowOpacity);
+        };
+        tsmiWinOps.DropDownItems.Add(tsmiOpacity);
+
+        // 設定不透明度數值。
+        ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
+        {
+            AccessibleName = Strings.Settings_WindowOpacity
+        };
+        tsmiSetOpacity.Click += (s, e) =>
+        {
+            float? result = AskForFloat(
+                Strings.Settings_WindowOpacity,
+                AppSettings.Current.WindowOpacity * 100,
+                100.0f,
+                50.0f,
+                100.0f);
+
+            if (result.HasValue)
+            {
+                AppSettings.Current.WindowOpacity = result.Value / 100.0f;
+
+                UpdateOpacity();
+
+                AppSettings.Save();
+
+                RefreshMenu();
+
+                AnnounceA11y(string.Format(Strings.A11y_Opacity_Changed, AppSettings.Current.WindowOpacity));
+            }
+        };
+        tsmiOpacity.DropDownItems.Add(tsmiSetOpacity);
+
+        // 重設不透明度。
+        ToolStripMenuItem tsmiResetOpacity = new(Strings.Btn_SetDefault)
+        {
+            AccessibleName = Strings.Btn_SetDefault
+        };
+        tsmiResetOpacity.Click += (s, e) =>
+        {
+            ResetOpacity();
+        };
+        tsmiOpacity.DropDownItems.Add(tsmiResetOpacity);
+
+        tsmiWinOps.DropDownItems.Add(new ToolStripSeparator());
+
         /// <summary>
         /// 新增數值設定選單項目
         /// </summary>
@@ -201,13 +257,18 @@ public partial class MainForm
         /// <param name="defValue">預設值</param>
         /// <param name="min">最小值</param>
         /// <param name="max">最大值</param>
-        void AddNumericItem(ToolStripMenuItem parent, string label, Func<int> getter, Action<int> setter, int defValue, int min, int max)
+        void AddNumericItem(
+            ToolStripMenuItem parent,
+            string label,
+            Func<int> getter,
+            Action<int> setter,
+            int defValue,
+            int min,
+            int max)
         {
-            ToolStripMenuItem item = new($"{label}: {getter()}")
+            ToolStripMenuItem item = new(string.Empty)
             {
                 AccessibleName = label,
-                // A11y 描述優化：使用在地化字串加入目前值與有效範圍資訊。
-                AccessibleDescription = string.Format(Strings.A11y_Menu_NumericDesc, label, getter(), min, max)
             };
 
             item.Click += (s, e) =>
@@ -220,12 +281,7 @@ public partial class MainForm
 
                     AppSettings.Save();
 
-                    // 更新選單項目的 A11y 描述。
-                    item.AccessibleDescription = string.Format(Strings.A11y_Menu_NumericDesc, label, val.Value, min, max);
-
-                    // 呼叫 RefreshMenuText 刷新整個父選單，
-                    // 這樣連動變更（如死區 Enter 影響 Exit）也能即時反應。
-                    RefreshMenuText(parent);
+                    RefreshMenu();
                 }
             };
 
@@ -277,7 +333,7 @@ public partial class MainForm
             AppSettings.Current.InputJitterRange = 50;
             AppSettings.Save();
 
-            RefreshMenuText(tsmiWinOps);
+            RefreshMenu();
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -308,7 +364,7 @@ public partial class MainForm
         };
         tsmiFeedback.DropDownItems.Add(tsmiVibEnable);
 
-        ToolStripMenuItem tsmiIntensity = new(string.Format(Strings.Menu_Settings_Intensity, AppSettings.Current.VibrationIntensity))
+        ToolStripMenuItem tsmiIntensity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_VibrationIntensity
         };
@@ -330,7 +386,7 @@ public partial class MainForm
 
                 AppSettings.Save();
 
-                RefreshMenuText(tsmiFeedback);
+                RefreshMenu();
 
                 // A11y 廣播：告知強度已更新。
                 AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {val.Value}");
@@ -354,7 +410,7 @@ public partial class MainForm
 
             tsmiVibEnable.Checked = true;
 
-            RefreshMenuText(tsmiFeedback);
+            RefreshMenu();
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -495,7 +551,7 @@ public partial class MainForm
 
             SyncGamepadSettings();
 
-            RefreshMenuText(tsmiGamepad);
+            RefreshMenu();
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -508,7 +564,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
 
         // 歷程容量（需重啟）。
-        ToolStripMenuItem tsmiCap = new(string.Format(Strings.Menu_Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity))
+        ToolStripMenuItem tsmiCap = new(string.Empty)
         {
             AccessibleName = Strings.Settings_HistoryCapacity
         };
@@ -522,7 +578,7 @@ public partial class MainForm
                 AppSettings.Current.HistoryCapacity = val.Value;
                 AppSettings.Save();
 
-                RefreshMenuText(tsmiSettings);
+                RefreshMenu();
 
                 AskForRestart();
             }
@@ -577,21 +633,42 @@ public partial class MainForm
         // 綁定選單至容器控制項，確保 TBInput 能保留其原始的 Windows 右鍵選單（剪下、複製、貼上）。
         PInputHost.ContextMenuStrip = _cmsInput;
         TLPHost.ContextMenuStrip = _cmsInput;
+
+        // 初始化所有項目文字。
+        RefreshMenu();
     }
 
     /// <summary>
-    /// 刷新選單中所有數值項目的文字顯示
+    /// 重新整理整個右鍵選單的標籤文字與 A11y 描述。
     /// </summary>
-    /// <param name="parent">父選單</param>
-    private static void RefreshMenuText(ToolStripMenuItem parent)
+    public void RefreshMenu()
+    {
+        this.SafeInvoke(() =>
+        {
+            if (_cmsInput != null)
+            {
+                foreach (ToolStripItem item in _cmsInput.Items)
+                {
+                    if (item is ToolStripMenuItem tsmi)
+                    {
+                        RefreshMenuText(tsmi);
+                    }
+                }
+            }
+        });
+    }
+
+    /// <summary>
+    /// 遞迴更新選單項目標籤。
+    /// </summary>
+    /// <param name="parent">父選單項</param>
+    private void RefreshMenuText(ToolStripMenuItem parent)
     {
         foreach (ToolStripItem item in parent.DropDownItems)
         {
-            if (item is ToolStripMenuItem mi &&
-                !string.IsNullOrEmpty(mi.Text) &&
-                mi.Text.Contains(':'))
+            if (item is ToolStripMenuItem mi)
             {
-                string label = mi.Text.Split(':')[0].Trim();
+                string? label = mi.AccessibleName;
 
                 // 根據標籤名稱從 AppSettings 讀取最新值並更新文字。
                 if (label == Strings.Settings_WindowRestoreDelay)
@@ -638,6 +715,18 @@ public partial class MainForm
                 {
                     mi.Text = string.Format(Strings.Menu_Settings_Intensity, AppSettings.Current.VibrationIntensity);
                 }
+                else if (label == Strings.Settings_WindowOpacity)
+                {
+                    mi.Text = $"{label}: {AppSettings.Current.WindowOpacity:P0}";
+
+                    mi.AccessibleDescription = string.Format(
+                        Strings.A11y_Menu_OpacityDesc,
+                        label,
+                        AppSettings.Current.WindowOpacity);
+                }
+
+                // 遞迴處理子項。
+                RefreshMenuText(mi);
             }
         }
     }

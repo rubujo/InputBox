@@ -170,6 +170,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? BackPressed;
 
     /// <summary>
+    /// 控制器返回鍵放開
+    /// </summary>
+    public event Action? BackReleased;
+
+    /// <summary>
     /// 控制器 A 鍵
     /// </summary>
     public event Action? APressed;
@@ -927,6 +932,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             BackPressed?.Invoke();
         }
 
+        if (!currentButtons.HasFlag(GameInputGamepadButtons.View) &&
+            prevButtons.HasFlag(GameInputGamepadButtons.View))
+        {
+            BackReleased?.Invoke();
+        }
+
         if (currentButtons.HasFlag(GameInputGamepadButtons.A) &&
             !prevButtons.HasFlag(GameInputGamepadButtons.A))
         {
@@ -1303,6 +1314,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         RightPressed = null;
         StartPressed = null;
         BackPressed = null;
+        BackReleased = null;
         APressed = null;
         BPressed = null;
         XPressed = null;

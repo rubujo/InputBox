@@ -147,6 +147,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? BackPressed;
 
     /// <summary>
+    /// 控制器返回鍵放開
+    /// </summary>
+    public event Action? BackReleased;
+
+    /// <summary>
     /// 快取的裝置名稱
     /// </summary>
     private string _cachedDeviceName = string.Empty;
@@ -525,6 +530,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.DpadRight, RightPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Start, StartPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Back, BackPressed);
+            DetectReleased(currentState, _previousState, XInput.GamepadButton.Back, BackReleased);
             Detect(currentState, _previousState, XInput.GamepadButton.A, APressed);
             Detect(currentState, _previousState, XInput.GamepadButton.B, BPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);
@@ -682,6 +688,26 @@ internal sealed partial class XInputGamepadController : IGamepadController
     {
         if (currentState.Has(gamepadButton) &&
             !previousState.Has(gamepadButton))
+        {
+            action?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 偵測按鍵放開
+    /// </summary>
+    /// <param name="currentState">目前的 XInputState</param>
+    /// <param name="previousState">前一次的 XInputState</param>
+    /// <param name="gamepadButton">控制器按鍵</param>
+    /// <param name="action">Action</param>
+    private static void DetectReleased(
+        in XInput.XInputState currentState,
+        in XInput.XInputState previousState,
+        XInput.GamepadButton gamepadButton,
+        Action? action)
+    {
+        if (!currentState.Has(gamepadButton) &&
+            previousState.Has(gamepadButton))
         {
             action?.Invoke();
         }
@@ -996,6 +1022,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         RightPressed = null;
         StartPressed = null;
         BackPressed = null;
+        BackReleased = null;
         APressed = null;
         BPressed = null;
         XPressed = null;

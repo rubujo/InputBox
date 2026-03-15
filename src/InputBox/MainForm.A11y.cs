@@ -93,6 +93,7 @@ public partial class MainForm
         _lblInput?.Text = Strings.A11y_TBInputName;
 
         // 建立或更新 A11y 放大字型。
+        // 先處置舊的字型資源，防止 GDI 洩漏。
         _a11yFont?.Dispose();
         _a11yFont = GetSharedA11yFont(DeviceDpi);
 
@@ -100,9 +101,21 @@ public partial class MainForm
         BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
         BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
         BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
-        
+
         // 根據規範，套用統一的 A11y 共享字型。
         BtnCopy.Font = _a11yFont;
+
+        // 更新加粗字型（用於 Hover 效果）。
+        _boldBtnFont?.Dispose();
+        _boldBtnFont = new Font(_a11yFont, FontStyle.Bold);
+
+        // 紀錄原始顏色，以便在滑鼠移出時還原。
+        // 只有在非高對比模式下才更新快取，避免把系統高對比色（如亮黃、螢光綠）紀錄為「原始色」。
+        if (!SystemInformation.HighContrast)
+        {
+            _originalBtnBackColor = BtnCopy.BackColor;
+            _originalBtnForeColor = BtnCopy.ForeColor;
+        }
     }
 
     /// <summary>

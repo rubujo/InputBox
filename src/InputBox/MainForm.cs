@@ -124,22 +124,17 @@ public partial class MainForm : Form
     private bool? _lastGamepadConnectedState;
 
     /// <summary>
-    /// 原始字型
-    /// </summary>
-    private Font? _originalBtnFont;
-
-    /// <summary>
     /// 快取的加粗字型（A11y 視覺強化，需手動 Dispose）
     /// </summary>
     private Font? _boldBtnFont;
 
     /// <summary>
-    /// 原始背景色
+    /// 快取的原始背景色（用於滑鼠移出時還原）
     /// </summary>
     private Color _originalBtnBackColor;
 
     /// <summary>
-    /// 原始前景色
+    /// 快取的原始前景色（用於滑鼠移出時還原）
     /// </summary>
     private Color _originalBtnForeColor;
 
@@ -149,17 +144,9 @@ public partial class MainForm : Form
     private string _cachedTitlePrefix = string.Empty;
 
     /// <summary>
-    /// 更新快取的視窗標題前綴
+    /// 上一次套用佈局時的 DPI 值（用於防抖）
     /// </summary>
-    private void UpdateTitlePrefix()
-    {
-        string hotkeyInfo = $"[{GlobalHotKeyService.GetHotKeyDisplayString()}]",
-            privacyInfo = AppSettings.Current.IsPrivacyMode ?
-                Strings.App_Privacy_Suffix :
-                string.Empty;
-
-        _cachedTitlePrefix = $"{Strings.App_Title}{privacyInfo} {hotkeyInfo}";
-    }
+    private float _lastAppliedDpi = -1;
 
     public MainForm()
     {
@@ -465,10 +452,21 @@ public partial class MainForm : Form
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
-    /// <summary>
-    /// 上一次套用佈局時的 DPI 值（用於防抖）
-    /// </summary>
-    private float _lastAppliedDpi = -1;
+    protected override void OnMove(EventArgs e)
+    {
+        base.OnMove(e);
+
+        // 使用者移動視窗後，不立即彈回（以免干擾拖曳），
+        // 但可在特定時機呼叫 ApplySmartPosition。
+    }
+
+    protected override void OnResizeEnd(EventArgs e)
+    {
+        base.OnResizeEnd(e);
+
+        // 拖曳結束時執行智慧定位修正。
+        ApplySmartPosition();
+    }
 
     protected override void OnHandleCreated(EventArgs e)
     {
@@ -478,6 +476,12 @@ public partial class MainForm : Form
 
         // 根據規範，在 Handle 建立時套用在地化與 A11y 屬性。
         ApplyLocalization();
+
+        // 套用透明度。
+        UpdateOpacity();
+
+        // 執行初始位置檢查。
+        ApplySmartPosition();
 
         RegisterHotKeyInternal();
 
@@ -494,6 +498,131 @@ public partial class MainForm : Form
 
         // DPI 變更時，需重新計算並套用字型縮放。
         ApplyLocalization();
+
+        // DPI 變更後視窗尺寸會變，需重新檢查邊界。
+        ApplySmartPosition();
+    }
+
+    /// <summary>
+    /// 更新快取的視窗標題前綴
+    /// </summary>
+    private void UpdateTitlePrefix()
+    {
+        string hotkeyInfo = $"[{GlobalHotKeyService.GetHotKeyDisplayString()}]",
+            privacyInfo = AppSettings.Current.IsPrivacyMode ?
+                Strings.App_Privacy_Suffix :
+                string.Empty;
+
+        _cachedTitlePrefix = $"{Strings.App_Title}{privacyInfo} {hotkeyInfo}";
+    }
+
+    /// <summary>
+    /// 調整視窗不透明度。
+    /// </summary>
+    /// <param name="delta">調整量（例如 0.05 代表增加 5%）</param>
+    private void AdjustOpacity(float delta)
+    {
+        AppSettings config = AppSettings.Current;
+
+        float oldOpacity = config.WindowOpacity;
+
+        config.WindowOpacity += delta;
+
+        // 若數值有實質變動才處理。
+        if (Math.Abs(oldOpacity - config.WindowOpacity) > 0.001f)
+        {
+            // 立即套用視覺變更。
+            UpdateOpacity();
+
+            // A11y 廣播：目前百分比。
+            AnnounceA11y(string.Format(Strings.A11y_Opacity_Changed, config.WindowOpacity));
+
+            // 震動回饋。
+            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+            // 儲存設定。
+            AppSettings.Save();
+
+            // 更新右鍵選單顯示。
+            RefreshMenu();
+        }
+    }
+
+    /// <summary>
+    /// 更新視窗不透明度。
+    /// 根據規範，若系統開啟高對比模式，則強制為 1.0 以確保可讀性。
+    /// </summary>
+    private void UpdateOpacity()
+    {
+        if (SystemInformation.HighContrast)
+        {
+            Opacity = 1.0;
+
+            return;
+        }
+
+        Opacity = AppSettings.Current.WindowOpacity;
+    }
+
+    /// <summary>
+    /// 執行智慧定位修正，確保視窗不會跑出螢幕邊界。
+    /// </summary>
+    private void ApplySmartPosition()
+    {
+        if (!IsHandleCreated ||
+            IsDisposed)
+        {
+            return;
+        }
+
+        Screen screen = Screen.FromControl(this);
+
+        Rectangle workArea = screen.WorkingArea;
+
+        int newX = Location.X,
+            newY = Location.Y;
+
+        bool adjusted = false;
+
+        // 檢查右邊界。
+        if (newX + Width > workArea.Right)
+        {
+            newX = workArea.Right - Width;
+
+            adjusted = true;
+        }
+
+        // 檢查左邊界。
+        if (newX < workArea.Left)
+        {
+            newX = workArea.Left;
+
+            adjusted = true;
+        }
+
+        // 檢查下邊界。
+        if (newY + Height > workArea.Bottom)
+        {
+            newY = workArea.Bottom - Height;
+
+            adjusted = true;
+        }
+
+        // 檢查上邊界。
+        if (newY < workArea.Top)
+        {
+            newY = workArea.Top;
+
+            adjusted = true;
+        }
+
+        if (adjusted)
+        {
+            Location = new Point(newX, newY);
+
+            // A11y 廣播：告知使用者視窗已修正位置。
+            AnnounceA11y(Strings.A11y_SnapBack);
+        }
     }
 
     /// <summary>
@@ -552,6 +681,27 @@ public partial class MainForm : Form
             // 最後重新啟用按鈕。
             BtnCopy.Enabled = true;
         });
+    }
+
+    /// <summary>
+    /// 將視窗不透明度重設為 100%。
+    /// </summary>
+    private void ResetOpacity()
+    {
+        AppSettings.Current.WindowOpacity = 1.0f;
+
+        UpdateOpacity();
+
+        AppSettings.Save();
+
+        // 更新右鍵選單顯示。
+        RefreshMenu();
+
+        // A11y 廣播。
+        AnnounceA11y(string.Format(Strings.A11y_Opacity_Changed, 1.0));
+
+        // 震動回饋。
+        VibrateAsync(VibrationPatterns.ClearInput).SafeFireAndForget();
     }
 
     /// <summary>

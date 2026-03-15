@@ -144,6 +144,12 @@ public partial class MainForm
             {
                 this.SafeInvoke(() =>
                 {
+                    // 根據規範，系統無障礙設定變更時，需重新套用在地化資源與字型。
+                    ApplyLocalization();
+
+                    // 即時同步不透明度防護（高對比模式下強制 100%）。
+                    UpdateOpacity();
+
                     if (TBInput.Focused)
                     {
                         TBInput_Enter(TBInput, EventArgs.Empty);
@@ -151,6 +157,12 @@ public partial class MainForm
                     else
                     {
                         UpdateBorderColor();
+                    }
+
+                    // A11y 廣播：告知使用者環境設定已同步。
+                    if (SystemInformation.HighContrast)
+                    {
+                        AnnounceA11y(Strings.A11y_Opacity_HighContrast);
                     }
                 });
             }
@@ -299,23 +311,16 @@ public partial class MainForm
             return;
         }
 
-        // 安全保護：只有在尚未記錄原始字型時才進行紀錄。
-        // 這能防止在按鈕已經是藍色（Highlight）的狀態下重複紀錄，導致「原始色」被覆蓋為「藍色」。
-        if (_originalBtnFont == null)
-        {
-            _originalBtnFont = BtnCopy.Font;
-            _originalBtnBackColor = BtnCopy.BackColor;
-            _originalBtnForeColor = BtnCopy.ForeColor;
-        }
-
         // A11y 視覺回饋 1：顏色變化。
         BtnCopy.BackColor = SystemColors.Highlight;
         BtnCopy.ForeColor = SystemColors.HighlightText;
 
         // A11y 視覺回饋 2：形狀與輪廓變化。
-        _boldBtnFont ??= new Font(_originalBtnFont, FontStyle.Bold);
-
-        BtnCopy.Font = _boldBtnFont;
+        // 使用在 ApplyLocalization 中統一建立並隨 DPI 更新的加粗字型。
+        if (_boldBtnFont != null)
+        {
+            BtnCopy.Font = _boldBtnFont;
+        }
     }
 
     /// <summary>
@@ -323,8 +328,7 @@ public partial class MainForm
     /// </summary>
     private void RestoreButtonDefaultStyle()
     {
-        // 只有在我們確實擁有備份時才還原，防止在按鈕停用期間被誤觸發。
-        if (_originalBtnFont == null)
+        if (BtnCopy == null)
         {
             return;
         }
@@ -342,7 +346,11 @@ public partial class MainForm
         }
 
         // 還原為原始字體粗細。
-        BtnCopy.Font = _originalBtnFont;
+        // 直接套用 ApplyLocalization 中統一管理的 A11y 共享字型。
+        if (_a11yFont != null)
+        {
+            BtnCopy.Font = _a11yFont;
+        }
     }
 
     private async void BtnCopy_Click(object sender, EventArgs e)

@@ -150,7 +150,7 @@
     <comment>新しいホットキーが正常にキャプチャされたときに再生されるアクセシビリティメッセージ。{0} は設定されたホットキーの文字列です。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>テキスト空欄時はAまたはStartでキーボード起動、入力後はコピーして戻ります。Xで削除、十字キーで移動。Backで戻ります。LB+RB+Bでクイック戻る。キーボード：Enterでコピー/起動、Escでクリア、上下で履歴、Alt+Bで戻る。</value>
+    <value>テキスト空欄時はAまたはStartでキーボード起動、入力後はコピーして戻ります。Xで削除、十字キーで移動。Backで戻ります。LB+RB+Bでクイック戻る。LB+RB+Xでアプリを終了。キーボード：Enterでコピー/起動、Escでクリア、上下で履歴、Alt+Bで戻る。</value>
     <comment>メインウィンドウの詳細なアクセシビリティ記述。各種コントローラーやキーボードの操作方法を説明します。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -464,7 +464,7 @@
     <comment>キャンセルボタンのアクセシビリティ記述です。</comment>
   </data>
   <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
-    <value>値を初期設定のリセットします。デフォルト：{0}。</value>
+    <value>値を初期設定にリセットします。デフォルト：{0}。</value>
     <comment>既定値リセットボタンのアクセシビリティ記述です。{0} はその項目の工場出荷時の既定値です。</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
@@ -533,7 +533,7 @@
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>コントローラーのすべての振動エフェクトのオン/オフを切り替えます。</value>
-    <comment>振動切り替え項目的アクセシビリティ記述。</comment>
+    <comment>振動切り替え項目のアクセシビリティ記述。</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
     <value>コントローラー入力用の API（GameInput または XInput）を選択します。再起動が必要です。</value>
@@ -546,5 +546,25 @@
   <data name="A11y_TargetWindowLost" xml:space="preserve">
     <value>戻ることができません：ターゲットウィンドウが閉じられています。</value>
     <comment>ユーザーが前のウィンドウに戻ろうとしたが、そのウィンドウが既に存在しない場合のアクセシビリティ音声プロンプト。</comment>
+  </data>
+  <data name="A11y_SnapBack" xml:space="preserve">
+    <value>ウィンドウが画面内に自動的に戻りました。</value>
+    <comment>ウィンドウが画面外に出たため、自動的に戻されたときに再生されるアクセシビリティ音声ガイドです。</comment>
+  </data>
+  <data name="Settings_WindowOpacity" xml:space="preserve">
+    <value>不透明度</value>
+    <comment>設定項目の名前で、ウィンドウの透明度を指します。</comment>
+  </data>
+  <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
+    <value>{0}。現在の値：{1:P0}。下限は 50% です。</value>
+    <comment>不透明度メニュー項目のアクセシビリティ説明です。{0} はラベル名、{1} は現在のパーセンテージです。</comment>
+  </data>
+  <data name="A11y_Opacity_Changed" xml:space="preserve">
+    <value>不透明度が {0:P0} に設定されました。</value>
+    <comment>不透明度が変更されたときに再生されるアクセシビリティ音声ガイドです。{0} は新しいパーセンテージです。</comment>
+  </data>
+  <data name="A11y_Opacity_HighContrast" xml:space="preserve">
+    <value>ハイコントラストモードが有効なため、不透明度は 100% に固定されました。</value>
+    <comment>ハイコントラストモードで不透明度が強制的に固定されたときに再生されるアクセシビリティ音声ガイドです。</comment>
   </data>
 </root>

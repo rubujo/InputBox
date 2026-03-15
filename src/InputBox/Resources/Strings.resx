@@ -119,15 +119,15 @@
   </resheader>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>Copies the text from the input box to the clipboard.</value>
-    <comment>Accessibility description for the copy button, explaining its function (copying to clipboard).</comment>
+    <comment>Accessibility description for the copy button, explaining its function.</comment>
   </data>
   <data name="A11y_BtnCopyName" xml:space="preserve">
     <value>Copy to clipboard</value>
     <comment>Accessibility name label for the copy button.</comment>
   </data>
   <data name="A11y_Cannot_Delete" xml:space="preserve">
-    <value>Cannot delete; at the start.</value>
-    <comment>Accessibility message played when backspacing at the beginning of the text fails to delete anything.</comment>
+    <value>Cannot delete at the beginning.</value>
+    <comment>Accessibility message played when backspace is pressed at the start of the text.</comment>
   </data>
   <data name="A11y_Capture_Cancelled" xml:space="preserve">
     <value>Hotkey capture cancelled.</value>
@@ -135,27 +135,27 @@
   </data>
   <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
     <value>Press ESC key to cancel.</value>
-    <comment>Accessibility message informing the user that they can press the ESC key to cancel the capture.</comment>
+    <comment>Accessibility message informing users that they can press ESC to cancel capture.</comment>
   </data>
   <data name="A11y_Delete_Char" xml:space="preserve">
     <value>Deleted {0}.</value>
-    <comment>Accessibility message played when a single character is deleted. {0} is the character that was deleted.</comment>
+    <comment>Accessibility message played when a single character is deleted. {0} is the deleted character.</comment>
   </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>Current value: {0}.</value>
-    <comment>Accessibility message displaying the current value in a settings dialog. {0} is the current value.</comment>
+    <comment>Accessibility message showing the current value in settings dialogs. {0} is the current value.</comment>
   </data>
   <data name="A11y_Hotkey_Captured" xml:space="preserve">
     <value>Hotkey set to {0}.</value>
-    <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the formatted hotkey string.</comment>
+    <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB+RB+B to quick return. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt+B to return.</value>
-    <comment>Detailed accessibility description of the main window, explaining various controller and keyboard operations.</comment>
+    <value>Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB+RB+B to quick return. LB+RB+X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt+B to return.</value>
+    <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>Returning to previous window.</value>
-    <comment>Accessibility message played when an action (like copying) is completed and the app is about to return focus to the previous window.</comment>
+    <comment>Accessibility message played when an action is completed and focus is about to return to the previous window.</comment>
   </data>
   <data name="A11y_MainFormName" xml:space="preserve">
     <value>Text input and copy</value>
@@ -167,11 +167,11 @@
   </data>
   <data name="A11y_Nav_Newest" xml:space="preserve">
     <value>Returned to latest input.</value>
-    <comment>Accessibility message played when navigating history and returning to the most recent input.</comment>
+    <comment>Accessibility message played when navigating history back to the newest input.</comment>
   </data>
   <data name="A11y_Nav_Oldest" xml:space="preserve">
     <value>No older history items.</value>
-    <comment>Accessibility message played when the user reaches the oldest item in the input history and there are no more records.</comment>
+    <comment>Accessibility message played when navigating history to the oldest item with no more records.</comment>
   </data>
   <data name="A11y_Nav_Top" xml:space="preserve">
     <value>Start of text reached.</value>
@@ -179,22 +179,22 @@
   </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>No text to copy.</value>
-    <comment>Accessibility message played when attempting to copy while the input field is empty.</comment>
+    <comment>Accessibility message played when attempting to copy empty text.</comment>
   </data>
   <data name="A11y_TBInputDesc" xml:space="preserve">
     <value>Enter the text you want to copy to the clipboard here.</value>
-    <comment>Accessibility description for the input field, guiding the user to enter text.</comment>
+    <comment>Accessibility description for the input field, guiding users to enter content.</comment>
   </data>
   <data name="A11y_TBInputName" xml:space="preserve">
     <value>Enter Text</value>
-    <comment>Accessibility name label for the text input field.</comment>
+    <comment>Accessibility name label for the input field.</comment>
   </data>
   <data name="A11y_Layout_Main" xml:space="preserve">
     <value>Main Layout</value>
     <comment>Accessibility label for the main layout container.</comment>
   </data>
   <data name="A11y_Layout_Main_Desc" xml:space="preserve">
-    <value>The primary container for text input and action buttons.</value>
+    <value>Container holding the text input and action buttons.</value>
     <comment>Accessibility description for the main layout container.</comment>
   </data>
   <data name="A11y_Layout_Input" xml:space="preserve">
@@ -202,12 +202,12 @@
     <comment>Accessibility label for the input area container.</comment>
   </data>
   <data name="A11y_Layout_Input_Desc" xml:space="preserve">
-    <value>The container housing the text input field.</value>
+    <value>Container housing the text input field.</value>
     <comment>Accessibility description for the input area container.</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
     <value>InputBox</value>
-    <comment>Application name, used for the window title and in message dialogs.</comment>
+    <comment>Application name used in window titles and message dialogs.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>Copy to clipboard</value>
@@ -215,25 +215,25 @@
   </data>
   <data name="Err_ConfigInvalid" xml:space="preserve">
     <value>The configuration file format is invalid. The application will start with default settings.</value>
-    <comment>Error message displayed when the configuration file is corrupted or formatted incorrectly.</comment>
+    <comment>Error message displayed when the config file is corrupted or formatted incorrectly.</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
     <value>Global shortcut {0} failed to register.
 
 Make sure that multiple instances of this application are not running at the same time, or that another application is not already using this shortcut.</value>
-    <comment>Detailed error message displayed when global hotkey registration fails. {0} is the hotkey that failed to register.</comment>
+    <comment>Detailed error message when global hotkey registration fails. {0} is the attempted hotkey.</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
     <value>Error</value>
-    <comment>Title text for error dialog boxes.</comment>
+    <comment>Title text for error dialogs.</comment>
   </data>
   <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
     <value>Touch keyboard not found.</value>
-    <comment>Error message displayed when the system touch keyboard cannot be launched.</comment>
+    <comment>Error message when the system touch keyboard cannot be launched.</comment>
   </data>
   <data name="Menu_CaptureKey" xml:space="preserve">
     <value>Capture Key...</value>
-    <comment>Context menu item used to begin capturing a new wake-up key.</comment>
+    <comment>Context menu item to start capturing a new wake-up key.</comment>
   </data>
   <data name="Menu_CaptureKey_Desc" xml:space="preserve">
     <value>Start capturing a new key from the keyboard.</value>
@@ -241,7 +241,7 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="Menu_ClearHistory" xml:space="preserve">
     <value>Clear History</value>
-    <comment>Context menu item used to clear the input history.</comment>
+    <comment>Context menu item to empty input history.</comment>
   </data>
   <data name="Menu_ClearHistory_Desc" xml:space="preserve">
     <value>Permanently clear all input records currently in memory.</value>
@@ -249,15 +249,15 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="Menu_HotkeySettings" xml:space="preserve">
     <value>Hotkey Settings</value>
-    <comment>Name of the context sub-menu for hotkey-related settings.</comment>
+    <comment>Submenu name for hotkey related configurations.</comment>
   </data>
   <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
     <value>Configure the global shortcut keys to wake up the input box.</value>
-    <comment>Accessibility description for the hotkey settings sub-menu.</comment>
+    <comment>Accessibility description for the hotkey settings submenu.</comment>
   </data>
   <data name="Menu_PrivacyMode" xml:space="preserve">
     <value>Privacy Mode</value>
-    <comment>Context menu item for toggling privacy mode (preventing input recording).</comment>
+    <comment>Context menu item to toggle privacy mode.</comment>
   </data>
   <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
     <value>When enabled, new inputs will not be saved to history.</value>
@@ -265,59 +265,59 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="Mod_Alt" xml:space="preserve">
     <value>Alt</value>
-    <comment>Display name for the Alt modifier key in the settings menu.</comment>
+    <comment>Display name for the Alt modifier key in settings.</comment>
   </data>
   <data name="Mod_Ctrl" xml:space="preserve">
     <value>Ctrl</value>
-    <comment>Display name for the Ctrl modifier key in the settings menu.</comment>
+    <comment>Display name for the Ctrl modifier key in settings.</comment>
   </data>
   <data name="Mod_Shift" xml:space="preserve">
     <value>Shift</value>
-    <comment>Display name for the Shift modifier key in the settings menu.</comment>
+    <comment>Display name for the Shift modifier key in settings.</comment>
   </data>
   <data name="Mod_Win" xml:space="preserve">
     <value>Win</value>
-    <comment>Display name for the Windows key modifier in the settings menu.</comment>
+    <comment>Display name for the Windows logo modifier key in settings.</comment>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
     <value>Copied</value>
-    <comment>Temporary status text shown on the button after a successful copy operation.</comment>
+    <comment>Temporary status text shown on button after successful copy.</comment>
   </data>
   <data name="Msg_CopyFail" xml:space="preserve">
     <value>Copy failed</value>
-    <comment>Status text shown on the button when a copy operation fails.</comment>
+    <comment>Status text shown on button when copy fails.</comment>
   </data>
   <data name="Msg_HotkeyUpdated" xml:space="preserve">
     <value>Hotkey Updated</value>
-    <comment>Status message displayed in the window title or on a button after a successful hotkey update.</comment>
+    <comment>Status message shown when hotkey is successfully updated.</comment>
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>Input cleared</value>
-    <comment>Status message shown after the input field content has been cleared.</comment>
+    <comment>Status message shown when input box is cleared.</comment>
   </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>Press any key...</value>
-    <comment>Prompt displayed when the app enters capture mode, asking the user to press a key.</comment>
+    <comment>Prompt asking users to press a key in capture mode.</comment>
   </data>
   <data name="Pht_TBInput" xml:space="preserve">
     <value>Enter text…</value>
-    <comment>Placeholder text displayed in the input field when it is empty.</comment>
+    <comment>Hint text (placeholder) shown when the input box is empty.</comment>
   </data>
   <data name="Wrn_Title" xml:space="preserve">
     <value>Warning</value>
-    <comment>Title text for warning dialog boxes.</comment>
+    <comment>Title text for warning dialogs.</comment>
   </data>
   <data name="A11y_Gamepad_Connected" xml:space="preserve">
     <value>Controller {0} connected.</value>
-    <comment>Accessibility message played when a controller connection is detected. {0} is the controller index or name.</comment>
+    <comment>Accessibility message played when a controller connection is detected. {0} is index or name.</comment>
   </data>
   <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
     <value>Controller {0} disconnected.</value>
-    <comment>Accessibility message played when a controller is disconnected. {0} is the controller index or name.</comment>
+    <comment>Accessibility message played when a controller is disconnected. {0} is index or name.</comment>
   </data>
   <data name="A11y_Delete_Multiple" xml:space="preserve">
     <value>Deleted {0} characters.</value>
-    <comment>Accessibility message played when multiple characters are deleted at once. {0} is the number of characters deleted.</comment>
+    <comment>Accessibility message played when multiple characters are deleted at once. {0} is the count.</comment>
   </data>
   <data name="A11y_New_Line" xml:space="preserve">
     <value>New line added.</value>
@@ -325,135 +325,135 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
     <value>Hotkey registration failed. Reverted to previous setting.</value>
-    <comment>Brief error message shown when hotkey registration fails and the setting is reverted.</comment>
+    <comment>Short error message when hotkey registration fails and reverts.</comment>
   </data>
   <data name="A11y_Gamepad_Fallback" xml:space="preserve">
     <value>GameInput initialization failed. Switched to XInput compatibility mode.</value>
-    <comment>Accessibility message played when GameInput is unavailable and the app switches to XInput compatibility mode.</comment>
+    <comment>Accessibility message when GameInput is unavailable and auto-switches to XInput.</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
     <value>Privacy mode enabled.</value>
-    <comment>Accessibility message played when privacy mode is turned on.</comment>
+    <comment>Accessibility message when privacy mode is turned on.</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
     <value>Privacy mode disabled.</value>
-    <comment>Accessibility message played when privacy mode is turned off.</comment>
+    <comment>Accessibility message when privacy mode is turned off.</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
     <value>History {0} of {1}: {2}</value>
-    <comment>Accessibility message used when navigating through history. {0} is the current index, {1} is the total number of records, and {2} is the content of that record.</comment>
+    <comment>Accessibility message for navigating history records. {0} is index, {1} is total, {2} is content.</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
     <value>{0} Wake up shortcut: {1}.</value>
-    <comment>Summary of the accessibility status at startup. {0} is the privacy mode status, and {1} is the current wake-up hotkey.</comment>
+    <comment>Startup accessibility status summary. {0} is privacy status, {1} is current hotkey.</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
     <value>Settings</value>
-    <comment>Name of the context sub-menu containing various advanced settings.</comment>
+    <comment>Submenu name containing various advanced settings.</comment>
   </data>
   <data name="Menu_Settings_Window" xml:space="preserve">
     <value>Window &amp; Operations</value>
-    <comment>Context menu item for accessing window and operation settings.</comment>
+    <comment>Context menu item for window and operation related settings.</comment>
   </data>
   <data name="Menu_Settings_Feedback" xml:space="preserve">
     <value>Feedback</value>
-    <comment>Context menu item for accessing vibration feedback settings.</comment>
+    <comment>Context menu item for vibration feedback settings.</comment>
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
     <value>Gamepad</value>
-    <comment>Context menu item for accessing gamepad-related settings.</comment>
+    <comment>Context menu item for controller related settings.</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>Vibration</value>
-    <comment>Context menu item for toggling the vibration switch.</comment>
+    <comment>Context menu item to toggle vibration on or off.</comment>
   </data>
   <data name="Menu_Settings_Intensity" xml:space="preserve">
     <value>Intensity: {0}</value>
-    <comment>Context menu item showing and setting vibration intensity. {0} is the current percentage value.</comment>
+    <comment>Context menu item showing and setting vibration intensity. {0} is percentage.</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
     <value>API Provider</value>
-    <comment>Context menu item showing the current controller API provider.</comment>
+    <comment>Context menu item showing current controller API provider info.</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>History Capacity: {0}</value>
-    <comment>Context menu item showing and setting history capacity. {0} is the current capacity value.</comment>
+    <comment>Context menu item showing and setting history capacity. {0} is current capacity.</comment>
   </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>Window Restore Delay</value>
-    <comment>Name of the setting for window restore delay.</comment>
+    <comment>Setting name for delay when window is restored.</comment>
   </data>
   <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
     <value>Clipboard Retry Delay</value>
-    <comment>Name of the setting for the interval between clipboard retry attempts.</comment>
+    <comment>Setting name for retry interval when clipboard is busy.</comment>
   </data>
   <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
     <value>Touch Keyboard Dismiss Delay</value>
-    <comment>Name of the setting for touch keyboard dismissal delay.</comment>
+    <comment>Setting name for delay when touch keyboard is closed.</comment>
   </data>
   <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
     <value>Window Switch Buffer Base</value>
-    <comment>Name of the setting for window switch buffer time.</comment>
+    <comment>Setting name for base buffer time when switching focus back to target window.</comment>
   </data>
   <data name="Settings_InputJitterRange" xml:space="preserve">
     <value>Input Jitter Range</value>
-    <comment>Name of the setting for gamepad input jitter range.</comment>
+    <comment>Setting name for random jitter range in focus switching.</comment>
   </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>History Capacity</value>
-    <comment>Name of the setting for the history record limit.</comment>
+    <comment>Setting name for max records in input history.</comment>
   </data>
   <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
     <value>Thumb Deadzone: Trigger Threshold</value>
-    <comment>Name of the setting for the stick deadzone trigger threshold.</comment>
+    <comment>Setting name for stick deadzone entry threshold.</comment>
   </data>
   <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
     <value>Thumb Deadzone: Reset Threshold</value>
-    <comment>Name of the setting for the stick deadzone reset threshold.</comment>
+    <comment>Setting name for stick deadzone exit threshold.</comment>
   </data>
   <data name="Settings_RepeatDelay" xml:space="preserve">
     <value>Repeat Delay</value>
-    <comment>Name of the setting for gamepad button repeat delay.</comment>
+    <comment>Setting name for repeat input delay on controllers.</comment>
   </data>
   <data name="Settings_RepeatSpeed" xml:space="preserve">
     <value>Repeat Speed</value>
-    <comment>Name of the setting for gamepad button repeat speed.</comment>
+    <comment>Setting name for repeat input speed on controllers.</comment>
   </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>This change requires a restart to take effect. Restart now?</value>
-    <comment>Prompt informing the user that certain settings changes require an app restart to take effect.</comment>
+    <comment>Prompt message informing users that a restart is required for settings to apply.</comment>
   </data>
   <data name="Msg_EnterValue" xml:space="preserve">
     <value>Please enter a new value for {0}:</value>
-    <comment>Prompt text in the value input dialog. {0} is the name of the setting being configured.</comment>
+    <comment>Prompt text for numeric input dialogs. {0} is the item name.</comment>
   </data>
   <data name="Btn_OK" xml:space="preserve">
     <value>OK</value>
-    <comment>Text for the OK button in dialog boxes.</comment>
+    <comment>OK button text in dialog boxes.</comment>
   </data>
   <data name="Btn_Cancel" xml:space="preserve">
     <value>Cancel</value>
-    <comment>Text for the Cancel button in dialog boxes.</comment>
+    <comment>Cancel button text in dialog boxes.</comment>
   </data>
   <data name="Btn_SetDefault" xml:space="preserve">
     <value>Reset to Default</value>
-    <comment>Text for the button that resets settings to their default values.</comment>
+    <comment>Reset to default button text in dialog boxes.</comment>
   </data>
   <data name="Settings_VibrationIntensity" xml:space="preserve">
     <value>Intensity</value>
-    <comment>Name of the setting for adjusting vibration intensity.</comment>
+    <comment>Setting name for vibration intensity adjustment.</comment>
   </data>
   <data name="A11y_Menu_NumericDesc" xml:space="preserve">
     <value>{0}. Current: {1}, Range: {2} to {3}.</value>
-    <comment>Accessibility description template for numeric menu items. {0} is the name, {1} is the current value, {2} is the minimum, and {3} is the maximum.</comment>
+    <comment>Accessibility template for numeric menu items. {0} is name, {1} is current, {2} is min, {3} is max.</comment>
   </data>
   <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
     <value>Toggle {0} as a modifier for the wake up hotkey.</value>
-    <comment>Accessibility description for the modifier toggle item. {0} is the name of the modifier key.</comment>
+    <comment>Accessibility description for modifier toggles. {0} is modifier name.</comment>
   </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>Current value: {0}. Valid range: {1} to {2}.</value>
-    <comment>Accessibility description for the numeric input field, including range information. {0} is the current value, {1} is the minimum, and {2} is the maximum.</comment>
+    <comment>Accessibility description for numeric input fields including range info. {0} is current, {1} is min, {2} is max.</comment>
   </data>
   <data name="A11y_Btn_OK_Desc" xml:space="preserve">
     <value>Confirm and apply the current value.</value>
@@ -465,75 +465,71 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
     <value>Reset the value to the factory default: {0}.</value>
-    <comment>Accessibility description for the reset to default button. {0} is the factory default value for the item.</comment>
+    <comment>Accessibility description for the Reset button. {0} is the factory default value.</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} enabled.</value>
-    <comment>Accessibility message played when a modifier key is enabled. {0} is the name of the modifier.</comment>
+    <comment>Accessibility message when a modifier key is turned on. {0} is the name.</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
     <value>{0} disabled.</value>
-    <comment>Accessibility message played when a modifier key is disabled. {0} is the name of the modifier.</comment>
+    <comment>Accessibility message when a modifier key is turned off. {0} is the name.</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">
     <value>(Main key not set)</value>
-    <comment>Accessibility message reminding the user that the main wake-up key has not been set yet.</comment>
+    <comment>Accessibility message reminding users that the main hotkey is not yet set.</comment>
   </data>
   <data name="A11y_Clipboard_Retrying" xml:space="preserve">
     <value>Clipboard busy, retrying...</value>
-    <comment>Accessibility message played when the clipboard is occupied and the app is automatically retrying.</comment>
+    <comment>Accessibility message when clipboard is occupied and auto-retrying.</comment>
   </data>
   <data name="A11y_Cancelled" xml:space="preserve">
     <value>Operation cancelled.</value>
-    <comment>Accessibility message played when a general operation is cancelled.</comment>
+    <comment>Accessibility message when a general operation is cancelled.</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>Opening touch keyboard.</value>
-    <comment>Accessibility message played when the app is about to launch the touch keyboard.</comment>
+    <comment>Accessibility message when launching the touch keyboard.</comment>
   </data>
   <data name="App_Privacy_Suffix" xml:space="preserve">
     <value> (🔒)</value>
-    <comment>Icon suffix added to the window title when privacy mode is enabled.</comment>
+    <comment>Icon marker appended to window title when privacy mode is on.</comment>
   </data>
   <data name="App_Gamepad_Suffix" xml:space="preserve">
     <value>GameInput: {0}</value>
-    <comment>Controller information displayed in the window title. {0} is the controller name.</comment>
+    <comment>Controller info shown in window title. {0} is controller name.</comment>
   </data>
   <data name="App_Gamepad_XInput_Format" xml:space="preserve">
     <value>XInput: {0}</value>
-    <comment>Format for XInput device names. {0} is the controller index.</comment>
+    <comment>Name format for XInput devices. {0} is controller index.</comment>
   </data>
   <data name="A11y_Background_Error" xml:space="preserve">
     <value>Background task error: {0}</value>
-    <comment>Accessibility message reporting a background task error. {0} is the detailed error information.</comment>
+    <comment>Accessibility message reporting background worker errors. {0} is detailed error info.</comment>
   </data>
   <data name="A11y_ButtonArea" xml:space="preserve">
     <value>Action buttons area</value>
-    <comment>Accessibility group label for the primary action button area.</comment>
+    <comment>Accessibility group label name for the main action buttons area.</comment>
   </data>
   <data name="Menu_Exit" xml:space="preserve">
     <value>Exit</value>
-    <comment>Context menu item used to close and exit the application.</comment>
-  </data>
-  <data name="A11y_TargetWindowLost" xml:space="preserve">
-    <value>Cannot return: The target window has been closed.</value>
-    <comment>Accessibility voice prompt when the user attempts to return to the previous window, but that window no longer exists.</comment>
+    <comment>Context menu item to close and end the application.</comment>
   </data>
   <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
     <value>Open advanced settings including window behavior, feedback, and gamepad options.</value>
-    <comment>Accessibility description for the settings sub-menu.</comment>
+    <comment>Accessibility description for the Settings menu.</comment>
   </data>
   <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
     <value>Configure window restore delays and clipboard retry settings.</value>
-    <comment>Accessibility description for the window operations sub-menu.</comment>
+    <comment>Accessibility description for the Window &amp; Operations menu.</comment>
   </data>
   <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
     <value>Configure vibration feedback and intensity levels.</value>
-    <comment>Accessibility description for the feedback sub-menu.</comment>
+    <comment>Accessibility description for the Feedback settings menu.</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
     <value>Configure controller deadzones, repeat speed, and API provider.</value>
-    <comment>Accessibility description for the gamepad sub-menu.</comment>
+    <comment>Accessibility description for the Gamepad settings menu.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Toggle all controller vibration effects on or off.</value>
@@ -545,6 +541,30 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
     <value>Quit the application and release all resources.</value>
-    <comment>Accessibility description for the exit menu item.</comment>
+    <comment>Accessibility description for the Exit menu item.</comment>
+  </data>
+  <data name="A11y_TargetWindowLost" xml:space="preserve">
+    <value>Cannot return: The target window has been closed.</value>
+    <comment>Accessibility voice prompt when user tries to return to a non-existent target window.</comment>
+  </data>
+  <data name="A11y_SnapBack" xml:space="preserve">
+    <value>Window position corrected automatically.</value>
+    <comment>Accessibility voice prompt played when the window is snapped back from off-screen.</comment>
+  </data>
+  <data name="Settings_WindowOpacity" xml:space="preserve">
+    <value>Opacity</value>
+    <comment>Setting item name for window transparency level.</comment>
+  </data>
+  <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
+    <value>{0}. Current: {1:P0}. Minimum is 50%.</value>
+    <comment>Accessibility description for the opacity menu item. {0} is label, {1} is percentage.</comment>
+  </data>
+  <data name="A11y_Opacity_Changed" xml:space="preserve">
+    <value>Opacity set to {0:P0}.</value>
+    <comment>Accessibility voice prompt played when opacity changes. {0} is percentage.</comment>
+  </data>
+  <data name="A11y_Opacity_HighContrast" xml:space="preserve">
+    <value>High Contrast mode is on, opacity locked to 100%.</value>
+    <comment>Accessibility voice prompt played when opacity is forced to 100% due to High Contrast.</comment>
   </data>
 </root>

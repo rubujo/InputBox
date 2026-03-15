@@ -133,71 +133,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        /// 查詢類似 Open advanced settings including window behavior, feedback, and gamepad options. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Settings_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Settings_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Configure window restore delays and clipboard retry settings. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_WinOps_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_WinOps_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Configure vibration feedback and intensity levels. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Feedback_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Feedback_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Configure controller deadzones, repeat speed, and API provider. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Gamepad_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Gamepad_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Toggle all controller vibration effects on or off. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_VibEnable_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_VibEnable_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Select the underlying API for controller input (GameInput or XInput). Requires restart. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Provider_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Provider_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Quit the application and release all resources. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Exit_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Exit_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Background task error: {0} 的當地語系化字串。
-
+        /// 查詢類似 Cannot delete at the beginning. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Cannot_Delete {
             get {
@@ -341,7 +277,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        /// 查詢類似 Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB+RB+B to quick return. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt+B to return. 的當地語系化字串。
+        /// 查詢類似 主視窗詳細描述 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -359,11 +295,83 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        /// 查詢類似 不透明度描述 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_OpacityDesc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_OpacityDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
         /// 查詢類似 {0}. Current: {1}, Range: {2} to {3}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_NumericDesc {
             get {
                 return ResourceManager.GetString("A11y_Menu_NumericDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Open advanced settings including window behavior, feedback, and gamepad options. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Settings_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Settings_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Configure window restore delays and clipboard retry settings. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_WinOps_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_WinOps_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Configure vibration feedback and intensity levels. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Feedback_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Feedback_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Configure controller deadzones, repeat speed, and API provider. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Gamepad_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Gamepad_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Toggle all controller vibration effects on or off. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_VibEnable_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_VibEnable_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Select the underlying API for controller input (GameInput or XInput). Requires restart. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Provider_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Provider_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Quit the application and release all resources. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Exit_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Exit_Desc", resourceCulture);
             }
         }
 
@@ -458,6 +466,24 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        /// 查詢類似 不透明度變更通知 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Opacity_Changed {
+            get {
+                return ResourceManager.GetString("A11y_Opacity_Changed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 高對比不透明度鎖定 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Opacity_HighContrast {
+            get {
+                return ResourceManager.GetString("A11y_Opacity_HighContrast", resourceCulture);
+            }
+        }
+
+        /// <summary>
         /// 查詢類似 Opening touch keyboard. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Opening_Keyboard {
@@ -490,6 +516,15 @@ namespace InputBox.Resources {
         internal static string A11y_Returning {
             get {
                 return ResourceManager.GetString("A11y_Returning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 視窗彈回通知 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_SnapBack {
+            get {
+                return ResourceManager.GetString("A11y_SnapBack", resourceCulture);
             }
         }
 
@@ -620,9 +655,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        /// 查詢類似 Global shortcut {0} failed to register.
-        ///
-        ///Make sure that multiple instances of this application are not running at the same time, or that another application is not already using this shortcut. 的當地語系化字串。
+        /// 查詢類似 Global shortcut {0} failed to register. 的當地語系化字串。
         /// </summary>
         internal static string Err_HotkeyRegFail {
             get {
@@ -1005,6 +1038,15 @@ namespace InputBox.Resources {
         internal static string Settings_WindowRestoreDelay {
             get {
                 return ResourceManager.GetString("Settings_WindowRestoreDelay", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 不透明度 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_WindowOpacity {
+            get {
+                return ResourceManager.GetString("Settings_WindowOpacity", resourceCulture);
             }
         }
 

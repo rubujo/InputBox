@@ -51,6 +51,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     event Action? BackPressed;
 
     /// <summary>
+    /// 控制器返回鍵放開事件
+    /// </summary>
+    event Action? BackReleased;
+
+    /// <summary>
     /// 控制器 A 鍵按下事件
     /// </summary>
     event Action? APressed;

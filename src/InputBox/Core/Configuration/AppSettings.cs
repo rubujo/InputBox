@@ -142,6 +142,20 @@ public class AppSettings
         set => _isPrivacyMode = value;
     }
 
+    /// <summary>
+    /// 視窗不透明度（0.5 ~ 1.0）
+    /// </summary>
+    private volatile float _windowOpacity = 1.0f;
+
+    /// <summary>
+    /// 視窗不透明度（0.5 ~ 1.0）
+    /// </summary>
+    public float WindowOpacity
+    {
+        get => _windowOpacity;
+        set => _windowOpacity = Math.Clamp(value, 0.5f, 1.0f);
+    }
+
     #endregion
 
     #region 全域快速鍵設定
