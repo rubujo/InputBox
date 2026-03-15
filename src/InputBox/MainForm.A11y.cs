@@ -65,6 +65,11 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 快取的 A11y 字型（用於資源管理）
+    /// </summary>
+    private Font? _a11yFont;
+
+    /// <summary>
     /// 執行階段套用在地化資源與 A11y 屬性。
     /// 此方法用於覆蓋 Designer 中的硬編碼值，確保多語系正確性。
     /// </summary>
@@ -87,10 +92,17 @@ public partial class MainForm
         TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
         _lblInput?.Text = Strings.A11y_TBInputName;
 
+        // 建立或更新 A11y 放大字型。
+        _a11yFont?.Dispose();
+        _a11yFont = GetSharedA11yFont(DeviceDpi);
+
         // 按鈕。
         BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
         BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
         BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+        
+        // 根據規範，套用統一的 A11y 共享字型。
+        BtnCopy.Font = _a11yFont;
     }
 
     /// <summary>

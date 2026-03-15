@@ -181,9 +181,6 @@ public partial class MainForm : Form
         _windowFocusService = new WindowFocusService();
         _navigationService = new WindowNavigationService(_windowFocusService);
 
-        // 在初始化完成後，套用本地化。
-        ApplyLocalization();
-
         // 初始化標題快取。
         UpdateTitlePrefix();
 
@@ -310,6 +307,8 @@ public partial class MainForm : Form
         _gamepadInitLock.Dispose();
 
         // 釋放 GDI 與選單資源。
+        _a11yFont?.Dispose();
+        _a11yFont = null;
         _boldBtnFont?.Dispose();
         _boldBtnFont = null;
 
@@ -477,6 +476,9 @@ public partial class MainForm : Form
 
         UpdateMinimumSize();
 
+        // 根據規範，在 Handle 建立時套用在地化與 A11y 屬性。
+        ApplyLocalization();
+
         RegisterHotKeyInternal();
 
         // 先解除再訂閱靜態事件，防止 Handle 重建時產生重複訂閱。
@@ -489,6 +491,9 @@ public partial class MainForm : Form
         base.OnDpiChanged(e);
 
         UpdateMinimumSize();
+
+        // DPI 變更時，需重新計算並套用字型縮放。
+        ApplyLocalization();
     }
 
     /// <summary>

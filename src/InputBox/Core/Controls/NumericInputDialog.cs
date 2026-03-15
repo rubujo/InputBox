@@ -387,6 +387,13 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 初始化數值輸入對話框
     /// </summary>
+    /// <param name="title">對話框標題</param>
+    /// <param name="currentValue">當前數值</param>
+    /// <param name="defaultValue">預設數值</param>
+    /// <param name="decimalPlaces">小數位數</param>
+    /// <param name="increment">增量值</param>
+    /// <param name="minimum">最小值</param>
+    /// <param name="maximum">最大值</param>
     public NumericInputDialog(
         string title,
         decimal currentValue,
