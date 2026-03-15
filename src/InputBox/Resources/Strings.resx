@@ -519,4 +519,32 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Cannot return: The target window has been closed.</value>
     <comment>Accessibility voice prompt when the user attempts to return to the previous window, but that window no longer exists.</comment>
   </data>
+  <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
+    <value>Open advanced settings including window behavior, feedback, and gamepad options.</value>
+    <comment>Accessibility description for the settings sub-menu.</comment>
+  </data>
+  <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
+    <value>Configure window restore delays and clipboard retry settings.</value>
+    <comment>Accessibility description for the window operations sub-menu.</comment>
+  </data>
+  <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
+    <value>Configure vibration feedback and intensity levels.</value>
+    <comment>Accessibility description for the feedback sub-menu.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
+    <value>Configure controller deadzones, repeat speed, and API provider.</value>
+    <comment>Accessibility description for the gamepad sub-menu.</comment>
+  </data>
+  <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
+    <value>Toggle all controller vibration effects on or off.</value>
+    <comment>Accessibility description for the vibration toggle item.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
+    <value>Select the underlying API for controller input (GameInput or XInput). Requires restart.</value>
+    <comment>Accessibility description for the API provider item.</comment>
+  </data>
+  <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
+    <value>Quit the application and release all resources.</value>
+    <comment>Accessibility description for the exit menu item.</comment>
+  </data>
 </root>

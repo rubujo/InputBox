@@ -515,8 +515,36 @@
     <value>離開</value>
     <comment>右鍵選單項目，用於關閉並結束應用程式流程。</comment>
   </data>
+  <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
+    <value>開啟進階設定，包含視窗行為、回饋與控制器選項。</value>
+    <comment>設定選單的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
+    <value>設定視窗還原延遲與剪貼簿重試設定。</value>
+    <comment>視窗與操作選單的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
+    <value>設定震動回饋與強度等級。</value>
+    <comment>回饋設定選單的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
+    <value>設定控制器死區、重複速度與 API 供應商。</value>
+    <comment>控制器設定選單的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
+    <value>切換所有控制器震動效果的開啟或關閉。</value>
+    <comment>震動開關項目的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
+    <value>選擇控制器的底層 API（GameInput 或 XInput）。需要重新啟動。</value>
+    <comment>控制器 API 供應商項目的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
+    <value>結束應用程式並釋放所有資源。</value>
+    <comment>離開選單項目的無障礙描述。</comment>
+  </data>
   <data name="A11y_TargetWindowLost" xml:space="preserve">
-    <value>無法切換：目標視窗已關閉。</value>
-    <comment>當使用者嘗試返回前一個視窗，但該視窗已不存在時的語音提示。</comment>
+    <value>無法返回：目標視窗已關閉。</value>
+    <comment>當使用者嘗試返回前一個視窗，但該視窗已不存在時的無障礙語音提示。</comment>
   </data>
 </root>

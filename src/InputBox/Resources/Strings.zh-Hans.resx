@@ -515,8 +515,36 @@
     <value>退出</value>
     <comment>右键菜单项目，用于关闭并结束应用程序流程。</comment>
   </data>
+  <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
+    <value>打开高级设置，包括窗口行为、反馈和手柄选项。</value>
+    <comment>设置菜单的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
+    <value>设置窗口还原延迟和剪贴板重试设置。</value>
+    <comment>窗口与操作菜单的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
+    <value>设置振动反馈和强度等级。</value>
+    <comment>反馈设置菜单的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
+    <value>设置手柄死区、重复速度和 API 供应商。</value>
+    <comment>手柄设置菜单的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
+    <value>切换所有手柄振动效果的开启或关闭。</value>
+    <comment>振动开关项目的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
+    <value>选择手柄的底层 API（GameInput 或 XInput）。需要重新启动。</value>
+    <comment>控制器 API 供应商项目的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
+    <value>退出应用程序并释放所有资源。</value>
+    <comment>退出菜单项目的无障碍描述。</comment>
+  </data>
   <data name="A11y_TargetWindowLost" xml:space="preserve">
-    <value>无法切换：目標窗口已关闭。</value>
-    <comment>当使用者尝试返回前一個窗口，但該窗口已不存在時的语音提示。</comment>
+    <value>无法返回：目标窗口已关闭。</value>
+    <comment>当用户尝试返回前一个窗口，但该窗口已不存在时的无障碍语音提示。</comment>
   </data>
 </root>

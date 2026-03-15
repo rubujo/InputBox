@@ -515,8 +515,36 @@
     <value>終了</value>
     <comment>右クリックメニュー項目。アプリケーションを終了するために使用します。</comment>
   </data>
+  <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
+    <value>ウィンドウの動作、振動、コントローラー設定などの詳細設定を開きます。</value>
+    <comment>設定メニューのアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
+    <value>ウィンドウ復元遅延とクリップボードの再試行設定を構成します。</value>
+    <comment>ウィンドウと操作メニューのアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
+    <value>振動フィードバックと強度レベルを構成します。</value>
+    <comment>フィードバック設定メニューのアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
+    <value>コントローラーのデッドゾーン、リピート速度、API プロバイダーを構成します。</value>
+    <comment>コントローラー設定メニューのアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
+    <value>コントローラーのすべての振動エフェクトのオン/オフを切り替えます。</value>
+    <comment>振動切り替え項目的アクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
+    <value>コントローラー入力用の API（GameInput または XInput）を選択します。再起動が必要です。</value>
+    <comment>コントローラー API プロバイダー項目のアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
+    <value>アプリケーションを終了し、すべてのリソースを解放します。</value>
+    <comment>終了メニュー項目のアクセシビリティ記述。</comment>
+  </data>
   <data name="A11y_TargetWindowLost" xml:space="preserve">
-    <value>切り替えられません：対象のウィンドウが閉じられています。</value>
-    <comment>前のウィンドウに戻ろうとしたが、そのウィンドウが既に閉じられている場合の音声プロンプト。</comment>
+    <value>戻ることができません：ターゲットウィンドウが閉じられています。</value>
+    <comment>ユーザーが前のウィンドウに戻ろうとしたが、そのウィンドウが既に存在しない場合のアクセシビリティ音声プロンプト。</comment>
   </data>
 </root>

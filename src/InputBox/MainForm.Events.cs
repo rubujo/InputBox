@@ -329,9 +329,17 @@ public partial class MainForm
             return;
         }
 
-        // 還原為原始顏色。
-        BtnCopy.BackColor = _originalBtnBackColor;
-        BtnCopy.ForeColor = _originalBtnForeColor;
+        // 還原為原始顏色：在高對比模式下，必須動態獲取系統顏色，不可使用快取值。
+        if (SystemInformation.HighContrast)
+        {
+            BtnCopy.BackColor = SystemColors.Control;
+            BtnCopy.ForeColor = SystemColors.ControlText;
+        }
+        else
+        {
+            BtnCopy.BackColor = _originalBtnBackColor;
+            BtnCopy.ForeColor = _originalBtnForeColor;
+        }
 
         // 還原為原始字體粗細。
         BtnCopy.Font = _originalBtnFont;
@@ -640,7 +648,7 @@ public partial class MainForm
             // 視覺回饋（提示已經到底了）。
             FlashAlertAsync().SafeFireAndForget();
 
-            AnnounceA11y(direction < 0 ? Strings.A11y_Nav_Oldest : Strings.A11y_Nav_Newest);
+            AnnounceA11y(direction < 0 ? Strings.A11y_Nav_Oldest : Strings.A11y_Nav_Newest, interrupt: true);
         }
 
         // 處理文字更新。
@@ -651,7 +659,7 @@ public partial class MainForm
             // 如果不是因為撞牆才清空，才獨立報讀（避免雙重語音）。
             if (!navigationResult.IsBoundaryHit)
             {
-                AnnounceA11y(Strings.Msg_InputCleared);
+                AnnounceA11y(Strings.Msg_InputCleared, interrupt: true);
             }
         }
         else if (navigationResult.Success &&
@@ -668,7 +676,7 @@ public partial class MainForm
                 Strings.A11y_History_Navigation,
                 navigationResult.CurrentIndex + 1,
                 navigationResult.TotalCount,
-                navigationResult.Text));
+                navigationResult.Text), interrupt: true);
         }
     }
 
@@ -840,8 +848,8 @@ public partial class MainForm
 
             int pulseThickness = (int)Math.Max(4, 4 * scale),
                 flashCount = 3,
-                // 節奏維持 100ms，製造急促的警告感。
-                interval = 100;
+                // 節奏維持 200ms，製造明確但不傷眼的警告感（約 2.5Hz，符合安全規範）。
+                interval = 200;
 
             for (int i = 0; i < flashCount; i++)
             {
@@ -1047,29 +1055,6 @@ public partial class MainForm
 
         // 當控制器連線時，顯示裝置名稱。
         Text = $"{_cachedTitlePrefix} · [{_gamepadController.DeviceName}]";
-    }
-
-    /// <summary>
-    /// 套用本地化
-    /// </summary>
-    private void ApplyLocalization()
-    {
-        // 設定視窗標題。
-        Text = Strings.App_Title;
-
-        // 設定按鈕文字。
-        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
-
-        // 設定 PlaceholderText。
-        TBInput.PlaceholderText = Strings.Pht_TBInput;
-
-        // 設定無障礙資訊。
-        AccessibleName = Strings.A11y_MainFormName;
-        AccessibleDescription = Strings.A11y_MainFormDesc;
-        TBInput.AccessibleName = Strings.A11y_TBInputName;
-        TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
-        BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
-        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using InputBox.Core.Extensions;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Threading.Channels;
+using System.Windows.Forms.Automation;
 
 namespace InputBox;
 
@@ -32,31 +33,82 @@ public partial class MainForm
     private record AnnouncementRequest(string Message, bool Interrupt, long Id);
 
     /// <summary>
-    /// 初始化無障礙廣播用的隱藏標籤與佇列
+    /// 設定 A11y 廣播器的 LiveSetting 狀態
+    /// </summary>
+    /// <param name="setting">LiveSetting 設定</param>
+    public void SetA11yLiveSetting(AutomationLiveSetting setting)
+    {
+        if (_lblA11yAnnouncer != null &&
+            !_lblA11yAnnouncer.IsDisposed)
+        {
+            _lblA11yAnnouncer.LiveSetting = setting;
+        }
+    }
+
+    /// <summary>
+    /// 取得專案統一的 A11y 放大字型（11f）。
+    /// </summary>
+    /// <param name="dpi">目前的 DPI 數值</param>
+    /// <param name="fontStyle">字型樣式，預設為 Regular</param>
+    /// <returns>Font</returns>
+    public static Font GetSharedA11yFont(int dpi, FontStyle fontStyle = FontStyle.Regular)
+    {
+        // 根據規範，預設為 11f 放大字型。
+        const float BaseFontSize = 11.0f;
+
+        float scale = dpi / 96.0f;
+
+        // 優先使用系統訊息視窗字型作為基準。
+        Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
+
+        return new Font(baseFont.FontFamily, BaseFontSize * scale, fontStyle);
+    }
+
+    /// <summary>
+    /// 執行階段套用在地化資源與 A11y 屬性。
+    /// 此方法用於覆蓋 Designer 中的硬編碼值，確保多語系正確性。
+    /// </summary>
+    private void ApplyLocalization()
+    {
+        // 視窗基礎屬性。
+        Text = Strings.App_Title;
+        AccessibleName = Strings.A11y_MainFormName;
+        AccessibleDescription = Strings.A11y_MainFormDesc;
+
+        // 佈局容器。
+        TLPHost.AccessibleName = Strings.A11y_Layout_Main;
+        TLPHost.AccessibleDescription = Strings.A11y_Layout_Main_Desc;
+        PInputHost.AccessibleName = Strings.A11y_Layout_Input;
+        PInputHost.AccessibleDescription = Strings.A11y_Layout_Input_Desc;
+
+        // 輸入控制項。
+        TBInput.PlaceholderText = Strings.Pht_TBInput;
+        TBInput.AccessibleName = Strings.A11y_TBInputName;
+        TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
+        _lblInput?.Text = Strings.A11y_TBInputName;
+
+        // 按鈕。
+        BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
+        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+    }
+
+    /// <summary>
+    /// 初始化無障礙廣播元件。
     /// </summary>
     private void InitializeA11yAnnouncer()
     {
         // 建立輸入框標籤（A11y 關聯用，但不顯示文字以免干擾視覺）。
-        // 為了確保 NVDA 等輔助技術能正確抓取關聯，我們不使用 Visible = false，
-        // 而是將大小設為 1x1 並讓其在視覺上不可見。
         _lblInput = new Label
         {
-            Text = Strings.A11y_TBInputName,
             Size = new Size(1, 1),
             Location = new Point(-1, -1),
             TabStop = false,
             Parent = this
         };
 
-        // 建立無障礙關聯。
-        TLPHost.AccessibleName = Strings.A11y_Layout_Main;
-        TLPHost.AccessibleDescription = Strings.A11y_Layout_Main_Desc;
-        PInputHost.AccessibleName = Strings.A11y_Layout_Input;
-        PInputHost.AccessibleDescription = Strings.A11y_Layout_Input_Desc;
-        TBInput.AccessibleName = Strings.A11y_TBInputName;
-        TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
-        BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
-        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+        // 套用在地化與 A11y 屬性（覆蓋 Designer）。
+        ApplyLocalization();
 
         _lblA11yAnnouncer = new AnnouncerLabel
         {

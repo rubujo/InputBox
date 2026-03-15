@@ -61,24 +61,29 @@ internal class FeedbackService
     }
 
     /// <summary>
+    /// 震動世代計數器，用於防止過時的震動停止指令覆蓋新的震動請求。
+    /// </summary>
+    private static long _vibrationGeneration = 0;
+
+    /// <summary>
     /// 讓控制器震動
     /// </summary>
     /// <param name="controller">控制器實例（允許為 null）</param>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">毫秒</param>
     /// <returns>Task</returns>
-    public static Task VibrateAsync(IGamepadController? controller, ushort strength, int milliseconds)
+    public static async Task VibrateAsync(IGamepadController? controller, ushort strength, int milliseconds)
     {
         // 讀取設定檔開關。
         if (!AppSettings.Current.EnableVibration)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // 若控制器未連接或未初始化，直接結束。
         if (controller == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // 應用全域倍率。
@@ -87,7 +92,7 @@ internal class FeedbackService
         // 如果倍率是 0，直接視為不震動。
         if (multiplier <= 0f)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // 計算最終強度：原始強度 * 倍率。
@@ -99,11 +104,29 @@ internal class FeedbackService
         // 如果計算後太弱變成 0，也不用開啟了。
         if (finalStrength == 0)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        // 傳送最終強度給控制器。
-        return controller.VibrateAsync(finalStrength, milliseconds);
+        // 世代檢查點：獲取目前的震動世代。
+        long currentGeneration = Interlocked.Increment(ref _vibrationGeneration);
+
+        try
+        {
+            // 傳送震動指令。
+            await controller.VibrateAsync(finalStrength, milliseconds);
+
+            // 震動結束後的清理（停止馬達）。
+            // 只有在世代 ID 依然吻合時，才發送停止指令。
+            // 如果 ID 已變動，代表有更新的震動請求已發出，我們不應介入。
+            if (Interlocked.Read(ref _vibrationGeneration) == currentGeneration)
+            {
+                await controller.VibrateAsync(0, 0);
+            }
+        }
+        catch
+        {
+            // 忽略個別控制器的震動失敗。
+        }
     }
 
     /// <summary>
@@ -117,6 +140,9 @@ internal class FeedbackService
         {
             return Task.CompletedTask;
         }
+
+        // 遞增世代以中止所有背景運行的 VibrateAsync 邏輯。
+        Interlocked.Increment(ref _vibrationGeneration);
 
         // 強制傳送強度為 0 且持續時間極短的指令。
         return controller.VibrateAsync(0, 10);

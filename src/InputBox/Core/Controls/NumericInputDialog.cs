@@ -6,6 +6,7 @@ using InputBox.Resources;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
+using System.Windows.Forms.Automation;
 
 namespace InputBox.Core.Controls;
 
@@ -129,18 +130,26 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleUp() => this.SafeInvoke(() =>
     {
-        if (Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
-        {
-            return;
-        }
-
         try
         {
-            _nud.UpButton();
+            if (IsDisposed ||
+                Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                _nud.UpButton();
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isProcessingValue, 0);
+            }
         }
-        finally
+        catch (Exception ex)
         {
-            Interlocked.Exchange(ref _isProcessingValue, 0);
+            Debug.WriteLine($"[NumericInputDialog] HandleUp 錯誤：{ex.Message}");
         }
     });
 
@@ -149,18 +158,26 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleDown() => this.SafeInvoke(() =>
     {
-        if (Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
-        {
-            return;
-        }
-
         try
         {
-            _nud.DownButton();
+            if (IsDisposed ||
+                Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                _nud.DownButton();
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isProcessingValue, 0);
+            }
         }
-        finally
+        catch (Exception ex)
         {
-            Interlocked.Exchange(ref _isProcessingValue, 0);
+            Debug.WriteLine($"[NumericInputDialog] HandleDown 錯誤：{ex.Message}");
         }
     });
 
@@ -169,11 +186,23 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleConfirm() => this.SafeInvoke(() =>
     {
-        _nud.ValidateValue();
+        try
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
 
-        DialogResult = DialogResult.OK;
+            _nud.ValidateValue();
 
-        Close();
+            DialogResult = DialogResult.OK;
+
+            Close();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleConfirm 錯誤：{ex.Message}");
+        }
     });
 
     /// <summary>
@@ -181,9 +210,21 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleCancel() => this.SafeInvoke(() =>
     {
-        DialogResult = DialogResult.Cancel;
+        try
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
 
-        Close();
+            DialogResult = DialogResult.Cancel;
+
+            Close();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleCancel 錯誤：{ex.Message}");
+        }
     });
 
     /// <summary>
@@ -199,43 +240,51 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleReset() => this.SafeInvoke(() =>
     {
-        if (Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
-        {
-            return;
-        }
-
         try
         {
-            // 執行重設邏輯。
-            _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
-
-            _nud.Focus();
-
-            // 使用 SafeBeginInvoke 確保在 UI 執行緒空閒時執行選取，提升可靠性。
-            this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
-
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-            FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove).SafeFireAndForget();
-        }
-        finally
-        {
-            // 延遲一下再重置旗標，達到防抖效果。
-            Task.Run(async () =>
+            if (IsDisposed ||
+                Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
             {
-                try
-                {
-                    await Task.Delay(250, _cts.Token);
+                return;
+            }
 
-                    Interlocked.Exchange(ref _isProcessingValue, 0);
-                }
-                catch (OperationCanceledException)
-                {
+            try
+            {
+                // 執行重設邏輯。
+                _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
 
-                }
-            },
-            _cts.Token)
-            .SafeFireAndForget();
+                _nud.Focus();
+
+                // 使用 SafeBeginInvoke 確保在 UI 執行緒空閒時執行選取，提升可靠性。
+                this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
+
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+                FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove).SafeFireAndForget();
+            }
+            finally
+            {
+                // 延遲一下再重置旗標，達到防抖效果。
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(250, _cts.Token);
+
+                        Interlocked.Exchange(ref _isProcessingValue, 0);
+                    }
+                    catch (OperationCanceledException)
+                    {
+
+                    }
+                },
+                _cts.Token)
+                .SafeFireAndForget();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleReset 錯誤：{ex.Message}");
         }
     });
 
@@ -310,16 +359,34 @@ internal sealed class NumericInputDialog : Form
         base.Dispose(disposing);
     }
 
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+
+        UpdateMinimumSize();
+    }
+
+    protected override void OnDpiChanged(DpiChangedEventArgs e)
+    {
+        base.OnDpiChanged(e);
+
+        UpdateMinimumSize();
+    }
+
+    /// <summary>
+    /// 更新視窗最小尺寸，確保在高 DPI 縮放時佈局不崩潰。
+    /// </summary>
+    private void UpdateMinimumSize()
+    {
+        // 基準寬度為 350，根據目前的 DeviceDpi 與標準 96.0f 的比例進行縮放。
+        float scale = DeviceDpi / 96.0f;
+
+        MinimumSize = new Size((int)(350 * scale), 0);
+    }
+
     /// <summary>
     /// 初始化數值輸入對話框
     /// </summary>
-    /// <param name="title">對話框標題</param>
-    /// <param name="currentValue">當前數值</param>
-    /// <param name="defaultValue">預設數值</param>
-    /// <param name="decimalPlaces">小數位數</param>
-    /// <param name="increment">增量值</param>
-    /// <param name="minimum">最小值</param>
-    /// <param name="maximum">最大值</param>
     public NumericInputDialog(
         string title,
         decimal currentValue,
@@ -329,6 +396,12 @@ internal sealed class NumericInputDialog : Form
         decimal minimum,
         decimal maximum)
     {
+        // 邊界驗證：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
+        if (minimum > maximum)
+        {
+            (minimum, maximum) = (maximum, minimum);
+        }
+
         _defaultValue = defaultValue;
 
         string promptText = string.Format(Strings.Msg_EnterValue, title);
@@ -352,10 +425,8 @@ internal sealed class NumericInputDialog : Form
         Icon = Application.OpenForms.OfType<MainForm>().FirstOrDefault()?.Icon ??
             ActiveForm?.Icon;
 
-        // 根據 DPI 縮放寬度，確保在高解析度螢幕下佈局正確。
-        float scale = DeviceDpi / 96f;
-
-        MinimumSize = new Size((int)(350 * scale), 0);
+        // 根據 DPI 縮放比例計算佈局參數。
+        float scale = DeviceDpi / 96.0f;
 
         TableLayoutPanel tlp = new()
         {
@@ -374,11 +445,9 @@ internal sealed class NumericInputDialog : Form
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-        // 取得系統標準字型。
-        Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
-
-        // 建立一個統一放大的 A11y 字型（例如 11f），供所有控制項共用，讓視覺協調且易讀。
-        _a11yFont = new Font(baseFont.FontFamily, 11f * scale, FontStyle.Regular);
+        // 建立一個統一放大的 A11y 字型（預設為 11f），供所有控制項共用，讓視覺協調且易讀。
+        // 優先使用 MainForm 提供的共享字型邏輯，確保全專案 A11y 視覺規格一致。
+        _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
 
         Label lbl = new()
         {
@@ -504,8 +573,9 @@ internal sealed class NumericInputDialog : Form
         tlp.Controls.Add(_nud, 0, 1);
         tlp.Controls.Add(flpButtons, 0, 2);
 
-        // 將 A11y 廣播標籤加入容器（但不佔空間）。
-        tlp.Controls.Add(_announcer, 0, 0);
+        // 將 A11y 廣播標籤加入視窗，但不佔用佈局空間。
+        _announcer.Size = Size.Empty;
+        Controls.Add(_announcer);
 
         Controls.Add(tlp);
 
@@ -516,9 +586,18 @@ internal sealed class NumericInputDialog : Form
         {
             _nud.Focus();
 
+            // 協調 LiveRegion：當彈出對話框時，暫時停用主視窗的廣播器 LiveSetting，防止訊息干擾。
+            if (Owner is MainForm mainForm)
+            {
+                mainForm.SetA11yLiveSetting(AutomationLiveSetting.Off);
+            }
+
             // 使用 SafeBeginInvoke 確保在 UI 執行緒完全準備好後再執行選取，
             // 解決 NumericUpDown 內部 TextBox 延遲初始化的問題。
             this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
+
+            // 主動廣播提示文字，確保使用者在焦點轉移後立即得知操作目標。
+            AnnounceA11y(promptText);
         };
 
         // 確保對話框取得焦點時，喚醒手把控制器。
@@ -568,6 +647,12 @@ internal sealed class NumericInputDialog : Form
             // 中止所有背景任務。
             _cts.Cancel();
             _cts.Dispose();
+
+            // 還原 LiveRegion 協調：當對話框關閉時，恢復主視窗廣播器的 LiveSetting。
+            if (Owner is MainForm mainForm)
+            {
+                mainForm.SetA11yLiveSetting(AutomationLiveSetting.Polite);
+            }
 
             // 關鍵修正：對話框關閉時，必須徹底取消手把事件的訂閱。
             // 這能防止對話框雖然不可見但仍持續在背景處理手把輸入的競態風險。

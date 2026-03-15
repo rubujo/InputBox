@@ -180,13 +180,15 @@ public partial class MainForm
         // 進階設定子選單。
         ToolStripMenuItem tsmiSettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings, 'S'))
         {
-            AccessibleName = Strings.Menu_Settings
+            AccessibleName = Strings.Menu_Settings,
+            AccessibleDescription = Strings.A11y_Menu_Settings_Desc
         };
 
         // 視窗與操作。
         ToolStripMenuItem tsmiWinOps = new(Strings.Menu_Settings_Window)
         {
-            AccessibleName = Strings.Menu_Settings_Window
+            AccessibleName = Strings.Menu_Settings_Window,
+            AccessibleDescription = Strings.A11y_Menu_WinOps_Desc
         };
 
         /// <summary>
@@ -289,13 +291,15 @@ public partial class MainForm
         // 回饋。
         ToolStripMenuItem tsmiFeedback = new(Strings.Menu_Settings_Feedback)
         {
-            AccessibleName = Strings.Menu_Settings_Feedback
+            AccessibleName = Strings.Menu_Settings_Feedback,
+            AccessibleDescription = Strings.A11y_Menu_Feedback_Desc
         };
         ToolStripMenuItem tsmiVibEnable = new(Strings.Menu_Settings_Vibration)
         {
             CheckOnClick = true,
             Checked = AppSettings.Current.EnableVibration,
-            AccessibleName = Strings.Menu_Settings_Vibration
+            AccessibleName = Strings.Menu_Settings_Vibration,
+            AccessibleDescription = Strings.A11y_Menu_VibEnable_Desc
         };
         tsmiVibEnable.CheckedChanged += (s, e) =>
         {
@@ -364,13 +368,15 @@ public partial class MainForm
         //　控制器。
         ToolStripMenuItem tsmiGamepad = new(Strings.Menu_Settings_Gamepad)
         {
-            AccessibleName = Strings.Menu_Settings_Gamepad
+            AccessibleName = Strings.Menu_Settings_Gamepad,
+            AccessibleDescription = Strings.A11y_Menu_Gamepad_Desc
         };
 
         // Provider（需重啟）。
         ToolStripMenuItem tsmiProvider = new(Strings.Menu_Settings_Provider)
         {
-            AccessibleName = Strings.Menu_Settings_Provider
+            AccessibleName = Strings.Menu_Settings_Provider,
+            AccessibleDescription = Strings.A11y_Menu_Provider_Desc
         };
 
         void AddProviderItem(AppSettings.GamepadProvider provider)
@@ -387,6 +393,8 @@ public partial class MainForm
                 {
                     AppSettings.Current.GamepadProviderType = provider;
                     AppSettings.Save();
+
+                    AnnounceA11y(Strings.Msg_RestartRequired);
 
                     AskForRestart();
                 }
@@ -409,6 +417,8 @@ public partial class MainForm
             {
                 AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
                 AppSettings.Save();
+
+                AnnounceA11y(Strings.Msg_RestartRequired);
 
                 AskForRestart();
             }
@@ -540,7 +550,8 @@ public partial class MainForm
         // 離開。
         ToolStripMenuItem tsmiExit = new(ControlExtensions.GetMnemonicText(Strings.Menu_Exit, 'X'))
         {
-            AccessibleName = Strings.Menu_Exit
+            AccessibleName = Strings.Menu_Exit,
+            AccessibleDescription = Strings.A11y_Menu_Exit_Desc
         };
         tsmiExit.Click += (s, e) => Close();
 

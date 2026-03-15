@@ -43,6 +43,12 @@ internal static class Program
         Application.ThreadException += (sender, e) => HandleException(e.Exception);
         AppDomain.CurrentDomain.UnhandledException += (sender, e) => HandleException(e.ExceptionObject as Exception);
 
+        // 註冊系統事件：在關機或登出時，強制停止所有硬體震動。
+        Microsoft.Win32.SystemEvents.SessionEnding += (s, e) =>
+        {
+            FeedbackService.EmergencyStopAllActiveControllers();
+        };
+
         try
         {
             // 載入 XInput DLL。

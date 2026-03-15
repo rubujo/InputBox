@@ -294,8 +294,12 @@ public partial class MainForm : Form
         FeedbackService.EmergencyStopAllActiveControllers();
 
         // 清理靜態引用，防止記憶體洩漏。
-        ClipboardService.OnRetry = null;
-        Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
+        // 僅在最後一個 MainForm 關閉時才清理全域委派，確保多視窗擴充性。
+        if (Application.OpenForms.OfType<MainForm>().Count() <= 1)
+        {
+            ClipboardService.OnRetry = null;
+            Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
+        }
 
         // 處置輸入上下文，解除事件訂閱。
         _inputContext?.Dispose();
@@ -525,21 +529,24 @@ public partial class MainForm : Form
             return;
         }
 
-        if (IsDisposed ||
-            BtnCopy == null)
+        this.SafeInvoke(() =>
         {
-            return;
-        }
+            if (IsDisposed ||
+                BtnCopy == null)
+            {
+                return;
+            }
 
-        // 還原文字與無障礙描述。
-        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
-        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+            // 還原文字與無障礙描述。
+            BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+            BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
 
-        // 還原視覺樣式（顏色與粗細）。
-        RestoreButtonDefaultStyle();
+            // 還原視覺樣式（顏色與粗細）。
+            RestoreButtonDefaultStyle();
 
-        // 最後重新啟用按鈕。
-        BtnCopy.Enabled = true;
+            // 最後重新啟用按鈕。
+            BtnCopy.Enabled = true;
+        });
     }
 
     /// <summary>
