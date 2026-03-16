@@ -567,4 +567,8 @@ Make sure that multiple instances of this application are not running at the sam
     <value>High Contrast mode is on, opacity locked to 100%.</value>
     <comment>Accessibility voice prompt played when opacity is forced to 100% due to High Contrast.</comment>
   </data>
+  <data name="Err_GamepadInitFail" xml:space="preserve">
+    <value>Gamepad controller initialization failed. Some features may be unavailable.</value>
+    <comment>Error message played via A11y when the gamepad controller fails to initialize at startup.</comment>
+  </data>
 </root>

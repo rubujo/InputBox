@@ -220,7 +220,7 @@ public partial class MainForm : Form
         }
 
         // 使用 SafeBeginInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期。
-        this.SafeBeginInvoke(() =>
+        this.SafeInvoke(() =>
         {
             // 如果還有其他視窗（例如數值輸入對話框）是活躍的，不應停止手把輪詢。
             if (ActiveForm != null)
@@ -642,10 +642,21 @@ public partial class MainForm : Form
 
         float scale = currentDpi / BaseDpi;
 
-        int minWidth = (int)Math.Round(BaseMinWidth * scale),
-            minHeight = (int)Math.Round(BaseMinHeight * scale);
+        // 動態計算最小寬度與高度。
+        // 考慮到 A11y 強化後的加粗邊框（最高達 7 像素），需預留足夠空間。
+        int minWidth = (int)Math.Max(BaseMinWidth * scale, 300 * scale),
+            minHeight = (int)Math.Max(BaseMinHeight * scale, 80 * scale);
 
         MinimumSize = new Size(minWidth, minHeight);
+
+        // 如果目前尺寸小於最小尺寸，則強制調整。
+        if (Width < MinimumSize.Width ||
+            Height < MinimumSize.Height)
+        {
+            Size = new Size(
+                Math.Max(Width, MinimumSize.Width),
+                Math.Max(Height, MinimumSize.Height));
+        }
     }
 
     /// <summary>

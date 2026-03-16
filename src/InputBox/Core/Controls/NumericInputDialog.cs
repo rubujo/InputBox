@@ -571,6 +571,50 @@ internal sealed class NumericInputDialog : Form
             HandleReset();
         };
 
+        void BindButtonA11y(Button btn)
+        {
+            Color originalBackColor = btn.BackColor;
+            Color originalForeColor = btn.ForeColor;
+            Font originalFont = btn.Font;
+
+            btn.MouseEnter += (s, e) => ApplyHover();
+            btn.MouseLeave += (s, e) => Restore();
+            btn.Enter += (s, e) => ApplyHover();
+            btn.Leave += (s, e) => Restore();
+
+            void ApplyHover()
+            {
+                if (!btn.Enabled) return;
+
+                // CVD 友善：同時變更顏色與形狀（加粗）。
+                btn.BackColor = SystemColors.Highlight;
+                btn.ForeColor = SystemColors.HighlightText;
+
+                // 動態切換加粗狀態，利用現有字型家族以防 DPI 模糊。
+                btn.Font = new Font(btn.Font, FontStyle.Bold);
+            }
+
+            void Restore()
+            {
+                // 高對比模式下必須還原為系統標準色。
+                if (SystemInformation.HighContrast)
+                {
+                    btn.BackColor = SystemColors.Control;
+                    btn.ForeColor = SystemColors.ControlText;
+                }
+                else
+                {
+                    btn.BackColor = originalBackColor;
+                    btn.ForeColor = originalForeColor;
+                }
+                btn.Font = originalFont;
+            }
+        }
+
+        BindButtonA11y(btnOk);
+        BindButtonA11y(btnCancel);
+        BindButtonA11y(btnSetDefault);
+
         flpButtons.Controls.Add(btnCancel);
         flpButtons.Controls.Add(btnSetDefault);
         flpButtons.Controls.Add(btnOk);

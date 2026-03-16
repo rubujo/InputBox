@@ -682,6 +682,15 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        /// 查詢類似 Gamepad controller initialization failed. 的當地語系化字串。
+        /// </summary>
+        internal static string Err_GamepadInitFail {
+            get {
+                return ResourceManager.GetString("Err_GamepadInitFail", resourceCulture);
+            }
+        }
+
+        /// <summary>
         /// 查詢類似 Touch keyboard not found. 的當地語系化字串。
         /// </summary>
         internal static string Err_TouchKeyboardNotFound {

@@ -28,6 +28,11 @@ public partial class MainForm
     private long _currentAnnouncementId = 0;
 
     /// <summary>
+    /// 在 UI 執行緒中最後一次完成廣播的 ID（用於防止非同步排程導致的舊訊息覆蓋新訊息）
+    /// </summary>
+    private long _lastProcessedAnnouncementId = 0;
+
+    /// <summary>
     /// A11y 廣播請求模型
     /// </summary>
     private record AnnouncementRequest(string Message, bool Interrupt, long Id);
@@ -46,17 +51,21 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 取得專案統一的 A11y 放大字型（11f）。
+    /// 取得專案統一的 A11y 放大字型（11f）
     /// </summary>
     /// <param name="dpi">目前的 DPI 數值</param>
     /// <param name="fontStyle">字型樣式，預設為 Regular</param>
     /// <returns>Font</returns>
-    public static Font GetSharedA11yFont(int dpi, FontStyle fontStyle = FontStyle.Regular)
+    public static Font GetSharedA11yFont(
+        int dpi,
+        FontStyle fontStyle = FontStyle.Regular)
     {
         // 根據規範，預設為 11f 放大字型。
-        const float BaseFontSize = 11.0f;
+        const float BaseFontSize = 11.0f,
+            // 根據規範，基準 DPI 固定為 96.0f。
+            BaseDpi = 96.0f;
 
-        float scale = dpi / 96.0f;
+        float scale = dpi / BaseDpi;
 
         // 優先使用系統訊息視窗字型作為基準。
         Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
@@ -93,9 +102,15 @@ public partial class MainForm
         _lblInput?.Text = Strings.A11y_TBInputName;
 
         // 建立或更新 A11y 放大字型。
+        Font newA11yFont = GetSharedA11yFont(DeviceDpi);
+        Font newBoldFont = new(newA11yFont, FontStyle.Bold);
+
         // 先處置舊的字型資源，防止 GDI 洩漏。
         _a11yFont?.Dispose();
-        _a11yFont = GetSharedA11yFont(DeviceDpi);
+        _boldBtnFont?.Dispose();
+
+        _a11yFont = newA11yFont;
+        _boldBtnFont = newBoldFont;
 
         // 按鈕。
         BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
@@ -105,12 +120,8 @@ public partial class MainForm
         // 根據規範，套用統一的 A11y 共享字型。
         BtnCopy.Font = _a11yFont;
 
-        // 更新加粗字型（用於 Hover 效果）。
-        _boldBtnFont?.Dispose();
-        _boldBtnFont = new Font(_a11yFont, FontStyle.Bold);
-
-        // 紀錄原始顏色，以便在滑鼠移出時還原。
-        // 只有在非高對比模式下才更新快取，避免把系統高對比色（如亮黃、螢光綠）紀錄為「原始色」。
+        // 紀錄原始顏色，以便在滑鼠移出或失去焦點時還原。
+        // 當從高對比模式切換回一般模式時，必須重新整理快取，以確保顏色符合目前主題。
         if (!SystemInformation.HighContrast)
         {
             _originalBtnBackColor = BtnCopy.BackColor;
@@ -187,21 +198,25 @@ public partial class MainForm
                     break;
                 }
 
-                // 檢查序號：如果目前已有最新的廣播在排隊且 interrupt 為 true，則放棄舊的廣播。
-                // 邏輯優化：我們只檢查目前讀取到的訊息 ID 是否顯著落後於最新分配的 ID。
-                // 如果落後且此訊息標記為可中斷，則直接跳過，處理下一筆更新的內容。
-                if (request.Interrupt &&
-                    request.Id < Interlocked.Read(ref _currentAnnouncementId))
+                // 第一重檢查：如果此訊息標記為可中斷，且目前已有更新的訊息在 ID 佇列中，則跳過。
+                if (request.Interrupt)
                 {
-                    // 只有在 Channel 中仍有資料可讀時才跳過，否則仍需處理最後一筆。
-                    if (_a11yChannel.Reader.TryPeek(out _))
+                    long currentLatestId = Interlocked.Read(ref _currentAnnouncementId);
+
+                    if (request.Id < currentLatestId)
                     {
-                        continue;
+                        // 既然有更新的 ID，我們優先查看 Channel 是否還有新訊息。
+                        // 如果有，就跳過目前這筆；如果沒有（代表 currentLatestId 可能還在傳輸中），則處理這筆以防漏報。
+                        if (_a11yChannel.Reader.TryPeek(out _))
+                        {
+                            continue;
+                        }
                     }
                 }
 
                 try
                 {
+                    // 進入 UI 執行緒進行正式廣播。
                     await this.SafeInvokeAsync(async () =>
                     {
                         try
@@ -214,10 +229,10 @@ public partial class MainForm
                                 return;
                             }
 
-                            // 再次確認序號（防止在排程到 UI 執行緒期間又有更新的訊息進入）。
-                            if (request.Interrupt &&
-                                request.Id < Interlocked.Read(ref _currentAnnouncementId) &&
-                                _a11yChannel.Reader.TryPeek(out _))
+                            // 第二重檢查（最終防護）：
+                            // 檢查此訊息的 ID 是否小於等於 UI 執行緒最後一次「處理完成」的 ID。
+                            // 這能防止多個非同步排程在 UI 執行緒中競爭時，舊訊息因 Task.Delay 結束而覆蓋新訊息。
+                            if (request.Id <= _lastProcessedAnnouncementId)
                             {
                                 return;
                             }
@@ -231,8 +246,16 @@ public partial class MainForm
                                 return;
                             }
 
-                            // 填入正式訊息。
+                            // 再次檢查 ID，確保在 Delay 期間沒有更新的訊息已先發布。
+                            if (request.Id <= _lastProcessedAnnouncementId)
+                            {
+                                return;
+                            }
+
+                            // 填入正式訊息並更新最後處理 ID。
                             _lblA11yAnnouncer.Announce(request.Message);
+
+                            _lastProcessedAnnouncementId = request.Id;
                         }
                         catch (ObjectDisposedException)
                         {
@@ -279,17 +302,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 上一次發送的訊息內容，用於重複訊息處理。
-    /// </summary>
-    private string _lastAnnouncedMessage = string.Empty;
-
-    /// <summary>
-    /// 是否使用 ZWSP (Zero Width Space) 作為交替字元。
-    /// </summary>
-    private bool _useZwsp = false;
-
-    /// <summary>
-    /// 發送無障礙廣播訊息（具備隊列機制與丟棄機制，確保在高頻率操作下不會造成語音堆疊）。
+    /// 發送無障礙廣播訊息（具備隊列機制與丟棄機制，確保在高頻率操作下不會造成語音堆疊）
     /// </summary>
     /// <param name="message">要朗讀的訊息。</param>
     /// <param name="interrupt">是否中斷之前的排隊內容（預設為 false）。對於游標移動等高頻率操作，建議設為 true。</param>
@@ -304,23 +317,9 @@ public partial class MainForm
             return;
         }
 
-        // 重複訊息處理：
-        // 如果連發兩次完全一樣的文字，UIA 可能會因為內容未變而不報讀。
-        // 此時在結尾交替附加 \u200B（ZWSP）或 \u200C（ZWNJ）來強迫系統識別為變動。
-        string finalMessage = message;
-
-        if (string.Equals(message, _lastAnnouncedMessage, StringComparison.Ordinal))
-        {
-            _useZwsp = !_useZwsp;
-
-            finalMessage = message + (_useZwsp ? "\u200B" : "\u200C");
-        }
-
-        _lastAnnouncedMessage = message;
-
         long id = Interlocked.Increment(ref _currentAnnouncementId);
 
         // 嘗試寫入 Channel。如果已經關閉，則安靜地結束。
-        _a11yChannel.Writer.TryWrite(new AnnouncementRequest(finalMessage, interrupt, id));
+        _a11yChannel.Writer.TryWrite(new AnnouncementRequest(message, interrupt, id));
     }
 }

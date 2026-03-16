@@ -613,8 +613,9 @@ public partial class MainForm
 
         _cmsInput = new ContextMenuStrip();
 
-        // 根據目前視窗的 DPI 縮放係數來放大字體
-        float scale = DeviceDpi / 96f;
+        // 根據目前視窗的 DPI 縮放係數來放大字體。
+        // 使用浮點數以確保計算精準。
+        float scale = DeviceDpi / 96.0f;
 
         // 安全取得基準字型，若系統未能提供則退避至預設字型。
         Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
@@ -662,7 +663,7 @@ public partial class MainForm
     /// 遞迴更新選單項目標籤。
     /// </summary>
     /// <param name="parent">父選單項</param>
-    private void RefreshMenuText(ToolStripMenuItem parent)
+    private static void RefreshMenuText(ToolStripMenuItem parent)
     {
         foreach (ToolStripItem item in parent.DropDownItems)
         {

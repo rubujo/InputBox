@@ -567,4 +567,8 @@
     <value>ハイコントラストモードが有効なため、不透明度は 100% に固定されました。</value>
     <comment>ハイコントラストモードで不透明度が強制的に固定されたときに再生されるアクセシビリティ音声ガイドです。</comment>
   </data>
+  <data name="Err_GamepadInitFail" xml:space="preserve">
+    <value>ゲームパッドの初期化に失敗しました。一部の機能が利用できない可能性があります。</value>
+    <comment>起動時にゲームパッドの初期化に失敗した際、A11y を通じて再生される音声メッセージの内容。</comment>
+  </data>
 </root>

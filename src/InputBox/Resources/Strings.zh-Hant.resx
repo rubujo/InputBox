@@ -567,4 +567,8 @@
     <value>高對比模式已開啟，不透明度已鎖定為 100%。</value>
     <comment>無障礙語音播報，在高對比模式下不透明度被強制鎖定時播放。</comment>
   </data>
+  <data name="Err_GamepadInitFail" xml:space="preserve">
+    <value>遊戲手把初始化失敗，部分功能可能無法使用。</value>
+    <comment>啟動時手把初始化失敗後，透過 A11y 廣播的語音訊息內容。</comment>
+  </data>
 </root>

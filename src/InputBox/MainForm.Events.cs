@@ -75,6 +75,9 @@ public partial class MainForm
             // 使用 SafeFireAndForget 並傳入額外處理動作，以確保啟動失敗時能獲得 A11y 通知。
             InitializeGamepadControllerAsync().SafeFireAndForget(ex =>
             {
+                // A11y 廣播：告知控制器初始化失敗（可能不影響鍵盤使用，但手把功能會受限）。
+                AnnounceA11y(Strings.Err_GamepadInitFail);
+
                 Debug.WriteLine($"[啟動] 控制器初始化失敗：{ex.Message}");
             });
 
@@ -139,24 +142,26 @@ public partial class MainForm
     {
         try
         {
+            // 監聽顏色、無障礙設定以及一般設定（包含 UIEffectsEnabled 動畫開關）。
             if (e.Category == UserPreferenceCategory.Color ||
-                e.Category == UserPreferenceCategory.Accessibility)
+                e.Category == UserPreferenceCategory.Accessibility ||
+                e.Category == UserPreferenceCategory.General)
             {
                 this.SafeInvoke(() =>
                 {
-                    // 根據規範，系統無障礙設定變更時，需重新套用在地化資源與字型。
+                    // 根據規範，系統無障礙設定（如高對比、大字型、動畫開關）變更時，需重新套用在地化資源與佈局。
                     ApplyLocalization();
 
                     // 即時同步不透明度防護（高對比模式下強制 100%）。
                     UpdateOpacity();
 
+                    // 即時同步邊框狀態（包含厚度與顏色，服從新的系統視覺效果設定）。
+                    UpdateBorderColor();
+
                     if (TBInput.Focused)
                     {
+                        // 重新觸發 Enter 邏輯以同步最新的高對比主題配色。
                         TBInput_Enter(TBInput, EventArgs.Empty);
-                    }
-                    else
-                    {
-                        UpdateBorderColor();
                     }
 
                     // A11y 廣播：告知使用者環境設定已同步。
@@ -183,6 +188,9 @@ public partial class MainForm
                 return;
             }
 
+            // 優先更新邊框厚度與形狀（CVD 友善：不依賴顏色）。
+            UpdateBorderColor();
+
             // 判斷是否為高對比模式，如果系統已經開啟高對比，
             // 就完全尊重系統設定，不要自己改顏色。
             if (SystemInformation.HighContrast)
@@ -190,7 +198,6 @@ public partial class MainForm
                 // 在高對比模式下，手動還原為系統配色，不進行自訂染色。
                 TBInput.BackColor = SystemColors.Window;
                 TBInput.ForeColor = SystemColors.WindowText;
-                PInputHost.BackColor = SystemColors.Highlight;
 
                 return;
             }
@@ -200,9 +207,6 @@ public partial class MainForm
 
             // 文字改為「純白色」。
             TBInput.ForeColor = Color.White;
-
-            // 邊框維持系統高亮色（藍色）。
-            PInputHost.BackColor = SystemColors.Highlight;
         }
         catch (Exception ex)
         {
@@ -223,13 +227,13 @@ public partial class MainForm
                 AnnounceA11y(Strings.A11y_Capture_Cancelled);
             }
 
+            // 還原邊框厚度（CVD 友善）。
+            UpdateBorderColor();
+
             // 還原為一般視窗背景（白色）。
             TBInput.BackColor = SystemColors.Window;
             // 還原為一般視窗文字（黑色）。
             TBInput.ForeColor = SystemColors.WindowText;
-
-            // 設定邊框顏色為灰色。
-            PInputHost.BackColor = SystemColors.ControlDark;
         }
         catch (Exception ex)
         {
@@ -816,47 +820,82 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 讓輸入框邊框閃爍與脈衝加粗
+    /// 讓輸入框邊框閃爍與脈衝加粗（視覺警示機制）
     /// </summary>
     /// <returns>Task</returns>
     private async Task FlashAlertAsync()
     {
-        // 尊重系統動畫開關，避免對前庭神經系統敏感的使用者造成暈眩。
-        // 同時檢查是否正在閃爍或視窗已被處置，防止重複觸發或報錯。
-        if (!SystemInformation.UIEffectsEnabled ||
-            IsDisposed ||
+        // 狀態與生命週期守衛。
+        if (IsDisposed ||
             !IsHandleCreated ||
             Interlocked.CompareExchange(ref _isFlashing, 1, 0) != 0)
         {
             return;
         }
 
-        // 為避免實體座標位移（Margin）干擾眼動儀的停留點擊（Dwell-Click），
-        // 改為記錄原始的 Padding（內部邊距），透過動態加粗邊框來產生「原位脈衝」效果。
+        // 快取原始狀態。
         Padding originalPadding = PInputHost.Padding;
 
         try
         {
-            // 決定閃爍顏色。
-            Color flashColor;
+            // 根據 DPI 計算脈衝強度（加粗邊框）。
+            float scale = DeviceDpi / BaseDpi;
 
-            // 檢查系統是否開啟了「高對比模式」。
+            int pulseThickness = (int)Math.Max(7, 7 * scale);
+
+            // 決定警示色與對比色。
+            Color alertColor,
+                contrastColor = TBInput.BackColor;
+
             if (SystemInformation.HighContrast)
             {
-                flashColor = SystemColors.HighlightText;
+                alertColor = SystemColors.HighlightText;
             }
             else
             {
-                // 一般模式：改用 OrangeRed，紅色盲看 OrangeRed 會像「亮黃色／亮褐色」，對比度高。
-                flashColor = Color.OrangeRed;
+                // 使用暖橘色 (DarkOrange)，對紅／綠／藍黃色弱皆具備極佳對比。
+                alertColor = Color.FromArgb(255, 140, 0);
             }
 
-            // 效能優化：將與 DPI 相關的計算移出迴圈。
-            float scale = DeviceDpi / BaseDpi;
+            // 執行視覺強化：全色盲優化。
+            // 在警示瞬間，暫時將輸入框背景變為與 alertColor 有強烈明暗差的顏色（純黑或純白）。
+            void ApplyAlertVisuals()
+            {
+                if (IsDisposed ||
+                    !IsHandleCreated)
+                {
+                    return;
+                }
 
-            int pulseThickness = (int)Math.Max(4, 4 * scale),
-                flashCount = 3,
-                // 節奏維持 200ms，製造明確但不傷眼的警告感（約 2.5Hz，符合安全規範）。
+                PInputHost.BackColor = alertColor;
+                PInputHost.Padding = new Padding(pulseThickness);
+
+                if (!SystemInformation.HighContrast)
+                {
+                    // 製造明暗反轉，全色盲使用者對「明暗突變」極其敏感。
+                    TBInput.BackColor = Color.Black;
+                    TBInput.ForeColor = Color.White;
+                }
+            }
+
+            // 嚴格遵守光敏性癲癇防護與使用者偏好：
+            // 若使用者在系統層級關閉了動畫效果（UIEffectsEnabled 為 false），
+            // 則不進行循環閃爍，改為一次性的「長脈衝（Static Pulse）」回饋。
+            if (!SystemInformation.UIEffectsEnabled)
+            {
+                this.SafeInvoke(() =>
+                {
+                    ApplyAlertVisuals();
+                });
+
+                // 維持一段較長時間（800ms）讓低視能使用者感知狀態，隨後恢復。
+                await Task.Delay(800, _formCts.Token);
+
+                return;
+            }
+
+            // 正常閃爍流程（符合 2.5Hz 安全規範）。
+            int flashCount = 3,
                 interval = 200;
 
             for (int i = 0; i < flashCount; i++)
@@ -867,28 +906,9 @@ public partial class MainForm
                     return;
                 }
 
-                // 使用 SafeInvoke 確保即使從背景啟動閃爍也能安全執行。
-                this.SafeInvoke(() =>
-                {
-                    if (IsDisposed ||
-                        !IsHandleCreated)
-                    {
-                        return;
-                    }
+                this.SafeInvoke(ApplyAlertVisuals);
 
-                    // A11y 第一重反饋：顏色警告。
-                    PInputHost.BackColor = flashColor;
-
-                    // A11y 第二重反饋：形狀／厚度變化（原位脈衝）。
-                    PInputHost.Padding = new Padding(originalPadding.Left + pulseThickness);
-                });
-
-                // 脈衝維持時間。
-                try
-                {
-                    await Task.Delay(interval, _formCts.Token);
-                }
-                catch (OperationCanceledException) { return; }
+                await Task.Delay(interval, _formCts.Token);
 
                 if (IsDisposed ||
                     !IsHandleCreated)
@@ -896,7 +916,6 @@ public partial class MainForm
                     return;
                 }
 
-                // 還原顏色與厚度（製造一縮一放的跳動感）。
                 this.SafeInvoke(() =>
                 {
                     if (IsDisposed ||
@@ -905,63 +924,70 @@ public partial class MainForm
                         return;
                     }
 
+                    // 還原至目前的焦點狀態視覺。
                     UpdateBorderColor();
 
-                    PInputHost.Padding = originalPadding;
+                    if (!SystemInformation.HighContrast)
+                    {
+                        // 還原輸入框顏色。
+                        if (TBInput.Focused)
+                        {
+                            TBInput.BackColor = Color.Black;
+                            TBInput.ForeColor = Color.White;
+                        }
+                        else
+                        {
+                            TBInput.BackColor = SystemColors.Window;
+                            TBInput.ForeColor = SystemColors.WindowText;
+                        }
+                    }
                 });
 
-                try
-                {
-                    await Task.Delay(interval, _formCts.Token);
-                }
-                catch (OperationCanceledException) { return; }
-
-                // 再次檢查狀態，確保下一次循環安全。
-                if (IsDisposed ||
-                    !IsHandleCreated)
-                {
-                    return;
-                }
+                await Task.Delay(interval, _formCts.Token);
             }
         }
+        catch (OperationCanceledException) { }
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
 
-            // 無論是否成功完成（即使發生錯誤或中斷），都必須確保視覺狀態完全還原。
-            if (!IsDisposed &&
-                IsHandleCreated)
+            // 最終確保視覺狀態正確還原。
+            if (!IsDisposed && IsHandleCreated)
             {
-                this.SafeInvoke(() =>
-                {
-                    if (IsDisposed ||
-                        !IsHandleCreated)
-                    {
-                        return;
-                    }
-
-                    UpdateBorderColor();
-
-                    PInputHost.Padding = originalPadding;
-                });
+                this.SafeInvoke(UpdateBorderColor);
             }
         }
     }
 
     /// <summary>
-    /// 依據焦點狀態更新邊框顏色
+    /// 依據焦點狀態更新邊框顏色與厚度（CVD 色覺友善全方位優化）
     /// </summary>
     private void UpdateBorderColor()
     {
+        if (IsDisposed ||
+            !IsHandleCreated)
+        {
+            return;
+        }
+
+        // 根據 DPI 計算厚度差異（強化形狀特徵，協助全色盲辨識）。
+        float scale = DeviceDpi / BaseDpi;
+
+        int activeThickness = (int)Math.Max(5, 5 * scale),
+            normalThickness = (int)Math.Max(2, 2 * scale);
+
         if (TBInput.Focused)
         {
-            // 取得焦點時：邊框變為系統高亮色（通常是藍色）。
+            // 獲得焦點：加粗邊框（顯著形狀變化） + 高對比配色。
+            // 使用 SystemColors 確保在高對比模式下由 Windows 接管配色。
             PInputHost.BackColor = SystemColors.Highlight;
+            PInputHost.Padding = new Padding(activeThickness);
         }
         else
         {
-            // 失去焦點時：邊框變回一般的灰色。
+            // 失去焦點：細邊框 + 低亮度配色。
             PInputHost.BackColor = SystemColors.ControlDark;
+            PInputHost.Padding = new Padding(normalThickness);
         }
     }
 

@@ -567,4 +567,8 @@
     <value>高对比模式已开启，不透明度已锁定为 100%。</value>
     <comment>无障碍语音播報，在高對比模式下不透明度被強制鎖定時播放。</comment>
   </data>
+  <data name="Err_GamepadInitFail" xml:space="preserve">
+    <value>游戏手柄初始化失败，部分功能可能无法使用。</value>
+    <comment>启动时手柄初始化失败后，通过 A11y 广播的语音消息内容。</comment>
+  </data>
 </root>

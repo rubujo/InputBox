@@ -1,4 +1,4 @@
-# 輸入框（InputBox）專案開發規範
+﻿# 輸入框（InputBox）專案開發規範
 
 本文件為 **輸入框（InputBox）** 專案的最高指導原則。所有 AI 輔助開發（審查、重構、功能擴充）必須絕對優先遵循以下指令。
 
@@ -34,9 +34,16 @@
 - **語意與導覽**：
   - 佈局容器必須設定 `AccessibleRole = Grouping` 並補足 `AccessibleName` 與 `Description`。
 - **色覺與視覺安全規範**：
-  - **色覺友善**：UI 狀態變更（如警告、擷取模式）禁止僅依賴顏色區分。必須結合形狀變化（如 Padding 加粗、邊框脈衝）或文字提示。
-  - **光敏性癲癇防護**：嚴禁使用高頻閃爍效果。任何視覺閃爍（Flash）頻率必須低於 3Hz，且必須尊重系統的 `UIEffectsEnabled` 開關。
-  - **高對比支援**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
+  - **色覺友善（CVD）**：UI 狀態變更禁止僅依賴顏色。
+    - **形狀補償**：必須結合形狀變化（如 Padding 加粗、邊框脈衝、字型加粗）。
+    - **全色盲支援（Achromatopsia）**：關鍵狀態變更（如獲得焦點、警示）必須包含「亮度對比」與「明暗反轉」（如背景變黑／文字變白），確保在無色彩模式下具備高辨識度。
+    - **色盲友善警示色**：在一般主題下，優先選用暖橘色（如 DarkOrange）作為警示色，以獲得跨 CVD 類型（Protan／Deutan／Tritan）的最佳對比。
+  - **光敏性癲癇防護（Photosensitive Epilepsy）**：
+    - **頻率控制**：視覺閃爍（Flash）頻率必須穩定低於 3Hz（建議為 2.5Hz）。
+    - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍，必須改為「長脈衝靜態提醒」（維持至少 800ms 的顯著狀態後恢復），確保資訊傳達且安全。
+  - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
+- **系統偏好同步（System Sync）**：
+  - 必須透過 `SystemEvents.UserPreferenceChanged` 監控 `UserPreferenceCategory.General` 與 `Accessibility`，確保當使用者變更 Windows 動畫、色彩或主題設定時，UI 視覺行為能立即同步。
 - **⚠️ 核心限制：設計工具（Designer）保護與硬編碼原則**：
   - **設計時視覺化**：為了在 Visual Studio 設計工具內能直觀預覽文字與佈局（因 L10N 為非標準實作），允許且建議在 Designer 中硬編碼正體中文文字與 A11y 屬性。
   - **屬性疊加**：Designer 內設定的值為基礎，執行階段（Runtime）必須透過 `ApplyLocalization` 或分部類別（如 `MainForm.A11y.cs`）再次賦值以確保多語系正確性。
