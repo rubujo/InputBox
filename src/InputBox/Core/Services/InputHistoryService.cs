@@ -27,7 +27,7 @@ public class InputHistoryService(int maxHistory = 100)
     private const int MaxHistoryEntryLength = 10000;
 
     /// <summary>
-    /// 鎖物件，用於保護輸入歷程記錄的線程安全
+    /// 鎖物件，用於保護輸入歷程記錄的執行緒安全
     /// </summary>
     private readonly Lock _lockObj = new();
 

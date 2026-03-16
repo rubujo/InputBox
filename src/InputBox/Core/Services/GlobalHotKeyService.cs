@@ -9,7 +9,7 @@ namespace InputBox.Core.Services;
 internal class GlobalHotKeyService
 {
     /// <summary>
-    /// 鎖物件，用於保護全域快速鍵註冊與註銷的線程安全
+    /// 鎖物件，用於保護全域快速鍵註冊與註銷的執行緒安全
     /// </summary>
     private static readonly Lock HotKeyLock = new();
 

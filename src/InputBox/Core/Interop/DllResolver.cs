@@ -9,7 +9,7 @@ namespace InputBox.Core.Interop;
 internal class DllResolver
 {
     /// <summary>
-    /// 鎖定物件，用於確保多執行緒環境下對 XInput DLL 的載入過程是線程安全的，避免競爭條件和重複載入問題
+    /// 鎖定物件，用於確保多執行緒環境下對 XInput DLL 的載入過程是執行緒安全的，避免競爭條件和重複載入問題
     /// </summary>
     private static readonly Lock ResolverLock = new();
 

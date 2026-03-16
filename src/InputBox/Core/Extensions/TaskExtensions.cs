@@ -22,7 +22,7 @@ public static class TaskExtensions
     }
 
     /// <summary>
-    /// 安全地啟動並忽略異步任務的結果
+    /// 安全地啟動並忽略非同步任務的結果
     /// </summary>
     /// <param name="task">要執行的非同步任務</param>
     /// <param name="onException">當例外發生時的處理動作（選用）</param>
@@ -34,7 +34,7 @@ public static class TaskExtensions
     }
 
     /// <summary>
-    /// 安全地啟動異步任務，若失敗則透過指定的廣播委派發送訊息
+    /// 安全地啟動非同步任務，若失敗則透過指定的廣播委派發送訊息
     /// </summary>
     /// <param name="task">Task</param>
     /// <param name="announceAction">廣播委派（例如 MainForm.AnnounceA11y）</param>

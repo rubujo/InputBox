@@ -20,7 +20,7 @@ internal class ClipboardService
     private const int MaxDelay_Clipboard = 200;
 
     /// <summary>
-    /// 延遲時間，確保剪貼簿操作完成（避免某些系統環境下的異步問題）
+    /// 延遲時間，確保剪貼簿操作完成（避免某些系統環境下的非同步問題）
     /// </summary>
     private const int Delay_ClipboardBuffer = 50;
 

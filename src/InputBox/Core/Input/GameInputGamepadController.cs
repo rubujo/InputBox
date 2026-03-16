@@ -307,7 +307,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 異步建立 GameInputGamepadController 實體。
+    /// 非同步建立 GameInputGamepadController 實體
     /// </summary>
     /// <param name="context">IInputContext</param>
     /// <param name="userIndex">控制器的索引</param>
