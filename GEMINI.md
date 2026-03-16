@@ -34,13 +34,18 @@
 - **語意與導覽**：
   - 佈局容器必須設定 `AccessibleRole = Grouping` 並補足 `AccessibleName` 與 `Description`。
 - **色覺與視覺安全規範**：
+  - **眼動儀友善（Eye Tracker Optimized）**：
+    - **注視回饋（Dwell Feedback）**：必須實作 Dwell 動畫以提升注視鎖定感。
+    - **抗抖動寬度鎖定（Anti-Jitter Lock）**：為防止字體加粗引發佈局抖動導致眼動儀「追逐目標」，必須在初始化時預先計算 **Bold** 狀態的最大寬度並鎖定為 `MinimumSize`。
+    - **懸停零邊距策略（Zero-Padding on Hover）**：懸停時必須將 `Padding` 設為 0，以釋放最大水平空間，確保長文字（如英日文）在 Bold 狀態下絕不裁切。
   - **色覺友善（CVD）**：UI 狀態變更禁止僅依賴顏色。
-    - **形狀補償**：必須結合形狀變化（如 Padding 加粗、邊框脈衝、字型加粗）。
+    - **形狀補償**：必須結合形狀變化（如 Padding 加粗、邊框脈衝、字型加粗、心跳變幻）。
     - **全色盲支援（Achromatopsia）**：關鍵狀態變更（如獲得焦點、警示）必須包含「亮度對比」與「明暗反轉」（如背景變黑／文字變白），確保在無色彩模式下具備高辨識度。
     - **色盲友善警示色**：在一般主題下，優先選用暖橘色（如 DarkOrange）作為警示色，以獲得跨 CVD 類型（Protan／Deutan／Tritan）的最佳對比。
   - **光敏性癲癇防護（Photosensitive Epilepsy）**：
-    - **頻率控制**：視覺閃爍（Flash）頻率必須穩定低於 3Hz（建議為 2.5Hz）。
-    - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍，必須改為「長脈衝靜態提醒」（維持至少 800ms 的顯著狀態後恢復），確保資訊傳達且安全。
+    - **頻率控制**：視覺律動頻率必須嚴格鎖定在 **1Hz**（1000ms 週期），遠低於 3Hz 的風險閾值。
+    - **平滑漸變**：亮度變化必須使用正弦波（Sine Wave）或平滑過渡，禁止劇烈閃爍。
+    - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍或 Dwell 動畫，必須改為「靜態顯著提醒」。
   - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
 - **系統偏好同步（System Sync）**：
   - 必須透過 `SystemEvents.UserPreferenceChanged` 監控 `UserPreferenceCategory.General` 與 `Accessibility`，確保當使用者變更 Windows 動畫、色彩或主題設定時，UI 視覺行為能立即同步。
@@ -77,7 +82,7 @@
 
 - **P/Invoke**：必須套用 `[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]`。
 - **單一執行個體**：Mutex 必須具備 GUID 與 `Local\` 前綴以隔離使用者工作階段。
-- **原子操作**：儲存設定檔必須使用原子寫入機制（暫存檔 + `File.Move`）。
+- **原子操作**：儲存設定檔必須使用原子寫入機制（暫存檔 + `File.Move()`）。
 
 ## 5. 在地化術語規範
 
@@ -158,7 +163,7 @@
     - 檢查是否符合微軟 .NET 開發指導原則（例外處理、非同步安全性、資源釋放）。
     - 修正潛在風險、效能瓶頸或不符合現代 C# 慣例的錯誤。
 2.  **A11y 與視覺安全校閱**：
-    - 確保所有新控制項具備正確的 `AccessibleName/Role/Description`。
+    - 確保所有新控制項具備正確的 `AccessibleName／Role／Description`。
     - 驗證狀態回饋是否包含「非顏色相關」的視覺提示與「光敏安全」檢查。
 3.  **語系術語校對**：
     - 檢查所有支援語系（特別是 `Strings.zh-Hant.resx`）是否符合微軟標準與臺灣在地化習慣。
