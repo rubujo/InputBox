@@ -208,7 +208,8 @@ public partial class MainForm
         // 設定不透明度數值。
         ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
         {
-            AccessibleName = Strings.Settings_WindowOpacity
+            AccessibleName = Strings.Settings_WindowOpacity,
+            Tag = Strings.Settings_WindowOpacity
         };
         tsmiSetOpacity.Click += (s, e) =>
         {
@@ -271,6 +272,7 @@ public partial class MainForm
             ToolStripMenuItem item = new(string.Empty)
             {
                 AccessibleName = label,
+                Tag = label,
             };
 
             item.Click += (s, e) =>
@@ -368,7 +370,8 @@ public partial class MainForm
 
         ToolStripMenuItem tsmiIntensity = new(string.Empty)
         {
-            AccessibleName = Strings.Settings_VibrationIntensity
+            AccessibleName = Strings.Settings_VibrationIntensity,
+            Tag = Strings.Settings_VibrationIntensity
         };
         tsmiIntensity.Click += (s, e) =>
         {
@@ -570,7 +573,8 @@ public partial class MainForm
         // 歷程容量（需重啟）。
         ToolStripMenuItem tsmiCap = new(string.Empty)
         {
-            AccessibleName = Strings.Settings_HistoryCapacity
+            AccessibleName = Strings.Settings_HistoryCapacity,
+            Tag = Strings.Settings_HistoryCapacity
         };
         tsmiCap.Click += (s, e) =>
         {
@@ -673,62 +677,81 @@ public partial class MainForm
         {
             if (item is ToolStripMenuItem mi)
             {
-                string? label = mi.AccessibleName;
+                // 使用 Tag 作為穩定的標籤識別碼，因為 AccessibleName 會隨數值更新。
+                string? label = mi.Tag as string ??
+                    mi.AccessibleName;
+
+                if (string.IsNullOrEmpty(label))
+                {
+                    // 遞迴處理子項並跳過。
+                    RefreshMenuText(mi);
+
+                    continue;
+                }
+
+                string? fullText = null;
 
                 // 根據標籤名稱從 AppSettings 讀取最新值並更新文字。
                 if (label == Strings.Settings_WindowRestoreDelay)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.WindowRestoreDelay}";
+                    fullText = $"{label}: {AppSettings.Current.WindowRestoreDelay}";
                 }
                 else if (label == Strings.Settings_ClipboardRetryDelay)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.ClipboardRetryDelay}";
+                    fullText = $"{label}: {AppSettings.Current.ClipboardRetryDelay}";
                 }
                 else if (label == Strings.Settings_TouchKeyboardDismissDelay)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.TouchKeyboardDismissDelay}";
+                    fullText = $"{label}: {AppSettings.Current.TouchKeyboardDismissDelay}";
                 }
                 else if (label == Strings.Settings_WindowSwitchBufferBase)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.WindowSwitchBufferBase}";
+                    fullText = $"{label}: {AppSettings.Current.WindowSwitchBufferBase}";
                 }
                 else if (label == Strings.Settings_InputJitterRange)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.InputJitterRange}";
+                    fullText = $"{label}: {AppSettings.Current.InputJitterRange}";
                 }
                 else if (label == Strings.Settings_ThumbDeadzoneEnter)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.ThumbDeadzoneEnter}";
+                    fullText = $"{label}: {AppSettings.Current.ThumbDeadzoneEnter}";
                 }
                 else if (label == Strings.Settings_ThumbDeadzoneExit)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.ThumbDeadzoneExit}";
+                    fullText = $"{label}: {AppSettings.Current.ThumbDeadzoneExit}";
                 }
                 else if (label == Strings.Settings_RepeatDelay)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.RepeatInitialDelayFrames}";
+                    fullText = $"{label}: {AppSettings.Current.RepeatInitialDelayFrames}";
                 }
                 else if (label == Strings.Settings_RepeatSpeed)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.RepeatIntervalFrames}";
+                    fullText = $"{label}: {AppSettings.Current.RepeatIntervalFrames}";
                 }
                 else if (label == Strings.Settings_HistoryCapacity)
                 {
-                    mi.Text = string.Format(Strings.Menu_Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity);
+                    fullText = string.Format(Strings.Menu_Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity);
                 }
                 else if (label == Strings.Settings_VibrationIntensity)
                 {
                     // 格式化為小數點後一位（如 1.0），增進視覺一致性。
-                    mi.Text = $"{label}: {AppSettings.Current.VibrationIntensity:F1}";
+                    fullText = $"{label}: {AppSettings.Current.VibrationIntensity:F1}";
                 }
                 else if (label == Strings.Settings_WindowOpacity)
                 {
-                    mi.Text = $"{label}: {AppSettings.Current.WindowOpacity:P0}";
+                    fullText = $"{label}: {AppSettings.Current.WindowOpacity:P0}";
 
                     mi.AccessibleDescription = string.Format(
                         Strings.A11y_Menu_OpacityDesc,
                         label,
                         AppSettings.Current.WindowOpacity);
+                }
+
+                if (fullText != null)
+                {
+                    mi.Text = fullText;
+                    // 同步更新無障礙名稱，確保手把導覽時能播報目前數值。
+                    mi.AccessibleName = fullText;
                 }
 
                 // 遞迴處理子項。

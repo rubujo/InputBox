@@ -515,6 +515,14 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Operation cancelled.</value>
     <comment>Accessibility message when a general operation is cancelled.</comment>
   </data>
+  <data name="A11y_Checked" xml:space="preserve">
+    <value>Checked</value>
+    <comment>Accessibility status for checked menu items.</comment>
+  </data>
+  <data name="A11y_Unchecked" xml:space="preserve">
+    <value>Unchecked</value>
+    <comment>Accessibility status for unchecked menu items.</comment>
+  </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>Opening touch keyboard.</value>
     <comment>Accessibility message when launching the touch keyboard.</comment>

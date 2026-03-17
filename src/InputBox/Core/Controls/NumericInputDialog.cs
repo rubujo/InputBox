@@ -355,9 +355,13 @@ internal sealed class NumericInputDialog : Form
             return;
         }
 
-        CancellationTokenSource alertCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        // 使用 using 確保 CTS 被正確處置。
+        using CancellationTokenSource alertCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
 
         CancellationToken token = alertCts.Token;
+
+        // 核心強化：用於追蹤並確保最後一個臨時建立的字型資源能被釋放。
+        Font? lastTempFont = null;
 
         try
         {
@@ -365,54 +369,62 @@ internal sealed class NumericInputDialog : Form
                 SystemColors.HighlightText :
                 Color.FromArgb(255, 140, 0);
 
+            // 內部輔助方法，負責套用視覺變更。
             void ApplyAlertVisuals(float intensity)
             {
-                if (IsDisposed ||
-                    !IsHandleCreated)
+                this.SafeInvoke(() =>
                 {
-                    return;
-                }
-
-                if (SystemInformation.HighContrast)
-                {
-                    _nud.BackColor = intensity > 0.5f ?
-                        alertColor :
-                        SystemColors.Highlight;
-
-                    // 高對比雙重補償：字體脈衝。
-                    if (_nudFont != null)
+                    if (IsDisposed ||
+                        !IsHandleCreated)
                     {
-                        float pulseSize = _nudFont.Size + (1.0f * intensity);
+                        return;
+                    }
 
-                        Font oldFont = _nud.Font;
+                    if (SystemInformation.HighContrast)
+                    {
+                        _nud.BackColor = intensity > 0.5f ?
+                            alertColor :
+                            SystemColors.Highlight;
 
-                        _nud.Font = new Font(_nudFont.FontFamily, pulseSize, _nudFont.Style);
-
-                        // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
-                        if (oldFont != null &&
-                            oldFont != _nudFont)
+                        // 高對比雙重補償：字體脈衝。
+                        if (_nudFont != null)
                         {
-                            oldFont.Dispose();
+                            float pulseSize = _nudFont.Size + (1.0f * intensity);
+
+                            Font oldFont = _nud.Font;
+
+                            // 建立新字型並即時更新追蹤變數。
+                            Font newFont = new(_nudFont.FontFamily, pulseSize, _nudFont.Style);
+                            
+                            _nud.Font = newFont;
+                            lastTempFont = newFont;
+
+                            // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
+                            if (oldFont != null &&
+                                oldFont != _nudFont)
+                            {
+                                oldFont.Dispose();
+                            }
                         }
                     }
-                }
-                else
-                {
-                    Color baseColor = _nud.Focused ?
-                        SystemColors.Highlight :
-                        SystemColors.Window;
+                    else
+                    {
+                        Color baseColor = _nud.Focused ?
+                            SystemColors.Highlight :
+                            SystemColors.Window;
 
-                    int r = (int)(baseColor.R + (alertColor.R - baseColor.R) * intensity),
-                        g = (int)(baseColor.G + (alertColor.G - baseColor.G) * intensity),
-                        b = (int)(baseColor.B + (alertColor.B - baseColor.B) * intensity);
+                        int r = (int)(baseColor.R + (alertColor.R - baseColor.R) * intensity),
+                            g = (int)(baseColor.G + (alertColor.G - baseColor.G) * intensity),
+                            b = (int)(baseColor.B + (alertColor.B - baseColor.B) * intensity);
 
-                    _nud.BackColor = Color.FromArgb(255, r, g, b);
-                }
+                        _nud.BackColor = Color.FromArgb(255, r, g, b);
+                    }
+                });
             }
 
             if (!SystemInformation.UIEffectsEnabled)
             {
-                this.SafeInvoke(() => ApplyAlertVisuals(1.0f));
+                ApplyAlertVisuals(1.0f);
 
                 await Task.Delay(800, token);
 
@@ -442,38 +454,36 @@ internal sealed class NumericInputDialog : Form
 
                 float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
 
-                this.SafeInvoke(() => ApplyAlertVisuals(intensity));
+                ApplyAlertVisuals(intensity);
 
                 await Task.Delay(delayMs, token);
             }
         }
         catch (OperationCanceledException)
         {
-
+            // 正常取消。
         }
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
 
-            alertCts.Dispose();
-
-            if (!IsDisposed && IsHandleCreated)
+            // 確保 UI 狀態還原。
+            this.SafeInvoke(() =>
             {
-                this.SafeInvoke(() =>
+                if (!IsDisposed && IsHandleCreated)
                 {
                     UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
 
-                    // 核心修正：動畫結束後還原字型並清理最後一個臨時字型。
-                    Font lastFont = _nud.Font;
-
                     _nud.Font = _nudFont;
+                }
+            });
 
-                    if (lastFont != null &&
-                        lastFont != _nudFont)
-                    {
-                        lastFont.Dispose();
-                    }
-                });
+            // 核心強化：無論視窗是否已處置，都必須釋放最後一個臨時建立的字型，防止 GDI 洩漏。
+            if (lastTempFont != null &&
+                lastTempFont != _nudFont)
+            {
+                lastTempFont.Dispose();
+                lastTempFont = null;
             }
         }
     }

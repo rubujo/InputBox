@@ -360,7 +360,7 @@
     <comment>アクセシビリティメッセージ。プライバシーモードが無効になったときに再生されます。</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
-    <value>履歴 {0} / {1}：{2}。</value>
+    <value>{1} 件中 {0} 件目の履歴：{2}</value>
     <comment>履歴を移動する際に使用されるアクセシビリティメッセージです。{0} は現在のインデックス、{1} は総件数、{2} はその項目の内容です。</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
@@ -514,6 +514,14 @@
   <data name="A11y_Cancelled" xml:space="preserve">
     <value>操作がキャンセルされました。</value>
     <comment>アクセシビリティメッセージ。一般的な操作がキャンセルされたときに再生されます。</comment>
+  </data>
+  <data name="A11y_Checked" xml:space="preserve">
+    <value>選択済み</value>
+    <comment>Accessibility status for checked menu items.</comment>
+  </data>
+  <data name="A11y_Unchecked" xml:space="preserve">
+    <value>未選択</value>
+    <comment>Accessibility status for unchecked menu items.</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>タッチキーボードを開いています。</value>

@@ -151,6 +151,24 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Checked 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Checked {
+            get {
+                return ResourceManager.GetString("A11y_Checked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Unchecked 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Unchecked {
+            get {
+                return ResourceManager.GetString("A11y_Unchecked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Cannot delete at the beginning. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Cannot_Delete {

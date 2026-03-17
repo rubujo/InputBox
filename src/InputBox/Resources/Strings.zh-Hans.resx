@@ -361,11 +361,11 @@
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
     <value>历史记录第 {0} 条，共 {1} 条：{2}</value>
-    <comment>无障碍消息，用于在历史记录间浏览时播放。{0} 是目前索引，{1} 是总条数，{2} 是该条内容。</comment>
+    <comment>无障碍消息，用于在历史记录间浏览时播放。{0} 是目前索引，{1} 是总条数，{2} 是該条内容。</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
     <value>{0}唤醒快捷键为：{1}。</value>
-    <comment>启动时的无障碍状态摘要。{0} 是隐私模式状态，{1} 是目前的唤醒快捷键。</comment>
+    <comment>启动時的无障碍状态摘要。{0} 是隐私模式状态，{1} 是目前的唤醒快捷键。</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
     <value>设置</value>
@@ -513,7 +513,15 @@
   </data>
   <data name="A11y_Cancelled" xml:space="preserve">
     <value>已取消操作。</value>
-    <comment>无障碍消息，当一般操作被取消时播放。</comment>
+    <comment>无障碍消息，当一般操作被取消時播放。</comment>
+  </data>
+  <data name="A11y_Checked" xml:space="preserve">
+    <value>已勾选</value>
+    <comment>Accessibility status for checked menu items.</comment>
+  </data>
+  <data name="A11y_Unchecked" xml:space="preserve">
+    <value>未勾选</value>
+    <comment>Accessibility status for unchecked menu items.</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>正在开启触摸键盘。</value>

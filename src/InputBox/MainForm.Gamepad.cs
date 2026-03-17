@@ -697,6 +697,17 @@ public partial class MainForm
                 string? name = nextItem.AccessibleName ?? nextItem.Text,
                     desc = nextItem.AccessibleDescription;
 
+                // 如果是可勾選的項目，播報其狀態。
+                if (nextItem is ToolStripMenuItem mi &&
+                    mi.CheckOnClick)
+                {
+                    string status = mi.Checked ?
+                        Strings.A11y_Checked :
+                        Strings.A11y_Unchecked;
+
+                    name = $"{name}, {status}";
+                }
+
                 string announcement = string.IsNullOrEmpty(desc) ?
                     (name ?? string.Empty) :
                     $"{name}. {desc}";
