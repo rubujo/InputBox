@@ -985,6 +985,15 @@ public partial class MainForm
                     PInputHost.BackColor = intensity > 0.5f ?
                         alertColor :
                         SystemColors.Highlight;
+
+                    // 高對比模式下的雙重形狀補償：除了 Padding，額外微調字體大小。
+                    // 這能提供除了「邊框厚度」外的第二種「形狀變化」反饋。
+                    if (_a11yFont != null)
+                    {
+                        float pulseSize = _a11yFont.Size + (0.5f * intensity);
+
+                        BtnCopy.Font = new Font(_a11yFont.FontFamily, pulseSize, _a11yFont.Style);
+                    }
                 }
                 else
                 {

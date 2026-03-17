@@ -780,4 +780,27 @@ public partial class MainForm : Form
             Environment.Exit(0);
         }
     }
+
+    /// <summary>
+    /// 緊急清理靜態系統事件訂閱
+    /// <para>此方法用於程式發生嚴重崩潰時，從 Program.cs 調用以防止記憶體洩漏。</para>
+    /// </summary>
+    public static void EmergencyCleanupSystemEvents()
+    {
+        try
+        {
+            // 嘗試從所有已開啟的視窗實例中解除訂閱。
+            foreach (Form form in Application.OpenForms.Cast<Form>().ToList())
+            {
+                if (form is MainForm mainForm)
+                {
+                    SystemEvents.UserPreferenceChanged -= mainForm.SystemEvents_UserPreferenceChanged;
+                }
+            }
+        }
+        catch
+        {
+            // 緊急清理路徑，忽略所有錯誤。
+        }
+    }
 }

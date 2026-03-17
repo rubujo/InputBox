@@ -132,6 +132,9 @@ internal static class Program
         // 釋放 Mutex 以利立即重啟。
         ReleaseMutex();
 
+        // 強化 A11y 安全：緊急解除靜態系統事件訂閱，防止進程結束前發生記憶體洩漏。
+        MainForm.EmergencyCleanupSystemEvents();
+
         MessageBox.Show(
             ex.Message,
             Strings.Err_Title,
