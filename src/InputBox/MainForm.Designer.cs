@@ -40,7 +40,7 @@ partial class MainForm
         // TLPHost
         // 
         TLPHost.AccessibleDescription = "包含文字輸入與操作按鈕的主要容器。";
-        TLPHost.AccessibleName = "主要版面";
+        TLPHost.AccessibleName = "主要版面配置";
         TLPHost.AccessibleRole = AccessibleRole.Grouping;
         TLPHost.ColumnCount = 2;
         TLPHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));

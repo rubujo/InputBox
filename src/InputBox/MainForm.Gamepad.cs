@@ -693,6 +693,19 @@ public partial class MainForm
             {
                 nextItem.Select();
 
+                // A11y 強化：顯式播報選單項目名稱與描述（包含目前設定值）。
+                string? name = nextItem.AccessibleName ?? nextItem.Text,
+                    desc = nextItem.AccessibleDescription;
+
+                string announcement = string.IsNullOrEmpty(desc) ?
+                    (name ?? string.Empty) :
+                    $"{name}. {desc}";
+
+                if (!string.IsNullOrEmpty(announcement))
+                {
+                    AnnounceA11y(announcement, interrupt: true);
+                }
+
                 VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
 
                 return;

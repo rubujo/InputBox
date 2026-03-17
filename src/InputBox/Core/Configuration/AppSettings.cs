@@ -396,9 +396,22 @@ public class AppSettings
                         SaveInternal();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // 讀取失敗時保持預設值，並可考慮是否覆蓋壞掉的檔案。
+                    // 讀取失敗時保持預設值，並備份損壞的檔案供使用者手動修復。
+                    try
+                    {
+                        string strBackupPath = ConfigPath + ".bak";
+
+                        File.Move(ConfigPath, strBackupPath, true);
+
+                        Debug.WriteLine($"設定檔損壞，已備份至：{strBackupPath}。錯誤：{ex.Message}");
+                    }
+                    catch
+                    {
+                        // 忽略備份失敗。
+                    }
+
                     Current = new();
 
                     isInvalid = true;

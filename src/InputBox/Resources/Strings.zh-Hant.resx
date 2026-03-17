@@ -210,8 +210,8 @@
     <comment>輸入框的無障礙名稱標籤。</comment>
   </data>
   <data name="A11y_Layout_Main" xml:space="preserve">
-    <value>主要版面</value>
-    <comment>主要佈局容器的無障礙標籤。</comment>
+    <value>主要版面配置</value>
+    <comment>主要版面配置容器的無障礙標籤。</comment>
   </data>
   <data name="A11y_Layout_Main_Desc" xml:space="preserve">
     <value>包含文字輸入與操作按鈕的主要容器。</value>
