@@ -409,6 +409,9 @@ public class AppSettings
                 // 檔案不存在時，建立預設設定檔。
                 SaveInternal();
             }
+
+            // 強制校驗死區設定，確保 Exit 與 Enter 之間有足夠的遲滯緩衝區（Hysteresis）。
+            Current.ValidateDeadzone();
         }
 
         // 警告視窗必須在 Lock 之外彈出，以免阻塞其他執行緒對設定檔的存取。

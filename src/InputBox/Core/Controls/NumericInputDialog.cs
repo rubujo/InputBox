@@ -816,7 +816,10 @@ internal sealed class NumericInputDialog : Form
                 mainForm.SetA11yLiveSetting(AutomationLiveSetting.Off);
             }
 
-            AnnounceA11y(lblPrompt.Text);
+            // 強化 Context 播報：包含提示文字、目前值與有效範圍。
+            string contextMessage = $"{lblPrompt.Text} {string.Format(Strings.A11y_Value_Range_Desc, _nud.Value, _nud.Minimum, _nud.Maximum)}";
+
+            AnnounceA11y(contextMessage);
 
             _nud.Focus();
 
@@ -886,7 +889,7 @@ internal sealed class NumericInputDialog : Form
     /// <param name="font">字型</param>
     /// <param name="onFocusStateChanged">焦點狀態變更的回呼函式</param>
     /// <returns>建立的按鈕</returns>
-    private static Button CreateEyeTrackerButton(
+    private Button CreateEyeTrackerButton(
         string text,
         string description,
         float scale,
@@ -997,7 +1000,8 @@ internal sealed class NumericInputDialog : Form
                 btn.RunDwellAnimationAsync(
                         id,
                         () => Interlocked.Read(ref animationId),
-                        (p) => dwellProgress = p)
+                        (p) => dwellProgress = p,
+                        ct: _cts.Token)
                     .SafeFireAndForget();
             }
         }

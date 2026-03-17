@@ -408,7 +408,8 @@ public partial class MainForm
             BtnCopy.RunDwellAnimationAsync(
                     id,
                     () => Interlocked.Read(ref _animationId),
-                    (p) => _dwellProgress = p)
+                    (p) => _dwellProgress = p,
+                    ct: _formCts.Token)
                 .SafeFireAndForget();
         }
     }

@@ -250,13 +250,15 @@ public static class ControlExtensions
     /// <param name="id">本次動畫的目標序號</param>
     /// <param name="progressSetter">設定進度值（0.0 ~ 1.0）的回呼委派</param>
     /// <param name="durationMs">動畫總時長（毫秒），預設 1000ms</param>
+    /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
     public static async Task RunDwellAnimationAsync(
         this Control control,
         long id,
         Func<long> animationIdGetter,
         Action<float> progressSetter,
-        int durationMs = 1000)
+        int durationMs = 1000,
+        CancellationToken ct = default)
     {
         if (control == null ||
             control.IsDisposed)
@@ -276,7 +278,8 @@ public static class ControlExtensions
 
         Stopwatch stopwatch = Stopwatch.StartNew();
 
-        while (animationIdGetter() == id &&
+        while (!ct.IsCancellationRequested &&
+            animationIdGetter() == id &&
             !control.IsDisposed &&
             control.IsHandleCreated)
         {
@@ -296,7 +299,7 @@ public static class ControlExtensions
             try
             {
                 // 固定幀率（約 60 FPS）。
-                await Task.Delay(16);
+                await Task.Delay(16, ct);
             }
             catch
             {
