@@ -352,11 +352,11 @@
     <comment>無障礙訊息，當 GameInput 無法使用並自動切換到 XInput 相容模式時播放。</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
-    <value>隱私模式已開啟。</value>
+    <value>隱私模式已開啟</value>
     <comment>無障礙訊息，當開啟隱私模式時播放。</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
-    <value>隱私模式已關閉。</value>
+    <value>隱私模式已關閉</value>
     <comment>無障礙訊息，當關閉隱私模式時播放。</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
@@ -496,11 +496,11 @@
     <comment>重設預設值按鈕的無障礙描述。{0} 是該項目的出廠預設值。</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
-    <value>{0} 已開啟。</value>
+    <value>{0} 已開啟</value>
     <comment>無障礙訊息，當修飾鍵被啟用時播放。{0} 是修飾鍵名稱。</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
-    <value>{0} 已關閉。</value>
+    <value>{0} 已關閉</value>
     <comment>無障礙訊息，當修飾鍵被停用時播放。{0} 是修飾鍵名稱。</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">

@@ -151,24 +151,6 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Checked 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Checked {
-            get {
-                return ResourceManager.GetString("A11y_Checked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Unchecked 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Unchecked {
-            get {
-                return ResourceManager.GetString("A11y_Unchecked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查詢類似 Cannot delete at the beginning. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Cannot_Delete {
@@ -192,6 +174,15 @@ namespace InputBox.Resources {
         internal static string A11y_Capture_Esc_Cancel {
             get {
                 return ResourceManager.GetString("A11y_Capture_Esc_Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Checked 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Checked {
+            get {
+                return ResourceManager.GetString("A11y_Checked", resourceCulture);
             }
         }
         
@@ -313,7 +304,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB + RB + B to quick return. LB + RB+ X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
+        ///   查詢類似 Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB + RB + B to quick return. LB + RB + X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -421,7 +412,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 {0} disabled. 的當地語系化字串。
+        ///   查詢類似 {0} disabled 的當地語系化字串。
         /// </summary>
         internal static string A11y_Mod_Off {
             get {
@@ -430,7 +421,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 {0} enabled. 的當地語系化字串。
+        ///   查詢類似 {0} enabled 的當地語系化字串。
         /// </summary>
         internal static string A11y_Mod_On {
             get {
@@ -529,7 +520,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Privacy mode disabled. 的當地語系化字串。
+        ///   查詢類似 Privacy mode disabled 的當地語系化字串。
         /// </summary>
         internal static string A11y_PrivacyMode_Off {
             get {
@@ -538,7 +529,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Privacy mode enabled. 的當地語系化字串。
+        ///   查詢類似 Privacy mode enabled 的當地語系化字串。
         /// </summary>
         internal static string A11y_PrivacyMode_On {
             get {
@@ -565,7 +556,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 {0} Wake up shortcut: {1}. 的當地語系化字串。
+        ///   查詢類似 {0} Wake up hotkey: {1}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Startup_Status {
             get {
@@ -606,6 +597,15 @@ namespace InputBox.Resources {
         internal static string A11y_TBInputName {
             get {
                 return ResourceManager.GetString("A11y_TBInputName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Unchecked 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Unchecked {
+            get {
+                return ResourceManager.GetString("A11y_Unchecked", resourceCulture);
             }
         }
         
@@ -745,9 +745,9 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Global shortcut {0} failed to register.
+        ///   查詢類似 Global hotkey {0} failed to register.
         ///
-        ///Make sure that multiple instances of this application are not running at the same time, or that another application is not already using this shortcut. 的當地語系化字串。
+        ///Make sure that multiple instances of this application are not running at the same time, or that another application is not already using this hotkey. 的當地語系化字串。
         /// </summary>
         internal static string Err_HotkeyRegFail {
             get {
@@ -837,7 +837,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Configure the global shortcut keys to wake up the input box. 的當地語系化字串。
+        ///   查詢類似 Configure the global hotkeys to wake up the input box. 的當地語系化字串。
         /// </summary>
         internal static string Menu_HotkeySettings_Desc {
             get {

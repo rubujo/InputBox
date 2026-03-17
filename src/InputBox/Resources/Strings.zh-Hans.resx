@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -352,20 +352,20 @@
     <comment>无障碍消息，当 GameInput 无法使用并自动切换到 XInput 兼容模式时播放。</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
-    <value>隐私模式已开启。</value>
+    <value>隐私模式已开启</value>
     <comment>无障碍消息，当开启隐私模式时播放。</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
-    <value>隐私模式已关闭。</value>
+    <value>隐私模式已关闭</value>
     <comment>无障碍消息，当关闭隐私模式时播放。</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
     <value>历史记录第 {0} 条，共 {1} 条：{2}</value>
-    <comment>无障碍消息，用于在历史记录间浏览时播放。{0} 是目前索引，{1} 是总条数，{2} 是該条内容。</comment>
+    <comment>无障碍消息，用于在历史记录间浏览时播放。{0} 是目前索引，{1} 是总条数，{2} 是该条内容。</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
     <value>{0}唤醒快捷键为：{1}。</value>
-    <comment>启动時的无障碍状态摘要。{0} 是隐私模式状态，{1} 是目前的唤醒快捷键。</comment>
+    <comment>启动时的无障碍状态摘要。{0} 是隐私模式状态，{1} 是目前的唤醒快捷键。</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
     <value>设置</value>
@@ -496,11 +496,11 @@
     <comment>重置默认值按钮的无障碍描述。{0} 是该项目的出厂默认值。</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
-    <value>{0} 已开启。</value>
+    <value>{0} 已开启</value>
     <comment>无障碍消息，当修饰键被启用时播放。{0} 是修饰键名称。</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
-    <value>{0} 已关闭。</value>
+    <value>{0} 已关闭</value>
     <comment>无障碍消息，当修饰键被停用时播放。{0} 是修饰键名称。</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">
@@ -513,7 +513,7 @@
   </data>
   <data name="A11y_Cancelled" xml:space="preserve">
     <value>已取消操作。</value>
-    <comment>无障碍消息，当一般操作被取消時播放。</comment>
+    <comment>无障碍消息，当一般操作被取消时播放。</comment>
   </data>
   <data name="A11y_Checked" xml:space="preserve">
     <value>已勾选</value>
@@ -593,7 +593,7 @@
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
     <value>{0}。当前值：{1:P0}。下限为 50%。</value>
-    <comment>不透明度菜单项 的无障碍描述。{0} 是标签名称，{1} 是目前的百分比。</comment>
+    <comment>不透明度菜单项的无障碍描述。{0} 是标签名称，{1} 是目前的百分比。</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
     <value>不透明度已设为 {0:P0}。</value>

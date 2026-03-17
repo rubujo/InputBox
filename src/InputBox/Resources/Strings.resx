@@ -272,7 +272,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Submenu name for hotkey related configurations.</comment>
   </data>
   <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
-    <value>Configure the global shortcut keys to wake up the input box.</value>
+    <value>Configure the global hotkeys to wake up the input box.</value>
     <comment>Accessibility description for the hotkey settings submenu.</comment>
   </data>
   <data name="Menu_PrivacyMode" xml:space="preserve">
@@ -352,11 +352,11 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Accessibility message when GameInput is unavailable and auto-switches to XInput.</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
-    <value>Privacy mode enabled.</value>
+    <value>Privacy mode enabled</value>
     <comment>Accessibility message when privacy mode is turned on.</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
-    <value>Privacy mode disabled.</value>
+    <value>Privacy mode disabled</value>
     <comment>Accessibility message when privacy mode is turned off.</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
@@ -496,11 +496,11 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Accessibility description for the Reset button. {0} is the factory default value.</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
-    <value>{0} enabled.</value>
+    <value>{0} enabled</value>
     <comment>Accessibility message when a modifier key is turned on. {0} is the name.</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
-    <value>{0} disabled.</value>
+    <value>{0} disabled</value>
     <comment>Accessibility message when a modifier key is turned off. {0} is the name.</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">

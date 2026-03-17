@@ -352,11 +352,11 @@
     <comment>アクセシビリティメッセージ。GameInput が使用できず、自動的に XInput 互換モードに切り替わったときに再生されます。</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
-    <value>プライバシーモードがオンになりました。</value>
+    <value>プライバシーモードがオンになりました</value>
     <comment>アクセシビリティメッセージ。プライバシーモードが有効になったときに再生されます。</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
-    <value>プライバシーモードがオフになりました。</value>
+    <value>プライバシーモードがオフになりました</value>
     <comment>アクセシビリティメッセージ。プライバシーモードが無効になったときに再生されます。</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
@@ -496,11 +496,11 @@
     <comment>既定値リセットボタンのアクセシビリティ記述です。{0} はその項目の工場出荷時の既定値です。</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
-    <value>{0} がオンになりました。</value>
+    <value>{0} がオンになりました</value>
     <comment>アクセシビリティメッセージ。修飾キーが有効になったときに再生されます。{0} は修飾キーの名前です。</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
-    <value>{0} がオフになりました。</value>
+    <value>{0} がオフになりました</value>
     <comment>アクセシビリティメッセージ。修飾キーが無効になったときに再生されます。{0} は修飾キーの名前です。</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">

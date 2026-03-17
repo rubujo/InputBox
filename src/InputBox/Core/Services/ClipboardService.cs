@@ -74,9 +74,18 @@ internal class ClipboardService
             {
                 try
                 {
-                    // WinForms 的 Clipboard.SetText 內部已有基本的重試機制，
-                    // 但在外層包裹額外的重試以處理極端競爭（如多個剪貼簿工具同時監聽）。
-                    Clipboard.SetText(normalizedSource);
+                    // 核心強化：WinForms 剪貼簿 API 嚴格要求在 STA 執行緒執行。
+                    // 我們嘗試取得目前活動視窗來進行 Invoke，確保執行緒安全性。
+                    Form? syncForm = Application.OpenForms.Cast<Form>().FirstOrDefault();
+
+                    if (syncForm != null && syncForm.InvokeRequired)
+                    {
+                        syncForm.Invoke(new Action(() => Clipboard.SetText(normalizedSource)));
+                    }
+                    else
+                    {
+                        Clipboard.SetText(normalizedSource);
+                    }
 
                     // 寫入後稍微等待，確保作業系統已完成通知廣播。
                     await Task.Delay(Delay_ClipboardBuffer, cts.Token);

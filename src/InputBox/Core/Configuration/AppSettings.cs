@@ -398,12 +398,28 @@ public class AppSettings
                 }
                 catch (Exception ex)
                 {
-                    // 讀取失敗時保持預設值，並備份損壞的檔案供使用者手動修復。
+                    // 核心強化：讀取失敗時備份損壞檔案，加入退避重試機制以應對檔案鎖定。
                     try
                     {
                         string strBackupPath = ConfigPath + ".bak";
 
-                        File.Move(ConfigPath, strBackupPath, true);
+                        int backupRetries = 3;
+
+                        while (backupRetries > 0)
+                        {
+                            try
+                            {
+                                File.Move(ConfigPath, strBackupPath, true);
+
+                                break;
+                            }
+                            catch (IOException) when (backupRetries > 1)
+                            {
+                                backupRetries--;
+
+                                Thread.Sleep(100);
+                            }
+                        }
 
                         Debug.WriteLine($"設定檔損壞，已備份至：{strBackupPath}。錯誤：{ex.Message}");
                     }

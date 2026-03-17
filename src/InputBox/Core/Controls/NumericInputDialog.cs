@@ -395,7 +395,7 @@ internal sealed class NumericInputDialog : Form
 
                             // 建立新字型並即時更新追蹤變數。
                             Font newFont = new(_nudFont.FontFamily, pulseSize, _nudFont.Style);
-                            
+
                             _nud.Font = newFont;
                             lastTempFont = newFont;
 
@@ -738,11 +738,21 @@ internal sealed class NumericInputDialog : Form
                 _nud.Minimum,
                 _nud.Maximum);
 
-            // 主動廣播最新值，讓使用者在微調（如按上下鍵）時能立即獲得語音反饋。
-            // 使用打斷模式（interrupt: true），避免在高頻率變動下產生語音隊列堆積。
-            AnnounceA11y(
-                string.Format(Strings.A11y_CurrentValue, _nud.Value),
-                interrupt: true);
+            // 核心強化：廣播包含項目名稱的完整訊息（例如：「不透明度：50%」）。
+            string valStr = _nud.DecimalPlaces > 0 ?
+                _nud.Value.ToString($"F{_nud.DecimalPlaces}") :
+                _nud.Value.ToString("F0");
+
+            // 如果是對話框標題（如「不透明度」），則組合起來播報。
+            string announcement = $"{title}：{valStr}";
+
+            // 如果有小數位數（如 0.1），檢查是否需要格式化為百分比。
+            if (title == Strings.Settings_WindowOpacity)
+            {
+                announcement = string.Format(Strings.A11y_Opacity_Changed, _nud.Value / 100);
+            }
+
+            AnnounceA11y(announcement, interrupt: true);
 
             FeedbackService.VibrateAsync(
                     _gamepadController,

@@ -280,7 +280,8 @@ public partial class MainForm : Form
         {
             GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
 
-            // 確保靜態事件在視窗控制項控制代碼銷毀時被絕對釋放。
+            // 核心強化：確保靜態事件在視窗控制項控制代碼銷毀時被絕對釋放。
+            // 這能有效防止在 Form 控制代碼重建或異常關閉時引發的靜態資源洩漏。
             SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
         }
         finally
