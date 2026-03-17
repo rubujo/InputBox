@@ -42,6 +42,16 @@ public class AppSettings
     /// </summary>
     private static readonly string ConfigPath = Path.Combine(ConfigDirectory, "appsettings.json");
 
+    #region A11y 無障礙與視覺安全閾值
+
+    /// <summary>
+    /// 光敏性癲癇安全頻率（毫秒）
+    /// <para>根據規範，律動頻率必須鎖定在 1Hz（1000ms），遠低於 3Hz 的風險閾值。</para>
+    /// </summary>
+    public const int PhotoSafeFrequencyMs = 1000;
+
+    #endregion
+
     #region MainForm 視窗與操作設定
 
     /// <summary>

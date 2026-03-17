@@ -1050,7 +1050,8 @@ public partial class MainForm
                     break;
                 }
 
-                double angle = elapsedMs / 1000.0 * 2.0 * Math.PI - (Math.PI / 2.0);
+                // 使用 AppSettings.PhotoSafeFrequencyMs 定義的正弦波週期（1Hz）。
+                double angle = elapsedMs / AppSettings.PhotoSafeFrequencyMs * 2.0 * Math.PI - (Math.PI / 2.0);
 
                 float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
 

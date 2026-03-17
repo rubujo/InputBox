@@ -129,6 +129,9 @@ internal static class Program
         // 緊急停止所有控制器震動，防止崩潰後手把持續震動。
         FeedbackService.EmergencyStopAllActiveControllers();
 
+        // 釋放 Mutex 以利立即重啟。
+        ReleaseMutex();
+
         MessageBox.Show(
             ex.Message,
             Strings.Err_Title,

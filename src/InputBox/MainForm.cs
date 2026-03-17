@@ -261,11 +261,17 @@ public partial class MainForm : Form
 
     protected override void OnHandleDestroyed(EventArgs e)
     {
-        GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
+        try
+        {
+            GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
 
-        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
-
-        base.OnHandleDestroyed(e);
+            // 確保靜態事件在視窗控制項控制代碼銷毀時被絕對釋放。
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        }
+        finally
+        {
+            base.OnHandleDestroyed(e);
+        }
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
@@ -681,6 +687,12 @@ public partial class MainForm : Form
             Size = new Size(
                 Math.Max(Width, MinimumSize.Width),
                 Math.Max(Height, MinimumSize.Height));
+        }
+
+        // A11y 物理鎖定：高對比模式下強制 100% 不透明度，確保絕對符合無障礙可讀性規範。
+        if (SystemInformation.HighContrast)
+        {
+            UpdateOpacity();
         }
     }
 
