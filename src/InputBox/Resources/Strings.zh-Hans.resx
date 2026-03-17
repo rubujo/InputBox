@@ -471,6 +471,14 @@
     <value>切换使用 {0} 作为唤醒快捷键的修饰键。</value>
     <comment>修饰键切换项的无障碍描述。{0} 是修饰键的名称。</comment>
   </data>
+  <data name="A11y_Value_Max" xml:space="preserve">
+    <value>已达数值上限。</value>
+    <comment>当数值输入达到最大限制时播放的 A11y 广播消息。</comment>
+  </data>
+  <data name="A11y_Value_Min" xml:space="preserve">
+    <value>已达数值下限。</value>
+    <comment>当数值输入达到最小限制时播放的 A11y 广播消息。</comment>
+  </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>当前值：{0}。有效范围：{1} 至 {2}。</value>
     <comment>数值输入框的无障碍描述，包含有效范围信息。{0} 是当前值，{1} 是最小值，{2} 是最大值。</comment>

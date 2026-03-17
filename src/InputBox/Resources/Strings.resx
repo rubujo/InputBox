@@ -471,6 +471,14 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Toggle {0} as a modifier for the wake up hotkey.</value>
     <comment>Accessibility description for modifier toggles. {0} is modifier name.</comment>
   </data>
+  <data name="A11y_Value_Max" xml:space="preserve">
+    <value>Maximum value reached.</value>
+    <comment>Accessibility announcement when the numeric input reaches its upper limit.</comment>
+  </data>
+  <data name="A11y_Value_Min" xml:space="preserve">
+    <value>Minimum value reached.</value>
+    <comment>Accessibility announcement when the numeric input reaches its lower limit.</comment>
+  </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>Current value: {0}. Valid range: {1} to {2}.</value>
     <comment>Accessibility description for numeric input fields including range info. {0} is current, {1} is min, {2} is max.</comment>

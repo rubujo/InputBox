@@ -217,7 +217,9 @@ public partial class MainForm
                 AppSettings.Current.WindowOpacity * 100,
                 100.0f,
                 50.0f,
-                100.0f);
+                100.0f,
+                1.0m,
+                0);
 
             if (result.HasValue)
             {
@@ -375,7 +377,9 @@ public partial class MainForm
                 AppSettings.Current.VibrationIntensity,
                 1.0f,
                 0.0f,
-                1.0f);
+                1.0f,
+                0.1m,
+                1);
 
             if (val.HasValue)
             {

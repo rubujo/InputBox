@@ -471,6 +471,14 @@
     <value>切換使用 {0} 作為喚醒快速鍵的修飾鍵。</value>
     <comment>修飾鍵切換項目的無障礙描述。{0} 是修飾鍵的名稱。</comment>
   </data>
+  <data name="A11y_Value_Max" xml:space="preserve">
+    <value>已達數值上限。</value>
+    <comment>當數值輸入達到最大限制時播放的 A11y 廣播訊息。</comment>
+  </data>
+  <data name="A11y_Value_Min" xml:space="preserve">
+    <value>已達數值下限。</value>
+    <comment>當數值輸入達到最小限制時播放的 A11y 廣播訊息。</comment>
+  </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>目前值：{0}。有效範圍：{1} 至 {2}。</value>
     <comment>數值輸入框的無障礙描述，包含有效範圍資訊。{0} 是目前值，{1} 是最小值，{2} 是最大值。</comment>

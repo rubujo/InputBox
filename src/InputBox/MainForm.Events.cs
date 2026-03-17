@@ -1311,20 +1311,24 @@ public partial class MainForm
     /// <param name="defaultValue">預設值</param>
     /// <param name="minimum">最小值</param>
     /// <param name="maximum">最大值</param>
+    /// <param name="step">增減步進值</param>
+    /// <param name="decimalPlaces">顯示的小數位數</param>
     /// <returns>使用者輸入的值，如果取消則為 null</returns>
     private float? AskForFloat(
         string title,
         float currentValue,
         float defaultValue,
         float minimum = 0.0f,
-        float maximum = 1.0f)
+        float maximum = 1.0f,
+        decimal step = 1.0m,
+        int decimalPlaces = 0)
     {
         using NumericInputDialog dialog = new(
             title,
             (decimal)currentValue,
             (decimal)defaultValue,
-            2,
-            0.1m,
+            decimalPlaces,
+            step,
             (decimal)minimum,
             (decimal)maximum);
 

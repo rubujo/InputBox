@@ -592,6 +592,24 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Maximum value reached. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Value_Max {
+            get {
+                return ResourceManager.GetString("A11y_Value_Max", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Minimum value reached. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Value_Min {
+            get {
+                return ResourceManager.GetString("A11y_Value_Min", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Current value: {0}. Valid range: {1} to {2}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Value_Range_Desc {

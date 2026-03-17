@@ -471,6 +471,14 @@
     <value>{0}をホットキーの修飾キーとして切り替えます。</value>
     <comment>修飾キー切り替え項目のアクセシビリティ記述です。{0} は修飾キーの名称です。</comment>
   </data>
+  <data name="A11y_Value_Max" xml:space="preserve">
+    <value>数値の上限に達しました。</value>
+    <comment>数値入力が最大制限に達した際に再生される A11y 読み上げメッセージ。</comment>
+  </data>
+  <data name="A11y_Value_Min" xml:space="preserve">
+    <value>数値の下限に達しました。</value>
+    <comment>数値入力が最小制限に達した際に再生される A11y 読み上げメッセージ。</comment>
+  </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>現在の値：{0}。有効な範囲：{1} から {2} まで。</value>
     <comment>数値入力フィールドのアクセシビリティ記述。有効な範囲情報を含みます。{0} は現在の値、{1} は最小値、{2} は最大値です。</comment>

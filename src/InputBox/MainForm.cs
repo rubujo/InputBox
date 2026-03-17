@@ -213,6 +213,21 @@ public partial class MainForm : Form
 
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
         TBInput.MaxLength = 10000;
+
+        // 滑鼠滾輪導覽歷程。
+        TBInput.MouseWheel += (s, e) =>
+        {
+            // 向上捲動 = 往前找舊的（direction：-1），
+            // 向下捲動 = 往後找新的（direction：1）。
+            if (e.Delta > 0)
+            {
+                NavigateHistory(-1);
+            }
+            else if (e.Delta < 0)
+            {
+                NavigateHistory(+1);
+            }
+        };
     }
 
     protected override void WndProc(ref Message m)
@@ -390,11 +405,17 @@ public partial class MainForm : Form
                         {
                             await Task.Delay(1200, _formCts.Token);
 
-                            if (IsDisposed) return;
+                            if (IsDisposed)
+                            {
+                                return;
+                            }
 
                             AnnounceA11y(string.Format(Strings.A11y_Hotkey_Captured, fullHotkeyStr));
                         }
-                        catch (OperationCanceledException) { }
+                        catch (OperationCanceledException)
+                        {
+
+                        }
                     }
 
                     DelayedAnnounce().SafeFireAndForget();
@@ -430,7 +451,10 @@ public partial class MainForm : Form
 
                         this.SafeInvoke(() =>
                         {
-                            if (IsDisposed) return;
+                            if (IsDisposed)
+                            {
+                                return;
+                            }
 
                             UpdateTitle();
                         });
@@ -440,7 +464,8 @@ public partial class MainForm : Form
 
                     }
 
-                }, _formCts.Token);
+                },
+                _formCts.Token);
 
                 return true;
             }
