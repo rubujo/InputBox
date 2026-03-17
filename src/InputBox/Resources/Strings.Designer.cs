@@ -10,10 +10,10 @@
 
 namespace InputBox.Resources {
     using System;
-
-
+    
+    
     /// <summary>
-    /// 用於查詢當地語系化字串等的強類型資源類別
+    ///   用於查詢當地語系化字串等的強類型資源類別。
     /// </summary>
     // 這個類別是自動產生的，是利用 StronglyTypedResourceBuilder
     // 類別透過 ResGen 或 Visual Studio 這類工具。
@@ -23,17 +23,17 @@ namespace InputBox.Resources {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Strings() {
         }
-
+        
         /// <summary>
-        /// 傳回這個類別使用的快取的 ResourceManager 執行個體。
+        ///   傳回這個類別使用的快取的 ResourceManager 執行個體。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static global::System.Resources.ResourceManager ResourceManager {
@@ -45,10 +45,10 @@ namespace InputBox.Resources {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
-        /// 覆寫目前執行緒的 CurrentUICulture 屬性，對象是所有
-        /// 使用這個強類型資源類別的資源查閱。
+        ///   覆寫目前執行緒的 CurrentUICulture 屬性，對象是所有
+        ///   使用這個強類型資源類別的資源查閱。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static global::System.Globalization.CultureInfo Culture {
@@ -59,1062 +59,1064 @@ namespace InputBox.Resources {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Decreases the numeric value. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Btn_Minus_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Btn_Minus_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Increases the numeric value. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Btn_Plus_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Btn_Plus_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 － 的當地語系化字串。
-        /// </summary>
-        internal static string Btn_Minus {
-            get {
-                return ResourceManager.GetString("Btn_Minus", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 ＋ 的當地語系化字串。
-        /// </summary>
-        internal static string Btn_Plus {
-            get {
-                return ResourceManager.GetString("Btn_Plus", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Focused 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_State_Focused {
-            get {
-                return ResourceManager.GetString("A11y_State_Focused", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Background task error: {0} 的當地語系化字串。
+        ///   查詢類似 Background task error: {0} 的當地語系化字串。
         /// </summary>
         internal static string A11y_Background_Error {
             get {
                 return ResourceManager.GetString("A11y_Background_Error", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Cancel changes and close the dialog. 的當地語系化字串。
+        ///   查詢類似 Cancel changes and close the dialog. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Btn_Cancel_Desc {
             get {
                 return ResourceManager.GetString("A11y_Btn_Cancel_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Confirm and apply the current value. 的當地語系化字串。
+        ///   查詢類似 Decreases the numeric value. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Btn_Minus_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Btn_Minus_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Confirm and apply the current value. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Btn_OK_Desc {
             get {
                 return ResourceManager.GetString("A11y_Btn_OK_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Reset the value to the factory default: {0}. 的當地語系化字串。
+        ///   查詢類似 Increases the numeric value. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Btn_Plus_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Btn_Plus_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Reset the value to the factory default: {0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Btn_SetDefault_Desc {
             get {
                 return ResourceManager.GetString("A11y_Btn_SetDefault_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Copies the text from the input box to the clipboard. 的當地語系化字串。
+        ///   查詢類似 Copies the text from the input box to the clipboard. 的當地語系化字串。
         /// </summary>
         internal static string A11y_BtnCopyDesc {
             get {
                 return ResourceManager.GetString("A11y_BtnCopyDesc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Copy to clipboard 的當地語系化字串。
+        ///   查詢類似 Copy to clipboard 的當地語系化字串。
         /// </summary>
         internal static string A11y_BtnCopyName {
             get {
                 return ResourceManager.GetString("A11y_BtnCopyName", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Action buttons area 的當地語系化字串。
+        ///   查詢類似 Action buttons area 的當地語系化字串。
         /// </summary>
         internal static string A11y_ButtonArea {
             get {
                 return ResourceManager.GetString("A11y_ButtonArea", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Operation cancelled. 的當地語系化字串。
+        ///   查詢類似 Operation cancelled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Cancelled {
             get {
                 return ResourceManager.GetString("A11y_Cancelled", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Cannot delete at the beginning. 的當地語系化字串。
+        ///   查詢類似 Cannot delete at the beginning. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Cannot_Delete {
             get {
                 return ResourceManager.GetString("A11y_Cannot_Delete", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Hotkey capture cancelled. 的當地語系化字串。
+        ///   查詢類似 Hotkey capture cancelled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Capture_Cancelled {
             get {
                 return ResourceManager.GetString("A11y_Capture_Cancelled", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Press ESC key to cancel. 的當地語系化字串。
+        ///   查詢類似 Press ESC key to cancel. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Capture_Esc_Cancel {
             get {
                 return ResourceManager.GetString("A11y_Capture_Esc_Cancel", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Clipboard busy, retrying... 的當地語系化字串。
+        ///   查詢類似 Clipboard busy, retrying... 的當地語系化字串。
         /// </summary>
         internal static string A11y_Clipboard_Retrying {
             get {
                 return ResourceManager.GetString("A11y_Clipboard_Retrying", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Current value: {0}. 的當地語系化字串。
+        ///   查詢類似 Current value: {0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_CurrentValue {
             get {
                 return ResourceManager.GetString("A11y_CurrentValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Deleted {0}. 的當地語系化字串。
+        ///   查詢類似 Deleted {0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Delete_Char {
             get {
                 return ResourceManager.GetString("A11y_Delete_Char", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Deleted {0} characters. 的當地語系化字串。
+        ///   查詢類似 Deleted {0} characters. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Delete_Multiple {
             get {
                 return ResourceManager.GetString("A11y_Delete_Multiple", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Controller {0} connected. 的當地語系化字串。
+        ///   查詢類似 Controller {0} connected. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Gamepad_Connected {
             get {
                 return ResourceManager.GetString("A11y_Gamepad_Connected", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Controller {0} disconnected. 的當地語系化字串。
+        ///   查詢類似 Controller {0} disconnected. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Gamepad_Disconnected {
             get {
                 return ResourceManager.GetString("A11y_Gamepad_Disconnected", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 GameInput initialization failed. Switched to XInput compatibility mode. 的當地語系化字串。
+        ///   查詢類似 GameInput initialization failed. Switched to XInput compatibility mode. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Gamepad_Fallback {
             get {
                 return ResourceManager.GetString("A11y_Gamepad_Fallback", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 History {0} of {1}: {2} 的當地語系化字串。
+        ///   查詢類似 History {0} of {1}: {2} 的當地語系化字串。
         /// </summary>
         internal static string A11y_History_Navigation {
             get {
                 return ResourceManager.GetString("A11y_History_Navigation", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Hotkey set to {0}. 的當地語系化字串。
+        ///   查詢類似 Hotkey set to {0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Hotkey_Captured {
             get {
                 return ResourceManager.GetString("A11y_Hotkey_Captured", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Input Area 的當地語系化字串。
+        ///   查詢類似 Input Area 的當地語系化字串。
         /// </summary>
         internal static string A11y_Layout_Input {
             get {
                 return ResourceManager.GetString("A11y_Layout_Input", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 The container housing the text input field. 的當地語系化字串。
+        ///   查詢類似 Container housing the text input field. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Layout_Input_Desc {
             get {
                 return ResourceManager.GetString("A11y_Layout_Input_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Main Layout 的當地語系化字串。
+        ///   查詢類似 Main Layout 的當地語系化字串。
         /// </summary>
         internal static string A11y_Layout_Main {
             get {
                 return ResourceManager.GetString("A11y_Layout_Main", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 The primary container for text input and action buttons. 的當地語系化字串。
+        ///   查詢類似 Container holding the text input and action buttons. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Layout_Main_Desc {
             get {
                 return ResourceManager.GetString("A11y_Layout_Main_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 主視窗詳細描述 的當地語系化字串。
+        ///   查詢類似 Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB + RB + B to quick return. LB + RB+ X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
                 return ResourceManager.GetString("A11y_MainFormDesc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Text input and copy 的當地語系化字串。
+        ///   查詢類似 Text input and copy 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormName {
             get {
                 return ResourceManager.GetString("A11y_MainFormName", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 不透明度描述 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_OpacityDesc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_OpacityDesc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 {0}. Current: {1}, Range: {2} to {3}. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_NumericDesc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_NumericDesc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Open advanced settings including window behavior, feedback, and gamepad options. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Settings_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Settings_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Configure window restore delays and clipboard retry settings. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_WinOps_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_WinOps_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Configure vibration feedback and intensity levels. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Feedback_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Feedback_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Configure controller deadzones, repeat speed, and API provider. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Gamepad_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Gamepad_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Toggle all controller vibration effects on or off. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_VibEnable_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_VibEnable_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Select the underlying API for controller input (GameInput or XInput). Requires restart. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_Menu_Provider_Desc {
-            get {
-                return ResourceManager.GetString("A11y_Menu_Provider_Desc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Quit the application and release all resources. 的當地語系化字串。
+        ///   查詢類似 Quit the application and release all resources. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_Exit_Desc {
             get {
                 return ResourceManager.GetString("A11y_Menu_Exit_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 (Main key not set) 的當地語系化字串。
+        ///   查詢類似 Configure vibration feedback and intensity levels. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Feedback_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Feedback_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Configure controller deadzones, repeat speed, and API provider. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Gamepad_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Gamepad_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 {0}. Current: {1}, Range: {2} to {3}. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_NumericDesc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_NumericDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 {0}. Current: {1:P0}. Minimum is 50%. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_OpacityDesc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_OpacityDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Select the underlying API for controller input (GameInput or XInput). Requires restart. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Provider_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Provider_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Open advanced settings including window behavior, feedback, and gamepad options. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Settings_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Settings_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Toggle all controller vibration effects on or off. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_VibEnable_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_VibEnable_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Configure window restore delays and clipboard retry settings. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_WinOps_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_WinOps_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 (Main key not set) 的當地語系化字串。
         /// </summary>
         internal static string A11y_Mod_Key_Missing {
             get {
                 return ResourceManager.GetString("A11y_Mod_Key_Missing", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 {0} disabled. 的當地語系化字串。
+        ///   查詢類似 {0} disabled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Mod_Off {
             get {
                 return ResourceManager.GetString("A11y_Mod_Off", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 {0} enabled. 的當地語系化字串。
+        ///   查詢類似 {0} enabled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Mod_On {
             get {
                 return ResourceManager.GetString("A11y_Mod_On", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Toggle {0} as a modifier for the wake up hotkey. 的當地語系化字串。
+        ///   查詢類似 Toggle {0} as a modifier for the wake up hotkey. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Mod_Toggle_Desc {
             get {
                 return ResourceManager.GetString("A11y_Mod_Toggle_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 End of text reached. 的當地語系化字串。
+        ///   查詢類似 End of text reached. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Nav_Bottom {
             get {
                 return ResourceManager.GetString("A11y_Nav_Bottom", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Returned to latest input. 的當地語系化字串。
+        ///   查詢類似 Returned to latest input. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Nav_Newest {
             get {
                 return ResourceManager.GetString("A11y_Nav_Newest", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 No older history items. 的當地語系化字串。
+        ///   查詢類似 No older history items. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Nav_Oldest {
             get {
                 return ResourceManager.GetString("A11y_Nav_Oldest", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Start of text reached. 的當地語系化字串。
+        ///   查詢類似 Start of text reached. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Nav_Top {
             get {
                 return ResourceManager.GetString("A11y_Nav_Top", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 New line added. 的當地語系化字串。
+        ///   查詢類似 New line added. 的當地語系化字串。
         /// </summary>
         internal static string A11y_New_Line {
             get {
                 return ResourceManager.GetString("A11y_New_Line", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 No text to copy. 的當地語系化字串。
+        ///   查詢類似 No text to copy. 的當地語系化字串。
         /// </summary>
         internal static string A11y_No_Text_To_Copy {
             get {
                 return ResourceManager.GetString("A11y_No_Text_To_Copy", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 不透明度變更通知 的當地語系化字串。
+        ///   查詢類似 Opacity set to {0:P0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Opacity_Changed {
             get {
                 return ResourceManager.GetString("A11y_Opacity_Changed", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 高對比不透明度鎖定 的當地語系化字串。
+        ///   查詢類似 High Contrast mode is on, opacity locked to 100%. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Opacity_HighContrast {
             get {
                 return ResourceManager.GetString("A11y_Opacity_HighContrast", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Opening touch keyboard. 的當地語系化字串。
+        ///   查詢類似 Opening touch keyboard. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Opening_Keyboard {
             get {
                 return ResourceManager.GetString("A11y_Opening_Keyboard", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Privacy mode disabled. 的當地語系化字串。
+        ///   查詢類似 Privacy mode disabled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_PrivacyMode_Off {
             get {
                 return ResourceManager.GetString("A11y_PrivacyMode_Off", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Privacy mode enabled. 的當地語系化字串。
+        ///   查詢類似 Privacy mode enabled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_PrivacyMode_On {
             get {
                 return ResourceManager.GetString("A11y_PrivacyMode_On", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Returning to previous window. 的當地語系化字串。
+        ///   查詢類似 Returning to previous window. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Returning {
             get {
                 return ResourceManager.GetString("A11y_Returning", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 視窗彈回通知 的當地語系化字串。
+        ///   查詢類似 Window position corrected automatically. 的當地語系化字串。
         /// </summary>
         internal static string A11y_SnapBack {
             get {
                 return ResourceManager.GetString("A11y_SnapBack", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 {0} Wake up shortcut: {1}. 的當地語系化字串。
+        ///   查詢類似 {0} Wake up shortcut: {1}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Startup_Status {
             get {
                 return ResourceManager.GetString("A11y_Startup_Status", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Enter the text you want to copy to the clipboard here. 的當地語系化字串。
+        ///   查詢類似 Focused 的當地語系化字串。
         /// </summary>
-        internal static string A11y_TBInputDesc {
+        internal static string A11y_State_Focused {
             get {
-                return ResourceManager.GetString("A11y_TBInputDesc", resourceCulture);
+                return ResourceManager.GetString("A11y_State_Focused", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Enter Text 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_TBInputName {
-            get {
-                return ResourceManager.GetString("A11y_TBInputName", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Cannot return: The target window has been closed. 的當地語系化字串。
+        ///   查詢類似 Cannot return: The target window has been closed. 的當地語系化字串。
         /// </summary>
         internal static string A11y_TargetWindowLost {
             get {
                 return ResourceManager.GetString("A11y_TargetWindowLost", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Current value: {0}. Valid range: {1} to {2}. 的當地語系化字串。
+        ///   查詢類似 Enter the text you want to copy to the clipboard here. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_TBInputDesc {
+            get {
+                return ResourceManager.GetString("A11y_TBInputDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Enter Text 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_TBInputName {
+            get {
+                return ResourceManager.GetString("A11y_TBInputName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Current value: {0}. Valid range: {1} to {2}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Value_Range_Desc {
             get {
                 return ResourceManager.GetString("A11y_Value_Range_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 GameInput: {0} 的當地語系化字串。
+        ///   查詢類似 GameInput: {0} 的當地語系化字串。
         /// </summary>
         internal static string App_Gamepad_Suffix {
             get {
                 return ResourceManager.GetString("App_Gamepad_Suffix", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 XInput: {0} 的當地語系化字串。
+        ///   查詢類似 XInput: {0} 的當地語系化字串。
         /// </summary>
         internal static string App_Gamepad_XInput_Format {
             get {
                 return ResourceManager.GetString("App_Gamepad_XInput_Format", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似  (🔒) 的當地語系化字串。
+        ///   查詢類似  (🔒) 的當地語系化字串。
         /// </summary>
         internal static string App_Privacy_Suffix {
             get {
                 return ResourceManager.GetString("App_Privacy_Suffix", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 InputBox 的當地語系化字串。
+        ///   查詢類似 InputBox 的當地語系化字串。
         /// </summary>
         internal static string App_Title {
             get {
                 return ResourceManager.GetString("App_Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Cancel 的當地語系化字串。
+        ///   查詢類似 Cancel 的當地語系化字串。
         /// </summary>
         internal static string Btn_Cancel {
             get {
                 return ResourceManager.GetString("Btn_Cancel", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Copy to clipboard 的當地語系化字串。
+        ///   查詢類似 Copy to clipboard 的當地語系化字串。
         /// </summary>
         internal static string Btn_CopyDefault {
             get {
                 return ResourceManager.GetString("Btn_CopyDefault", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 OK 的當地語系化字串。
+        ///   查詢類似 － 的當地語系化字串。
+        /// </summary>
+        internal static string Btn_Minus {
+            get {
+                return ResourceManager.GetString("Btn_Minus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 OK 的當地語系化字串。
         /// </summary>
         internal static string Btn_OK {
             get {
                 return ResourceManager.GetString("Btn_OK", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Reset to Default 的當地語系化字串。
+        ///   查詢類似 ＋ 的當地語系化字串。
+        /// </summary>
+        internal static string Btn_Plus {
+            get {
+                return ResourceManager.GetString("Btn_Plus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Reset to Default 的當地語系化字串。
         /// </summary>
         internal static string Btn_SetDefault {
             get {
                 return ResourceManager.GetString("Btn_SetDefault", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 The configuration file format is invalid. The application will start with default settings. 的當地語系化字串。
+        ///   查詢類似 The configuration file format is invalid. The application will start with default settings. 的當地語系化字串。
         /// </summary>
         internal static string Err_ConfigInvalid {
             get {
                 return ResourceManager.GetString("Err_ConfigInvalid", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Global shortcut {0} failed to register. 的當地語系化字串。
-        /// </summary>
-        internal static string Err_HotkeyRegFail {
-            get {
-                return ResourceManager.GetString("Err_HotkeyRegFail", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Hotkey registration failed. Reverted to previous setting. 的當地語系化字串。
-        /// </summary>
-        internal static string Err_HotkeyRegFail_Brief {
-            get {
-                return ResourceManager.GetString("Err_HotkeyRegFail_Brief", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Error 的當地語系化字串。
-        /// </summary>
-        internal static string Err_Title {
-            get {
-                return ResourceManager.GetString("Err_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 Gamepad controller initialization failed. 的當地語系化字串。
+        ///   查詢類似 Gamepad controller initialization failed. Some features may be unavailable. 的當地語系化字串。
         /// </summary>
         internal static string Err_GamepadInitFail {
             get {
                 return ResourceManager.GetString("Err_GamepadInitFail", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Touch keyboard not found. 的當地語系化字串。
+        ///   查詢類似 Global shortcut {0} failed to register.
+        ///
+        ///Make sure that multiple instances of this application are not running at the same time, or that another application is not already using this shortcut. 的當地語系化字串。
+        /// </summary>
+        internal static string Err_HotkeyRegFail {
+            get {
+                return ResourceManager.GetString("Err_HotkeyRegFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Hotkey registration failed. Reverted to previous setting. 的當地語系化字串。
+        /// </summary>
+        internal static string Err_HotkeyRegFail_Brief {
+            get {
+                return ResourceManager.GetString("Err_HotkeyRegFail_Brief", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Error 的當地語系化字串。
+        /// </summary>
+        internal static string Err_Title {
+            get {
+                return ResourceManager.GetString("Err_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Touch keyboard not found. 的當地語系化字串。
         /// </summary>
         internal static string Err_TouchKeyboardNotFound {
             get {
                 return ResourceManager.GetString("Err_TouchKeyboardNotFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Capture Key... 的當地語系化字串。
+        ///   查詢類似 Capture Key... 的當地語系化字串。
         /// </summary>
         internal static string Menu_CaptureKey {
             get {
                 return ResourceManager.GetString("Menu_CaptureKey", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Start capturing a new key from the keyboard. 的當地語系化字串。
+        ///   查詢類似 Start capturing a new key from the keyboard. 的當地語系化字串。
         /// </summary>
         internal static string Menu_CaptureKey_Desc {
             get {
                 return ResourceManager.GetString("Menu_CaptureKey_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Clear History 的當地語系化字串。
+        ///   查詢類似 Clear History 的當地語系化字串。
         /// </summary>
         internal static string Menu_ClearHistory {
             get {
                 return ResourceManager.GetString("Menu_ClearHistory", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Permanently clear all input records currently in memory. 的當地語系化字串。
+        ///   查詢類似 Permanently clear all input records currently in memory. 的當地語系化字串。
         /// </summary>
         internal static string Menu_ClearHistory_Desc {
             get {
                 return ResourceManager.GetString("Menu_ClearHistory_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Exit 的當地語系化字串。
+        ///   查詢類似 Exit 的當地語系化字串。
         /// </summary>
         internal static string Menu_Exit {
             get {
                 return ResourceManager.GetString("Menu_Exit", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Hotkey Settings 的當地語系化字串。
+        ///   查詢類似 Hotkey Settings 的當地語系化字串。
         /// </summary>
         internal static string Menu_HotkeySettings {
             get {
                 return ResourceManager.GetString("Menu_HotkeySettings", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Configure the global shortcut keys to wake up the input box. 的當地語系化字串。
+        ///   查詢類似 Configure the global shortcut keys to wake up the input box. 的當地語系化字串。
         /// </summary>
         internal static string Menu_HotkeySettings_Desc {
             get {
                 return ResourceManager.GetString("Menu_HotkeySettings_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Privacy Mode 的當地語系化字串。
+        ///   查詢類似 Privacy Mode 的當地語系化字串。
         /// </summary>
         internal static string Menu_PrivacyMode {
             get {
                 return ResourceManager.GetString("Menu_PrivacyMode", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 When enabled, new inputs will not be saved to history. 的當地語系化字串。
+        ///   查詢類似 When enabled, new inputs will not be saved to history. 的當地語系化字串。
         /// </summary>
         internal static string Menu_PrivacyMode_Desc {
             get {
                 return ResourceManager.GetString("Menu_PrivacyMode_Desc", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Settings 的當地語系化字串。
+        ///   查詢類似 Settings 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings {
             get {
                 return ResourceManager.GetString("Menu_Settings", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Feedback 的當地語系化字串。
+        ///   查詢類似 Feedback 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Feedback {
             get {
                 return ResourceManager.GetString("Menu_Settings_Feedback", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Gamepad 的當地語系化字串。
+        ///   查詢類似 Gamepad 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Gamepad {
             get {
                 return ResourceManager.GetString("Menu_Settings_Gamepad", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 History Capacity: {0} 的當地語系化字串。
+        ///   查詢類似 History Capacity: {0} 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_HistoryCapacity {
             get {
                 return ResourceManager.GetString("Menu_Settings_HistoryCapacity", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Intensity: {0} 的當地語系化字串。
+        ///   查詢類似 Intensity: {0} 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Intensity {
             get {
                 return ResourceManager.GetString("Menu_Settings_Intensity", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 API Provider 的當地語系化字串。
+        ///   查詢類似 API Provider 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Provider {
             get {
                 return ResourceManager.GetString("Menu_Settings_Provider", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Vibration 的當地語系化字串。
+        ///   查詢類似 Vibration 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Vibration {
             get {
                 return ResourceManager.GetString("Menu_Settings_Vibration", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Window &amp; Operations 的當地語系化字串。
+        ///   查詢類似 Window &amp; Operations 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Window {
             get {
                 return ResourceManager.GetString("Menu_Settings_Window", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Alt 的當地語系化字串。
+        ///   查詢類似 Alt 的當地語系化字串。
         /// </summary>
         internal static string Mod_Alt {
             get {
                 return ResourceManager.GetString("Mod_Alt", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Ctrl 的當地語系化字串。
+        ///   查詢類似 Ctrl 的當地語系化字串。
         /// </summary>
         internal static string Mod_Ctrl {
             get {
                 return ResourceManager.GetString("Mod_Ctrl", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Shift 的當地語系化字串。
+        ///   查詢類似 Shift 的當地語系化字串。
         /// </summary>
         internal static string Mod_Shift {
             get {
                 return ResourceManager.GetString("Mod_Shift", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Win 的當地語系化字串。
+        ///   查詢類似 Win 的當地語系化字串。
         /// </summary>
         internal static string Mod_Win {
             get {
                 return ResourceManager.GetString("Mod_Win", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Copied 的當地語系化字串。
+        ///   查詢類似 Copied 的當地語系化字串。
         /// </summary>
         internal static string Msg_Copied {
             get {
                 return ResourceManager.GetString("Msg_Copied", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Copy failed 的當地語系化字串。
+        ///   查詢類似 Copy failed 的當地語系化字串。
         /// </summary>
         internal static string Msg_CopyFail {
             get {
                 return ResourceManager.GetString("Msg_CopyFail", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Please enter a new value for {0}: 的當地語系化字串。
+        ///   查詢類似 Please enter a new value for {0}: 的當地語系化字串。
         /// </summary>
         internal static string Msg_EnterValue {
             get {
                 return ResourceManager.GetString("Msg_EnterValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Hotkey Updated 的當地語系化字串。
+        ///   查詢類似 Hotkey Updated 的當地語系化字串。
         /// </summary>
         internal static string Msg_HotkeyUpdated {
             get {
                 return ResourceManager.GetString("Msg_HotkeyUpdated", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Input cleared 的當地語系化字串。
+        ///   查詢類似 Input cleared 的當地語系化字串。
         /// </summary>
         internal static string Msg_InputCleared {
             get {
                 return ResourceManager.GetString("Msg_InputCleared", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Press any key... 的當地語系化字串。
+        ///   查詢類似 Press any key... 的當地語系化字串。
         /// </summary>
         internal static string Msg_PressAnyKey {
             get {
                 return ResourceManager.GetString("Msg_PressAnyKey", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 This change requires a restart to take effect. Restart now? 的當地語系化字串。
+        ///   查詢類似 This change requires a restart to take effect. Restart now? 的當地語系化字串。
         /// </summary>
         internal static string Msg_RestartRequired {
             get {
                 return ResourceManager.GetString("Msg_RestartRequired", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Enter text… 的當地語系化字串。
+        ///   查詢類似 Enter text… 的當地語系化字串。
         /// </summary>
         internal static string Pht_TBInput {
             get {
                 return ResourceManager.GetString("Pht_TBInput", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Clipboard Retry Delay 的當地語系化字串。
+        ///   查詢類似 Clipboard Retry Delay 的當地語系化字串。
         /// </summary>
         internal static string Settings_ClipboardRetryDelay {
             get {
                 return ResourceManager.GetString("Settings_ClipboardRetryDelay", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 History Capacity 的當地語系化字串。
+        ///   查詢類似 History Capacity 的當地語系化字串。
         /// </summary>
         internal static string Settings_HistoryCapacity {
             get {
                 return ResourceManager.GetString("Settings_HistoryCapacity", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Input Jitter Range 的當地語系化字串。
+        ///   查詢類似 Input Jitter Range 的當地語系化字串。
         /// </summary>
         internal static string Settings_InputJitterRange {
             get {
                 return ResourceManager.GetString("Settings_InputJitterRange", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Repeat Delay 的當地語系化字串。
+        ///   查詢類似 Repeat Delay 的當地語系化字串。
         /// </summary>
         internal static string Settings_RepeatDelay {
             get {
                 return ResourceManager.GetString("Settings_RepeatDelay", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Repeat Speed 的當地語系化字串。
+        ///   查詢類似 Repeat Speed 的當地語系化字串。
         /// </summary>
         internal static string Settings_RepeatSpeed {
             get {
                 return ResourceManager.GetString("Settings_RepeatSpeed", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Thumb Deadzone: Trigger Threshold 的當地語系化字串。
+        ///   查詢類似 Thumb Deadzone: Trigger Threshold 的當地語系化字串。
         /// </summary>
         internal static string Settings_ThumbDeadzoneEnter {
             get {
                 return ResourceManager.GetString("Settings_ThumbDeadzoneEnter", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Thumb Deadzone: Reset Threshold 的當地語系化字串。
+        ///   查詢類似 Thumb Deadzone: Reset Threshold 的當地語系化字串。
         /// </summary>
         internal static string Settings_ThumbDeadzoneExit {
             get {
                 return ResourceManager.GetString("Settings_ThumbDeadzoneExit", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Touch Keyboard Dismiss Delay 的當地語系化字串。
+        ///   查詢類似 Touch Keyboard Dismiss Delay 的當地語系化字串。
         /// </summary>
         internal static string Settings_TouchKeyboardDismissDelay {
             get {
                 return ResourceManager.GetString("Settings_TouchKeyboardDismissDelay", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Intensity 的當地語系化字串。
+        ///   查詢類似 Intensity 的當地語系化字串。
         /// </summary>
         internal static string Settings_VibrationIntensity {
             get {
                 return ResourceManager.GetString("Settings_VibrationIntensity", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Window Restore Delay 的當地語系化字串。
-        /// </summary>
-        internal static string Settings_WindowRestoreDelay {
-            get {
-                return ResourceManager.GetString("Settings_WindowRestoreDelay", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        /// 查詢類似 不透明度 的當地語系化字串。
+        ///   查詢類似 Opacity 的當地語系化字串。
         /// </summary>
         internal static string Settings_WindowOpacity {
             get {
                 return ResourceManager.GetString("Settings_WindowOpacity", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Window Switch Buffer Base 的當地語系化字串。
+        ///   查詢類似 Window Restore Delay 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_WindowRestoreDelay {
+            get {
+                return ResourceManager.GetString("Settings_WindowRestoreDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Window Switch Buffer Base 的當地語系化字串。
         /// </summary>
         internal static string Settings_WindowSwitchBufferBase {
             get {
                 return ResourceManager.GetString("Settings_WindowSwitchBufferBase", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        /// 查詢類似 Warning 的當地語系化字串。
+        ///   查詢類似 Warning 的當地語系化字串。
         /// </summary>
         internal static string Wrn_Title {
             get {

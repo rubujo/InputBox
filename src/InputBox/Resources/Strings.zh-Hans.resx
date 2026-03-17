@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -170,7 +170,7 @@
     <comment>无障碍消息，当新的快捷键捕获成功时播放。{0} 是设置后的快捷键字符串。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>文本为空时按 A 或 Start 开启键盘，有文字时复制并返回。按 X 删除，方向键移动光标或浏览历史记录。按 Back 返回。LB+RB+B 快速返回。LB+RB+X 退出程序。键盘：Enter 复制/开启，Esc 清除，上下键切换历史记录，Alt+B 返回。</value>
+    <value>文本为空时按 A 或 Start 开启键盘，有文字时复制并返回。按 X 删除，方向键移动光标或浏览历史记录。按 Back 返回。LB + RB + B 快速返回。LB + RB + X 退出程序。键盘：Enter 复制／开启，Esc 清除，上下键切换历史记录，Alt + B 返回。</value>
     <comment>主窗口的无障碍详细描述，解释各种控制器与键盘的操作方式。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">

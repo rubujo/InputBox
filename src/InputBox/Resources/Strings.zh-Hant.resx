@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -170,7 +170,7 @@
     <comment>無障礙訊息，當新的快速鍵擷取成功時播放。{0} 是設定後的快速鍵字串。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>空文字時按 A 或 Start 開啟鍵盤，有文字時複製並返回。按 X 刪除，方向鍵移動游標或歷程記錄。按 Back 返回。LB+RB+B 快速返回。LB+RB+X 結束程式。鍵盤：Enter 複製/開啟，Esc 清除，上下鍵切換歷程記錄，Alt+B 返回。</value>
+    <value>空文字時按 A 或 Start 開啟鍵盤，有文字時複製並返回。按 X 刪除，方向鍵移動游標或歷程記錄。按 Back 返回。LB + RB + B 快速返回。LB + RB + X 結束程式。鍵盤：Enter 複製／開啟，Esc 清除，上下鍵切換歷程記錄，Alt + B 返回。</value>
     <comment>主視窗的無障礙詳細描述，解釋各種控制器與鍵盤的操作方式。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">

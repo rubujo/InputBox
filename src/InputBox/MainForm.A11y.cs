@@ -28,11 +28,6 @@ public partial class MainForm
     private long _currentAnnouncementId = 0;
 
     /// <summary>
-    /// 用於交替附加的零寬度字元狀態
-    /// </summary>
-    private bool _a11yAltCharState = false;
-
-    /// <summary>
     /// 在 UI 執行緒中最後一次完成廣播的 ID（用於防止非同步排程導致的舊訊息覆蓋新訊息）
     /// </summary>
     private long _lastProcessedAnnouncementId = 0;
@@ -56,7 +51,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 取得專案統一的 A11y 放大字型（11f）
+    /// 取得專案統一的 A11y 放大字型
     /// </summary>
     /// <param name="dpi">目前的 DPI 數值</param>
     /// <param name="fontStyle">字型樣式，預設為 Regular</param>
@@ -84,8 +79,7 @@ public partial class MainForm
     private Font? _a11yFont;
 
     /// <summary>
-    /// 執行階段套用在地化資源與 A11y 屬性。
-    /// 此方法用於覆蓋 Designer 中的硬編碼值，確保多語系正確性。
+    /// 執行階段套用在地化資源與 A11y 屬性
     /// </summary>
     private void ApplyLocalization()
     {
@@ -107,8 +101,8 @@ public partial class MainForm
         _lblInput?.Text = Strings.A11y_TBInputName;
 
         // 建立或更新 A11y 放大字型。
-        Font newA11yFont = GetSharedA11yFont(DeviceDpi);
-        Font newBoldFont = new(newA11yFont, FontStyle.Bold);
+        Font newA11yFont = GetSharedA11yFont(DeviceDpi),
+            newBoldFont = new(newA11yFont, FontStyle.Bold);
 
         // 先處置舊的字型資源，防止 GDI 洩漏。
         _a11yFont?.Dispose();
@@ -124,6 +118,9 @@ public partial class MainForm
 
         // 根據規範，套用統一的 A11y 共享字型。
         BtnCopy.Font = _a11yFont;
+
+        // 重置 MinimumSize，避免切換短語系（如英文）時，按鈕寬度仍卡在長語系（如日文）的寬度。
+        BtnCopy.MinimumSize = Size.Empty;
 
         // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock），
         // 預先測量 Bold 狀態下的文字寬度，並鎖定為 MinimumSize，防止懸停加粗時佈局抖動。
@@ -204,121 +201,137 @@ public partial class MainForm
             return;
         }
 
-        try
+        while (!cancellationToken.IsCancellationRequested)
         {
-            await foreach (AnnouncementRequest request in _a11yChannel.Reader.ReadAllAsync(cancellationToken))
+            try
             {
-                // 每個循環開始前檢查。
-                if (cancellationToken.IsCancellationRequested)
+                await foreach (AnnouncementRequest request in _a11yChannel.Reader.ReadAllAsync(cancellationToken))
                 {
-                    break;
-                }
-
-                // 第一重檢查：如果此訊息標記為可中斷，且目前已有更新的訊息在 ID 佇列中，則跳過。
-                if (request.Interrupt)
-                {
-                    long currentLatestId = Interlocked.Read(ref _currentAnnouncementId);
-
-                    if (request.Id < currentLatestId)
-                    {
-                        // 既然有更新的 ID，我們優先查看 Channel 是否還有新訊息。
-                        // 如果有，就跳過目前這筆；如果沒有（代表 currentLatestId 可能還在傳輸中），則處理這筆以防漏報。
-                        if (_a11yChannel.Reader.TryPeek(out _))
-                        {
-                            continue;
-                        }
-                    }
-                }
-
-                try
-                {
-                    // 進入 UI 執行緒進行正式廣播。
-                    await this.SafeInvokeAsync(async () =>
-                    {
-                        try
-                        {
-                            // 進入 UI 執行緒後的即時檢查。
-                            if (cancellationToken.IsCancellationRequested ||
-                                IsDisposed ||
-                                _lblA11yAnnouncer == null)
-                            {
-                                return;
-                            }
-
-                            // 第二重檢查（最終防護）：
-                            // 檢查此訊息的 ID 是否小於等於 UI 執行緒最後一次「處理完成」的 ID。
-                            // 這能防止多個非同步排程在 UI 執行緒中競爭時，舊訊息因 Task.Delay 結束而覆蓋新訊息。
-                            if (request.Id <= _lastProcessedAnnouncementId)
-                            {
-                                return;
-                            }
-
-                            // 增加延遲（200ms）以避開系統音效（如 Asterisk）的音訊高峰。
-                            await Task.Delay(200, cancellationToken);
-
-                            if (cancellationToken.IsCancellationRequested ||
-                                IsDisposed)
-                            {
-                                return;
-                            }
-
-                            // 再次檢查 ID，確保在 Delay 期間沒有更新的訊息已先發布。
-                            if (request.Id <= _lastProcessedAnnouncementId)
-                            {
-                                return;
-                            }
-
-                            // 填入正式訊息並更新最後處理 ID。
-                            _lblA11yAnnouncer.Announce(request.Message);
-
-                            _lastProcessedAnnouncementId = request.Id;
-                        }
-                        catch (ObjectDisposedException)
-                        {
-
-                        }
-                        catch (OperationCanceledException)
-                        {
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"[A11y] UI 執行緒廣播失敗：{ex.Message}");
-                        }
-                    });
-
-                    // 檢查中斷狀態。
+                    // 每個循環開始前檢查。
                     if (cancellationToken.IsCancellationRequested)
                     {
                         break;
                     }
 
-                    // 給予足夠的報讀時間，防止下一條訊息立即覆蓋。
-                    // 對於中斷型廣播，可以縮短等待時間。
-                    await Task.Delay(request.Interrupt ? 100 : 300, cancellationToken);
+                    // 第一重檢查：如果此訊息標記為可中斷，且目前已有更新的訊息在 ID 佇列中，則跳過。
+                    if (request.Interrupt)
+                    {
+                        long currentLatestId = Interlocked.Read(ref _currentAnnouncementId);
+
+                        if (request.Id < currentLatestId)
+                        {
+                            // 既然有更新的 ID，我們優先查看 Channel 是否還有新訊息。
+                            // 如果有，就跳過目前這筆；如果沒有（代表 currentLatestId 可能還在傳輸中），則處理這筆以防漏報。
+                            if (_a11yChannel.Reader.TryPeek(out _))
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        // 進入 UI 執行緒進行正式廣播。
+                        await this.SafeInvokeAsync(async () =>
+                        {
+                            try
+                            {
+                                // 進入 UI 執行緒後的即時檢查。
+                                if (cancellationToken.IsCancellationRequested ||
+                                    IsDisposed ||
+                                    _lblA11yAnnouncer == null)
+                                {
+                                    return;
+                                }
+
+                                // 第二重檢查（最終防護）：
+                                // 檢查此訊息的 ID 是否小於等於 UI 執行緒最後一次「處理完成」的 ID。
+                                // 這能防止多個非同步排程在 UI 執行緒中競爭時，舊訊息因 Task.Delay 結束而覆蓋新訊息。
+                                if (request.Id <= _lastProcessedAnnouncementId)
+                                {
+                                    return;
+                                }
+
+                                // 增加延遲（200ms）以避開系統音效（如 Asterisk）的音訊高峰。
+                                await Task.Delay(200, cancellationToken);
+
+                                if (cancellationToken.IsCancellationRequested ||
+                                    IsDisposed)
+                                {
+                                    return;
+                                }
+
+                                // 再次檢查 ID，確保在 Delay 期間沒有更新的訊息已先發布。
+                                if (request.Id <= _lastProcessedAnnouncementId)
+                                {
+                                    return;
+                                }
+
+                                // 填入正式訊息並更新最後處理 ID，
+                                // 將 interrupt 屬性正確傳遞給 AnnouncerLabel。
+                                _lblA11yAnnouncer.Announce(request.Message, request.Interrupt);
+
+                                _lastProcessedAnnouncementId = request.Id;
+                            }
+                            catch (ObjectDisposedException)
+                            {
+
+                            }
+                            catch (OperationCanceledException)
+                            {
+
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"[A11y] UI 執行緒廣播失敗：{ex.Message}");
+                            }
+                        });
+
+                        // 檢查中斷狀態。
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        // 給予足夠的報讀時間，防止下一條訊息立即覆蓋。
+                        // 對於中斷型廣播，可以縮短等待時間。
+                        await Task.Delay(request.Interrupt ? 100 : 300, cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[A11y] 廣播處理發生異常：{ex.Message}");
+                    }
                 }
-                catch (OperationCanceledException)
+
+                // ReadAllAsync 正常結束
+                break;
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[A11y] 廣播工作者發生致命錯誤，嘗試重啟：{ex.Message}");
+
+                try
+                {
+                    await Task.Delay(1000, cancellationToken);
+                }
+                catch
                 {
                     break;
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[A11y] 廣播處理發生異常：{ex.Message}");
-                }
             }
-        }
-        catch (OperationCanceledException)
-        {
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[A11y] 廣播工作者發生致命錯誤：{ex.Message}");
         }
     }
 
     /// <summary>
-    /// 發送無障礙廣播訊息（具備隊列機制與丟棄機制，確保在高頻率操作下不會造成語音堆疊）
+    /// 發送無障礙廣播訊息
     /// </summary>
     /// <param name="message">要朗讀的訊息。</param>
     /// <param name="interrupt">是否中斷之前的排隊內容（預設為 false）。對於游標移動等高頻率操作，建議設為 true。</param>
@@ -333,14 +346,9 @@ public partial class MainForm
             return;
         }
 
-        // 交替附加零寬度字元（ZWSP：\u200B、ZWNJ：\u200C），強迫 UIA 識別為新內容。
-        _a11yAltCharState = !_a11yAltCharState;
-
-        string finalMessage = message + (_a11yAltCharState ? "\u200B" : "\u200C");
-
         long id = Interlocked.Increment(ref _currentAnnouncementId);
 
         // 嘗試寫入 Channel。如果已經關閉，則安靜地結束。
-        _a11yChannel.Writer.TryWrite(new AnnouncementRequest(finalMessage, interrupt, id));
+        _a11yChannel.Writer.TryWrite(new AnnouncementRequest(message, interrupt, id));
     }
 }

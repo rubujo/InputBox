@@ -782,71 +782,92 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 同步強制停止震動（用於應用程式關閉等緊急情境）
+    /// </summary>
+    public void StopVibration()
+    {
+        try
+        {
+            XInput.XInputVibration stopVibration = default;
+
+            _ = XInput.XInputSetState(_userIndex, in stopVibration);
+        }
+        catch
+        {
+            // 忽略
+        }
+    }
+
+    /// <summary>
     /// 震動
     /// </summary>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">毫秒，預設為 60</param>
     /// <returns>Task</returns>
-    public async Task VibrateAsync(
+    public Task VibrateAsync(
         ushort strength,
         int milliseconds = 60)
     {
-        // 捕獲目前的索引快照，確保開始與停止動作作用於同一個 Port。
-        uint userIndex = _userIndex;
-
-        // 每次呼叫時產生一個新的通行證（Token）。
-        int currentToken = Interlocked.Increment(ref _vibrationToken);
-
-        // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
-        CancellationTokenSource newCts = new();
-
-        CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newCts);
-
-        if (oldCts != null)
+        // 將 XInput 呼叫推入背景執行緒，避免因藍牙手把休眠或驅動延遲而阻塞 UI 執行緒。
+        return Task.Run(async () =>
         {
+            // 捕獲目前的索引快照，確保開始與停止動作作用於同一個 Port。
+            uint userIndex = _userIndex;
+
+            // 每次呼叫時產生一個新的通行證（Token）。
+            int currentToken = Interlocked.Increment(ref _vibrationToken);
+
+            // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
+            CancellationTokenSource newCts = new();
+
+            CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newCts);
+
+            if (oldCts != null)
+            {
+                try
+                {
+                    oldCts.Cancel();
+                    oldCts.Dispose();
+                }
+                catch
+                {
+
+                }
+            }
+
+            CancellationToken token = newCts.Token;
+
+            XInput.XInputVibration vibration = new()
+            {
+                LeftMotorSpeed = strength,
+                RightMotorSpeed = strength
+            };
+
+            _ = XInput.XInputSetState(userIndex, in vibration);
+
             try
             {
-                oldCts.Cancel();
-                oldCts.Dispose();
+                await Task.Delay(milliseconds, token).ConfigureAwait(false);
             }
-            catch
+            catch (OperationCanceledException)
             {
-
+                // 任務被新的震動請求或釋放動作取消。
+                return;
             }
-        }
 
-        CancellationToken token = newCts.Token;
+            // 檢查：
+            // 1. 是否已處置。
+            // 2. 我的通行證是不是最新的？
+            if (_disposed ||
+                currentToken != _vibrationToken)
+            {
+                return;
+            }
 
-        XInput.XInputVibration vibration = new()
-        {
-            LeftMotorSpeed = strength,
-            RightMotorSpeed = strength
-        };
+            XInput.XInputVibration stopVibration = default;
 
-        _ = XInput.XInputSetState(userIndex, in vibration);
-
-        try
-        {
-            await Task.Delay(milliseconds, token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            // 任務被新的震動請求或釋放動作取消。
-            return;
-        }
-
-        // 檢查：
-        // 1. 是否已處置。
-        // 2. 我的通行證是不是最新的？
-        if (_disposed ||
-            currentToken != _vibrationToken)
-        {
-            return;
-        }
-
-        XInput.XInputVibration stopVibration = default;
-
-        _ = XInput.XInputSetState(userIndex, in stopVibration);
+            _ = XInput.XInputSetState(userIndex, in stopVibration);
+        });
     }
 
     /// <summary>

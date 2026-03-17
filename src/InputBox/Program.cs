@@ -2,6 +2,7 @@
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -44,10 +45,12 @@ internal static class Program
         AppDomain.CurrentDomain.UnhandledException += (sender, e) => HandleException(e.ExceptionObject as Exception);
 
         // 註冊系統事件：在關機或登出時，強制停止所有硬體震動。
-        Microsoft.Win32.SystemEvents.SessionEnding += (s, e) =>
+        static void sessionEndingHandler(object s, SessionEndingEventArgs e)
         {
             FeedbackService.EmergencyStopAllActiveControllers();
-        };
+        }
+
+        SystemEvents.SessionEnding += sessionEndingHandler;
 
         try
         {
@@ -71,6 +74,8 @@ internal static class Program
         }
         finally
         {
+            SystemEvents.SessionEnding -= sessionEndingHandler;
+
             ReleaseMutex();
         }
     }

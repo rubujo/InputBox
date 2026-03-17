@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -170,7 +170,7 @@
     <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB+RB+B to quick return. LB+RB+X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt+B to return.</value>
+    <value>Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB + RB + B to quick return. LB + RB+ X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt + B to return.</value>
     <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">

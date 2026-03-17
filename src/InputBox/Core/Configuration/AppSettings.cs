@@ -364,7 +364,17 @@ public class AppSettings
             {
                 try
                 {
-                    string strJsonContent = File.ReadAllText(ConfigPath);
+                    string strJsonContent;
+
+                    using (FileStream fileStream = new(
+                        ConfigPath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.ReadWrite))
+                    using (StreamReader reader = new(fileStream))
+                    {
+                        strJsonContent = reader.ReadToEnd();
+                    }
 
                     Current = JsonSerializer.Deserialize<AppSettings>(strJsonContent, Options) ?? new();
 
@@ -430,12 +440,28 @@ public class AppSettings
 
             string strJsonContent = JsonSerializer.Serialize(Current, Options);
 
-            // 先寫入臨時檔案。
+            // 寫入臨時檔案。
             File.WriteAllText(strTempPath, strJsonContent);
 
             // 寫入成功後，再原子性地替換原有檔案。
-            // 使用 File.Move 的覆蓋模式（true）是最快速且支援跨磁區的安全替換方式。
-            File.Move(strTempPath, ConfigPath, true);
+            // 加入退避重試機制，防止被防毒軟體或備份工具短暫鎖定。
+            int retries = 3;
+
+            while (retries > 0)
+            {
+                try
+                {
+                    File.Move(strTempPath, ConfigPath, true);
+
+                    break;
+                }
+                catch (IOException) when (retries > 1)
+                {
+                    retries--;
+
+                    Thread.Sleep(50);
+                }
+            }
         }
         catch (Exception ex)
         {

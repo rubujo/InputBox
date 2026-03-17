@@ -64,7 +64,8 @@ internal sealed class AnnouncerLabel : Label
     /// 發送無障礙廣播
     /// </summary>
     /// <param name="message">訊息內容</param>
-    public void Announce(string message)
+    /// <param name="interrupt">是否中斷目前的廣播</param>
+    public void Announce(string message, bool interrupt = false)
     {
         if (string.IsNullOrEmpty(message))
         {
@@ -85,6 +86,11 @@ internal sealed class AnnouncerLabel : Label
         }
 
         _lastMessage = message;
+
+        // 根據是否打斷，動態切換 LiveRegion 的緊急程度。
+        LiveSetting = interrupt ?
+            AutomationLiveSetting.Assertive :
+            AutomationLiveSetting.Polite;
 
         Text = finalMsg;
         AccessibleName = finalMsg;

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Media;
 using InputBox.Core.Configuration;
-using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
@@ -177,10 +176,10 @@ internal class FeedbackService
             {
                 try
                 {
-                    // 使用同步方式發送震動 0 的指令（如果該實作支援）。
+                    // 使用同步方式發送震動停止指令，確保在應用程式關閉前完成。
                     // 注意：這裡不能使用非同步 Task，因為程式可能正在關閉中。
                     // XInput 已由上方處理，此處主要針對 GameInput 與其原生 COM。
-                    controller.VibrateAsync(0, 0).SafeFireAndForget();
+                    controller.StopVibration();
                 }
                 catch
                 {

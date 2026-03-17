@@ -753,6 +753,16 @@ public partial class MainForm : Form
         {
             Program.ReleaseMutex();
 
+            // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
+            // 從而釋放全域的 SystemEvents 鉤子，防止重啟時發生靜態資源洩漏。
+            foreach (Form form in Application.OpenForms.Cast<Form>().ToList())
+            {
+                if (form is MainForm mainForm)
+                {
+                    mainForm.Close();
+                }
+            }
+
             Application.Restart();
 
             Environment.Exit(0);

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -170,7 +170,7 @@
     <comment>新しいホットキーが正常にキャプチャされたときに再生されるアクセシビリティメッセージ。{0} は設定されたホットキーの文字列です。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>テキスト空欄時はAまたはStartでキーボード起動、入力後はコピーして戻ります。Xで削除、十字キーで移動。Backで戻ります。LB+RB+Bでクイック戻る。LB+RB+Xでアプリを終了。キーボード：Enterでコピー/起動、Escでクリア、上下で履歴、Alt+Bで戻る。</value>
+    <value>テキスト空欄時はAまたはStartでキーボード起動、入力後はコピーして戻ります。Xで削除、十字キーで移動。Backで戻ります。LB + RB + Bでクイック戻る。LB + RB + Xでアプリを終了。キーボード：Enterでコピー／起動、Escでクリア、上下で履歴、Alt + Bで戻る。</value>
     <comment>メインウィンドウの詳細なアクセシビリティ記述。各種コントローラーやキーボードの操作方法を説明します。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">

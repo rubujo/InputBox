@@ -63,9 +63,19 @@ internal sealed class NumericInputDialog : Form
     private readonly Font _a11yFont;
 
     /// <summary>
+    /// NUD 專屬放大字型，需手動 Dispose
+    /// </summary>
+    private readonly Font _nudFont;
+
+    /// <summary>
     /// 用於管理對話框生命週期內非同步任務的取消權杖來源
     /// </summary>
     private readonly CancellationTokenSource _cts = new();
+
+    /// <summary>
+    /// A11y 廣播防抖用的序號
+    /// </summary>
+    private long _a11yDebounceId = 0;
 
     /// <summary>
     /// 遊戲手把控制器
@@ -247,7 +257,9 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     /// <param name="message">要廣播的訊息</param>
     /// <param name="interrupt">是否中斷目前的廣播</param>
-    private void AnnounceA11y(string message, bool interrupt = false)
+    private void AnnounceA11y(
+        string message,
+        bool interrupt = false)
     {
         if (IsDisposed ||
             string.IsNullOrEmpty(message))
@@ -261,20 +273,22 @@ internal sealed class NumericInputDialog : Form
         }
         else
         {
-            // 在獨立對話框模式下，我們手動加入 200ms 的音訊避讓延遲。
+            long currentId = Interlocked.Increment(ref _a11yDebounceId);
+
+            // 在獨立對話框模式下，我們手動加入 150ms 的音訊避讓與節流延遲。
             Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(200, _cts.Token);
+                    await Task.Delay(150, _cts.Token);
 
-                    this.SafeInvoke(() =>
+                    // 只有最新的請求才會被執行，實現 Debounce 效果。
+                    if (Interlocked.Read(ref _a11yDebounceId) == currentId &&
+                        !IsDisposed &&
+                        IsHandleCreated)
                     {
-                        if (!IsDisposed)
-                        {
-                            _announcer.Announce(message);
-                        }
-                    });
+                        this.SafeInvoke(() => _announcer.Announce(message, interrupt));
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -384,6 +398,7 @@ internal sealed class NumericInputDialog : Form
         float scale = DeviceDpi / 96.0f;
 
         _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
+        _nudFont = new Font(_a11yFont.FontFamily, _a11yFont.Size * 2.0f, FontStyle.Bold);
 
         // 主佈局容器。
         TableLayoutPanel tlpMain = new()
@@ -394,7 +409,8 @@ internal sealed class NumericInputDialog : Form
             RowCount = 2,
             Padding = new Padding((int)(30 * scale)),
             // 設定為 Grouping 角色，協助輔助科技識別這是一個邏輯區塊。
-            AccessibleRole = AccessibleRole.Grouping
+            AccessibleRole = AccessibleRole.Grouping,
+            AccessibleName = title
         };
 
         Label lblPrompt = new()
@@ -413,7 +429,8 @@ internal sealed class NumericInputDialog : Form
             AutoSize = true,
             ColumnCount = 3,
             RowCount = 2,
-            AccessibleRole = AccessibleRole.Grouping
+            AccessibleRole = AccessibleRole.Grouping,
+            AccessibleName = string.Format(Strings.Msg_EnterValue, title)
         };
         tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
@@ -432,7 +449,7 @@ internal sealed class NumericInputDialog : Form
             TextAlign = HorizontalAlignment.Center,
             // 動態縮放寬度，高度則由 Font 自動決定。
             Width = (int)(220 * scale),
-            Font = new Font(_a11yFont.FontFamily, _a11yFont.Size * 2.0f, FontStyle.Bold),
+            Font = _nudFont,
             BackColor = SystemColors.Window,
             ForeColor = SystemColors.WindowText,
             Margin = new Padding((int)(15 * scale), (int)(12 * scale), (int)(15 * scale), (int)(12 * scale)),
@@ -461,28 +478,50 @@ internal sealed class NumericInputDialog : Form
         // 按鈕連動 NUD 高亮邏輯。
 
         // 第 1 列：數值加減。
-        Button btnMinus = CreateEyeTrackerButton(Strings.Btn_Minus, Strings.A11y_Btn_Minus_Desc, scale, _a11yFont, (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+        Button btnMinus = CreateEyeTrackerButton(
+            Strings.Btn_Minus,
+            Strings.A11y_Btn_Minus_Desc,
+            scale,
+            _a11yFont,
+            (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
         btnMinus.Click += (s, e) => HandleMinus();
         btnMinus.Anchor = AnchorStyles.None;
         btnMinus.TabIndex = 0;
 
-        Button btnPlus = CreateEyeTrackerButton(Strings.Btn_Plus, Strings.A11y_Btn_Plus_Desc, scale, _a11yFont, (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+        Button btnPlus = CreateEyeTrackerButton(
+            Strings.Btn_Plus,
+            Strings.A11y_Btn_Plus_Desc,
+            scale,
+            _a11yFont,
+            (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
         btnPlus.Click += (s, e) => HandlePlus();
         btnPlus.Anchor = AnchorStyles.None;
         btnPlus.TabIndex = 2;
 
         // 第 2 列：操作按鈕。
-        Button btnOk = CreateEyeTrackerButton(ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'), Strings.A11y_Btn_OK_Desc, scale, _a11yFont);
+        Button btnOk = CreateEyeTrackerButton(
+            ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'),
+            Strings.A11y_Btn_OK_Desc,
+            scale,
+            _a11yFont);
         btnOk.DialogResult = DialogResult.OK;
         btnOk.Anchor = AnchorStyles.None;
         btnOk.TabIndex = 3;
 
-        Button btnCancel = CreateEyeTrackerButton(ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'), Strings.A11y_Btn_Cancel_Desc, scale, _a11yFont);
+        Button btnCancel = CreateEyeTrackerButton(
+            ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'),
+            Strings.A11y_Btn_Cancel_Desc,
+            scale,
+            _a11yFont);
         btnCancel.DialogResult = DialogResult.Cancel;
         btnCancel.Anchor = AnchorStyles.None;
         btnCancel.TabIndex = 4;
 
-        Button btnReset = CreateEyeTrackerButton(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'), string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue), scale, _a11yFont);
+        Button btnReset = CreateEyeTrackerButton(
+            ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'),
+            string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue),
+            scale,
+            _a11yFont);
         btnReset.Click += (s, e) => HandleReset();
         btnReset.Anchor = AnchorStyles.None;
         btnReset.TabIndex = 5;
@@ -498,7 +537,9 @@ internal sealed class NumericInputDialog : Form
         tlpMain.Controls.Add(lblPrompt, 0, 0);
         tlpMain.Controls.Add(tlpGrid, 0, 1);
 
-        _announcer.Size = Size.Empty;
+        // 將大小設為 1x1 並移至不可見區域，避免 Size.Empty 被 UIA 剔除。
+        _announcer.Size = new Size(1, 1);
+        _announcer.Location = new Point(-100, -100);
         Controls.Add(_announcer);
         Controls.Add(tlpMain);
 
@@ -589,6 +630,12 @@ internal sealed class NumericInputDialog : Form
     {
         Font boldFont = new(font, FontStyle.Bold);
 
+        // 使用 TextRenderer 預先測量 Bold 字型的最大寬度，確保加粗時不會引發佈局抖動。
+        Size boldTextSize = TextRenderer.MeasureText(text, boldFont);
+
+        int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(24 * scale)),
+            baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
+
         Button btn = new()
         {
             Text = text,
@@ -597,7 +644,7 @@ internal sealed class NumericInputDialog : Form
             AccessibleRole = AccessibleRole.PushButton,
             Font = font,
             AutoSize = true,
-            MinimumSize = new Size((int)(120 * scale), (int)(60 * scale)),
+            MinimumSize = new Size(baseMinWidth, baseMinHeight),
             Margin = new Padding((int)(12 * scale)),
             FlatStyle = FlatStyle.Flat,
             BackColor = SystemColors.Control,
@@ -608,10 +655,13 @@ internal sealed class NumericInputDialog : Form
 
         Color originalBackColor = btn.BackColor;
         Color originalForeColor = btn.ForeColor;
+
         Padding originalPadding = btn.Padding;
 
         float dwellProgress = 0f;
+
         long animationId = 0;
+
         bool isHovered = false;
 
         btn.MouseEnter += (s, e) =>
@@ -751,7 +801,10 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            int barHeight = (int)(6 * scale),
+            // 動態存取最新的 DeviceDpi，避免靜態捕獲舊 DPI 導致跨螢幕拖曳時繪圖偏移。
+            float currentScale = btn.DeviceDpi / 96.0f;
+
+            int barHeight = (int)(6 * currentScale),
                 barWidth = (int)(btn.Width * dwellProgress);
 
             using Brush barBrush = new SolidBrush(

@@ -151,7 +151,7 @@ public partial class MainForm
                 {
                     // 根據規範，系統無障礙設定（如高對比、大字型、動畫開關）變更時，需重新套用在地化資源與佈局。
                     ApplyLocalization();
-                    
+
                     // 即時同步不透明度防護（高對比模式下強制 100%）。
                     UpdateOpacity();
 
@@ -184,7 +184,7 @@ public partial class MainForm
         {
             // Tab 鍵進入時，中止正在進行的警示動畫。
             _alertCts?.Cancel();
-            
+
             // 如果正在擷取快速鍵，則不執行一般的進入變色邏輯，保留擷取模式的視覺狀態。
             if (_isCapturingHotkey != 0)
             {
@@ -220,7 +220,7 @@ public partial class MainForm
         try
         {
             _alertCts?.Cancel();
-            
+
             // 如果正在擷取快速鍵時失去焦點，則取消擷取模式。
             if (_isCapturingHotkey != 0)
             {
@@ -229,7 +229,7 @@ public partial class MainForm
                 // A11y 廣播：取消提示。
                 AnnounceA11y(Strings.A11y_Capture_Cancelled);
             }
-            
+
             // 還原邊框厚度。
             UpdateBorderColor(false);
 
@@ -1072,6 +1072,20 @@ public partial class MainForm
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
+
+            if (_alertCts != null)
+            {
+                try
+                {
+                    _alertCts.Dispose();
+                }
+                catch
+                {
+
+                }
+
+                _alertCts = null;
+            }
 
             if (!IsDisposed &&
                 IsHandleCreated)

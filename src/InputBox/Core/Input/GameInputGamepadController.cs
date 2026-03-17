@@ -1258,6 +1258,21 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 同步強制停止震動（用於應用程式關閉等緊急情境）
+    /// </summary>
+    public void StopVibration()
+    {
+        try
+        {
+            _device?.SetRumbleState(new GameInputRumbleParams());
+        }
+        catch
+        {
+            // 忽略
+        }
+    }
+
+    /// <summary>
     /// 處置資源
     /// </summary>
     private void DisposeResources()
@@ -1271,12 +1286,26 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         // 使用 Task.Run 確保 COM 物件在 MTA 背景執行緒中釋放。
         // 這能避免在 STA（UI）執行緒釋放時可能引發的 COM 異常或死結。
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             try
             {
                 // 先嘗試停止震動。
                 dev?.SetRumbleState(new GameInputRumbleParams());
+
+                // 等待輪詢 Task 結束，避免發生清空過程中的競態。
+                if (_taskPolling != null)
+                {
+                    try
+                    {
+                        await _taskPolling.ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // 忽略 Task 結束時的任何錯誤。
+                    }
+                }
+
                 dev?.Dispose();
                 gameInput?.Dispose();
             }

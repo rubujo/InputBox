@@ -158,6 +158,7 @@
 - **格式標準**：必須採用 [慣例式提交（Conventional Commits）v1.0.0](https://www.conventionalcommits.org/zh-hant/v1.0.0/) 規範。
   - 格式範例：`<type>(<scope>): <description>`。
   - 常見類型：`feat`（新功能）, `fix`（修補）, `docs`（文件）, `style`（格式）, `refactor`（重構）, `perf`（效能）, `test`（測試）, `chore`（例行事務）。
+- **訊息完整性**：嚴禁僅使用 `git commit -m` 方式提交簡短主旨。必須提供完整的提交訊息，除 **Subject**（主旨）外，還必須包含 **Body**（說明內容），詳盡描述異動的原因、背景與具體實作細節。
 - **語系要求**：所有 Git 提交訊息（Commit Message）**必須使用正體中文**，除非使用者明確指定使用其他語言。
 
 ## 7. 驗證協議與審查清單

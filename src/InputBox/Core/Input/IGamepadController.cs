@@ -144,6 +144,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     Task VibrateAsync(ushort strength, int milliseconds = 60);
 
     /// <summary>
+    /// 同步強制停止震動（用於應用程式關閉等緊急情境）
+    /// </summary>
+    void StopVibration();
+
+    /// <summary>
     /// 暫停輪詢
     /// </summary>
     void Pause();
