@@ -969,7 +969,8 @@ public partial class MainForm
 
                         // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
                         if (oldFont != null &&
-                            oldFont != _a11yFont)
+                            oldFont != _a11yFont &&
+                            oldFont != _boldBtnFont)
                         {
                             oldFont.Dispose();
                         }
@@ -1093,7 +1094,8 @@ public partial class MainForm
                     }
 
                     if (lastFont != null &&
-                        lastFont != _a11yFont)
+                        lastFont != _a11yFont &&
+                        lastFont != _boldBtnFont)
                     {
                         lastFont.Dispose();
                     }
