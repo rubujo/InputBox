@@ -28,6 +28,11 @@ public partial class MainForm
     private long _currentAnnouncementId = 0;
 
     /// <summary>
+    /// 用於交替附加的零寬度字元狀態
+    /// </summary>
+    private bool _a11yAltCharState = false;
+
+    /// <summary>
     /// 在 UI 執行緒中最後一次完成廣播的 ID（用於防止非同步排程導致的舊訊息覆蓋新訊息）
     /// </summary>
     private long _lastProcessedAnnouncementId = 0;
@@ -61,16 +66,16 @@ public partial class MainForm
         FontStyle fontStyle = FontStyle.Regular)
     {
         // 根據規範，預設為 11f 放大字型。
-        const float BaseFontSize = 11.0f,
+        const float baseFontSize = 11.0f,
             // 根據規範，基準 DPI 固定為 96.0f。
-            BaseDpi = 96.0f;
+            baseDpi = 96.0f;
 
-        float scale = dpi / BaseDpi;
+        float scale = dpi / baseDpi;
 
         // 優先使用系統訊息視窗字型作為基準。
         Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
 
-        return new Font(baseFont.FontFamily, BaseFontSize * scale, fontStyle);
+        return new Font(baseFont.FontFamily, baseFontSize * scale, fontStyle);
     }
 
     /// <summary>
@@ -119,6 +124,17 @@ public partial class MainForm
 
         // 根據規範，套用統一的 A11y 共享字型。
         BtnCopy.Font = _a11yFont;
+
+        // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock），
+        // 預先測量 Bold 狀態下的文字寬度，並鎖定為 MinimumSize，防止懸停加粗時佈局抖動。
+        Size boldSize = TextRenderer.MeasureText(BtnCopy.Text, _boldBtnFont);
+
+        int requiredWidth = boldSize.Width + BtnCopy.Padding.Horizontal + 10;
+
+        if (BtnCopy.MinimumSize.Width < requiredWidth)
+        {
+            BtnCopy.MinimumSize = new Size(requiredWidth, BtnCopy.MinimumSize.Height);
+        }
 
         // 紀錄原始顏色，以便在滑鼠移出或失去焦點時還原。
         // 當從高對比模式切換回一般模式時，必須重新整理快取，以確保顏色符合目前主題。
@@ -317,9 +333,14 @@ public partial class MainForm
             return;
         }
 
+        // 交替附加零寬度字元（ZWSP：\u200B、ZWNJ：\u200C），強迫 UIA 識別為新內容。
+        _a11yAltCharState = !_a11yAltCharState;
+
+        string finalMessage = message + (_a11yAltCharState ? "\u200B" : "\u200C");
+
         long id = Interlocked.Increment(ref _currentAnnouncementId);
 
         // 嘗試寫入 Channel。如果已經關閉，則安靜地結束。
-        _a11yChannel.Writer.TryWrite(new AnnouncementRequest(message, interrupt, id));
+        _a11yChannel.Writer.TryWrite(new AnnouncementRequest(finalMessage, interrupt, id));
     }
 }

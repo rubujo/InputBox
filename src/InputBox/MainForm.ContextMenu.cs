@@ -714,7 +714,8 @@ public partial class MainForm
                 }
                 else if (label == Strings.Settings_VibrationIntensity)
                 {
-                    mi.Text = string.Format(Strings.Menu_Settings_Intensity, AppSettings.Current.VibrationIntensity);
+                    // 格式化為小數點後一位（如 1.0），增進視覺一致性。
+                    mi.Text = $"{label}: {AppSettings.Current.VibrationIntensity:F1}";
                 }
                 else if (label == Strings.Settings_WindowOpacity)
                 {

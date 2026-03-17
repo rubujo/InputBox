@@ -117,6 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="A11y_Btn_Minus_Desc" xml:space="preserve">
+    <value>Decreases the numeric value.</value>
+    <comment>Accessibility description for the minus button in numeric input dialogs.</comment>
+  </data>
+  <data name="A11y_Btn_Plus_Desc" xml:space="preserve">
+    <value>Increases the numeric value.</value>
+    <comment>Accessibility description for the plus button in numeric input dialogs.</comment>
+  </data>
+  <data name="Btn_Minus" xml:space="preserve">
+    <value>－</value>
+    <comment>Display text for the minus button.</comment>
+  </data>
+  <data name="Btn_Plus" xml:space="preserve">
+    <value>＋</value>
+    <comment>Display text for the plus button.</comment>
+  </data>
+  <data name="A11y_State_Focused" xml:space="preserve">
+    <value>Focused</value>
+    <comment>Appended to AccessibleDescription when a button gains focus.</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>Copies the text from the input box to the clipboard.</value>
     <comment>Accessibility description for the copy button, explaining its function.</comment>

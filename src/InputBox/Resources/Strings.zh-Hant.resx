@@ -117,6 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="A11y_Btn_Minus_Desc" xml:space="preserve">
+    <value>減少數值。</value>
+    <comment>數值輸入對話框中，減號按鈕的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Btn_Plus_Desc" xml:space="preserve">
+    <value>增加數值。</value>
+    <comment>數值輸入對話框中，加號按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Btn_Minus" xml:space="preserve">
+    <value>－</value>
+    <comment>減號按鈕的顯示文字。</comment>
+  </data>
+  <data name="Btn_Plus" xml:space="preserve">
+    <value>＋</value>
+    <comment>加號按鈕的顯示文字。</comment>
+  </data>
+  <data name="A11y_State_Focused" xml:space="preserve">
+    <value>已獲得焦點</value>
+    <comment>當按鈕獲得焦點時，附加於無障礙描述（AccessibleDescription）後方的狀態文字。</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>將輸入框中的文字複製到剪貼簿。</value>
     <comment>複製按鈕的無障礙描述，解釋按鈕的功能（複製到剪貼簿）。</comment>

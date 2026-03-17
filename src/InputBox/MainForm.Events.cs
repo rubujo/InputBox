@@ -51,7 +51,7 @@ public partial class MainForm
         try
         {
             // Windows 平板模式會在 Shown 後強制最大化。
-            // 延遲 50ms 讓系統完成動畫與視窗狀態更新，再強制還原。
+            // 延遲讓系統完成動畫與視窗狀態更新，再強制還原。
             try
             {
                 await Task.Delay(AppSettings.Current.WindowRestoreDelay, _formCts.Token);
@@ -73,13 +73,13 @@ public partial class MainForm
 
             // 初始化 GamepadController。
             // 使用 SafeFireAndForget 並傳入額外處理動作，以確保啟動失敗時能獲得 A11y 通知。
-            InitializeGamepadControllerAsync().SafeFireAndForget(ex =>
-            {
-                // A11y 廣播：告知控制器初始化失敗（可能不影響鍵盤使用，但手把功能會受限）。
-                AnnounceA11y(Strings.Err_GamepadInitFail);
+            InitializeGamepadControllerAsync()
+                .SafeFireAndForget(ex =>
+                {
+                    AnnounceA11y(Strings.Err_GamepadInitFail);
 
-                Debug.WriteLine($"[啟動] 控制器初始化失敗：{ex.Message}");
-            });
+                    Debug.WriteLine($"[啟動] 控制器初始化失敗：{ex.Message}");
+                });
 
             // 啟動時自動取得焦點。
             TBInput.Focus();
@@ -103,7 +103,7 @@ public partial class MainForm
 
             AnnounceA11y($"{Strings.App_Title}. {Strings.A11y_MainFormDesc}");
 
-            // 稍微延遲後播報狀態摘要（隱私模式與目前快速鍵）。
+            // 延後播報狀態摘要（隱私模式與目前快速鍵）。
             // 這裡直接 await Task.Delay，結束後會自動回到 UI 執行緒，不需過度切換執行緒。
             try
             {
@@ -142,7 +142,7 @@ public partial class MainForm
     {
         try
         {
-            // 監聽顏色、無障礙設定以及一般設定（包含 UIEffectsEnabled 動畫開關）。
+            // 監聽顏色、無障礙設定以及一般設定。
             if (e.Category == UserPreferenceCategory.Color ||
                 e.Category == UserPreferenceCategory.Accessibility ||
                 e.Category == UserPreferenceCategory.General)
@@ -151,12 +151,12 @@ public partial class MainForm
                 {
                     // 根據規範，系統無障礙設定（如高對比、大字型、動畫開關）變更時，需重新套用在地化資源與佈局。
                     ApplyLocalization();
-
+                    
                     // 即時同步不透明度防護（高對比模式下強制 100%）。
                     UpdateOpacity();
 
-                    // 即時同步邊框狀態（包含厚度與顏色，服從新的系統視覺效果設定）。
-                    UpdateBorderColor();
+                    // 同步目前焦點狀態的邊框。
+                    UpdateBorderColor(TBInput.Focused);
 
                     if (TBInput.Focused)
                     {
@@ -182,30 +182,31 @@ public partial class MainForm
     {
         try
         {
+            // Tab 鍵進入時，中止正在進行的警示動畫。
+            _alertCts?.Cancel();
+            
             // 如果正在擷取快速鍵，則不執行一般的進入變色邏輯，保留擷取模式的視覺狀態。
             if (_isCapturingHotkey != 0)
             {
                 return;
             }
 
-            // 優先更新邊框厚度與形狀（CVD 友善：不依賴顏色）。
-            UpdateBorderColor();
+            // 更新邊框狀態。
+            UpdateBorderColor(true);
 
             // 判斷是否為高對比模式，如果系統已經開啟高對比，
             // 就完全尊重系統設定，不要自己改顏色。
             if (SystemInformation.HighContrast)
             {
-                // 在高對比模式下，手動還原為系統配色，不進行自訂染色。
-                TBInput.BackColor = SystemColors.Window;
-                TBInput.ForeColor = SystemColors.WindowText;
+                // 高對比模式配色。
+                TBInput.BackColor = SystemColors.Highlight;
+                TBInput.ForeColor = SystemColors.HighlightText;
 
                 return;
             }
 
-            // 背景改為「純黑色」。
+            // 強烈靜態視覺回饋：明暗反轉。
             TBInput.BackColor = Color.Black;
-
-            // 文字改為「純白色」。
             TBInput.ForeColor = Color.White;
         }
         catch (Exception ex)
@@ -218,6 +219,8 @@ public partial class MainForm
     {
         try
         {
+            _alertCts?.Cancel();
+            
             // 如果正在擷取快速鍵時失去焦點，則取消擷取模式。
             if (_isCapturingHotkey != 0)
             {
@@ -226,9 +229,9 @@ public partial class MainForm
                 // A11y 廣播：取消提示。
                 AnnounceA11y(Strings.A11y_Capture_Cancelled);
             }
-
-            // 還原邊框厚度（CVD 友善）。
-            UpdateBorderColor();
+            
+            // 還原邊框厚度。
+            UpdateBorderColor(false);
 
             // 還原為一般視窗背景（白色）。
             TBInput.BackColor = SystemColors.Window;
@@ -257,7 +260,9 @@ public partial class MainForm
     {
         try
         {
-            ApplyButtonHoverStyle();
+            _isBtnHovered = true;
+
+            ApplyButtonHoverStyle(isKeyboardFocus: false);
         }
         catch (Exception ex)
         {
@@ -269,6 +274,8 @@ public partial class MainForm
     {
         try
         {
+            _isBtnHovered = false;
+
             RestoreButtonDefaultStyle();
         }
         catch (Exception ex)
@@ -282,7 +289,7 @@ public partial class MainForm
         try
         {
             // 當按鈕取得焦點（例如透過 Tab 鍵）時，套用視覺強化。
-            ApplyButtonHoverStyle();
+            ApplyButtonHoverStyle(isKeyboardFocus: true);
         }
         catch (Exception ex)
         {
@@ -294,8 +301,10 @@ public partial class MainForm
     {
         try
         {
-            // 當按鈕失去焦點時，還原視覺樣式。
-            RestoreButtonDefaultStyle();
+            // 強制還原樣式，確保焦點確實轉移。
+            _isBtnHovered = false;
+
+            RestoreButtonDefaultStyle(force: true);
         }
         catch (Exception ex)
         {
@@ -303,64 +312,41 @@ public partial class MainForm
         }
     }
 
-    /// <summary>
-    /// 套用按鈕高亮與加粗樣式
-    /// </summary>
-    private void ApplyButtonHoverStyle()
+    private void BtnCopy_Paint(object? sender, PaintEventArgs e)
     {
-        // 如果按鈕已停用，不執行樣式變更，避免干擾 Reset 流程。
-        if (BtnCopy == null ||
-            !BtnCopy.Enabled)
+        if (_dwellProgress <= 0 ||
+            BtnCopy == null)
         {
             return;
         }
 
-        // A11y 視覺回饋 1：顏色變化。
-        BtnCopy.BackColor = SystemColors.Highlight;
-        BtnCopy.ForeColor = SystemColors.HighlightText;
+        float scale = DeviceDpi / BaseDpi;
 
-        // A11y 視覺回饋 2：形狀與輪廓變化。
-        // 使用在 ApplyLocalization 中統一建立並隨 DPI 更新的加粗字型。
-        if (_boldBtnFont != null)
-        {
-            BtnCopy.Font = _boldBtnFont;
-        }
-    }
+        int barHeight = (int)(6 * scale),
+            barWidth = (int)(BtnCopy.Width * _dwellProgress);
 
-    /// <summary>
-    /// 還原按鈕原始樣式。
-    /// </summary>
-    private void RestoreButtonDefaultStyle()
-    {
-        if (BtnCopy == null)
-        {
-            return;
-        }
+        using Brush barBrush = new SolidBrush(
+            SystemInformation.HighContrast ?
+                SystemColors.HighlightText :
+                Color.DarkOrange);
 
-        // 還原為原始顏色：在高對比模式下，必須動態獲取系統顏色，不可使用快取值。
-        if (SystemInformation.HighContrast)
-        {
-            BtnCopy.BackColor = SystemColors.Control;
-            BtnCopy.ForeColor = SystemColors.ControlText;
-        }
-        else
-        {
-            BtnCopy.BackColor = _originalBtnBackColor;
-            BtnCopy.ForeColor = _originalBtnForeColor;
-        }
-
-        // 還原為原始字體粗細。
-        // 直接套用 ApplyLocalization 中統一管理的 A11y 共享字型。
-        if (_a11yFont != null)
-        {
-            BtnCopy.Font = _a11yFont;
-        }
+        e.Graphics.FillRectangle(
+            barBrush,
+            0,
+            BtnCopy.Height - barHeight,
+            barWidth,
+            barHeight);
     }
 
     private async void BtnCopy_Click(object sender, EventArgs e)
     {
         try
         {
+            // 點擊後立即將焦點歸還給 TextBox，確保按鈕能順利還原。
+            TBInput.Focus();
+
+            RestoreButtonDefaultStyle(force: true);
+
             await PerformCopyAsync();
         }
         catch (Exception ex)
@@ -372,7 +358,138 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 執行核心複製邏輯
+    /// 套用按鈕高亮與加粗樣式
+    /// </summary>
+    /// <param name="isKeyboardFocus">是否為鍵盤焦點觸發（若是則不啟動進度條動畫）</param>
+    private void ApplyButtonHoverStyle(bool isKeyboardFocus)
+    {
+        // 如果按鈕已停用，不執行樣式變更，避免干擾 Reset 流程。
+        if (BtnCopy == null ||
+            !BtnCopy.Enabled)
+        {
+            return;
+        }
+
+        long id = Interlocked.Increment(ref _animationId);
+
+        if (_originalBtnPadding == default)
+        {
+            _originalBtnPadding = BtnCopy.Padding;
+        }
+
+        // 1. 強烈靜態視覺回饋：明暗反轉。
+        if (SystemInformation.HighContrast)
+        {
+            BtnCopy.BackColor = SystemColors.Highlight;
+            BtnCopy.ForeColor = SystemColors.HighlightText;
+        }
+        else
+        {
+            BtnCopy.BackColor = Color.Black;
+            BtnCopy.ForeColor = Color.White;
+        }
+
+        // 2. 形狀補償：字體加粗。
+        if (_boldBtnFont != null)
+        {
+            BtnCopy.Font = _boldBtnFont;
+        }
+
+        BtnCopy.Padding = new Padding(0);
+        BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
+
+        // 3. 動畫回饋：僅在視線進入時播放。
+        if (!isKeyboardFocus)
+        {
+            StartDwellAnimationAsync(id).SafeFireAndForget();
+        }
+    }
+
+    /// <summary>
+    /// 開始 Dwell 動畫任務
+    /// </summary>
+    /// <param name="id">動畫任務的唯一識別碼</param>
+    /// <returns>Task</returns>
+    private async Task StartDwellAnimationAsync(long id)
+    {
+        if (!SystemInformation.UIEffectsEnabled)
+        {
+            _dwellProgress = 1.0f;
+
+            BtnCopy.Invalidate();
+
+            return;
+        }
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        int duration = 1000;
+
+        while (Interlocked.Read(ref _animationId) == id && !IsDisposed)
+        {
+            double elapsed = sw.Elapsed.TotalMilliseconds;
+
+            _dwellProgress = (float)Math.Min(1.0, elapsed / duration);
+
+            BtnCopy.Invalidate();
+
+            if (_dwellProgress >= 1.0f)
+            {
+                break;
+            }
+
+            await Task.Delay(16);
+        }
+    }
+
+    /// <summary>
+    /// 還原按鈕原始樣式
+    /// </summary>
+    /// <param name="force">是否強制還原（忽略焦點檢查）</param>
+    private void RestoreButtonDefaultStyle(bool force = false)
+    {
+        Interlocked.Increment(ref _animationId);
+
+        _dwellProgress = 0f;
+
+        if (BtnCopy == null)
+        {
+            return;
+        }
+
+        // 狀態守衛：只有在確實失焦且無懸停，或強制還原時執行。
+        if (force ||
+            (!BtnCopy.Focused && !_isBtnHovered))
+        {
+            if (SystemInformation.HighContrast)
+            {
+                BtnCopy.BackColor = SystemColors.Control;
+                BtnCopy.ForeColor = SystemColors.ControlText;
+            }
+            else
+            {
+                BtnCopy.BackColor = _originalBtnBackColor;
+                BtnCopy.ForeColor = _originalBtnForeColor;
+            }
+
+            if (_a11yFont != null)
+            {
+                BtnCopy.Font = _a11yFont;
+            }
+
+            if (_originalBtnPadding != default)
+            {
+                BtnCopy.Padding = _originalBtnPadding;
+            }
+
+            BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+        }
+
+        BtnCopy.Invalidate();
+    }
+
+    /// <summary>
+    /// 執行核心複製邏輯與歷程紀錄
     /// </summary>
     /// <returns>Task</returns>
     private async Task PerformCopyAsync()
@@ -468,7 +585,7 @@ public partial class MainForm
             BtnCopy.Text = Strings.Msg_Copied;
             BtnCopy.AccessibleDescription = Strings.Msg_Copied;
 
-            // 語音優化：將兩條相關訊息合併為一條發送，確保在焦點切換前使用者能聽到完整結果。
+            // 語音最佳化：將兩條相關訊息合併為一條發送，確保在焦點切換前使用者能聽到完整結果。
             AnnounceA11y($"{Strings.Msg_Copied}. {Strings.A11y_Returning}");
 
             // 複製後清除。
@@ -515,13 +632,14 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 處理 KeyDown
+    /// 處理自定義快捷按鍵與歷史導覽
     /// </summary>
     /// <param name="e">KeyEventArgs</param>
     private void HandleKeyDown(KeyEventArgs e)
     {
-        // Alt + B：不複製直接返回前一個視窗（與遊戲手把 LB+RB+B 對等）。
-        if (e.Alt && e.KeyCode == Keys.B)
+        // Alt + B：不複製直接返回前一個視窗（與遊戲手把 LB + RB + B 對等）。
+        if (e.Alt &&
+            e.KeyCode == Keys.B)
         {
             HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
 
@@ -569,11 +687,10 @@ public partial class MainForm
         // ↓：下一筆。
         if (e.KeyCode == Keys.Down)
         {
-            // 取得游標目前所在的行數。
-            int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart);
-
-            // 取得文字方塊總共的行數（最後一行的 Index）。
-            int totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
+            // 取得游標目前所在的行數。 
+            int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart),
+                // 取得文字方塊總共的行數（最後一行的 Index）。
+                totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
 
             // 只有在最後一行時，按「下」才觸發歷史紀錄。
             if (currentLine == totalLines)
@@ -588,7 +705,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 清除文字方塊
+    /// 清除輸入框內容
     /// </summary>
     private void ClearInput()
     {
@@ -615,9 +732,9 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 註冊全域快速鍵的內部方法，並在註冊失敗時顯示包含目前設定的快速鍵組合的錯誤訊息
+    /// 內部註冊全域快速鍵
     /// </summary>
-    /// <returns>是否註冊成功</returns>
+    /// <returns>是否成功註冊全域快速鍵</returns>
     private bool RegisterHotKeyInternal()
     {
         bool isOkay = GlobalHotKeyService.RegisterShowInputHotkey(Handle);
@@ -626,7 +743,7 @@ public partial class MainForm
         {
             string currentHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
 
-            // A11y 廣播：告知熱鍵註冊失敗。
+            // A11y 廣播：告知快速鍵註冊失敗。
             AnnounceA11y(Strings.Err_HotkeyRegFail_Brief);
 
             // 音效回饋。
@@ -645,7 +762,7 @@ public partial class MainForm
     /// <summary>
     /// 導覽輸入歷程記錄
     /// </summary>
-    /// <param name="direction">數值</param>
+    /// <param name="direction">導航方向，-1 表示向上，1 表示向下</param>
     private void NavigateHistory(int direction)
     {
         InputHistoryService.NavigationResult navigationResult = _historyService.Navigate(direction);
@@ -693,7 +810,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 顯示觸控式鍵盤
+    /// 嘗試顯示 Windows 觸控式鍵盤
     /// </summary>
     private void ShowTouchKeyboard()
     {
@@ -759,7 +876,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 顯示輸入
+    /// 將視窗呼叫至前景準備輸入
     /// </summary>
     public void ShowForInput()
     {
@@ -787,9 +904,9 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 返回前一個視窗
+    /// 還原焦點至先前擷取的視窗
     /// </summary>
-    /// <param name="announce">是否執行 A11y 廣播（預設為 true）</param>
+    /// <param name="announce">是否公告還原焦點的訊息</param>
     /// <returns>Task</returns>
     private async Task ReturnToPreviousWindowAsync(bool announce = true)
     {
@@ -820,7 +937,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 讓輸入框邊框閃爍與脈衝加粗（視覺警示機制）
+    /// 執行視覺警示閃爍效果
     /// </summary>
     /// <returns>Task</returns>
     private async Task FlashAlertAsync()
@@ -833,33 +950,25 @@ public partial class MainForm
             return;
         }
 
-        // 快取原始狀態。
-        Padding originalPadding = PInputHost.Padding;
+        // 建立本次動畫專用的中斷權杖。
+        _alertCts?.Cancel();
+        _alertCts = CancellationTokenSource.CreateLinkedTokenSource(_formCts.Token);
+
+        CancellationToken token = _alertCts.Token;
 
         try
         {
-            // 根據 DPI 計算脈衝強度（加粗邊框）。
             float scale = DeviceDpi / BaseDpi;
 
-            int pulseThickness = (int)Math.Max(7, 7 * scale);
+            int normalThickness = (int)Math.Max(2, 2 * scale),
+                pulseThickness = (int)Math.Max(7, 7 * scale);
 
-            // 決定警示色與對比色。
-            Color alertColor,
-                contrastColor = TBInput.BackColor;
+            // 決定警示色。
+            Color alertColor = SystemInformation.HighContrast ?
+                SystemColors.HighlightText :
+                Color.FromArgb(255, 140, 0);
 
-            if (SystemInformation.HighContrast)
-            {
-                alertColor = SystemColors.HighlightText;
-            }
-            else
-            {
-                // 使用暖橘色 (DarkOrange)，對紅／綠／藍黃色弱皆具備極佳對比。
-                alertColor = Color.FromArgb(255, 140, 0);
-            }
-
-            // 執行視覺強化：全色盲優化。
-            // 在警示瞬間，暫時將輸入框背景變為與 alertColor 有強烈明暗差的顏色（純黑或純白）。
-            void ApplyAlertVisuals()
+            void ApplyAlertVisuals(float intensity)
             {
                 if (IsDisposed ||
                     !IsHandleCreated)
@@ -867,14 +976,46 @@ public partial class MainForm
                     return;
                 }
 
-                PInputHost.BackColor = alertColor;
-                PInputHost.Padding = new Padding(pulseThickness);
+                int currentThickness = (int)Math.Round(normalThickness + (pulseThickness - normalThickness) * intensity);
 
-                if (!SystemInformation.HighContrast)
+                PInputHost.Padding = new Padding(currentThickness);
+
+                if (SystemInformation.HighContrast)
                 {
-                    // 製造明暗反轉，全色盲使用者對「明暗突變」極其敏感。
-                    TBInput.BackColor = Color.Black;
-                    TBInput.ForeColor = Color.White;
+                    PInputHost.BackColor = intensity > 0.5f ?
+                        alertColor :
+                        SystemColors.Highlight;
+                }
+                else
+                {
+                    Color baseColor = TBInput.Focused ?
+                        SystemColors.Highlight :
+                        SystemColors.ControlDark;
+
+                    int r = (int)(baseColor.R + (alertColor.R - baseColor.R) * intensity),
+                        g = (int)(baseColor.G + (alertColor.G - baseColor.G) * intensity),
+                        b = (int)(baseColor.B + (alertColor.B - baseColor.B) * intensity);
+
+                    PInputHost.BackColor = Color.FromArgb(255, r, g, b);
+
+                    if (intensity > 0.8f)
+                    {
+                        TBInput.BackColor = Color.Black;
+                        TBInput.ForeColor = Color.White;
+                    }
+                    else
+                    {
+                        if (TBInput.Focused)
+                        {
+                            TBInput.BackColor = Color.Black;
+                            TBInput.ForeColor = Color.White;
+                        }
+                        else
+                        {
+                            TBInput.BackColor = SystemColors.Window;
+                            TBInput.ForeColor = SystemColors.WindowText;
+                        }
+                    }
                 }
             }
 
@@ -883,50 +1024,61 @@ public partial class MainForm
             // 則不進行循環閃爍，改為一次性的「長脈衝（Static Pulse）」回饋。
             if (!SystemInformation.UIEffectsEnabled)
             {
-                this.SafeInvoke(() =>
-                {
-                    ApplyAlertVisuals();
-                });
+                this.SafeInvoke(() => ApplyAlertVisuals(1.0f));
 
                 // 維持一段較長時間（800ms）讓低視能使用者感知狀態，隨後恢復。
-                await Task.Delay(800, _formCts.Token);
+                await Task.Delay(800, token);
 
                 return;
             }
 
-            // 正常閃爍流程（符合 2.5Hz 安全規範）。
-            int flashCount = 3,
-                interval = 200;
+            int totalDuration = 2000,
+                delayMs = 16;
 
-            for (int i = 0; i < flashCount; i++)
+            long startTime = Stopwatch.GetTimestamp();
+
+            while (true)
             {
+                token.ThrowIfCancellationRequested();
+
+                long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
+
+                double elapsedMs = (double)elapsedTicks / Stopwatch.Frequency * 1000.0;
+
+                if (elapsedMs >= totalDuration)
+                {
+                    break;
+                }
+
+                double angle = elapsedMs / 1000.0 * 2.0 * Math.PI - (Math.PI / 2.0);
+
+                float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
+
                 if (IsDisposed ||
                     !IsHandleCreated)
                 {
                     return;
                 }
 
-                this.SafeInvoke(ApplyAlertVisuals);
+                this.SafeInvoke(() => ApplyAlertVisuals(intensity));
 
-                await Task.Delay(interval, _formCts.Token);
+                await Task.Delay(delayMs, token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
 
-                if (IsDisposed ||
-                    !IsHandleCreated)
-                {
-                    return;
-                }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _isFlashing, 0);
 
+            if (!IsDisposed &&
+                IsHandleCreated)
+            {
+                this.SafeInvoke(() => UpdateBorderColor(TBInput.Focused));
                 this.SafeInvoke(() =>
                 {
-                    if (IsDisposed ||
-                        !IsHandleCreated)
-                    {
-                        return;
-                    }
-
-                    // 還原至目前的焦點狀態視覺。
-                    UpdateBorderColor();
-
                     if (!SystemInformation.HighContrast)
                     {
                         // 還原輸入框顏色。
@@ -942,27 +1094,15 @@ public partial class MainForm
                         }
                     }
                 });
-
-                await Task.Delay(interval, _formCts.Token);
-            }
-        }
-        catch (OperationCanceledException) { }
-        finally
-        {
-            Interlocked.Exchange(ref _isFlashing, 0);
-
-            // 最終確保視覺狀態正確還原。
-            if (!IsDisposed && IsHandleCreated)
-            {
-                this.SafeInvoke(UpdateBorderColor);
             }
         }
     }
 
     /// <summary>
-    /// 依據焦點狀態更新邊框顏色與厚度（CVD 色覺友善全方位優化）
+    /// 依據焦點狀態更新邊框視覺
     /// </summary>
-    private void UpdateBorderColor()
+    /// <param name="isFocused">是否具有焦點</param>
+    private void UpdateBorderColor(bool isFocused)
     {
         if (IsDisposed ||
             !IsHandleCreated)
@@ -970,13 +1110,13 @@ public partial class MainForm
             return;
         }
 
-        // 根據 DPI 計算厚度差異（強化形狀特徵，協助全色盲辨識）。
+        // 根據 DPI 計算厚度差異。
         float scale = DeviceDpi / BaseDpi;
 
         int activeThickness = (int)Math.Max(5, 5 * scale),
             normalThickness = (int)Math.Max(2, 2 * scale);
 
-        if (TBInput.Focused)
+        if (isFocused)
         {
             // 獲得焦點：加粗邊框（顯著形狀變化） + 高對比配色。
             // 使用 SystemColors 確保在高對比模式下由 Windows 接管配色。
@@ -992,7 +1132,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 安全地處理返回前一個視窗的流程，避免重複觸發導致的問題
+    /// 執行執行緒安全的視窗返回
     /// </summary>
     /// <returns>Task</returns>
     private async Task HandleReturnToPreviousWindowSafeAsync()
@@ -1051,14 +1191,7 @@ public partial class MainForm
         TBInput.AccessibleName = Strings.A11y_TBInputName;
         TBInput.ImeMode = ImeMode.On;
 
-        // 還原邊框形狀與顏色（需根據 DPI 縮放以保持視覺一致性）。
-        float scale = DeviceDpi / BaseDpi;
-
-        int defaultPadding = (int)Math.Max(3, 3 * scale);
-
-        PInputHost.Padding = new Padding(defaultPadding);
-
-        UpdateBorderColor();
+        UpdateBorderColor(TBInput.Focused);
 
         // 還原按鈕狀態。
         BtnCopy.Enabled = true;
@@ -1069,7 +1202,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 依據目前的控制器狀態更新視窗標題
+    /// 更新視窗標題列文字
     /// </summary>
     private void UpdateTitle()
     {
@@ -1092,7 +1225,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 重置觸控式鍵盤顯示旗標
+    /// 重置觸控鍵盤標誌
     /// </summary>
     /// <returns>Task</returns>
     private async Task ResetTouchKeyboardFlagAsync()
@@ -1114,14 +1247,14 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 彈出輸入視窗獲取整數數值
+    /// 顯示數值輸入對話框，並返回使用者輸入的值
     /// </summary>
-    /// <param name="title">視窗標題</param>
-    /// <param name="currentValue">目前值</param>
+    /// <param name="title">對話框標題</param>
+    /// <param name="currentValue">當前值</param>
     /// <param name="defaultValue">預設值</param>
     /// <param name="minimum">最小值</param>
     /// <param name="maximum">最大值</param>
-    /// <returns>int?</returns>
+    /// <returns>使用者輸入的值，如果取消則為 null</returns>
     private int? AskForValue(
         string title,
         int currentValue,
@@ -1147,14 +1280,14 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 彈出輸入視窗獲取浮點數數值
+    /// 顯示浮點數輸入對話框，並返回使用者輸入的值
     /// </summary>
-    /// <param name="title">視窗標題</param>
-    /// <param name="currentValue">目前值</param>
+    /// <param name="title">對話框標題</param>
+    /// <param name="currentValue">當前值</param>
     /// <param name="defaultValue">預設值</param>
     /// <param name="minimum">最小值</param>
     /// <param name="maximum">最大值</param>
-    /// <returns>float?</returns>
+    /// <returns>使用者輸入的值，如果取消則為 null</returns>
     private float? AskForFloat(
         string title,
         float currentValue,

@@ -61,6 +61,51 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        /// 查詢類似 Decreases the numeric value. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Btn_Minus_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Btn_Minus_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Increases the numeric value. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Btn_Plus_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Btn_Plus_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 － 的當地語系化字串。
+        /// </summary>
+        internal static string Btn_Minus {
+            get {
+                return ResourceManager.GetString("Btn_Minus", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 ＋ 的當地語系化字串。
+        /// </summary>
+        internal static string Btn_Plus {
+            get {
+                return ResourceManager.GetString("Btn_Plus", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        /// 查詢類似 Focused 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_State_Focused {
+            get {
+                return ResourceManager.GetString("A11y_State_Focused", resourceCulture);
+            }
+        }
+
+        /// <summary>
         /// 查詢類似 Background task error: {0} 的當地語系化字串。
         /// </summary>
         internal static string A11y_Background_Error {

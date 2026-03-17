@@ -3,6 +3,7 @@ using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Services;
 using InputBox.Resources;
+using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
@@ -42,7 +43,12 @@ internal sealed class NumericInputDialog : Form
     }
 
     /// <summary>
-    /// AccessibleNumericUpDown
+    /// 預設數值
+    /// </summary>
+    private readonly decimal _defaultValue;
+
+    /// <summary>
+    /// AccessibleNumericUpDown 實例
     /// </summary>
     private readonly AccessibleNumericUpDown _nud;
 
@@ -52,9 +58,14 @@ internal sealed class NumericInputDialog : Form
     private readonly AnnouncerLabel _announcer;
 
     /// <summary>
-    /// 預設數值
+    /// 統一放大的 A11y 字型
     /// </summary>
-    private readonly decimal _defaultValue;
+    private readonly Font _a11yFont;
+
+    /// <summary>
+    /// 用於管理對話框生命週期內非同步任務的取消權杖來源
+    /// </summary>
+    private readonly CancellationTokenSource _cts = new();
 
     /// <summary>
     /// 遊戲手把控制器
@@ -62,12 +73,12 @@ internal sealed class NumericInputDialog : Form
     private IGamepadController? _gamepadController;
 
     /// <summary>
-    /// 取得使用者輸入的數值
+    /// 取得目前數值
     /// </summary>
     public decimal Value => _nud.Value;
 
     /// <summary>
-    /// 設定控制器實作，並訂閱事件。
+    /// 設定控制器實作，並訂閱事件
     /// </summary>
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -90,210 +101,152 @@ internal sealed class NumericInputDialog : Form
             if (_gamepadController != null)
             {
                 // 訂閱新控制器事件。
-                _gamepadController.UpPressed += HandleUp;
-                _gamepadController.UpRepeat += HandleUp;
-                _gamepadController.DownPressed += HandleDown;
-                _gamepadController.DownRepeat += HandleDown;
+                _gamepadController.UpPressed += HandlePlus;
+                _gamepadController.UpRepeat += HandlePlus;
+                _gamepadController.DownPressed += HandleMinus;
+                _gamepadController.DownRepeat += HandleMinus;
                 _gamepadController.APressed += HandleConfirm;
                 _gamepadController.StartPressed += HandleConfirm;
                 _gamepadController.BPressed += HandleCancel;
                 _gamepadController.XPressed += HandleReset;
+                _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
             }
         }
     }
 
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+
+        UpdateMinimumSize();
+
+        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+    }
+
+    protected override void OnDpiChanged(DpiChangedEventArgs e)
+    {
+        base.OnDpiChanged(e);
+
+        UpdateMinimumSize();
+    }
+
+    private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == UserPreferenceCategory.Accessibility ||
+            e.Category == UserPreferenceCategory.Color)
+        {
+            this.SafeInvoke(() =>
+            {
+                UpdateMinimumSize();
+
+                UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
+            });
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+
+            _cts.Cancel();
+            _cts.Dispose();
+            _a11yFont?.Dispose();
+            _announcer?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
     /// <summary>
-    /// 取消訂閱目前手把控制器的所有事件
+    /// 取消訂閱手把事件
     /// </summary>
     private void UnsubscribeGamepadEvents()
     {
         if (_gamepadController != null)
         {
-            _gamepadController.UpPressed -= HandleUp;
-            _gamepadController.UpRepeat -= HandleUp;
-            _gamepadController.DownPressed -= HandleDown;
-            _gamepadController.DownRepeat -= HandleDown;
+            _gamepadController.UpPressed -= HandlePlus;
+            _gamepadController.UpRepeat -= HandlePlus;
+            _gamepadController.DownPressed -= HandleMinus;
+            _gamepadController.DownRepeat -= HandleMinus;
             _gamepadController.APressed -= HandleConfirm;
             _gamepadController.StartPressed -= HandleConfirm;
             _gamepadController.BPressed -= HandleCancel;
             _gamepadController.XPressed -= HandleReset;
+            _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
         }
     }
 
     /// <summary>
-    /// 是否正在處理數值變更（原子旗標：0=否, 1=是）
+    /// 處理手把連線狀態變更
     /// </summary>
-    private volatile int _isProcessingValue = 0;
+    private void HandleGamepadConnectionChanged(bool connected)
+    {
+        if (connected)
+        {
+            _gamepadController?.Resume();
+        }
+    }
 
     /// <summary>
-    /// 處理向上按鍵事件，委派給 NumericUpDown 的 UpButton 方法，確保行為一致且獲得內建的邊界檢查與事件觸發
+    /// 處理數值增加，並將焦點移回數值框以確保視覺一致性
     /// </summary>
-    private void HandleUp() => this.SafeInvoke(() =>
+    private void HandlePlus() => this.SafeInvoke(() =>
     {
-        try
-        {
-            if (IsDisposed ||
-                Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
-            {
-                return;
-            }
-
-            try
-            {
-                _nud.UpButton();
-            }
-            finally
-            {
-                Interlocked.Exchange(ref _isProcessingValue, 0);
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[NumericInputDialog] HandleUp 錯誤：{ex.Message}");
-        }
+        _nud.UpButton();
+        _nud.Focus();
     });
 
     /// <summary>
-    /// 處理向下按鍵事件，委派給 NumericUpDown 的 DownButton 方法，確保行為一致且獲得內建的邊界檢查與事件觸發
+    /// 處理數值減少，並將焦點移回數值框以確保視覺一致性
     /// </summary>
-    private void HandleDown() => this.SafeInvoke(() =>
+    private void HandleMinus() => this.SafeInvoke(() =>
     {
-        try
-        {
-            if (IsDisposed ||
-                Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
-            {
-                return;
-            }
-
-            try
-            {
-                _nud.DownButton();
-            }
-            finally
-            {
-                Interlocked.Exchange(ref _isProcessingValue, 0);
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[NumericInputDialog] HandleDown 錯誤：{ex.Message}");
-        }
+        _nud.DownButton();
+        _nud.Focus();
     });
 
     /// <summary>
-    /// 處理確認按鍵事件，先強制驗證輸入內容確保 Value 屬性是最新的，然後設定 DialogResult 並關閉對話框
+    /// 處理確認按鍵事件
     /// </summary>
     private void HandleConfirm() => this.SafeInvoke(() =>
     {
-        try
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
+        _nud.ValidateValue();
 
-            _nud.ValidateValue();
+        DialogResult = DialogResult.OK;
 
-            DialogResult = DialogResult.OK;
-
-            Close();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[NumericInputDialog] HandleConfirm 錯誤：{ex.Message}");
-        }
+        Close();
     });
 
     /// <summary>
-    /// 處理取消按鍵事件，設定 DialogResult 為 Cancel 並關閉對話框
+    /// 處理取消按鍵事件
     /// </summary>
     private void HandleCancel() => this.SafeInvoke(() =>
     {
-        try
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
+        DialogResult = DialogResult.Cancel;
 
-            DialogResult = DialogResult.Cancel;
-
-            Close();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[NumericInputDialog] HandleCancel 錯誤：{ex.Message}");
-        }
+        Close();
     });
 
     /// <summary>
-    /// 用於管理對話框生命週期內非同步任務的取消權杖來源
-    /// </summary>
-    private readonly CancellationTokenSource _cts = new();
-
-    /// <summary>
-    /// 處理重設按鍵事件，將數值重置為預設值，並提供震動反饋。
-    /// 使用 SafeInvoke 確保在 UI 執行緒執行，並使用 Math.Clamp 確保重置值在有效範圍內。
-    /// 重置後會有短暫的防抖機制，避免快速重複觸發造成問題。
-    /// 重置完成後會透過 ValueChanged 事件統一處理無障礙通知，避免重複播報。
+    /// 處理重設按鍵事件
     /// </summary>
     private void HandleReset() => this.SafeInvoke(() =>
     {
-        try
-        {
-            if (IsDisposed ||
-                Interlocked.CompareExchange(ref _isProcessingValue, 1, 0) != 0)
-            {
-                return;
-            }
+        _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
+        _nud.Focus();
 
-            try
-            {
-                // 執行重設邏輯。
-                _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
+        FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-                _nud.Focus();
-
-                // 使用 SafeBeginInvoke 確保在 UI 執行緒空閒時執行選取，提升可靠性。
-                this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
-
-                FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-                FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove).SafeFireAndForget();
-            }
-            finally
-            {
-                // 延遲一下再重置旗標，達到防抖效果。
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        await Task.Delay(250, _cts.Token);
-
-                        Interlocked.Exchange(ref _isProcessingValue, 0);
-                    }
-                    catch (OperationCanceledException)
-                    {
-
-                    }
-                },
-                _cts.Token)
-                .SafeFireAndForget();
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[NumericInputDialog] HandleReset 錯誤：{ex.Message}");
-        }
+        FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove).SafeFireAndForget();
     });
 
     /// <summary>
-    /// 內部廣播方法：委派給主視窗處理，確保進入語音隊列，防止訊息被切斷。
-    /// 若無 Owner，則使用本地廣播器並包含避讓延遲。
+    /// 內部 A11y 廣播方法
     /// </summary>
     /// <param name="message">要廣播的訊息</param>
-    /// <param name="interrupt">是否中斷當前廣播</param>
+    /// <param name="interrupt">是否中斷目前的廣播</param>
     private void AnnounceA11y(string message, bool interrupt = false)
     {
         if (IsDisposed ||
@@ -338,54 +291,49 @@ internal sealed class NumericInputDialog : Form
     }
 
     /// <summary>
-    /// 用於對話框的統一放大字型
+    /// 更新控制項焦點狀態的視覺表現
     /// </summary>
-    private readonly Font _a11yFont;
-
-    /// <summary>
-    /// 處置對話框資源
-    /// </summary>
-    /// <param name="disposing">是否正在處置受控資源</param>
-    protected override void Dispose(bool disposing)
+    /// <param name="isFocused">指示控制項是否具有焦點</param>
+    private void UpdateFocusVisuals(bool isFocused)
     {
-        if (disposing)
+        if (_nud == null ||
+            _nud.IsDisposed)
         {
-            _nud?.Font?.Dispose();
-            _nud?.Dispose();
-            _announcer?.Dispose();
-            _a11yFont?.Dispose();
+            return;
         }
 
-        base.Dispose(disposing);
-    }
-
-    protected override void OnHandleCreated(EventArgs e)
-    {
-        base.OnHandleCreated(e);
-
-        UpdateMinimumSize();
-    }
-
-    protected override void OnDpiChanged(DpiChangedEventArgs e)
-    {
-        base.OnDpiChanged(e);
-
-        UpdateMinimumSize();
+        if (isFocused)
+        {
+            if (SystemInformation.HighContrast)
+            {
+                _nud.BackColor = SystemColors.Highlight;
+                _nud.ForeColor = SystemColors.HighlightText;
+            }
+            else
+            {
+                _nud.BackColor = Color.Black;
+                _nud.ForeColor = Color.White;
+            }
+        }
+        else
+        {
+            _nud.BackColor = SystemColors.Window;
+            _nud.ForeColor = SystemColors.WindowText;
+        }
     }
 
     /// <summary>
-    /// 更新視窗最小尺寸，確保在高 DPI 縮放時佈局不崩潰。
+    /// 更新視窗最小尺寸
     /// </summary>
     private void UpdateMinimumSize()
     {
-        // 基準寬度為 350，根據目前的 DeviceDpi 與標準 96.0f 的比例進行縮放。
         float scale = DeviceDpi / 96.0f;
 
-        MinimumSize = new Size((int)(350 * scale), 0);
+        MinimumSize = new Size((int)(450 * scale), (int)(250 * scale));
     }
 
     /// <summary>
-    /// 初始化數值輸入對話框
+    /// 初始化對話框組件
     /// </summary>
     /// <param name="title">對話框標題</param>
     /// <param name="currentValue">當前數值</param>
@@ -435,40 +383,45 @@ internal sealed class NumericInputDialog : Form
         // 根據 DPI 縮放比例計算佈局參數。
         float scale = DeviceDpi / 96.0f;
 
-        TableLayoutPanel tlp = new()
+        _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
+
+        // 主佈局容器。
+        TableLayoutPanel tlpMain = new()
         {
             Dock = DockStyle.Fill,
             AutoSize = true,
             ColumnCount = 1,
-            RowCount = 3,
-            Padding = new Padding((int)(25 * scale)),
+            RowCount = 2,
+            Padding = new Padding((int)(30 * scale)),
             // 設定為 Grouping 角色，協助輔助科技識別這是一個邏輯區塊。
             AccessibleRole = AccessibleRole.Grouping
         };
 
-        // 明確定義排版樣式。
-        tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-
-        // 建立一個統一放大的 A11y 字型（預設為 11f），供所有控制項共用，讓視覺協調且易讀。
-        // 優先使用 MainForm 提供的共享字型邏輯，確保全專案 A11y 視覺規格一致。
-        _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
-
-        Label lbl = new()
+        Label lblPrompt = new()
         {
-            Text = promptText,
+            Text = string.Format(Strings.Msg_EnterValue, title),
             AutoSize = true,
-            // 設定最大寬度以強制長文字換行，避免對話框寬度失控。
-            MaximumSize = new Size((int)(400 * scale), 0),
-            Margin = new Padding(0, 0, 0, (int)(15 * scale)),
-            AccessibleRole = AccessibleRole.StaticText,
-            AccessibleName = promptText,
-            Font = _a11yFont
+            MaximumSize = new Size((int)(500 * scale), 0),
+            Margin = new Padding(0, 0, 0, (int)(25 * scale)),
+            Font = _a11yFont,
+            AccessibleRole = AccessibleRole.StaticText
         };
 
-        _nud = new()
+        // 3x2 網格連動區。
+        TableLayoutPanel tlpGrid = new()
+        {
+            AutoSize = true,
+            ColumnCount = 3,
+            RowCount = 2,
+            AccessibleRole = AccessibleRole.Grouping
+        };
+        tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+        // 核心控制項建立。
+
+        _nud = new AccessibleNumericUpDown
         {
             DecimalPlaces = decimalPlaces,
             Increment = increment,
@@ -476,32 +429,22 @@ internal sealed class NumericInputDialog : Form
             Maximum = maximum,
             // 使用 Math.Clamp 確保數值在有效範圍內，防止異常。
             Value = Math.Clamp(currentValue, minimum, maximum),
+            TextAlign = HorizontalAlignment.Center,
             // 動態縮放寬度，高度則由 Font 自動決定。
-            Width = (int)(280 * scale),
-            // 數值右對齊，符合 UI 慣例。
-            TextAlign = HorizontalAlignment.Right,
+            Width = (int)(220 * scale),
+            Font = new Font(_a11yFont.FontFamily, _a11yFont.Size * 2.0f, FontStyle.Bold),
+            BackColor = SystemColors.Window,
+            ForeColor = SystemColors.WindowText,
+            Margin = new Padding((int)(15 * scale), (int)(12 * scale), (int)(15 * scale), (int)(12 * scale)),
             AccessibleName = promptText,
             // A11y 描述：報讀目前值與有效範圍。
             AccessibleDescription = string.Format(Strings.A11y_Value_Range_Desc, currentValue, minimum, maximum),
-            TabIndex = 0,
-            Font = _a11yFont
+            TabIndex = 1,
+            Anchor = AnchorStyles.None
         };
 
-        // 確保在 NumericUpDown 中按 Enter 能正確觸發 AcceptButton。
-        _nud.KeyDown += (s, e) =>
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                // 強制驗證編輯文字，確保 Value 屬性已同步為最新輸入。
-                _nud.ValidateValue();
-
-                DialogResult = DialogResult.OK;
-
-                Close();
-
-                e.SuppressKeyPress = true;
-            }
-        };
+        _nud.Enter += (s, e) => UpdateFocusVisuals(true);
+        _nud.Leave += (s, e) => UpdateFocusVisuals(false);
 
         // 當數值改變時，同步更新無障礙描述，並主動廣播最新數值。
         _nud.ValueChanged += (s, e) =>
@@ -511,152 +454,73 @@ internal sealed class NumericInputDialog : Form
             // 主動廣播最新值，讓使用者在微調（如按上下鍵）時能立即獲得語音反饋。
             // 使用打斷模式（interrupt: true），避免在高頻率變動下產生語音隊列堆積。
             AnnounceA11y(string.Format(Strings.A11y_CurrentValue, _nud.Value), interrupt: true);
+
+            FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove).SafeFireAndForget();
         };
 
-        FlowLayoutPanel flpButtons = new()
-        {
-            FlowDirection = FlowDirection.RightToLeft,
-            Dock = DockStyle.Fill,
-            AutoSize = true,
-            Margin = new Padding(0, (int)(25 * scale), 0, 0),
-            // A11y：設定為 Grouping 角色，協助輔助科技識別按鈕區。
-            AccessibleRole = AccessibleRole.Grouping,
-            AccessibleName = Strings.A11y_ButtonArea
-        };
+        // 按鈕連動 NUD 高亮邏輯。
 
-        Button btnCancel = new()
-        {
-            // 將 Mnemonic 設為 'B'，與手把的 B 鍵同步。
-            // 鍵盤使用者按 Alt+B，手把使用者按 B，滑鼠點擊。
-            Text = ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'),
-            DialogResult = DialogResult.Cancel,
-            AccessibleName = Strings.Btn_Cancel,
-            AccessibleDescription = Strings.A11y_Btn_Cancel_Desc,
-            AutoSize = true,
-            MinimumSize = new Size((int)(100 * scale), (int)(36 * scale)),
-            TabIndex = 2,
-            UseMnemonic = true,
-            Font = _a11yFont
-        };
+        // 第 1 列：數值加減。
+        Button btnMinus = CreateEyeTrackerButton(Strings.Btn_Minus, Strings.A11y_Btn_Minus_Desc, scale, _a11yFont, (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+        btnMinus.Click += (s, e) => HandleMinus();
+        btnMinus.Anchor = AnchorStyles.None;
+        btnMinus.TabIndex = 0;
 
-        Button btnOk = new()
-        {
-            // 將 Mnemonic 設為 'A'，與手把的 A 鍵同步。
-            Text = ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'),
-            DialogResult = DialogResult.OK,
-            AccessibleName = Strings.Btn_OK,
-            AccessibleDescription = Strings.A11y_Btn_OK_Desc,
-            AutoSize = true,
-            MinimumSize = new Size((int)(100 * scale), (int)(36 * scale)),
-            TabIndex = 1,
-            UseMnemonic = true,
-            Font = _a11yFont
-        };
+        Button btnPlus = CreateEyeTrackerButton(Strings.Btn_Plus, Strings.A11y_Btn_Plus_Desc, scale, _a11yFont, (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+        btnPlus.Click += (s, e) => HandlePlus();
+        btnPlus.Anchor = AnchorStyles.None;
+        btnPlus.TabIndex = 2;
 
-        Button btnSetDefault = new()
-        {
-            // 將 Mnemonic 設為 'X'，與手把的 X 鍵同步。
-            Text = ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'),
-            AccessibleName = Strings.Btn_SetDefault,
-            AccessibleDescription = string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue),
-            AutoSize = true,
-            MinimumSize = new Size((int)(100 * scale), (int)(36 * scale)),
-            TabIndex = 3,
-            UseMnemonic = true,
-            Font = _a11yFont
-        };
+        // 第 2 列：操作按鈕。
+        Button btnOk = CreateEyeTrackerButton(ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'), Strings.A11y_Btn_OK_Desc, scale, _a11yFont);
+        btnOk.DialogResult = DialogResult.OK;
+        btnOk.Anchor = AnchorStyles.None;
+        btnOk.TabIndex = 3;
 
-        btnSetDefault.Click += (s, e) =>
-        {
-            HandleReset();
-        };
+        Button btnCancel = CreateEyeTrackerButton(ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'), Strings.A11y_Btn_Cancel_Desc, scale, _a11yFont);
+        btnCancel.DialogResult = DialogResult.Cancel;
+        btnCancel.Anchor = AnchorStyles.None;
+        btnCancel.TabIndex = 4;
 
-        void BindButtonA11y(Button btn)
-        {
-            Color originalBackColor = btn.BackColor;
-            Color originalForeColor = btn.ForeColor;
-            Font originalFont = btn.Font;
+        Button btnReset = CreateEyeTrackerButton(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'), string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue), scale, _a11yFont);
+        btnReset.Click += (s, e) => HandleReset();
+        btnReset.Anchor = AnchorStyles.None;
+        btnReset.TabIndex = 5;
 
-            btn.MouseEnter += (s, e) => ApplyHover();
-            btn.MouseLeave += (s, e) => Restore();
-            btn.Enter += (s, e) => ApplyHover();
-            btn.Leave += (s, e) => Restore();
+        // 填充 3x2 網格。
+        tlpGrid.Controls.Add(btnMinus, 0, 0);
+        tlpGrid.Controls.Add(_nud, 1, 0);
+        tlpGrid.Controls.Add(btnPlus, 2, 0);
+        tlpGrid.Controls.Add(btnOk, 2, 1);
+        tlpGrid.Controls.Add(btnCancel, 0, 1);
+        tlpGrid.Controls.Add(btnReset, 1, 1);
 
-            void ApplyHover()
-            {
-                if (!btn.Enabled) return;
+        tlpMain.Controls.Add(lblPrompt, 0, 0);
+        tlpMain.Controls.Add(tlpGrid, 0, 1);
 
-                // CVD 友善：同時變更顏色與形狀（加粗）。
-                btn.BackColor = SystemColors.Highlight;
-                btn.ForeColor = SystemColors.HighlightText;
-
-                // 動態切換加粗狀態，利用現有字型家族以防 DPI 模糊。
-                btn.Font = new Font(btn.Font, FontStyle.Bold);
-            }
-
-            void Restore()
-            {
-                // 高對比模式下必須還原為系統標準色。
-                if (SystemInformation.HighContrast)
-                {
-                    btn.BackColor = SystemColors.Control;
-                    btn.ForeColor = SystemColors.ControlText;
-                }
-                else
-                {
-                    btn.BackColor = originalBackColor;
-                    btn.ForeColor = originalForeColor;
-                }
-                btn.Font = originalFont;
-            }
-        }
-
-        BindButtonA11y(btnOk);
-        BindButtonA11y(btnCancel);
-        BindButtonA11y(btnSetDefault);
-
-        flpButtons.Controls.Add(btnCancel);
-        flpButtons.Controls.Add(btnSetDefault);
-        flpButtons.Controls.Add(btnOk);
-
-        // 指定明確的 Row 索引。
-        tlp.Controls.Add(lbl, 0, 0);
-        tlp.Controls.Add(_nud, 0, 1);
-        tlp.Controls.Add(flpButtons, 0, 2);
-
-        // 將 A11y 廣播標籤加入視窗，但不佔用佈局空間。
         _announcer.Size = Size.Empty;
         Controls.Add(_announcer);
-
-        Controls.Add(tlp);
-
-        AcceptButton = btnOk;
-        CancelButton = btnCancel;
+        Controls.Add(tlpMain);
 
         Shown += (s, e) =>
         {
-            _nud.Focus();
-
             // 協調 LiveRegion：當彈出對話框時，暫時停用主視窗的廣播器 LiveSetting，防止訊息干擾。
             if (Owner is MainForm mainForm)
             {
                 mainForm.SetA11yLiveSetting(AutomationLiveSetting.Off);
             }
 
-            // 使用 SafeBeginInvoke 確保在 UI 執行緒完全準備好後再執行選取，
-            // 解決 NumericUpDown 內部 TextBox 延遲初始化的問題。
-            this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
+            AnnounceA11y(lblPrompt.Text);
 
-            // 主動廣播提示文字，確保使用者在焦點轉移後立即得知操作目標。
-            AnnounceA11y(promptText);
+            _nud.Focus();
+
+            UpdateFocusVisuals(true);
+
+            this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
         };
 
-        // 確保對話框取得焦點時，喚醒手把控制器。
         Activated += (s, e) =>
         {
-            // 使用非同步延遲（50 毫秒），確保這個 Resume() 指令
-            // 絕對會在 MainForm 的 Deactivate 相關動作都處理完畢後才執行，
-            // 避免被主視窗的 Pause() 給誤殺。
             Task.Run(async () =>
             {
                 try
@@ -671,7 +535,7 @@ internal sealed class NumericInputDialog : Form
                         }
                     });
                 }
-                catch (OperationCanceledException)
+                catch
                 {
 
                 }
@@ -680,7 +544,6 @@ internal sealed class NumericInputDialog : Form
             .SafeFireAndForget();
         };
 
-        // 當對話框失去焦點時，檢查是否切換到其他應用程式，若是則暫停手把。
         Deactivate += (s, e) =>
         {
             this.SafeBeginInvoke(() =>
@@ -692,34 +555,218 @@ internal sealed class NumericInputDialog : Form
             });
         };
 
-        // 視窗關閉時的 A11y 提示。
         FormClosing += (s, e) =>
         {
-            // 中止所有背景任務。
-            _cts.Cancel();
-            _cts.Dispose();
-
-            // 還原 LiveRegion 協調：當對話框關閉時，恢復主視窗廣播器的 LiveSetting。
             if (Owner is MainForm mainForm)
             {
                 mainForm.SetA11yLiveSetting(AutomationLiveSetting.Polite);
             }
 
-            // 關鍵修正：對話框關閉時，必須徹底取消手把事件的訂閱。
-            // 這能防止對話框雖然不可見但仍持續在背景處理手把輸入的競態風險。
             UnsubscribeGamepadEvents();
-
-            _gamepadController = null;
 
             if (DialogResult == DialogResult.Cancel)
             {
-                // 注意：由於視窗即將關閉，AnnounceA11y 可能會失效，
-                // 這裡我們在主視窗發送廣播（如果有 Owner 的話）。
                 (Owner as MainForm)?.AnnounceA11y(Strings.A11y_Cancelled);
             }
-
-            // 釋放廣播器資源。
-            _announcer?.Dispose();
         };
+    }
+
+    /// <summary>
+    /// 建立符合眼動儀最佳實踐的按鈕
+    /// </summary>
+    /// <param name="text">按鈕顯示的文字</param>
+    /// <param name="description">按鈕的輔助描述</param>
+    /// <param name="scale">縮放比例</param>
+    /// <param name="font">字型</param>
+    /// <param name="onFocusStateChanged">焦點狀態變更的回呼函式</param>
+    /// <returns>建立的按鈕</returns>
+    private static Button CreateEyeTrackerButton(
+        string text,
+        string description,
+        float scale,
+        Font font,
+        Action<bool>? onFocusStateChanged = null)
+    {
+        Font boldFont = new(font, FontStyle.Bold);
+
+        Button btn = new()
+        {
+            Text = text,
+            AccessibleName = text,
+            AccessibleDescription = description,
+            AccessibleRole = AccessibleRole.PushButton,
+            Font = font,
+            AutoSize = true,
+            MinimumSize = new Size((int)(120 * scale), (int)(60 * scale)),
+            Margin = new Padding((int)(12 * scale)),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = SystemColors.Control,
+            ForeColor = SystemColors.ControlText
+        };
+
+        btn.Disposed += (s, e) => boldFont.Dispose();
+
+        Color originalBackColor = btn.BackColor;
+        Color originalForeColor = btn.ForeColor;
+        Padding originalPadding = btn.Padding;
+
+        float dwellProgress = 0f;
+        long animationId = 0;
+        bool isHovered = false;
+
+        btn.MouseEnter += (s, e) =>
+        {
+            isHovered = true;
+
+            onFocusStateChanged?.Invoke(true);
+
+            StartAnimationFeedback(false);
+        };
+        btn.MouseLeave += (s, e) =>
+        {
+            isHovered = false;
+
+            onFocusStateChanged?.Invoke(btn.Focused);
+
+            StopFeedback();
+        };
+        btn.GotFocus += (s, e) =>
+        {
+            onFocusStateChanged?.Invoke(true);
+
+            StartAnimationFeedback(true);
+        };
+        btn.LostFocus += (s, e) =>
+        {
+            onFocusStateChanged?.Invoke(isHovered);
+
+            StopFeedback();
+        };
+
+        // 點擊後重置進度，保留背景直到失焦。
+        btn.Click += (s, e) =>
+        {
+            Interlocked.Increment(ref animationId);
+
+            dwellProgress = 0f;
+
+            btn.Invalidate();
+        };
+
+        void StartAnimationFeedback(bool isKeyboardFocus)
+        {
+            if (!btn.Enabled)
+            {
+                return;
+            }
+
+            if (SystemInformation.HighContrast)
+            {
+                btn.BackColor = SystemColors.Highlight;
+                btn.ForeColor = SystemColors.HighlightText;
+            }
+            else
+            {
+                btn.BackColor = Color.Black;
+                btn.ForeColor = Color.White;
+            }
+
+            btn.Font = boldFont;
+            btn.Padding = new Padding(0);
+            btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
+
+            if (!isKeyboardFocus)
+            {
+                long id = Interlocked.Increment(ref animationId);
+
+                RunAnimationAsync(id).SafeFireAndForget();
+            }
+        }
+
+        void StopFeedback()
+        {
+            Interlocked.Increment(ref animationId);
+
+            dwellProgress = 0f;
+
+            // 狀態守衛：只有在確實失焦且無懸停時才還原顏色。
+            if (!btn.Focused &&
+                !isHovered)
+            {
+                if (SystemInformation.HighContrast)
+                {
+                    btn.BackColor = SystemColors.Control;
+                    btn.ForeColor = SystemColors.ControlText;
+                }
+                else
+                {
+                    btn.BackColor = originalBackColor;
+                    btn.ForeColor = originalForeColor;
+                }
+
+                btn.Font = font;
+                btn.Padding = originalPadding;
+                btn.AccessibleDescription = description;
+            }
+
+            btn.Invalidate();
+        }
+
+        async Task RunAnimationAsync(long id)
+        {
+            if (!SystemInformation.UIEffectsEnabled)
+            {
+                dwellProgress = 1.0f;
+
+                btn.Invalidate();
+
+                return;
+            }
+
+            Stopwatch sw = Stopwatch.StartNew();
+
+            int duration = 1000;
+
+            while (Interlocked.Read(ref animationId) == id && !btn.IsDisposed)
+            {
+                double elapsed = sw.Elapsed.TotalMilliseconds;
+
+                dwellProgress = (float)Math.Min(1.0, elapsed / duration);
+
+                btn.Invalidate();
+
+                if (dwellProgress >= 1.0f)
+                {
+                    break;
+                }
+
+                await Task.Delay(16);
+            }
+        }
+
+        btn.Paint += (s, e) =>
+        {
+            if (dwellProgress <= 0)
+            {
+                return;
+            }
+
+            int barHeight = (int)(6 * scale),
+                barWidth = (int)(btn.Width * dwellProgress);
+
+            using Brush barBrush = new SolidBrush(
+                SystemInformation.HighContrast ?
+                    SystemColors.HighlightText :
+                    Color.DarkOrange);
+
+            e.Graphics.FillRectangle(
+                barBrush,
+                0,
+                btn.Height - barHeight,
+                barWidth,
+                barHeight);
+        };
+
+        return btn;
     }
 }

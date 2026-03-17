@@ -104,6 +104,11 @@ public partial class MainForm : Form
     private readonly CancellationTokenSource _formCts = new();
 
     /// <summary>
+    /// 用於管理警示動畫（FlashAlert）的中斷控制
+    /// </summary>
+    private CancellationTokenSource? _alertCts;
+
+    /// <summary>
     /// 控制器初始化鎖（防止重複建立實例）
     /// </summary>
     private readonly SemaphoreSlim _gamepadInitLock = new(1, 1);
@@ -147,6 +152,26 @@ public partial class MainForm : Form
     /// 上一次套用佈局時的 DPI 值（用於防抖）
     /// </summary>
     private float _lastAppliedDpi = -1;
+
+    /// <summary>
+    /// 快取的原始邊距（用於懸停零邊距策略）
+    /// </summary>
+    private Padding _originalBtnPadding;
+
+    /// <summary>
+    /// 注視進度（0.0 ~ 1.0）
+    /// </summary>
+    private float _dwellProgress = 0f;
+
+    /// <summary>
+    /// 是否正被注視中
+    /// </summary>
+    private bool _isBtnHovered = false;
+
+    /// <summary>
+    /// 目前按鈕動畫的序號（用於處理中止與競爭）
+    /// </summary>
+    private long _animationId = 0;
 
     public MainForm()
     {
@@ -517,7 +542,7 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 調整視窗不透明度。
+    /// 調整視窗不透明度
     /// </summary>
     /// <param name="delta">調整量（例如 0.05 代表增加 5%）</param>
     private void AdjustOpacity(float delta)
@@ -549,8 +574,8 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 更新視窗不透明度。
-    /// 根據規範，若系統開啟高對比模式，則強制為 1.0 以確保可讀性。
+    /// 更新視窗不透明度
+    /// 根據規範，若系統開啟高對比模式，則強制為 1.0 以確保可讀性
     /// </summary>
     private void UpdateOpacity()
     {
@@ -565,7 +590,7 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 執行智慧定位修正，確保視窗不會跑出螢幕邊界。
+    /// 執行智慧定位修正，確保視窗不會跑出螢幕邊界
     /// </summary>
     private void ApplySmartPosition()
     {
@@ -695,7 +720,7 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 將視窗不透明度重設為 100%。
+    /// 將視窗不透明度重設為 100%
     /// </summary>
     private void ResetOpacity()
     {
