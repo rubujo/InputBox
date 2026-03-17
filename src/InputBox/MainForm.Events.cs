@@ -651,7 +651,7 @@ public partial class MainForm
         // Esc：清除文字。
         if (e.KeyCode == Keys.Escape)
         {
-            // UX 優化：如果文字框已經是空的，直接返回前一個視窗（隱藏視窗）。
+            // UX 最佳化：如果文字框已經是空的，直接返回前一個視窗（隱藏視窗）。
             if (string.IsNullOrEmpty(TBInput.Text))
             {
                 HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
@@ -672,7 +672,7 @@ public partial class MainForm
             // 取得游標目前所在的行數（0 代表第一行）。
             int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart);
 
-            // 只有在第一行時，按「上」才觸發歷史紀錄。
+            // 只有在第一行時，按「上」才觸發歷程記錄。
             if (currentLine == 0)
             {
                 NavigateHistory(-1);
@@ -692,7 +692,7 @@ public partial class MainForm
                 // 取得文字方塊總共的行數（最後一行的 Index）。
                 totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
 
-            // 只有在最後一行時，按「下」才觸發歷史紀錄。
+            // 只有在最後一行時，按「下」才觸發歷程記錄。
             if (currentLine == totalLines)
             {
                 NavigateHistory(+1);
@@ -799,7 +799,7 @@ public partial class MainForm
             TBInput.SelectionStart = TBInput.Text.Length;
             TBInput.ScrollToCaret();
 
-            // 強制朗讀切換後的歷史紀錄內容，並包含索引資訊。
+            // 強制朗讀切換後的歷程記錄內容，並包含索引資訊。
             // 索引 + 1 是為了讓使用者聽到 1-based 的數字。
             AnnounceA11y(string.Format(
                 Strings.A11y_History_Navigation,
