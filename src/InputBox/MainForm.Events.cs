@@ -958,12 +958,20 @@ public partial class MainForm
                         SystemColors.Highlight;
 
                     // 高對比模式下的雙重形狀補償：除了 Padding，額外微調字體大小。
-                    // 這能提供除了「邊框厚度」外的第二種「形狀變化」反饋。
                     if (_a11yFont != null)
                     {
                         float pulseSize = _a11yFont.Size + (0.5f * intensity);
 
+                        Font oldFont = BtnCopy.Font;
+
                         BtnCopy.Font = new Font(_a11yFont.FontFamily, pulseSize, _a11yFont.Style);
+
+                        // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
+                        if (oldFont != null &&
+                            oldFont != _a11yFont)
+                        {
+                            oldFont.Dispose();
+                        }
                     }
                 }
                 else
@@ -1012,7 +1020,7 @@ public partial class MainForm
                 return;
             }
 
-            int totalDuration = 1000,
+            int totalDuration = AppSettings.PhotoSafeFrequencyMs,
                 delayMs = 16;
 
             long startTime = Stopwatch.GetTimestamp();
@@ -1071,9 +1079,24 @@ public partial class MainForm
             if (!IsDisposed &&
                 IsHandleCreated)
             {
-                this.SafeInvoke(() => UpdateBorderColor(TBInput.Focused));
                 this.SafeInvoke(() =>
                 {
+                    UpdateBorderColor(TBInput.Focused);
+
+                    // 核心修正：動畫結束後還原字型並清理最後一個臨時字型。
+                    Font lastFont = BtnCopy.Font;
+
+                    if (_a11yFont != null)
+                    {
+                        BtnCopy.Font = _a11yFont;
+                    }
+
+                    if (lastFont != null &&
+                        lastFont != _a11yFont)
+                    {
+                        lastFont.Dispose();
+                    }
+
                     if (!SystemInformation.HighContrast)
                     {
                         // 還原輸入框顏色。
@@ -1291,8 +1314,8 @@ public partial class MainForm
         float defaultValue,
         float minimum = 0.0f,
         float maximum = 1.0f,
-        decimal step = 1.0m,
-        int decimalPlaces = 0)
+        decimal step = 0.1m,
+        int decimalPlaces = 1)
     {
         using NumericInputDialog dialog = new(
             title,

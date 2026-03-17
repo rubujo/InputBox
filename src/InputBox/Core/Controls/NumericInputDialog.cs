@@ -384,7 +384,16 @@ internal sealed class NumericInputDialog : Form
                     {
                         float pulseSize = _nudFont.Size + (1.0f * intensity);
 
+                        Font oldFont = _nud.Font;
+
                         _nud.Font = new Font(_nudFont.FontFamily, pulseSize, _nudFont.Style);
+
+                        // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
+                        if (oldFont != null &&
+                            oldFont != _nudFont)
+                        {
+                            oldFont.Dispose();
+                        }
                     }
                 }
                 else
@@ -410,7 +419,7 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            int totalDuration = 1000,
+            int totalDuration = AppSettings.PhotoSafeFrequencyMs,
                 delayMs = 16;
 
             long startTime = Stopwatch.GetTimestamp();
@@ -454,8 +463,16 @@ internal sealed class NumericInputDialog : Form
                 {
                     UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
 
-                    // 還原字體。
+                    // 核心修正：動畫結束後還原字型並清理最後一個臨時字型。
+                    Font lastFont = _nud.Font;
+
                     _nud.Font = _nudFont;
+
+                    if (lastFont != null &&
+                        lastFont != _nudFont)
+                    {
+                        lastFont.Dispose();
+                    }
                 });
             }
         }

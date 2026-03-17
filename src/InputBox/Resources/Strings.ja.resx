@@ -238,9 +238,9 @@
     <comment>エラーメッセージ。設定ファイルが破損しているか形式が正しくない場合に表示されます。</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
-    <value>グローバルショートカット {0} の登録に失敗しました。
+    <value>グローバルホットキー {0} の登録に失敗しました。
 
-このアプリケーションが複数起動していないか、または他のアプリケーションがこのショートカットを使用していないか確認してください。</value>
+このアプリケーションが複数起動していないか、または他のアプリケーションがこのホットキーを使用していないか確認してください。</value>
     <comment>詳細なエラーメッセージ。グローバルホットキーの登録に失敗した場合に表示されます。{0} は登録に失敗したホットキーです。</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
@@ -364,7 +364,7 @@
     <comment>履歴を移動する際に使用されるアクセシビリティメッセージです。{0} は現在のインデックス、{1} は総件数、{2} はその項目の内容です。</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
-    <value>{0}起動ショートカット：{1}。</value>
+    <value>{0}起動ホットキー：{1}。</value>
     <comment>起動時のアクセシビリティステータスの概要です。{0} はプライバシーモードの状態、{1} は現在の起動ホットキーです。</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
