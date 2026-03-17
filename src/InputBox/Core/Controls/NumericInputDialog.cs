@@ -769,8 +769,7 @@ internal sealed class NumericInputDialog : Form
             ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'),
             string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue),
             scale,
-            _a11yFont,
-            (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+            _a11yFont);
         _btnReset.Click += (s, e) => HandleReset();
         _btnReset.Anchor = AnchorStyles.None;
         _btnReset.TabIndex = 5;
@@ -978,7 +977,11 @@ internal sealed class NumericInputDialog : Form
             {
                 long id = Interlocked.Increment(ref animationId);
 
-                RunAnimationAsync(id).SafeFireAndForget();
+                btn.RunDwellAnimationAsync(
+                        id,
+                        () => Interlocked.Read(ref animationId),
+                        (p) => dwellProgress = p)
+                    .SafeFireAndForget();
             }
         }
 
@@ -1009,39 +1012,6 @@ internal sealed class NumericInputDialog : Form
             }
 
             btn.Invalidate();
-        }
-
-        async Task RunAnimationAsync(long id)
-        {
-            if (!SystemInformation.UIEffectsEnabled)
-            {
-                dwellProgress = 1.0f;
-
-                btn.Invalidate();
-
-                return;
-            }
-
-            Stopwatch sw = Stopwatch.StartNew();
-
-            int duration = 1000;
-
-            while (Interlocked.Read(ref animationId) == id &&
-                !btn.IsDisposed)
-            {
-                double elapsed = sw.Elapsed.TotalMilliseconds;
-
-                dwellProgress = (float)Math.Min(1.0, elapsed / duration);
-
-                btn.Invalidate();
-
-                if (dwellProgress >= 1.0f)
-                {
-                    break;
-                }
-
-                await Task.Delay(16);
-            }
         }
 
         btn.Paint += (s, e) =>

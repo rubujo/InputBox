@@ -82,7 +82,12 @@ public partial class MainForm
                 });
 
             // 啟動時自動取得焦點。
-            TBInput.Focus();
+            if (!IsDisposed &&
+                TBInput != null &&
+                TBInput.CanFocus)
+            {
+                TBInput.Focus();
+            }
 
             // A11y 廣播：歡迎訊息與操作提示。
             // 延遲 100ms 避開視窗開啟音效。
@@ -104,7 +109,6 @@ public partial class MainForm
             AnnounceA11y($"{Strings.App_Title}. {Strings.A11y_MainFormDesc}");
 
             // 延後播報狀態摘要（隱私模式與目前快速鍵）。
-            // 這裡直接 await Task.Delay，結束後會自動回到 UI 執行緒，不需過度切換執行緒。
             try
             {
                 await Task.Delay(1500, _formCts.Token);
@@ -401,44 +405,11 @@ public partial class MainForm
         // 3. 動畫回饋：僅在視線進入時播放。
         if (!isKeyboardFocus)
         {
-            StartDwellAnimationAsync(id).SafeFireAndForget();
-        }
-    }
-
-    /// <summary>
-    /// 開始 Dwell 動畫任務
-    /// </summary>
-    /// <param name="id">動畫任務的唯一識別碼</param>
-    /// <returns>Task</returns>
-    private async Task StartDwellAnimationAsync(long id)
-    {
-        if (!SystemInformation.UIEffectsEnabled)
-        {
-            _dwellProgress = 1.0f;
-
-            BtnCopy.Invalidate();
-
-            return;
-        }
-
-        Stopwatch sw = Stopwatch.StartNew();
-
-        int duration = 1000;
-
-        while (Interlocked.Read(ref _animationId) == id && !IsDisposed)
-        {
-            double elapsed = sw.Elapsed.TotalMilliseconds;
-
-            _dwellProgress = (float)Math.Min(1.0, elapsed / duration);
-
-            BtnCopy.Invalidate();
-
-            if (_dwellProgress >= 1.0f)
-            {
-                break;
-            }
-
-            await Task.Delay(16);
+            BtnCopy.RunDwellAnimationAsync(
+                    id,
+                    () => Interlocked.Read(ref _animationId),
+                    (p) => _dwellProgress = p)
+                .SafeFireAndForget();
         }
     }
 
@@ -1041,7 +1012,7 @@ public partial class MainForm
                 return;
             }
 
-            int totalDuration = 2000,
+            int totalDuration = 1000,
                 delayMs = 16;
 
             long startTime = Stopwatch.GetTimestamp();

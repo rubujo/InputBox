@@ -1,4 +1,6 @@
-﻿namespace InputBox.Core.Extensions;
+﻿using System.Diagnostics;
+
+namespace InputBox.Core.Extensions;
 
 /// <summary>
 /// Control 類別的擴充方法
@@ -238,5 +240,68 @@ public static class ControlExtensions
         }
 
         return $"{text} (&{mnemonic})";
+    }
+
+    /// <summary>
+    /// 執行通用的眼動儀注視填滿動畫
+    /// </summary>
+    /// <param name="control">要執行動畫的控制項</param>
+    /// <param name="animationIdField">用於追蹤目前動畫序號的欄位引用（需使用 Interlocked 操作）</param>
+    /// <param name="id">本次動畫的目標序號</param>
+    /// <param name="progressSetter">設定進度值（0.0 ~ 1.0）的回呼委派</param>
+    /// <param name="durationMs">動畫總時長（毫秒），預設 1000ms</param>
+    /// <returns>Task</returns>
+    public static async Task RunDwellAnimationAsync(
+        this Control control,
+        long id,
+        Func<long> animationIdGetter,
+        Action<float> progressSetter,
+        int durationMs = 1000)
+    {
+        if (control == null ||
+            control.IsDisposed)
+        {
+            return;
+        }
+
+        // 系統動畫服從性：若使用者關閉了 UI 特效，直接跳至完成狀態。
+        if (!SystemInformation.UIEffectsEnabled)
+        {
+            progressSetter(1.0f);
+
+            control.Invalidate();
+
+            return;
+        }
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        while (animationIdGetter() == id &&
+            !control.IsDisposed &&
+            control.IsHandleCreated)
+        {
+            double elapsed = stopwatch.Elapsed.TotalMilliseconds;
+
+            float progress = (float)Math.Min(1.0, elapsed / durationMs);
+
+            progressSetter(progress);
+
+            control.Invalidate();
+
+            if (progress >= 1.0f)
+            {
+                break;
+            }
+
+            try
+            {
+                // 固定幀率（約 60 FPS）。
+                await Task.Delay(16);
+            }
+            catch
+            {
+                break;
+            }
+        }
     }
 }

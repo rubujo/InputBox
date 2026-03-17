@@ -140,6 +140,9 @@ public partial class MainForm
             _originalBtnBackColor = BtnCopy.BackColor;
             _originalBtnForeColor = BtnCopy.ForeColor;
         }
+
+        // 確保標題快取與在地化字串同步。
+        UpdateTitlePrefix();
     }
 
     /// <summary>

@@ -501,6 +501,9 @@ public partial class MainForm : Form
                 // A11y 廣播：告知使用者已換行。
                 AnnounceA11y(Strings.A11y_New_Line);
 
+                // 物理回饋。
+                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
                 return base.ProcessCmdKey(ref msg, keyData);
             }
         }
