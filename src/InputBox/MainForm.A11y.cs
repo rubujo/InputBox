@@ -67,7 +67,7 @@ public partial class MainForm
 
         float scale = dpi / baseDpi;
 
-        if  (scale == 0.0f)
+        if (scale == 0.0f)
         {
             scale = 1.0f;
         }
@@ -110,9 +110,9 @@ public partial class MainForm
         Font newA11yFont = GetSharedA11yFont(DeviceDpi),
             newBoldFont = new(newA11yFont, FontStyle.Bold);
 
-        // 先處置舊的字型資源，防止 GDI 洩漏。
-        _a11yFont?.Dispose();
-        _boldBtnFont?.Dispose();
+        // 暫存舊的字型資源，以便在安全時處置。
+        Font? oldA11yFont = _a11yFont,
+            oldBoldFont = _boldBtnFont;
 
         _a11yFont = newA11yFont;
         _boldBtnFont = newBoldFont;
@@ -123,7 +123,12 @@ public partial class MainForm
         BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
 
         // 根據規範，套用統一的 A11y 共享字型。
+        // 先指派新字型，確保控制項不再使用舊字型。
         BtnCopy.Font = _a11yFont;
+
+        // 現在可以安全處置舊的字型資源，防止 GDI 洩漏。
+        oldA11yFont?.Dispose();
+        oldBoldFont?.Dispose();
 
         // 重置 MinimumSize，避免切換短語系（如英文）時，按鈕寬度仍卡在長語系（如日文）的寬度。
         BtnCopy.MinimumSize = Size.Empty;

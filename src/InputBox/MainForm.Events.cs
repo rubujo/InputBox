@@ -940,6 +940,10 @@ public partial class MainForm
                 SystemColors.HighlightText :
                 Color.FromArgb(255, 140, 0);
 
+            // 快照目前全域字型，確保在動畫循環中不會誤處置它們。
+            Font? snapshotA11yFont = _a11yFont,
+                snapshotBoldFont = _boldBtnFont;
+
             void ApplyAlertVisuals(float intensity)
             {
                 if (IsDisposed ||
@@ -959,16 +963,19 @@ public partial class MainForm
                         SystemColors.Highlight;
 
                     // 高對比模式下的雙重形狀補償：除了 Padding，額外微調字體大小。
-                    if (_a11yFont != null)
+                    if (snapshotA11yFont != null)
                     {
-                        float pulseSize = _a11yFont.Size + (0.5f * intensity);
+                        float pulseSize = snapshotA11yFont.Size + (0.5f * intensity);
 
                         Font oldFont = BtnCopy.Font;
 
-                        BtnCopy.Font = new Font(_a11yFont.FontFamily, pulseSize, _a11yFont.Style);
+                        BtnCopy.Font = new Font(snapshotA11yFont.FontFamily, pulseSize, snapshotA11yFont.Style);
 
                         // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
+                        // 使用快照進行比對，排除全域字型與目前最新的快取字型。
                         if (oldFont != null &&
+                            oldFont != snapshotA11yFont &&
+                            oldFont != snapshotBoldFont &&
                             oldFont != _a11yFont &&
                             oldFont != _boldBtnFont)
                         {
