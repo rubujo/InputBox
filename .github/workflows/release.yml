@@ -1,9 +1,9 @@
-﻿name: 建置與發布輸入框
+name: 建置與發佈 InputBox
 
 on:
   push:
     tags:
-      # 當推送 tag 如 v1.0.0 時觸發。
+      # 當推送標籤（Tag）如 v1.0.0 時觸發。
       - 'v*'
 
 jobs:
@@ -11,81 +11,96 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
-    
-    # 定義全域變數，方便統一修改路徑。
+
+    # 定義環境變數，方便統一管理路徑與檔名。
     env:
-      EXE_RELATIVE_PATH: "./src/InputBox/bin/Release/net10.0-windows/win-x64/publish/InputBox.exe"
+      PUBLISH_DIR: "./src/InputBox/out"
+      EXE_NAME: "InputBox.exe"
 
     steps:
-    - name: 簽出程式碼
+    - name: 簽出原始碼（Checkout）
       uses: actions/checkout@v4
 
     - name: 安裝 .NET 環境
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: '10.x'
+        # 啟用快取功能，加速 NuGet 套件還原（Restore）。
+        cache: true
+        cache-dependency-path: '**/InputBox.csproj'
 
-    - name: 執行專案建置
+    # 第一階段：確保程式碼編譯正常。
+    - name: 執行專案建置（Build）
       working-directory: ./src/InputBox
-      run: dotnet build -c Release
+      run: dotnet build -c Release --no-restore
 
-    - name: 執行專案發布
+    # 第二階段：建置成功後才執行發佈（Publish）。
+    - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
-      run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true
+      # 加入 --no-build 避免重複編譯，直接對上一階段產物進行最佳化打包。
+      run: >
+        dotnet publish -c Release -r win-x64
+        --no-build
+        --self-contained true
+        -p:PublishSingleFile=true
+        -p:PublishReadyToRun=true
+        -o out
 
-    - name: 產生檔案雜湊值
+    - name: 產生檔案雜湊值（SHA256）
       shell: pwsh
       run: |
-        # 指定發布後的預設 .exe 輸出路徑（使用全域變數）。
-        if (Test-Path ${{ env.EXE_RELATIVE_PATH }}) {
-          $hash = (Get-FileHash ${{ env.EXE_RELATIVE_PATH }} -Algorithm SHA256).Hash
+        $ErrorActionPreference = 'Stop'
+        $exePath = Join-Path -Path ${{ env.PUBLISH_DIR }} -ChildPath ${{ env.EXE_NAME }}
+
+        if (Test-Path $exePath) {
+          $hash = (Get-FileHash $exePath -Algorithm SHA256).Hash
           echo "SHA256_HASH=$hash" >> $env:GITHUB_ENV
-          echo "產生的雜湊值為：$hash"
+          Write-Host "成功產生雜湊值：$hash"
         } else {
-          Write-Error "找不到執行檔，請檢查發布路徑！"
-          exit 1
+          Write-Error "找不到執行檔（$exePath），請檢查發佈步驟！"
         }
 
-    - name: 建立並壓縮發布檔案
+    - name: 打包並壓縮發佈檔案（Zip）
       shell: pwsh
       run: |
-        # 取得目前的 Tag 名稱（例如 v1.0.0）。
+        $ErrorActionPreference = 'Stop'
         $tagName = "${{ github.ref_name }}"
-        # 產生時間戳記。
-        $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-        # 組合檔名：包含 Tag 與時間。
-        $zipName = "InputBox-$tagName-win-x64_$timestamp.zip"
-        
-        # 將檔名存入環境變數，方便下一個步驟讀取。
+
+        # 檔名採用具確定性的格式，不包含時間戳記以利自動化下載。
+        $zipName = "InputBox-$tagName-win-x64.zip"
         echo "ZIP_FILENAME=$zipName" >> $env:GITHUB_ENV
 
-        # 建立資料夾並複製檔案（準備打包）。
-        New-Item -ItemType Directory -Force -Path ./dist/InputBox
-        Copy-Item -Path ${{ env.EXE_RELATIVE_PATH }} -Destination ./dist/InputBox/
-        
-        # 複製方案根目錄的 LICENSE、README.md 與 ThirdPartyNotices.txt。
-        if (Test-Path "LICENSE") { Copy-Item -Path "LICENSE" -Destination ./dist/InputBox/ }
-        if (Test-Path "README.md") { Copy-Item -Path "README.md" -Destination ./dist/InputBox/ }
-        if (Test-Path "ThirdPartyNotices.txt") { Copy-Item -Path "ThirdPartyNotices.txt" -Destination ./dist/InputBox/ }
+        # 建立暫存打包目錄。
+        $packDir = "./dist/InputBox"
+        New-Item -ItemType Directory -Force -Path $packDir | Out-Null
 
-        # 壓縮「整個 InputBox 資料夾」（使用動態檔名）。
-        Compress-Archive -Path ./dist/InputBox -DestinationPath $zipName -CompressionLevel Optimal
+        # 複製執行檔至打包目錄。
+        Copy-Item -Path (Join-Path ${{ env.PUBLISH_DIR }} ${{ env.EXE_NAME }}) -Destination $packDir
 
-    - name: 建立 GitHub 發布版本
+        # 複製授權文件與讀我檔案。
+        $docs = @("LICENSE", "README.md", "ThirdPartyNotices.txt")
+        foreach ($doc in $docs) {
+            if (Test-Path $doc) { Copy-Item -Path $doc -Destination $packDir }
+        }
+
+        # 執行壓縮。
+        Compress-Archive -Path "$packDir\*" -DestinationPath $zipName -CompressionLevel Optimal
+
+    - name: 建立 GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        # 使用上一步驟產生的動態檔名。
         files: ${{ env.ZIP_FILENAME }}
-        # 自動根據 Commit 與 PR 生成變更紀錄（Changelog）。
+        # 根據 Commit 與 PR 自動生成版本說明（Changelog）。
         generate_release_notes: true
         body: |
-          ## 📦 輸入框發布摘要
-          - **版本名稱**：${{ github.ref_name }}
+          ## 📦 InputBox 發佈摘要
+          - **版本號碼**：`${{ github.ref_name }}`
           - **目標平台**：Windows x64
-          - **執行環境**：.NET 10（已內含，無需安裝 Runtime）
-          - **檔案指紋（SHA256）**：`${{ env.SHA256_HASH }}`
+          - **執行環境**：.NET 10（已隨附 Runtime，無需額外安裝）
+          - **檔案雜湊值（SHA256）**：`${{ env.SHA256_HASH }}`
 
           ---
-          *本版本由 GitHub Actions 自動建置並發布。變更紀錄請見下方內容。*
+          > [!NOTE]
+          > 本版本由 GitHub Actions 自動建置並發佈。詳細變更內容請參考下方的自動產生說明。
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

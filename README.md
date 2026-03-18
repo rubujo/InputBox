@@ -1,4 +1,4 @@
-﻿# 輸入框（InputBox）
+# 輸入框（InputBox）
 
 ![Windows 11 22H2+](https://img.shields.io/badge/OS-Windows%2011%2022H2%2B-0078D6?logo=windows&logoColor=white&style=for-the-badge)
 ![.NET 10](https://img.shields.io/badge/Runtime-.NET%2010-6B4EFF?logo=dotnet&logoColor=white&style=for-the-badge)

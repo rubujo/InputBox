@@ -1,4 +1,4 @@
-﻿# GameInput.Net
+# GameInput.Net
 
 - 專案網址：https://github.com/Cephy314/GameInputNet
 - 授權資訊網址：https://github.com/Cephy314/GameInputNet/blob/main/LICENSE
