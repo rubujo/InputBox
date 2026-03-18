@@ -517,11 +517,11 @@
   </data>
   <data name="A11y_Checked" xml:space="preserve">
     <value>已勾選</value>
-    <comment>Accessibility status for checked menu items.</comment>
+    <comment>已勾選選單項目的無障礙狀態。</comment>
   </data>
   <data name="A11y_Unchecked" xml:space="preserve">
     <value>未勾選</value>
-    <comment>Accessibility status for unchecked menu items.</comment>
+    <comment>未勾選選單項目的無障礙狀態。</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>正在開啟觸控式鍵盤。</value>
