@@ -65,7 +65,7 @@ partial class MainForm
         PInputHost.Location = new Point(3, 3);
         PInputHost.Name = "PInputHost";
         PInputHost.Padding = new Padding(3);
-        PInputHost.Size = new Size(230, 54);
+        PInputHost.Size = new Size(228, 54);
         PInputHost.TabIndex = 0;
         // 
         // TBInput
@@ -82,7 +82,7 @@ partial class MainForm
         TBInput.Multiline = true;
         TBInput.Name = "TBInput";
         TBInput.PlaceholderText = "輸入文字…";
-        TBInput.Size = new Size(224, 48);
+        TBInput.Size = new Size(222, 48);
         TBInput.TabIndex = 0;
         TBInput.Enter += TBInput_Enter;
         TBInput.KeyDown += TBInput_KeyDown;
@@ -96,11 +96,12 @@ partial class MainForm
         BtnCopy.AutoSize = true;
         BtnCopy.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         BtnCopy.Dock = DockStyle.Fill;
+        BtnCopy.FlatStyle = FlatStyle.Flat;
         BtnCopy.Font = new Font("Microsoft JhengHei UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-        BtnCopy.Location = new Point(240, 4);
+        BtnCopy.Location = new Point(238, 4);
         BtnCopy.Margin = new Padding(4);
         BtnCopy.Name = "BtnCopy";
-        BtnCopy.Size = new Size(140, 52);
+        BtnCopy.Size = new Size(142, 52);
         BtnCopy.TabIndex = 1;
         BtnCopy.Text = "複製到剪貼簿 (&A)";
         BtnCopy.UseVisualStyleBackColor = true;

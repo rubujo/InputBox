@@ -534,14 +534,18 @@ public partial class MainForm : Form
 
         UpdateMinimumSize();
 
-        // 根據規範，在 Handle 建立時套用在地化與 A11y 屬性。
-        ApplyLocalization();
+        // 使用 SafeBeginInvoke 讓字型替換邏輯排在 Handle 建立完成「之後」才執行。
+        this.SafeBeginInvoke(new Action(() =>
+        {
+            // 根據規範，在 Handle 建立時套用在地化與 A11y 屬性。
+            ApplyLocalization();
 
-        // 套用透明度。
-        UpdateOpacity();
+            // 套用透明度。
+            UpdateOpacity();
 
-        // 執行初始位置檢查。
-        ApplySmartPosition();
+            // 執行初始位置檢查。
+            ApplySmartPosition();
+        }));
 
         RegisterHotKeyInternal();
 

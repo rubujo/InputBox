@@ -67,8 +67,14 @@ public partial class MainForm
 
         float scale = dpi / baseDpi;
 
+        if  (scale == 0.0f)
+        {
+            scale = 1.0f;
+        }
+
         // 優先使用系統訊息視窗字型作為基準。
-        Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
+        Font baseFont = SystemFonts.MessageBoxFont ??
+            DefaultFont;
 
         return new Font(baseFont.FontFamily, baseFontSize * scale, fontStyle);
     }
