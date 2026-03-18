@@ -1,6 +1,6 @@
 # 輸入框（InputBox）
 
-![Windows 11 22H2+](https://img.shields.io/badge/OS-Windows%2011%2022H2%2B-0078D6?logo=windows&logoColor=white&style=for-the-badge)
+![Windows 11 22H2 (22621+)](https://img.shields.io/badge/OS-Windows%2011%2022H2%20(22621%2B)-0078D6?logo=windows&logoColor=white&style=for-the-badge)
 ![.NET 10](https://img.shields.io/badge/Runtime-.NET%2010-6B4EFF?logo=dotnet&logoColor=white&style=for-the-badge)
 ![C#](https://img.shields.io/badge/Language-C%23-2E7D32?logo=csharp&logoColor=white&style=for-the-badge)
 ![Input API](https://img.shields.io/badge/Input-GameInput%20%7C%20XInput-F57C00?logo=xbox&logoColor=white&style=for-the-badge)
@@ -12,7 +12,8 @@
 
 - **輔助輸入**：提供單一文字方塊，方便使用控制器開啟 Windows 觸控式鍵盤（`TabTip.exe`）並輸入文字。
   - 需要配合輸入法（`微軟注音`、`微軟倉頡`及 `Microsoft 速成`）的「遊戲控制器」鍵盤配置使用。
-  - 此鍵盤配置為 **Windows 11 22H2 Build 22621（含）以上版本**所提供之系統功能。
+  - 此鍵盤配置為 **Windows 11 在部分版本中提供的系統功能**，並採用微軟的 **Controlled Feature Rollout（CFR）** 分階段下放機制。
+    - 實際可用性可能因系統版本、裝置與功能下放進度而異。
 - **支援全域快速鍵**：可快速喚出應用程式，具備快速鍵註冊衝突自動回退機制。
 - **智慧邊界彈回**：當視窗因拖曳、解析度變更或 DPI 縮放而超出螢幕範圍時，會自動彈回可視區域內。
 - **支援不透明度調整**：可自訂視窗透明度（50% ~ 100%），並支援手把快捷組合鍵快速微調。
@@ -28,12 +29,14 @@
 
 ## 二、系統要求與相容性
 
-- **作業系統**：Windows 11 22H2 Build 22621（含）以上版本。
+- **作業系統**：Windows 11 22H2（Build 22621）以上版本。
+  - 本需求僅代表本應用程式本身的最低執行環境；部分系統功能（如「遊戲控制器」鍵盤配置）可能採用分階段下放，實際可用性視系統狀況而定。
 - **控制器 API 支援**：
   - **XInput**：系統原生支援，無需額外安裝。
-  - **GameInput**：系統必須安裝有 **GameInput 可轉散發組件**。若載入失敗，本應用程式會主動退避至 **XInput** 相容模式。
-    - **獲取方式**：可從微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) 封裝取得。
-    - **安裝步驟**：執行 NuGet 套件 `redist` 目錄下的 `GameInputRedist.msi`。
+  - **GameInput**：系統需具備 **GameInput 執行階段**。
+    - 多數 Windows 11 系統已內建 GameInput 執行階段；若系統未提供或載入失敗，本應用程式會自動退避至 **XInput** 相容模式。
+    - **可轉散發組件（選用）**：可透過微軟 `[Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput)` NuGet 套件取得。
+      - 安裝方式：執行套件 `redist` 目錄下的 `GameInputRedist.msi`。
 
 ## 三、使用方式
 
@@ -241,8 +244,9 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 ## 九、聲明
 
 1. 本應用程式使用 AI 服務輔助開發、翻譯、圖示生成與文件撰寫。
-2. 本應用程式依賴 `TabTip.exe` 以開啟 Windows 觸控式鍵盤，只能於 Windows 11 22H2 Build 22621（含）以上的版本執行本應用程式。
-3. 本應用程式為非官方（`遊戲或服務的開發商、發行商、代理商或營運商`）開發的第三方應用程式，無法保證可適用於任何特定遊戲或服務。
+2. 本應用程式依賴 `TabTip.exe` 以開啟 Windows 觸控式鍵盤，僅支援於 Windows 11 22H2（Build 22621）以上版本執行。
+   - 實際系統功能（如觸控式鍵盤行為或鍵盤配置）可能因系統版本與功能下放狀況而有所差異。
+3. 本應用程式為非官方第三方應用程式，與任何遊戲或服務之開發商、發行商、代理商或營運單位皆無關聯，且無法保證在任何特定遊戲或服務環境中皆能符合使用者的操作需求或使用情境。
 4. 使用本應用程式所產生的任何後果，皆由使用者自行承擔。
 
 ## 十、授權條款
