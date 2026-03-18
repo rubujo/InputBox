@@ -710,10 +710,14 @@ internal sealed class NumericInputDialog : Form
             if (e.KeyCode == Keys.Up)
             {
                 HandlePlus();
+
+                e.SuppressKeyPress = true;
             }
             else if (e.KeyCode == Keys.Down)
             {
                 HandleMinus();
+
+                e.SuppressKeyPress = true;
             }
         };
 
@@ -789,7 +793,7 @@ internal sealed class NumericInputDialog : Form
             Strings.A11y_Btn_OK_Desc,
             scale,
             _a11yFont);
-        btnOk.DialogResult = DialogResult.OK;
+        btnOk.Click += (s, e) => HandleConfirm();
         btnOk.Anchor = AnchorStyles.None;
         btnOk.TabIndex = 3;
 
@@ -798,9 +802,12 @@ internal sealed class NumericInputDialog : Form
             Strings.A11y_Btn_Cancel_Desc,
             scale,
             _a11yFont);
-        btnCancel.DialogResult = DialogResult.Cancel;
+        btnCancel.Click += (s, e) => HandleCancel();
         btnCancel.Anchor = AnchorStyles.None;
         btnCancel.TabIndex = 4;
+
+        AcceptButton = btnOk;
+        CancelButton = btnCancel;
 
         _btnReset = CreateEyeTrackerButton(
             ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'),

@@ -423,6 +423,29 @@ public partial class MainForm
                             {
                                 item.Select();
 
+                                // A11y 強化：開啟選單時立即報讀首個項目的名稱與描述。
+                                string? name = item.AccessibleName ?? item.Text,
+                                    desc = item.AccessibleDescription;
+
+                                if (item is ToolStripMenuItem mi &&
+                                    mi.CheckOnClick)
+                                {
+                                    string status = mi.Checked ?
+                                        Strings.A11y_Checked :
+                                        Strings.A11y_Unchecked;
+
+                                    name = $"{name}, {status}";
+                                }
+
+                                string announcement = string.IsNullOrEmpty(desc) ?
+                                    (name ?? string.Empty) :
+                                    $"{name}. {desc}";
+
+                                if (!string.IsNullOrEmpty(announcement))
+                                {
+                                    AnnounceA11y(announcement, interrupt: true);
+                                }
+
                                 break;
                             }
                         }
