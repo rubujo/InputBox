@@ -4,6 +4,20 @@
 
 ---
 
+## 0. 開發環境規範
+
+- **預設作業系統**：Microsoft Windows。
+- **編碼規範**：執行指令時必須確保環境使用 **UTF-8（Code Page 65001）**，避免使用舊有的 CP950（Big5），以確保非 ASCII 字元顯示正確。
+- **Shell 使用優先順序**：
+  1. **PowerShell 7+（pwsh）**：優先使用跨平台版本。
+  2. **Windows PowerShell 5.1（powershell）**：僅在無 pwsh 時使用。
+  3. **Command Prompt（cmd）**。
+- **指令相容性**：
+  - 執行 `run_shell_command` 時，必須優先使用與上述環境相容的內建指令（例如優先使用 `dir` 或 `Get-ChildItem` 而非 `ls`，除非在 PowerShell 環境下）。
+  - 當需要調用任何 CLI 工具或命令（如 `git`、`dotnet` 等）時，必須優先使用預設開發環境所支援且已驗證的指令版本。
+
+---
+
 ## 1. 核心工程與架構標準
 
 - **目標框架**：基於 `.NET 10（net10.0-windows）`。
