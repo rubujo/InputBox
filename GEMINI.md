@@ -86,7 +86,7 @@
 ### 外部合規基準
 
 **代理人必須定期或在變更核心邏輯前，擷取並分析以下網址的最新內容，確保程式設計不違反其服務條款：**
-- **FFXIV 繁體中文版**：[使用者合約](https://www.ffxiv.com.tw/web/user_agreement.html)、[授權條款](https://www.ffxiv.com.tw/web/license.html)
+- **FINAL FANTASY XIV 繁體中文版**：[使用者合約](https://www.ffxiv.com.tw/web/user_agreement.html)、[授權條款](https://www.ffxiv.com.tw/web/license.html)
 - **宇峻奧汀（UserJoy）**：[隱私權政策](https://www.userjoy.com/mp/privacy.aspx)、[使用者授權合約（EULA）](https://www.userjoy.com/mp/eula.aspx)、[免責聲明](https://www.uj.com.tw/uj/service/service_user_disclaimer.aspx)
 
 ### 開發行為邊界
