@@ -1,4 +1,4 @@
-name: 建置與發佈 InputBox
+name: 建置與發佈
 
 on:
   push:
@@ -29,18 +29,10 @@ jobs:
         cache: true
         cache-dependency-path: '**/InputBox.csproj'
 
-    # 第一階段：確保程式碼編譯正常。
-    - name: 執行專案建置（Build）
-      working-directory: ./src/InputBox
-      run: dotnet build -c Release --no-restore
-
-    # 第二階段：建置成功後才執行發佈（Publish）。
     - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
-      # 加入 --no-build 避免重複編譯，直接對上一階段產物進行最佳化打包。
       run: >
         dotnet publish -c Release -r win-x64
-        --no-build
         --self-contained true
         -p:PublishSingleFile=true
         -p:PublishReadyToRun=true
@@ -65,26 +57,25 @@ jobs:
       run: |
         $ErrorActionPreference = 'Stop'
         $tagName = "${{ github.ref_name }}"
-
-        # 檔名採用具確定性的格式，不包含時間戳記以利自動化下載。
         $zipName = "InputBox-$tagName-win-x64.zip"
         echo "ZIP_FILENAME=$zipName" >> $env:GITHUB_ENV
 
-        # 建立暫存打包目錄。
-        $packDir = "./dist/InputBox"
+        # 1. 建立外層目錄（dist）與內層目錄（dist/InputBox）。
+        $distDir = "./dist"
+        $packDir = Join-Path $distDir "InputBox"
+        if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
         New-Item -ItemType Directory -Force -Path $packDir | Out-Null
 
-        # 複製執行檔至打包目錄。
+        # 2. 複製執行檔與文件到內層目錄。
         Copy-Item -Path (Join-Path ${{ env.PUBLISH_DIR }} ${{ env.EXE_NAME }}) -Destination $packDir
-
-        # 複製授權文件與讀我檔案。
         $docs = @("LICENSE", "README.md", "ThirdPartyNotices.txt")
         foreach ($doc in $docs) {
             if (Test-Path $doc) { Copy-Item -Path $doc -Destination $packDir }
         }
 
-        # 執行壓縮。
-        Compress-Archive -Path "$packDir\*" -DestinationPath $zipName -CompressionLevel Optimal
+        # 3. 執行壓縮：重點在於路徑指向 $packDir 但不加 \*
+        # 這樣 Compress-Archive 會連同 "InputBox" 資料夾本身一起壓進去。
+        Compress-Archive -Path $packDir -DestinationPath $zipName -CompressionLevel Optimal
 
     - name: 建立 GitHub Release
       uses: softprops/action-gh-release@v2
@@ -93,7 +84,7 @@ jobs:
         # 根據 Commit 與 PR 自動生成版本說明（Changelog）。
         generate_release_notes: true
         body: |
-          ## 📦 InputBox 發佈摘要
+          ## 📦 輸入框發佈摘要
           - **版本號碼**：`${{ github.ref_name }}`
           - **目標平台**：Windows x64
           - **執行環境**：.NET 10（已隨附 Runtime，無需額外安裝）

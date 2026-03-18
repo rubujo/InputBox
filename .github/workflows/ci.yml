@@ -1,0 +1,40 @@
+name: 程式碼建置檢查
+
+on:
+  push:
+    # 排除標籤推送，因為標籤通常會走發佈流程。
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-check:
+    runs-on: windows-latest
+    permissions:
+      # 只需要讀取原始碼進行建置即可。
+      contents: read
+
+    steps:
+    - name: 簽出原始碼（Checkout）
+      uses: actions/checkout@v4
+
+    - name: 安裝 .NET 環境
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.x'
+        # 啟用快取功能，加速 NuGet 套件還原。
+        cache: true
+        cache-dependency-path: '**/InputBox.csproj'
+
+    - name: 執行專案建置（Build）
+      working-directory: ./src/InputBox
+      # 使用 --no-incremental 確保每次都是完整檢查，避免部分編譯遺漏錯誤。
+      run: dotnet build -c Release --no-incremental
+
+    - name: 建置成功通知
+      if: success()
+      run: echo "建置檢查成功！程式碼狀態良好。"
