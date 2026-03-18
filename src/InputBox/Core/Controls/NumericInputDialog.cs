@@ -71,6 +71,29 @@ internal sealed class NumericInputDialog : Form
         {
             ValidateEditText();
         }
+
+        /// <summary>
+        /// 覆寫滑鼠滾輪行為，確保「一格跳一格」
+        /// </summary>
+        /// <param name="e">MouseEventArgs</param>
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            // 核心修正：強制攔截並阻斷 Windows 系統的「一次捲動多行」設定（預設為 3）。
+            if (e is HandledMouseEventArgs hme)
+            {
+                hme.Handled = true;
+            }
+
+            // 手動精確執行單次增減，不調用 base.OnMouseWheel(e)。
+            if (e.Delta > 0)
+            {
+                UpButton();
+            }
+            else if (e.Delta < 0)
+            {
+                DownButton();
+            }
+        }
     }
 
     /// <summary>
@@ -713,35 +736,6 @@ internal sealed class NumericInputDialog : Form
 
         _nud.Enter += (s, e) => UpdateFocusVisuals(true);
         _nud.Leave += (s, e) => UpdateFocusVisuals(false);
-
-        // 為 NumericUpDown 加入鍵盤與滾輪監聽，確保所有操作路徑撞牆時都能觸發 A11y 視覺回饋。
-        _nud.KeyDown += (s, e) =>
-        {
-            if (e.KeyCode == Keys.Up)
-            {
-                HandlePlus();
-
-                e.SuppressKeyPress = true;
-            }
-            else if (e.KeyCode == Keys.Down)
-            {
-                HandleMinus();
-
-                e.SuppressKeyPress = true;
-            }
-        };
-
-        _nud.MouseWheel += (s, e) =>
-        {
-            if (e.Delta > 0)
-            {
-                HandlePlus();
-            }
-            else if (e.Delta < 0)
-            {
-                HandleMinus();
-            }
-        };
 
         // 當數值改變時，同步更新無障礙描述，並主動廣播最新數值。
         _nud.ValueChanged += (s, e) =>

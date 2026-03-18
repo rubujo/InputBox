@@ -214,11 +214,18 @@ public partial class MainForm : Form
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
         TBInput.MaxLength = 10000;
 
-        // 滑鼠滾輪導覽歷程。
+        // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>
         {
+            // 核心修正：攔截並阻斷系統多倍捲動與 TextBox 原生捲動行為。
+            if (e is HandledMouseEventArgs hme)
+            {
+                hme.Handled = true;
+            }
+
             // 向上捲動 = 往前找舊的（direction：-1），
             // 向下捲動 = 往後找新的（direction：1）。
+            // 強制鎖定為 Step 1（一格跳一筆）。
             if (e.Delta > 0)
             {
                 NavigateHistory(-1);
