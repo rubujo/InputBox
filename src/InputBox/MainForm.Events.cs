@@ -209,9 +209,19 @@ public partial class MainForm
                 return;
             }
 
-            // 強烈靜態視覺回饋：明暗反轉。
-            TBInput.BackColor = Color.Black;
-            TBInput.ForeColor = Color.White;
+            // 強烈靜態視覺回饋：主題感知的明暗反轉。
+            if (TBInput.IsDarkModeActive())
+            {
+                // 深色模式下，反轉為亮色背景。
+                TBInput.BackColor = Color.White;
+                TBInput.ForeColor = Color.Black;
+            }
+            else
+            {
+                // 淺色模式下，反轉為深色背景。
+                TBInput.BackColor = Color.Black;
+                TBInput.ForeColor = Color.White;
+            }
         }
         catch (Exception ex)
         {
@@ -332,7 +342,7 @@ public partial class MainForm
         using Brush barBrush = new SolidBrush(
             SystemInformation.HighContrast ?
                 SystemColors.HighlightText :
-                Color.DarkOrange);
+                (BtnCopy.IsDarkModeActive() ? Color.OrangeRed : Color.DarkOrange));
 
         e.Graphics.FillRectangle(
             barBrush,
@@ -381,7 +391,7 @@ public partial class MainForm
             _originalBtnPadding = BtnCopy.Padding;
         }
 
-        // 1. 強烈靜態視覺回饋：明暗反轉。
+        // 1. 強烈靜態視覺回饋：主題感知的明暗反轉。
         if (SystemInformation.HighContrast)
         {
             BtnCopy.BackColor = SystemColors.Highlight;
@@ -389,8 +399,18 @@ public partial class MainForm
         }
         else
         {
-            BtnCopy.BackColor = Color.Black;
-            BtnCopy.ForeColor = Color.White;
+            if (BtnCopy.IsDarkModeActive())
+            {
+                // 深色模式：白底黑字。
+                BtnCopy.BackColor = Color.White;
+                BtnCopy.ForeColor = Color.Black;
+            }
+            else
+            {
+                // 淺色模式：黑底白字。
+                BtnCopy.BackColor = Color.Black;
+                BtnCopy.ForeColor = Color.White;
+            }
         }
 
         // 2. 形狀補償：字體加粗。
@@ -997,15 +1017,31 @@ public partial class MainForm
 
                     if (intensity > 0.8f)
                     {
-                        TBInput.BackColor = Color.Black;
-                        TBInput.ForeColor = Color.White;
+                        if (TBInput.IsDarkModeActive())
+                        {
+                            TBInput.BackColor = Color.White;
+                            TBInput.ForeColor = Color.Black;
+                        }
+                        else
+                        {
+                            TBInput.BackColor = Color.Black;
+                            TBInput.ForeColor = Color.White;
+                        }
                     }
                     else
                     {
                         if (TBInput.Focused)
                         {
-                            TBInput.BackColor = Color.Black;
-                            TBInput.ForeColor = Color.White;
+                            if (TBInput.IsDarkModeActive())
+                            {
+                                TBInput.BackColor = Color.White;
+                                TBInput.ForeColor = Color.Black;
+                            }
+                            else
+                            {
+                                TBInput.BackColor = Color.Black;
+                                TBInput.ForeColor = Color.White;
+                            }
                         }
                         else
                         {
@@ -1112,8 +1148,16 @@ public partial class MainForm
                         // 還原輸入框顏色。
                         if (TBInput.Focused)
                         {
-                            TBInput.BackColor = Color.Black;
-                            TBInput.ForeColor = Color.White;
+                            if (TBInput.IsDarkModeActive())
+                            {
+                                TBInput.BackColor = Color.White;
+                                TBInput.ForeColor = Color.Black;
+                            }
+                            else
+                            {
+                                TBInput.BackColor = Color.Black;
+                                TBInput.ForeColor = Color.White;
+                            }
                         }
                         else
                         {

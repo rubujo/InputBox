@@ -243,6 +243,29 @@ public static class ControlExtensions
     }
 
     /// <summary>
+    /// 判斷目前控制項是否處於深色模式（Dark Mode）
+    /// </summary>
+    /// <param name="control">要檢查的控制項</param>
+    /// <returns>若為深色模式則傳回 true</returns>
+    public static bool IsDarkModeActive(this Control control)
+    {
+        if (control == null ||
+            control.IsDisposed)
+        {
+            return false;
+        }
+
+        // 高對比模式優先權高於深色模式，但在配色邏輯中通常分開處理。
+        if (SystemInformation.HighContrast)
+        {
+            return false;
+        }
+
+        // .NET 10 官方 API：返回目前應用程式實際解析後的深色模式狀態。
+        return Application.IsDarkModeEnabled;
+    }
+
+    /// <summary>
     /// 執行通用的眼動儀注視填滿動畫
     /// </summary>
     /// <param name="control">要執行動畫的控制項</param>

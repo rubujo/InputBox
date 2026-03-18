@@ -566,8 +566,18 @@ internal sealed class NumericInputDialog : Form
             }
             else
             {
-                _nud.BackColor = Color.Black;
-                _nud.ForeColor = Color.White;
+                if (_nud.IsDarkModeActive())
+                {
+                    // 深色模式：白底黑字。
+                    _nud.BackColor = Color.White;
+                    _nud.ForeColor = Color.Black;
+                }
+                else
+                {
+                    // 淺色模式：黑底白字。
+                    _nud.BackColor = Color.Black;
+                    _nud.ForeColor = Color.White;
+                }
             }
         }
         else
@@ -1012,8 +1022,18 @@ internal sealed class NumericInputDialog : Form
             }
             else
             {
-                btn.BackColor = Color.Black;
-                btn.ForeColor = Color.White;
+                if (btn.IsDarkModeActive())
+                {
+                    // 深色模式：白底黑字。
+                    btn.BackColor = Color.White;
+                    btn.ForeColor = Color.Black;
+                }
+                else
+                {
+                    // 淺色模式：黑底白字。
+                    btn.BackColor = Color.Black;
+                    btn.ForeColor = Color.White;
+                }
             }
 
             btn.Font = boldFont;
@@ -1050,6 +1070,9 @@ internal sealed class NumericInputDialog : Form
                 }
                 else
                 {
+                    // 修正：在 .NET 10 深色模式下，若 originalBackColor 是硬編碼的，
+                    // 當從淺色切換到深色時可能會不正確。但此處按鈕是動態建立的，
+                    // BackColor 已由 SystemColors.Control 初始化，因此還原是安全的。
                     btn.BackColor = originalBackColor;
                     btn.ForeColor = originalForeColor;
                 }
@@ -1078,7 +1101,7 @@ internal sealed class NumericInputDialog : Form
             using Brush barBrush = new SolidBrush(
                 SystemInformation.HighContrast ?
                     SystemColors.HighlightText :
-                    Color.DarkOrange);
+                    (btn.IsDarkModeActive() ? Color.OrangeRed : Color.DarkOrange));
 
             e.Graphics.FillRectangle(
                 barBrush,
