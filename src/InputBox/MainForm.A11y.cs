@@ -38,6 +38,11 @@ public partial class MainForm
     private record AnnouncementRequest(string Message, bool Interrupt, long Id);
 
     /// <summary>
+    /// 快取的 A11y 字型（用於資源管理）
+    /// </summary>
+    private Font? _a11yFont;
+
+    /// <summary>
     /// 設定 A11y 廣播器的 LiveSetting 狀態
     /// </summary>
     /// <param name="setting">LiveSetting 設定</param>
@@ -80,17 +85,11 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 快取的 A11y 字型（用於資源管理）
-    /// </summary>
-    private Font? _a11yFont;
-
-    /// <summary>
     /// 執行階段套用在地化資源與 A11y 屬性
     /// </summary>
     private void ApplyLocalization()
     {
-        // 視窗基礎屬性。
-        Text = Strings.App_Title;
+        // 視窗基礎屬性（標題由末尾的 UpdateTitle 統一處理）。
         AccessibleName = Strings.A11y_MainFormName;
         AccessibleDescription = Strings.A11y_MainFormDesc;
 
@@ -144,16 +143,9 @@ public partial class MainForm
             BtnCopy.MinimumSize = new Size(requiredWidth, BtnCopy.MinimumSize.Height);
         }
 
-        // 紀錄原始顏色，以便在滑鼠移出或失去焦點時還原。
-        // 當從高對比模式切換回一般模式時，必須重新整理快取，以確保顏色符合目前主題。
-        if (!SystemInformation.HighContrast)
-        {
-            _originalBtnBackColor = BtnCopy.BackColor;
-            _originalBtnForeColor = BtnCopy.ForeColor;
-        }
-
-        // 確保標題快取與在地化字串同步。
+        // 確保標題快取與在地化字串同步，並立即套用至視窗。
         UpdateTitlePrefix();
+        UpdateTitle();
     }
 
     /// <summary>
@@ -181,8 +173,8 @@ public partial class MainForm
             Dock = DockStyle.Bottom,
             Height = 1,
             // 讓背景色與視窗一致，達成視覺上的隱形。
-            BackColor = SystemColors.Control,
-            ForeColor = SystemColors.ControlText,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
             TabStop = false,
             Parent = this
         };

@@ -134,16 +134,6 @@ public partial class MainForm : Form
     private Font? _boldBtnFont;
 
     /// <summary>
-    /// 快取的原始背景色（用於滑鼠移出時還原）
-    /// </summary>
-    private Color _originalBtnBackColor;
-
-    /// <summary>
-    /// 快取的原始前景色（用於滑鼠移出時還原）
-    /// </summary>
-    private Color _originalBtnForeColor;
-
-    /// <summary>
     /// 快取的視窗標題前綴（包含標題、隱私狀態與快速鍵）
     /// </summary>
     private string _cachedTitlePrefix = string.Empty;
@@ -347,6 +337,9 @@ public partial class MainForm : Form
         // 釋放鎖資源。
         _gamepadInitLock.Dispose();
 
+        // 處置警示權杖。
+        _alertCts?.Dispose();
+
         // 釋放 GDI 與選單資源。
         _a11yFont?.Dispose();
         _a11yFont = null;
@@ -361,6 +354,9 @@ public partial class MainForm : Form
         }
 
         base.OnFormClosing(e);
+
+        // 最後處置主取消權杖來源。
+        _formCts.Dispose();
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -401,7 +397,8 @@ public partial class MainForm : Form
 
                     string fullHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
 
-                    Text = $"{Strings.App_Title} - [{Strings.Msg_HotkeyUpdated}: {fullHotkeyStr}]";
+                    // 核心修正：調用帶參數的 UpdateTitle 以顯示更新成功狀態，同時保留快速鍵資訊。
+                    UpdateTitle($"{Strings.Msg_HotkeyUpdated}: {fullHotkeyStr}");
 
                     BtnCopy.Enabled = false;
                     BtnCopy.Text = Strings.Msg_HotkeyUpdated;
@@ -439,7 +436,8 @@ public partial class MainForm : Form
                     // 發生錯誤，仍需還原 UI。
                     RestoreUIFromCaptureMode();
 
-                    Text = $"{Strings.App_Title} - [{Strings.Err_Title}]";
+                    // 核心修正：調用帶參數的 UpdateTitle 以顯示錯誤狀態，同時保留快速鍵資訊。
+                    UpdateTitle(Strings.Err_Title);
 
                     BtnCopy.Enabled = false;
                     BtnCopy.Text = Strings.Err_Title;

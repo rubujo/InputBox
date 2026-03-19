@@ -34,8 +34,8 @@ internal sealed class AnnouncerLabel : Label
         Size = new Size(20, 20);
         Location = new Point(0, 0);
         Text = string.Empty;
-        BackColor = SystemColors.Control;
-        ForeColor = SystemColors.Control;
+        BackColor = Color.Empty;
+        ForeColor = Color.Empty;
     }
 
     protected override CreateParams CreateParams

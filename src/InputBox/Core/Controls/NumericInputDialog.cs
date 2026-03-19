@@ -7,6 +7,7 @@ using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.Media;
 using System.Windows.Forms.Automation;
 
@@ -388,11 +389,17 @@ internal sealed class NumericInputDialog : Form
 
         try
         {
+            float scale = DeviceDpi / 96.0f;
+
+            bool isDark = _nud.IsDarkModeActive();
+
+            // 決定警示色。
+            // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
+            // 淺色模式（黑底控制項）用 DarkOrange；深色模式（白底控制項）用 Firebrick。
             Color alertColor = SystemInformation.HighContrast ?
                 SystemColors.HighlightText :
-                Color.FromArgb(255, 140, 0);
+                (isDark ? Color.Firebrick : Color.DarkOrange);
 
-            // 內部輔助方法，負責套用視覺變更。
             void ApplyAlertVisuals(float intensity)
             {
                 this.SafeInvoke(() =>
@@ -403,44 +410,37 @@ internal sealed class NumericInputDialog : Form
                         return;
                     }
 
+                    bool isDark = _nud.IsDarkModeActive();
+
                     if (SystemInformation.HighContrast)
                     {
                         _nud.BackColor = intensity > 0.5f ?
                             alertColor :
                             SystemColors.Highlight;
-
-                        // 高對比雙重補償：字體脈衝。
-                        if (_nudFont != null)
-                        {
-                            float pulseSize = _nudFont.Size + (1.0f * intensity);
-
-                            Font oldFont = _nud.Font;
-
-                            // 建立新字型並即時更新追蹤變數。
-                            Font newFont = new(_nudFont.FontFamily, pulseSize, _nudFont.Style);
-
-                            _nud.Font = newFont;
-                            lastTempFont = newFont;
-
-                            // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
-                            if (oldFont != null &&
-                                oldFont != _nudFont)
-                            {
-                                oldFont.Dispose();
-                            }
-                        }
                     }
                     else
                     {
-                        Color baseColor = _nud.Focused ?
-                            SystemColors.Highlight :
-                            SystemColors.Window;
+                        // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生泥綠色。
+                        Color pureBase = isDark ?
+                            Color.White :
+                            Color.Black;
 
-                        int r = (int)(baseColor.R + (alertColor.R - baseColor.R) * intensity),
-                            g = (int)(baseColor.G + (alertColor.G - baseColor.G) * intensity),
-                            b = (int)(baseColor.B + (alertColor.B - baseColor.B) * intensity);
+                        int rN = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
+                            gN = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
+                            bN = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                        _nud.BackColor = Color.FromArgb(255, r, g, b);
+                        Color flashColor = Color.FromArgb(255, rN, gN, bN);
+
+                        _nud.BackColor = flashColor;
+
+                        // 同步更新內部的 TextBox 編輯區背景，確保全區域視覺一致。
+                        foreach (Control child in _nud.Controls)
+                        {
+                            child.BackColor = flashColor;
+                        }
+
+                        // 核心變更：移除按鈕背景同步閃爍邏輯。
+                        // 數值邊界警示應僅作用於數值輸入區域，按鈕應維持其靜態焦點狀態。
                     }
                 });
             }
@@ -605,8 +605,8 @@ internal sealed class NumericInputDialog : Form
         }
         else
         {
-            _nud.BackColor = SystemColors.Window;
-            _nud.ForeColor = SystemColors.WindowText;
+            _nud.BackColor = Color.Empty;
+            _nud.ForeColor = Color.Empty;
         }
     }
 
@@ -724,8 +724,8 @@ internal sealed class NumericInputDialog : Form
             // 動態縮放寬度，高度則由 Font 自動決定。
             Width = (int)(220 * scale),
             Font = _nudFont,
-            BackColor = SystemColors.Window,
-            ForeColor = SystemColors.WindowText,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
             Margin = new Padding((int)(15 * scale), (int)(12 * scale), (int)(15 * scale), (int)(12 * scale)),
             AccessibleName = promptText,
             // A11y 描述：報讀目前值與有效範圍。
@@ -946,14 +946,15 @@ internal sealed class NumericInputDialog : Form
             MinimumSize = new Size(baseMinWidth, baseMinHeight),
             Margin = new Padding((int)(12 * scale)),
             FlatStyle = FlatStyle.Flat,
-            BackColor = SystemColors.Control,
-            ForeColor = SystemColors.ControlText
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty
         };
 
-        btn.Disposed += (s, e) => boldFont.Dispose();
+        // 核心修正：消除 WinForms 原生 AcceptButton 產生的粗邊框。
+        // 我們完全交由下方的 Paint 事件來繪製符合 A11y 規範的焦點框。
+        btn.FlatAppearance.BorderSize = 0;
 
-        Color originalBackColor = btn.BackColor,
-            originalForeColor = btn.ForeColor;
+        btn.Disposed += (s, e) => boldFont.Dispose();
 
         Padding originalPadding = btn.Padding;
 
@@ -1057,19 +1058,9 @@ internal sealed class NumericInputDialog : Form
             if (!btn.Focused &&
                 !isHovered)
             {
-                if (SystemInformation.HighContrast)
-                {
-                    btn.BackColor = SystemColors.Control;
-                    btn.ForeColor = SystemColors.ControlText;
-                }
-                else
-                {
-                    // 修正：在 .NET 10 深色模式下，若 originalBackColor 是硬編碼的，
-                    // 當從淺色切換到深色時可能會不正確。但此處按鈕是動態建立的，
-                    // BackColor 已由 SystemColors.Control 初始化，因此還原是安全的。
-                    btn.BackColor = originalBackColor;
-                    btn.ForeColor = originalForeColor;
-                }
+                // 還原為預設顏色，觸發原生主題引擎。
+                btn.BackColor = Color.Empty;
+                btn.ForeColor = Color.Empty;
 
                 btn.Font = font;
                 btn.Padding = originalPadding;
@@ -1081,7 +1072,7 @@ internal sealed class NumericInputDialog : Form
 
         btn.Paint += (s, e) =>
         {
-            if (dwellProgress <= 0)
+            if (btn == null)
             {
                 return;
             }
@@ -1089,20 +1080,76 @@ internal sealed class NumericInputDialog : Form
             // 動態存取最新的 DeviceDpi，避免靜態捕獲舊 DPI 導致跨螢幕拖曳時繪圖偏移。
             float currentScale = btn.DeviceDpi / 96.0f;
 
-            int barHeight = (int)(6 * currentScale),
-                barWidth = (int)(btn.Width * dwellProgress);
+            bool isDark = btn.IsDarkModeActive();
 
-            using Brush barBrush = new SolidBrush(
-                SystemInformation.HighContrast ?
-                    SystemColors.HighlightText :
-                    (btn.IsDarkModeActive() ? Color.OrangeRed : Color.DarkOrange));
+            // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
+            // 核心優化：只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，避免雙焦點誤導。
+            bool isDefault = ReferenceEquals(AcceptButton, btn) &&
+                ActiveControl is not Button;
 
-            e.Graphics.FillRectangle(
-                barBrush,
-                0,
-                btn.Height - barHeight,
-                barWidth,
-                barHeight);
+            // 1. 基礎邊框（確保按鈕可辨識）：當按鈕既沒有焦點、不是預設動作，且無懸停時，繪製細微邊框。
+            if (!btn.Focused && !isHovered && !isDefault)
+            {
+                using Pen basePen = new(isDark ? Color.DimGray : Color.DarkGray, 1);
+                e.Graphics.DrawRectangle(basePen, 0, 0, btn.Width - 1, btn.Height - 1);
+            }
+
+            // 2. 繪製焦點邊框（Focus Border／Focus Ring）。
+            // 核心強化：將 AcceptButton（isDefault）的風格與 Tab Focus 統一起來。
+            if (btn.Focused ||
+                isHovered ||
+                isDefault)
+            {
+                int borderThickness = (int)Math.Max(3, 3 * currentScale),
+                    inset = (int)Math.Max(2, 2 * currentScale);
+
+                // 最終修正：淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
+                using Pen borderPen = new(
+                    SystemInformation.HighContrast ?
+                        SystemColors.HighlightText :
+                        (isDark ? Color.RoyalBlue : Color.Cyan),
+                    borderThickness);
+
+                e.Graphics.DrawRectangle(
+                    borderPen,
+                    inset,
+                    inset,
+                    btn.Width - (inset * 2) - 1,
+                    btn.Height - (inset * 2) - 1);
+            }
+
+            // 3. 後繪製注視進度條（Dwell Feedback）。
+            // A11y 強化：使用紋理（Hatch Pattern）補償全色盲使用者。
+            if (dwellProgress > 0)
+            {
+                int barHeight = (int)(6 * currentScale),
+                    barWidth = (int)(btn.Width * dwellProgress);
+
+                Rectangle barRect = new(0, btn.Height - barHeight, barWidth, barHeight);
+
+                if (SystemInformation.HighContrast)
+                {
+                    using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
+
+                    e.Graphics.FillRectangle(barBrush, barRect);
+                }
+                else
+                {
+                    // A11y 絕對同步：淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
+                    Color baseColor = isDark ? Color.Firebrick : Color.DarkOrange,
+                        hatchColor = isDark ? Color.OrangeRed : Color.Orange;
+
+                    // 雙重編碼：實心背景 + 斜向條紋紋理。
+                    using Brush bgBrush = new SolidBrush(baseColor);
+                    using Brush hatchBrush = new HatchBrush(
+                        HatchStyle.BackwardDiagonal,
+                        hatchColor,
+                        Color.Transparent);
+
+                    e.Graphics.FillRectangle(bgBrush, barRect);
+                    e.Graphics.FillRectangle(hatchBrush, barRect);
+                }
+            }
         };
 
         return btn;

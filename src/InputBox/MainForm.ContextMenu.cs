@@ -133,8 +133,8 @@ public partial class MainForm
         {
             Interlocked.Exchange(ref _isCapturingHotkey, 1);
 
-            // 標題列提示。
-            Text = $"{Strings.App_Title} - [{Strings.Msg_PressAnyKey}]";
+            // 標題列提示（統一由 UpdateTitle 處理，確保包含快速鍵資訊）。
+            UpdateTitle();
 
             // A11y 廣播：告知進入擷取模式、操作方式及如何取消。
             AnnounceA11y($"{Strings.Msg_PressAnyKey} {Strings.A11y_Capture_Esc_Cancel}");

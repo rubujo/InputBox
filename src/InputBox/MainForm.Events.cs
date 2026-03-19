@@ -7,6 +7,7 @@ using InputBox.Core.Interop;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.Media;
 
 namespace InputBox;
@@ -247,10 +248,9 @@ public partial class MainForm
             // 還原邊框厚度。
             UpdateBorderColor(false);
 
-            // 還原為一般視窗背景（白色）。
-            TBInput.BackColor = SystemColors.Window;
-            // 還原為一般視窗文字（黑色）。
-            TBInput.ForeColor = SystemColors.WindowText;
+            // 還原為預設顏色，觸發原生主題引擎自動套用正確背景。
+            TBInput.BackColor = Color.Empty;
+            TBInput.ForeColor = Color.Empty;
         }
         catch (Exception ex)
         {
@@ -328,28 +328,66 @@ public partial class MainForm
 
     private void BtnCopy_Paint(object? sender, PaintEventArgs e)
     {
-        if (_dwellProgress <= 0 ||
-            BtnCopy == null)
+        if (BtnCopy == null)
         {
             return;
         }
 
         float scale = DeviceDpi / BaseDpi;
+        bool isDark = BtnCopy.IsDarkModeActive();
 
-        int barHeight = (int)(6 * scale),
-            barWidth = (int)(BtnCopy.Width * _dwellProgress);
+        // 1. 先繪製焦點邊框（Focus Border／Focus Ring）。
+        if (BtnCopy.Focused ||
+            _isBtnHovered)
+        {
+            int borderThickness = (int)Math.Max(3, 3 * scale),
+                inset = (int)Math.Max(2, 2 * scale);
 
-        using Brush barBrush = new SolidBrush(
-            SystemInformation.HighContrast ?
-                SystemColors.HighlightText :
-                (BtnCopy.IsDarkModeActive() ? Color.OrangeRed : Color.DarkOrange));
+            // A11y 統一邏輯：淺色模式表單（黑底控制項）用 Cyan；深色模式表單（白底控制項）用 RoyalBlue。
+            using Pen borderPen = new(
+                SystemInformation.HighContrast ?
+                    SystemColors.HighlightText :
+                    (isDark ? Color.RoyalBlue : Color.Cyan),
+                borderThickness);
 
-        e.Graphics.FillRectangle(
-            barBrush,
-            0,
-            BtnCopy.Height - barHeight,
-            barWidth,
-            barHeight);
+            e.Graphics.DrawRectangle(
+                borderPen,
+                inset,
+                inset,
+                BtnCopy.Width - (inset * 2) - 1,
+                BtnCopy.Height - (inset * 2) - 1);
+        }
+
+        // 2. 後繪製注視進度條（Dwell Feedback）。
+        if (_dwellProgress > 0)
+        {
+            int barHeight = (int)(6 * scale),
+                barWidth = (int)(BtnCopy.Width * _dwellProgress);
+
+            Rectangle barRect = new(0, BtnCopy.Height - barHeight, barWidth, barHeight);
+
+            if (SystemInformation.HighContrast)
+            {
+                using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
+
+                e.Graphics.FillRectangle(barBrush, barRect);
+            }
+            else
+            {
+                // A11y 絕對同步：淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
+                Color baseColor = isDark ? Color.Firebrick : Color.DarkOrange,
+                    hatchColor = isDark ? Color.OrangeRed : Color.Orange;
+
+                using Brush bgBrush = new SolidBrush(baseColor);
+                using Brush hatchBrush = new HatchBrush(
+                    HatchStyle.BackwardDiagonal,
+                    hatchColor,
+                    Color.Transparent);
+
+                e.Graphics.FillRectangle(bgBrush, barRect);
+                e.Graphics.FillRectangle(hatchBrush, barRect);
+            }
+        }
     }
 
     private async void BtnCopy_Click(object sender, EventArgs e)
@@ -453,16 +491,9 @@ public partial class MainForm
         if (force ||
             (!BtnCopy.Focused && !_isBtnHovered))
         {
-            if (SystemInformation.HighContrast)
-            {
-                BtnCopy.BackColor = SystemColors.Control;
-                BtnCopy.ForeColor = SystemColors.ControlText;
-            }
-            else
-            {
-                BtnCopy.BackColor = _originalBtnBackColor;
-                BtnCopy.ForeColor = _originalBtnForeColor;
-            }
+            // 還原為預設顏色，觸發原生主題引擎自動套用正確背景。
+            BtnCopy.BackColor = Color.Empty;
+            BtnCopy.ForeColor = Color.Empty;
 
             if (_a11yFont != null)
             {
@@ -956,9 +987,11 @@ public partial class MainForm
                 pulseThickness = (int)Math.Max(7, 7 * scale);
 
             // 決定警示色。
+            // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
+            // 淺色模式（黑底）：用 DarkOrange（8.3:1）；深色模式（白底）：用 Firebrick（5.8:1）。
             Color alertColor = SystemInformation.HighContrast ?
                 SystemColors.HighlightText :
-                Color.FromArgb(255, 140, 0);
+                (TBInput.IsDarkModeActive() ? Color.Firebrick : Color.DarkOrange);
 
             // 快照目前全域字型，確保在動畫循環中不會誤處置它們。
             Font? snapshotA11yFont = _a11yFont,
@@ -972,83 +1005,34 @@ public partial class MainForm
                     return;
                 }
 
-                int currentThickness = (int)Math.Round(normalThickness + (pulseThickness - normalThickness) * intensity);
-
-                PInputHost.Padding = new Padding(currentThickness);
+                bool isDark = TBInput.IsDarkModeActive();
 
                 if (SystemInformation.HighContrast)
                 {
                     PInputHost.BackColor = intensity > 0.5f ?
                         alertColor :
                         SystemColors.Highlight;
-
-                    // 高對比模式下的雙重形狀補償：除了 Padding，額外微調字體大小。
-                    if (snapshotA11yFont != null)
-                    {
-                        float pulseSize = snapshotA11yFont.Size + (0.5f * intensity);
-
-                        Font oldFont = BtnCopy.Font;
-
-                        BtnCopy.Font = new Font(snapshotA11yFont.FontFamily, pulseSize, snapshotA11yFont.Style);
-
-                        // 核心修正：釋放動態建立的字型資源，避免 GDI Handle 耗盡引發洩漏。
-                        // 使用快照進行比對，排除全域字型與目前最新的快取字型。
-                        if (oldFont != null &&
-                            oldFont != snapshotA11yFont &&
-                            oldFont != snapshotBoldFont &&
-                            oldFont != _a11yFont &&
-                            oldFont != _boldBtnFont)
-                        {
-                            oldFont.Dispose();
-                        }
-                    }
                 }
                 else
                 {
-                    Color baseColor = TBInput.Focused ?
-                        SystemColors.Highlight :
-                        SystemColors.ControlDark;
+                    // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan/RoyalBlue）插值產生髒濁色。
+                    Color pureBase = isDark ?
+                        Color.White :
+                        Color.Black;
 
-                    int r = (int)(baseColor.R + (alertColor.R - baseColor.R) * intensity),
-                        g = (int)(baseColor.G + (alertColor.G - baseColor.G) * intensity),
-                        b = (int)(baseColor.B + (alertColor.B - baseColor.B) * intensity);
+                    int rB = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
+                        gB = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
+                        bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                    PInputHost.BackColor = Color.FromArgb(255, r, g, b);
+                    Color flashColor = Color.FromArgb(255, rB, gB, bB);
 
-                    if (intensity > 0.8f)
-                    {
-                        if (TBInput.IsDarkModeActive())
-                        {
-                            TBInput.BackColor = Color.White;
-                            TBInput.ForeColor = Color.Black;
-                        }
-                        else
-                        {
-                            TBInput.BackColor = Color.Black;
-                            TBInput.ForeColor = Color.White;
-                        }
-                    }
-                    else
-                    {
-                        if (TBInput.Focused)
-                        {
-                            if (TBInput.IsDarkModeActive())
-                            {
-                                TBInput.BackColor = Color.White;
-                                TBInput.ForeColor = Color.Black;
-                            }
-                            else
-                            {
-                                TBInput.BackColor = Color.Black;
-                                TBInput.ForeColor = Color.White;
-                            }
-                        }
-                        else
-                        {
-                            TBInput.BackColor = SystemColors.Window;
-                            TBInput.ForeColor = SystemColors.WindowText;
-                        }
-                    }
+                    PInputHost.BackColor = flashColor;
+
+                    // 2. 遞歸背景更新（Recursive Visual Sync）：同步更新輸入框編輯區，確保視覺一致性。
+                    TBInput.BackColor = flashColor;
+
+                    // 3. 警示作用域隔離（Alert Scoping）：按鈕即使具備焦點，也禁止參與同步背景閃爍。
+                    // 原有的按鈕閃爍邏輯已移除，按鈕將維持其靜態焦點樣式。
                 }
             }
 
@@ -1143,10 +1127,15 @@ public partial class MainForm
                         lastFont.Dispose();
                     }
 
-                    if (!SystemInformation.HighContrast)
+                    // 還原輸入框顏色。
+                    if (TBInput.Focused)
                     {
-                        // 還原輸入框顏色。
-                        if (TBInput.Focused)
+                        if (SystemInformation.HighContrast)
+                        {
+                            TBInput.BackColor = SystemColors.Highlight;
+                            TBInput.ForeColor = SystemColors.HighlightText;
+                        }
+                        else
                         {
                             if (TBInput.IsDarkModeActive())
                             {
@@ -1159,11 +1148,11 @@ public partial class MainForm
                                 TBInput.ForeColor = Color.White;
                             }
                         }
-                        else
-                        {
-                            TBInput.BackColor = SystemColors.Window;
-                            TBInput.ForeColor = SystemColors.WindowText;
-                        }
+                    }
+                    else
+                    {
+                        TBInput.BackColor = Color.Empty;
+                        TBInput.ForeColor = Color.Empty;
                     }
                 });
             }
@@ -1190,15 +1179,19 @@ public partial class MainForm
 
         if (isFocused)
         {
-            // 獲得焦點：加粗邊框（顯著形狀變化） + 高對比配色。
-            // 使用 SystemColors 確保在高對比模式下由 Windows 接管配色。
-            PInputHost.BackColor = SystemColors.Highlight;
+            // 獲得焦點：加粗邊框（顯著形狀變化）+ 同步高對比配色。
+            // 語意一致性：使用與按鈕焦點框相同的配色邏輯。
+            // 最終修正：淺色模式（黑底控制項）用 Cyan（14:1）；深色模式（白底控制項）用 RoyalBlue（4.9:1）。
+            PInputHost.BackColor = SystemInformation.HighContrast ?
+                SystemColors.Highlight :
+                (TBInput.IsDarkModeActive() ? Color.RoyalBlue : Color.Cyan);
+
             PInputHost.Padding = new Padding(activeThickness);
         }
         else
         {
-            // 失去焦點：細邊框 + 低亮度配色。
-            PInputHost.BackColor = SystemColors.ControlDark;
+            // 失去焦點：細邊框 + 預設還原色（觸發主題引擎）。
+            PInputHost.BackColor = Color.Empty;
             PInputHost.Padding = new Padding(normalThickness);
         }
     }
@@ -1276,24 +1269,38 @@ public partial class MainForm
     /// <summary>
     /// 更新視窗標題列文字
     /// </summary>
-    private void UpdateTitle()
+    /// <param name="suffix">要附加在標題後方的暫時性訊息（可選）</param>
+    private void UpdateTitle(string? suffix = null)
     {
-        // 邏輯守衛：如果正在擷取快速鍵，則由擷取邏輯控制標題，此處不應覆蓋。
-        if (_isCapturingHotkey != 0)
+        // 始終以包含快速鍵的快取前綴為基礎。
+        string baseTitle = _cachedTitlePrefix;
+
+        // 擷取模式專用處理：
+        // 如果正在擷取中且未提供 suffix，自動補上「請按下一組按鍵」提示。
+        if (_isCapturingHotkey != 0 &&
+            string.IsNullOrEmpty(suffix))
         {
+            suffix = Strings.Msg_PressAnyKey;
+        }
+
+        // 如果有傳入額外訊息（如「錯誤」、「快速鍵已更新」或自動補上的「請按下一組按鍵」），優先顯示。
+        if (!string.IsNullOrEmpty(suffix))
+        {
+            Text = $"{baseTitle} - [{suffix}]";
+
             return;
         }
 
         if (_gamepadController == null ||
             !_gamepadController.IsConnected)
         {
-            Text = _cachedTitlePrefix;
+            Text = baseTitle;
 
             return;
         }
 
         // 當控制器連線時，顯示裝置名稱。
-        Text = $"{_cachedTitlePrefix} · [{_gamepadController.DeviceName}]";
+        Text = $"{baseTitle} · [{_gamepadController.DeviceName}]";
     }
 
     /// <summary>

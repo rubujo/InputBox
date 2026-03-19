@@ -8,6 +8,8 @@
 
 - **預設作業系統**：Microsoft Windows。
 - **編碼規範**：執行指令時必須確保環境使用 **UTF-8（Code Page 65001）**，避免使用舊有的 CP950（Big5），以確保非 ASCII 字元顯示正確。
+  - **PowerShell（pwsh／powershell）**：在執行任何命令前，必須先執行 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`。
+  - **Command Prompt（cmd）**：在執行任何命令前，必須先執行 `chcp 65001`。
 - **Shell 使用優先順序**：
   1. **PowerShell 7+（pwsh）**：優先使用跨平台版本。
   2. **Windows PowerShell 5.1（powershell）**：僅在無 pwsh 時使用。
@@ -48,8 +50,13 @@
 - **分離式回饋原則（Separated Feedback）**：
   - **鍵盤焦點**：當控制項透過鍵盤（如 Tab 鍵）獲得焦點時，僅執行「強烈靜態視覺回饋」（如明暗反轉、字體加粗），禁止啟動耗時的填滿動畫。
   - **注視／懸停**：當視線進入或滑鼠懸停時，啟動「線性填滿（Linear Fill）」動畫，提供明確的動作預期感。
-- **語意與導覽**：
-  - 佈局容器必須設定 `AccessibleRole = Grouping` 並補足 `AccessibleName` 與 `Description`。
+  - **預設動作引導（Default Action Guidance）**：
+    - **規範**：對話框的 `AcceptButton` 在焦點位於非按鈕控制項（如輸入框）時，必須顯示與「焦點框」相同的視覺特徵（如 Cyan／RoyalBlue 邊框），指引 Enter 鍵的預設動作。
+    - **雙焦點衝突防護**：當使用者將焦點移至其他按鈕時，原預設按鈕的「焦點色」邊框必須自動移除並轉為基礎邊框，確保畫面上只有一個「焦點色」區域。
+  - **基礎可辨識性（Base Recognizability）**：
+    - **規範**：所有自定義繪製的按鈕在非活動狀態下必須具備至少 1 像素的基礎邊框（如灰色），嚴禁呈現為無邊界的懸浮文字，確保在不同背景下的物理辨識度。
+    - **邊框停用原則**：若使用自定義 `Paint` 接管，必須將 `FlatAppearance.BorderSize` 設為 `0` 以消除原生邊框產生的粗細不均偽影。
+- **語意與導覽**：  - 佈局容器必須設定 `AccessibleRole = Grouping` 並補足 `AccessibleName` 與 `Description`。
 - **色覺與視覺安全規範**：
   - **眼動儀友善（Eye Tracker Optimized）**：
     - **注視回饋（Dwell Feedback）**：必須實作 1000ms 的**線性填滿**進度條。填滿後應保持靜態高亮，禁止持續律動以減少使用者分心。
@@ -65,19 +72,31 @@
         - **深色模式**：反轉配色應為「白底黑字」或具備極高亮度對比的亮色。
         - 禁止在深色模式下僅使用 `Color.Black` 作為焦點回饋，以免對比度不足。
     - **色盲友善警示色**：在一般主題下，優先選用暖橘色（如 DarkOrange）作為警示色，以獲得跨 CVD 類型（Protan／Deutan／Tritan）的最佳對比。
+    - **插值基色中性化（Interpolation Neutrality）**：
+      - **禁令**：禁止在兩個高飽和度色彩（如 Cyan 焦點色與 DarkOrange 警示色）之間進行線性插值。這會導致插值中點產生髒濁色（泥綠色或暗紫色）。
+      - **規範**：執行閃爍動畫時，過渡起點（Base）必須固定為該模式下的**純淨背景底色**（深色模式用 `Color.White`，淺色模式用 `Color.Black`），確保過渡路徑純淨且具備明確的發光呼吸感。
+    - **警示作用域隔離（Alert Scoping）**：
+      - **規範**：邊界觸頂／觸底警示應僅作用於**數據內容區域**（如輸入框背景或數值顯示區）。
+      - **解耦原則**：與該數據互動的操作按鈕（如數值加減按鈕）即使具備焦點，也**禁止**參與同步背景閃爍。按鈕應維持其靜態視覺狀態（如 Cyan／RoyalBlue 焦點框），以維持「分離式回饋（Separated Feedback）」的資訊清晰度。
+    - **遞歸背景更新（Recursive Visual Sync）**：
+      - **規範**：當動態變更複雜控制項（如 `NumericUpDown`）的 `BackColor` 或 `ForeColor` 時，必須遞歸更新其內部的所有子控制項（特別是 `TextBox` 編輯區），確保無殘留底色（Ghosting）影響視覺一致性。
   - **光敏性癲癇防護（Photosensitive Epilepsy）**：
+    - **脈衝定義（Pulse Definition）**：所有視覺警示（Flash Alert）必須以「平滑脈衝（Smooth Pulse）」形式實作，嚴禁使用具有突變轉折點的「線性脈衝（Linear Pulse）」或劇烈「閃爍（Flicker）」。
     - **頻率控制**：視覺律動頻率必須嚴格鎖定在 **1Hz**（1000ms 週期），遠低於 3Hz 的風險閾值。
-    - **平滑漸變**：亮度變化必須使用正弦波（Sine Wave）或平滑過渡，禁止劇烈閃爍。
+    - **平滑漸變**：亮度與色彩變化必須使用**正弦波（Sine Wave）**過渡，確保在波峰與波底的變化率平滑流暢，減少對大腦視覺皮層的突發性刺激。
     - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍或 Dwell 動畫，必須改為「靜態顯著提醒」。
   - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
-- **系統偏好同步（System Sync）**：
+- **系統偏好同步與主題管理（System Sync & Theme Management）**：
   - 必須透過 `SystemEvents.UserPreferenceChanged` 監控 `UserPreferenceCategory.General` 與 `Accessibility`，確保當使用者變更 Windows 動畫、色彩或主題設定時，UI 視覺行為能立即同步。
+  - **動態主題管理（Dynamic Theme Management）**：
+    - **禁止硬編碼預設色**：在執行階段（Runtime）還原控制項顏色時，禁止將 `BackColor` 或 `ForeColor` 賦值為特定的 `SystemColors` 靜態屬性（如 `SystemColors.Control`），這在 .NET 10 深色模式下會導致還原回錯誤的淺灰色。
+    - **優先使用屬性重設**：還原預設配色時，應將顏色屬性設為 `Color.Empty`（或 `default`）。這能觸發 .NET 10 的原生主題引擎，自動根據當前系統配色（深色／淺色／高對比）套用正確的環境顏色。
 - **⚠️ 核心限制：設計工具（Designer）保護與硬編碼原則**：
   - **設計時視覺化**：為了在 Visual Studio 設計工具內能直觀預覽文字與佈局（因 L10N 為非標準實作），允許且建議在 Designer 中硬編碼正體中文文字與 A11y 屬性。
   - **屬性疊加**：Designer 內設定的值為基礎，執行階段（Runtime）必須透過 `ApplyLocalization` 或分部類別（如 `MainForm.A11y.cs`）再次賦值以確保多語系正確性。
   - **禁止破壞結構**：嚴禁手動修改 `MainForm.Designer.cs` 中由設計工具生成的自動化佈局結構。
 
-## 3. 控制器 API 指引（XInput＆GameInput）
+## 3. 控制器 API 指引（XInput & GameInput）
 
 - **自動退避**：預設優先嘗試 `GameInput`；若初始化失敗，必須自動退避至 `XInput` 並告知使用者。
 - **震動安全性**：
