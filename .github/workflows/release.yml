@@ -38,6 +38,24 @@ jobs:
         -p:PublishReadyToRun=true
         -o out
 
+    - name: 自動產生第三方套件授權聲明（sensslen/nuget-license）
+      shell: pwsh
+      run: |
+        Write-Host "安裝 nuget-license 工具…"
+        dotnet tool install --global nuget-license
+
+        Write-Host "掃描專案 NuGet 套件並匯出 ThirdPartyNotices.txt…"
+        # -i  : 指定專案檔路徑
+        # -o  : 指定輸出格式為 Markdown（讓純文字檔內有整齊的表格排版）
+        # -fo : 指定輸出的檔案名稱 (File Output)
+        nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt
+
+        if (Test-Path "ThirdPartyNotices.txt") {
+            Write-Host "✅ 成功產生專案依賴套件的 ThirdPartyNotices.txt！"
+        } else {
+            Write-Warning "⚠️ 未產生 ThirdPartyNotices.txt，可能是因為專案目前沒有依賴任何第三方套件。"
+        }
+
     - name: 產生檔案雜湊值（SHA256）
       shell: pwsh
       run: |
@@ -66,15 +84,49 @@ jobs:
         if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
         New-Item -ItemType Directory -Force -Path $packDir | Out-Null
 
-        # 2. 複製執行檔與文件到內層目錄。
+        # 2. 複製執行檔與專案文件到內層目錄。
         Copy-Item -Path (Join-Path ${{ env.PUBLISH_DIR }} ${{ env.EXE_NAME }}) -Destination $packDir
         $docs = @("LICENSE", "README.md", "ThirdPartyNotices.txt")
         foreach ($doc in $docs) {
             if (Test-Path $doc) { Copy-Item -Path $doc -Destination $packDir }
         }
 
-        # 3. 執行壓縮：重點在於路徑指向 $packDir 但不加 \*
-        # 這樣 Compress-Archive 會連同 "InputBox" 資料夾本身一起壓進去。
+        # 3. 動態抓取 .NET 官方授權檔案。
+        Write-Host "=== 開始動態下載 .NET 官方授權檔案 ==="
+        $runtimeInfo = dotnet --list-runtimes
+
+        # ⚠️ 這裡修改了抓取邏輯：只抓 10 開頭的版本，並取清單最後一個（通常是最新的小版號）。
+        $runtimeLine = $runtimeInfo | Where-Object { $_ -match "^Microsoft\.NETCore\.App (10\.\d+\.\d+)" } | Select-Object -Last 1
+
+        if ($runtimeLine -match "^Microsoft\.NETCore\.App (\d+\.\d+\.\d+)") {
+            $version = $Matches[1]
+            $tag = "v$version"
+            Write-Host "偵測到當前使用的 .NET Runtime 版本為：$version，對應 GitHub 標籤：$tag"
+
+            $filesToDownload = @(
+                @{ Repo = "runtime";  File = "LICENSE.TXT";             Out = "DOTNET_RUNTIME_LICENSE.txt" },
+                @{ Repo = "runtime";  File = "THIRD-PARTY-NOTICES.TXT"; Out = "DOTNET_RUNTIME_THIRD_PARTY_NOTICES.txt" },
+                @{ Repo = "winforms"; File = "LICENSE.TXT";             Out = "DOTNET_WINFORMS_LICENSE.txt" },
+                @{ Repo = "winforms"; File = "THIRD-PARTY-NOTICES.TXT"; Out = "DOTNET_WINFORMS_THIRD_PARTY_NOTICES.txt" }
+            )
+
+            foreach ($item in $filesToDownload) {
+                $url = "https://raw.githubusercontent.com/dotnet/$($item.Repo)/$tag/$($item.File)"
+                $outPath = Join-Path $packDir $item.Out
+                Write-Host "嘗試下載: $url"
+                try {
+                    Invoke-WebRequest -Uri $url -OutFile $outPath -ErrorAction Stop
+                    Write-Host "✅ 成功儲存為 $($item.Out)"
+                } catch {
+                    Write-Warning "⚠️ 無法下載，可能該版本（$tag）無此檔案標籤。"
+                }
+            }
+        } else {
+            Write-Warning "❌ 無法解析 .NET Runtime 10 的版本號，請確認安裝步驟。"
+        }
+        Write-Host "======================================="
+
+        # 4. 執行壓縮
         Compress-Archive -Path $packDir -DestinationPath $zipName -CompressionLevel Optimal
 
     - name: 建立 GitHub Release

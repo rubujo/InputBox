@@ -259,7 +259,9 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 
 本應用程式使用了以下第三方函式庫，其權利歸原作者所有並遵循各自之授權條款：
 
+- [.NET Runtime](https://github.com/dotnet/runtime)：由 Microsoft 及其貢獻者開發並採用 [**MIT License**](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT) 授權，作為本應用程式之底層執行環境。相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT)。
+- [.NET Windows Forms（WinForms）](https://github.com/dotnet/winforms)：由 Microsoft 及其貢獻者開發並採用 [**MIT License**](https://github.com/dotnet/winforms/blob/main/LICENSE.TXT) 授權，提供桌面視窗圖形介面基礎架構。相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/winforms/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [GameInput.Net](https://github.com/Cephy314/GameInputNet)：由 [Cephy314](https://github.com/Cephy314) 開發並採用 [**MIT License**](https://github.com/Cephy314/GameInputNet/blob/main/LICENSE) 授權，用於存取 GameInput API。
 - [UsbVendorsLibrary](https://github.com/Cephy314/UsbVendorsLibrary)：由 [Cephy314](https://github.com/Cephy314) 開發並採用 [**MIT License**](https://github.com/Cephy314/UsbVendorsLibrary/blob/main/LICENSE) 授權，用於存取裝置資訊。
 
-詳細條款與免責聲明，請參閱 [**LICENSE**](LICENSE)（專案本體）與 [**ThirdPartyNotices.txt**](ThirdPartyNotices.txt)（第三方函式庫）文件。
+本專案本體的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；關於第三方套件之完整版權宣告與授權文字，請參閱隨附於發佈壓縮檔內之 **ThirdPartyNotices.txt** 文件以及各框架專屬授權文件。
