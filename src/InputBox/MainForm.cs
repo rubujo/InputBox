@@ -7,6 +7,7 @@ using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using Microsoft.Win32;
+using System.Diagnostics;
 using System.Media;
 
 namespace InputBox;
@@ -163,6 +164,11 @@ public partial class MainForm : Form
     /// </summary>
     private long _animationId = 0;
 
+    /// <summary>
+    /// 冷卻旗標，防止在短時間內重複觸發按鈕動作（例如連續點擊或快速鍵）
+    /// </summary>
+    private bool _isActionCooldown = false;
+
     public MainForm()
     {
         InitializeComponent();
@@ -251,20 +257,52 @@ public partial class MainForm : Form
     {
         base.OnDeactivate(e);
 
+        // 如果是因為正在呼叫觸控小鍵盤而失去焦點，則不進行任何處理（保留視覺狀態與手把輪詢）。
         if (_isShowingTouchKeyboard != 0)
         {
             return;
         }
 
-        // 使用 SafeBeginInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期。
+        // 使用 SafeInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期，並確保在 UI 執行緒操作。
         this.SafeInvoke(() =>
         {
-            // 如果還有其他視窗（例如數值輸入對話框）是活躍的，不應停止手把輪詢。
+            try
+            {
+                // 清除 UI 視覺殘留。
+                // 確保視窗在背景或被對話框遮擋時，不會殘留 Hover 的灰底或 Focus 的邊框。
+
+                // 1. 強制清除按鈕的 Hover 或 Focus 視覺殘留。
+                _isBtnHovered = false;
+
+                if (BtnCopy != null && !BtnCopy.IsDisposed)
+                {
+                    // 強制洗掉所有的顏色、粗體與邊框。
+                    RestoreButtonDefaultStyle(force: true);
+                }
+
+                // 2. 清除輸入框的視覺殘留。
+                if (TBInput != null &&
+                    !TBInput.IsDisposed &&
+                    !TBInput.Focused)
+                {
+                    UpdateBorderColor(false);
+
+                    TBInput.BackColor = Color.Empty;
+                    TBInput.ForeColor = Color.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[事件] 清除視窗失焦視覺殘留失敗：{ex.Message}");
+            }
+
+            // 如果還有其他視窗（例如數值輸入對話框）是活躍的，代表應用程式還在前景，不應停止手把輪詢。
             if (ActiveForm != null)
             {
                 return;
             }
 
+            // 當整個應用程式完全退到背景時，停止震動並暫停手把輪詢。
             FeedbackService.StopAllVibrationsAsync(_gamepadController).SafeFireAndForget();
 
             _gamepadController?.Pause();

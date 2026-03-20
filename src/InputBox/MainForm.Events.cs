@@ -234,6 +234,21 @@ public partial class MainForm
     {
         try
         {
+            // 區分滑鼠與鍵盤的焦點轉移。
+            if (BtnCopy != null &&
+                BtnCopy.Focused)
+            {
+                // 如果 Control.MouseButtons 不是 None，代表使用者正「按住」滑鼠左鍵。
+                // 這是滑鼠點擊瞬間搶走焦點，我們攔截並保留黑色背景，防止刺眼閃爍。
+                if (MouseButtons != MouseButtons.None)
+                {
+                    return;
+                }
+
+                // 如果是 None，代表是按 Tab 鍵過來的。
+                // 必須放行，讓 TBInput 乖乖清除黑色背景，避免雙重焦點！
+            }
+
             _alertCts?.Cancel();
 
             // 如果正在擷取快速鍵時失去焦點，則取消擷取模式。
@@ -274,9 +289,18 @@ public partial class MainForm
     {
         try
         {
+            // 防止背景誤觸（Prevent Background Midas Touch）。
+            // 如果目前的主視窗不是活躍狀態（失去焦點退到背景了），
+            // 則完全不觸發 Hover 視覺，更不啟動眼控 Dwell 進度條動畫。
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             _isBtnHovered = true;
 
-            ApplyButtonHoverStyle(isKeyboardFocus: false);
+            // 尊重目前的鍵盤焦點狀態。
+            ApplyButtonHoverStyle(isKeyboardFocus: BtnCopy.Focused);
         }
         catch (Exception ex)
         {
@@ -315,10 +339,29 @@ public partial class MainForm
     {
         try
         {
-            // 強制還原樣式，確保焦點確實轉移。
-            _isBtnHovered = false;
+            // 失去鍵盤焦點時，檢查滑鼠／視線是否還在上面。
+            if (_isBtnHovered)
+            {
+                // 如果視線／滑鼠還在，主動套用「溫和的 Hover 樣式」，
+                // 藉此洗掉強烈的 Cyan 邊框與粗體，避免 Focus 視覺殘留！
+                ApplyButtonHoverStyle(isKeyboardFocus: false);
+            }
+            else
+            {
+                // 如果滑鼠也不在上面，就徹底還原成預設狀態。
+                RestoreButtonDefaultStyle(force: true);
+            }
 
-            RestoreButtonDefaultStyle(force: true);
+            // 如果焦點離開按鈕，且「沒有回到輸入框」（例如使用者 Alt+Tab 切換視窗），
+            // 則由按鈕幫忙清除輸入框的視覺焦點狀態。
+            if (TBInput != null &&
+                !TBInput.Focused)
+            {
+                UpdateBorderColor(false);
+
+                TBInput.BackColor = Color.Empty;
+                TBInput.ForeColor = Color.Empty;
+            }
         }
         catch (Exception ex)
         {
@@ -394,12 +437,61 @@ public partial class MainForm
     {
         try
         {
-            // 點擊後立即將焦點歸還給 TextBox，確保按鈕能順利還原。
-            TBInput.Focus();
+            // 永遠保證點擊按鈕後，焦點會回到輸入框（即使在冷卻中），
+            // 這確保了焦點不會卡在按鈕上。
+            if (TBInput.CanFocus &&
+                !TBInput.Focused)
+            {
+                TBInput.Focus();
 
-            RestoreButtonDefaultStyle(force: true);
+                await Task.Yield();
+            }
 
+            // 邏輯冷卻攔截。
+            // 取代 Enabled = false，眼控使用者的 MouseEnter 狀態不會被中斷。
+            if (_isActionCooldown)
+            {
+                return;
+            }
+
+            // 保留 Hover 視覺，僅重置動畫與進度。
+            // 取代 RestoreButtonDefaultStyle(force: true);，
+            // 我們只中斷正在進行的 Dwell 動畫並將進度條歸零，保留黑底與粗體，提供點擊確認感。
+            Interlocked.Increment(ref _animationId);
+
+            _dwellProgress = 0f;
+
+            BtnCopy.Invalidate();
+
+            // 執行非同步動作（包含成功複製，或是空字串時的 1 秒冷卻等待）。
             await PerformCopyAsync();
+
+            // Gaze Re-engagement（視線重新接合）。
+            // 動作或冷卻結束後，檢查眼控／滑鼠是否還停留在按鈕上。
+            // 如果還在，主動重新觸發 Hover 樣式與 Dwell 動畫！
+            if (BtnCopy != null &&
+                !BtnCopy.IsDisposed)
+            {
+                Point cursorPos = BtnCopy.PointToClient(Cursor.Position);
+
+                // 檢查游標是否還在按鈕的範圍內。
+                if (BtnCopy.ClientRectangle.Contains(cursorPos))
+                {
+                    _isBtnHovered = true;
+
+                    // 如果目前已經有鍵盤焦點，就維持強烈視覺；否則才套用溫和的 Hover。
+                    ApplyButtonHoverStyle(isKeyboardFocus: BtnCopy.Focused);
+                }
+                else
+                {
+                    // 如果動作結束時，滑鼠確實已經移開了，才徹底洗掉樣式
+                    _isBtnHovered = false;
+
+                    // 讓方法內部自己去判斷（!BtnCopy.Focused && !_isBtnHovered）。
+                    // 這樣如果使用者是用 Tab 鍵停留在按鈕上（Focused = true），就不會被洗掉黑色背景！
+                    RestoreButtonDefaultStyle();
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -412,7 +504,7 @@ public partial class MainForm
     /// <summary>
     /// 套用按鈕高亮與加粗樣式
     /// </summary>
-    /// <param name="isKeyboardFocus">是否為鍵盤焦點觸發（若是則不啟動進度條動畫）</param>
+    /// <param name="isKeyboardFocus">是否為鍵盤焦點觸發（若是則給予最強烈視覺，且不啟動進度條動畫）</param>
     private void ApplyButtonHoverStyle(bool isKeyboardFocus)
     {
         // 如果按鈕已停用，不執行樣式變更，避免干擾 Reset 流程。
@@ -429,40 +521,90 @@ public partial class MainForm
             _originalBtnPadding = BtnCopy.Padding;
         }
 
-        // 1. 強烈靜態視覺回饋：主題感知的明暗反轉。
-        if (SystemInformation.HighContrast)
+        if (isKeyboardFocus)
         {
-            BtnCopy.BackColor = SystemColors.Highlight;
-            BtnCopy.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            if (BtnCopy.IsDarkModeActive())
+            // 強烈視覺：鍵盤焦點（Tab 鍵切換過來）。
+            // 目的：讓使用者明確知道按下 Enter 會觸發此按鈕。
+
+            // 打斷並徹底重置 Dwell 進度。
+            // 既然已經由鍵盤接管焦點，就必須清除跑到一半的進度，避免視覺殘留卡死！
+            _dwellProgress = 0f;
+
+            if (SystemInformation.HighContrast)
             {
-                // 深色模式：白底黑字。
-                BtnCopy.BackColor = Color.White;
-                BtnCopy.ForeColor = Color.Black;
+                BtnCopy.BackColor = SystemColors.Highlight;
+                BtnCopy.ForeColor = SystemColors.HighlightText;
             }
             else
             {
-                // 淺色模式：黑底白字。
-                BtnCopy.BackColor = Color.Black;
-                BtnCopy.ForeColor = Color.White;
+                if (BtnCopy.IsDarkModeActive())
+                {
+                    // 深色模式：白底黑字（最強烈對比）。
+                    BtnCopy.BackColor = Color.White;
+                    BtnCopy.ForeColor = Color.Black;
+                }
+                else
+                {
+                    // 淺色模式：黑底白字（最強烈對比）。
+                    BtnCopy.BackColor = Color.Black;
+                    BtnCopy.ForeColor = Color.White;
+                }
             }
+
+            // 形狀補償：字體加粗。
+            if (_boldBtnFont != null)
+            {
+                BtnCopy.Font = _boldBtnFont;
+            }
+
+            // 強烈的焦點邊框。
+            BtnCopy.FlatAppearance.BorderColor = Color.Cyan;
+            // 粗邊框。
+            BtnCopy.FlatAppearance.BorderSize = 2;
+
+            BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
         }
-
-        // 2. 形狀補償：字體加粗。
-        if (_boldBtnFont != null)
+        else
         {
-            BtnCopy.Font = _boldBtnFont;
-        }
+            // 溫和視覺：滑鼠／眼控 Hover。
+            // 目的：提示游標位置，但不搶走鍵盤焦點的風采。
 
-        BtnCopy.Padding = new Padding(0);
-        BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
+            if (SystemInformation.HighContrast)
+            {
+                BtnCopy.BackColor = SystemColors.HotTrack;
+                BtnCopy.ForeColor = SystemColors.HighlightText;
+            }
+            else
+            {
+                if (BtnCopy.IsDarkModeActive())
+                {
+                    // 深色模式：溫和的深灰色。
+                    BtnCopy.BackColor = Color.FromArgb(60, 60, 60);
+                    BtnCopy.ForeColor = Color.White;
+                }
+                else
+                {
+                    // 淺色模式：溫和的淺灰色。
+                    BtnCopy.BackColor = Color.FromArgb(220, 220, 220);
+                    BtnCopy.ForeColor = Color.Black;
+                }
+            }
 
-        // 3. 動畫回饋：僅在視線進入時播放。
-        if (!isKeyboardFocus)
-        {
+            // 不加粗：維持無障礙標準字體。
+            if (_a11yFont != null)
+            {
+                BtnCopy.Font = _a11yFont;
+            }
+
+            // 弱化或隱藏邊框，使其融入背景。
+            BtnCopy.FlatAppearance.BorderColor = BtnCopy.BackColor;
+            // 細邊框。
+            BtnCopy.FlatAppearance.BorderSize = 1;
+
+            // 無障礙描述改為懸停狀態（可依需求修改字串）。
+            BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} (Hover)";
+
+            // 動畫回饋：僅在視線/滑鼠進入時播放。
             BtnCopy.RunDwellAnimationAsync(
                     id,
                     () => Interlocked.Read(ref _animationId),
@@ -470,6 +612,11 @@ public partial class MainForm
                     ct: _formCts.Token)
                 .SafeFireAndForget();
         }
+
+        BtnCopy.Padding = new Padding(0);
+
+        // 保險起見，強制要求按鈕立刻重繪，把歸零後的狀態畫出來。
+        BtnCopy.Invalidate();
     }
 
     /// <summary>
@@ -506,6 +653,8 @@ public partial class MainForm
             }
 
             BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+            BtnCopy.FlatAppearance.BorderColor = Color.Empty;
+            BtnCopy.FlatAppearance.BorderSize = 1;
         }
 
         BtnCopy.Invalidate();
@@ -525,6 +674,9 @@ public partial class MainForm
             // 使用快照檢查。
             if (string.IsNullOrEmpty(strTextToCopy))
             {
+                // 啟動邏輯冷卻。
+                _isActionCooldown = true;
+
                 // 發出警告音。
                 FeedbackService.PlaySound(SystemSounds.Beep);
 
@@ -540,6 +692,12 @@ public partial class MainForm
                 FlashAlertAsync().SafeFireAndForget();
 
                 AnnounceA11y(Strings.A11y_No_Text_To_Copy);
+
+                // 異步等待 1 秒冷卻，涵蓋閃爍動畫週期。
+                // 期間所有的點擊都會被 BtnCopy_Click 攔截，但不會破壞 UI 狀態。
+                await Task.Delay(1000);
+
+                _isActionCooldown = false;
 
                 return;
             }
@@ -1110,25 +1268,14 @@ public partial class MainForm
             {
                 this.SafeInvoke(() =>
                 {
-                    UpdateBorderColor(TBInput.Focused);
+                    // 嚴格遵守自身焦點狀態。
+                    // 移除之前的 isActiveState 混合判斷，只看 TBInput.Focused。
+                    bool isTextBoxFocused = TBInput.Focused;
 
-                    // 核心修正：動畫結束後還原字型並清理最後一個臨時字型。
-                    Font lastFont = BtnCopy.Font;
-
-                    if (_a11yFont != null)
-                    {
-                        BtnCopy.Font = _a11yFont;
-                    }
-
-                    if (lastFont != null &&
-                        lastFont != _a11yFont &&
-                        lastFont != _boldBtnFont)
-                    {
-                        lastFont.Dispose();
-                    }
+                    UpdateBorderColor(isTextBoxFocused);
 
                     // 還原輸入框顏色。
-                    if (TBInput.Focused)
+                    if (isTextBoxFocused)
                     {
                         if (SystemInformation.HighContrast)
                         {
@@ -1151,6 +1298,7 @@ public partial class MainForm
                     }
                     else
                     {
+                        // 只有當焦點真的離開了這個輸入區域（例如點擊了其他視窗），才徹底還原。
                         TBInput.BackColor = Color.Empty;
                         TBInput.ForeColor = Color.Empty;
                     }
