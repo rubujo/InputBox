@@ -18,6 +18,10 @@ jobs:
       # 只需要讀取原始碼進行建置即可。
       contents: read
 
+    # 定義環境變數，方便統一管理。
+    env:
+      DOTNET_MAJOR_VERSION: '10'
+
     steps:
     - name: 簽出原始碼（Checkout）
       uses: actions/checkout@v6
@@ -25,7 +29,8 @@ jobs:
     - name: 安裝 .NET 環境
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '10.x'
+        # 使用 GitHub Actions 語法來讀取 env 變數。
+        dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         # 啟用快取功能，加速 NuGet 套件還原。
         cache: true
         cache-dependency-path: '**/InputBox.csproj'

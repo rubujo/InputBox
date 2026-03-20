@@ -12,10 +12,13 @@ jobs:
     permissions:
       contents: write
 
-    # 定義環境變數，方便統一管理路徑與檔名。
+    # 定義環境變數，方便統一管理。
     env:
+      DOTNET_MAJOR_VERSION: '10'
       PUBLISH_DIR: "./src/InputBox/out"
-      EXE_NAME: "InputBox.exe"
+      EXE_NAME: 'InputBox.exe'
+      SHA256_HASH: ''
+      ZIP_FILENAME: ''
 
     steps:
     - name: 簽出原始碼（Checkout）
@@ -24,7 +27,8 @@ jobs:
     - name: 安裝 .NET 環境
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '10.x'
+        # 使用 GitHub Actions 語法來讀取 env 變數。
+        dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         # 啟用快取功能，加速 NuGet 套件還原（Restore）。
         cache: true
         cache-dependency-path: '**/InputBox.csproj'
@@ -41,13 +45,13 @@ jobs:
     - name: 自動產生第三方套件授權聲明（sensslen/nuget-license）
       shell: pwsh
       run: |
-        Write-Host "安裝 nuget-license 工具…"
+        Write-Host "安裝 nuget-license 工具……"
         dotnet tool install --global nuget-license
 
-        Write-Host "掃描專案 NuGet 套件並匯出 ThirdPartyNotices.txt…"
-        # -i  : 指定專案檔路徑
-        # -o  : 指定輸出格式為 Markdown（讓純文字檔內有整齊的表格排版）
-        # -fo : 指定輸出的檔案名稱 (File Output)
+        Write-Host "掃描專案 NuGet 套件並匯出 ThirdPartyNotices.txt……"
+        # -i：指定專案檔路徑。
+        # -o：指定輸出格式為 Markdown（讓純文字檔內有整齊的表格排版）。
+        # -fo：指定輸出的檔案名稱（File Output）。
         nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt
 
         if (Test-Path "ThirdPartyNotices.txt") {
@@ -56,47 +60,51 @@ jobs:
             Write-Warning "⚠️ 未產生 ThirdPartyNotices.txt，可能是因為專案目前沒有依賴任何第三方套件。"
         }
 
-    - name: 產生檔案雜湊值（SHA256）
+    - name: 產生執行檔的雜湊值（SHA256）
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
-        $exePath = Join-Path -Path ${{ env.PUBLISH_DIR }} -ChildPath ${{ env.EXE_NAME }}
+        $exePath = Join-Path -Path "${{ env.PUBLISH_DIR }}" -ChildPath "${{ env.EXE_NAME }}"
 
         if (Test-Path $exePath) {
-          $hash = (Get-FileHash $exePath -Algorithm SHA256).Hash
-          echo "SHA256_HASH=$hash" >> $env:GITHUB_ENV
-          Write-Host "成功產生雜湊值：$hash"
+            $hash = (Get-FileHash $exePath -Algorithm SHA256).Hash
+            "SHA256_HASH=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            Write-Host "成功產生雜湊值：$hash"
         } else {
-          Write-Error "找不到執行檔（$exePath），請檢查發佈步驟！"
+            Write-Error "找不到執行檔（$exePath），請檢查發佈步驟！"
         }
 
-    - name: 打包並壓縮發佈檔案（Zip）
+    - name: 打包並壓縮發佈檔案（ZIP Archive）
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
         $tagName = "${{ github.ref_name }}"
         $zipName = "InputBox-$tagName-win-x64.zip"
-        echo "ZIP_FILENAME=$zipName" >> $env:GITHUB_ENV
+        "ZIP_FILENAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
         # 1. 建立外層目錄（dist）與內層目錄（dist/InputBox）。
         $distDir = "./dist"
         $packDir = Join-Path $distDir "InputBox"
-        if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
+        if (Test-Path $distDir) {
+            Remove-Item -Recurse -Force $distDir
+        }
         New-Item -ItemType Directory -Force -Path $packDir | Out-Null
 
         # 2. 複製執行檔與專案文件到內層目錄。
         Copy-Item -Path (Join-Path ${{ env.PUBLISH_DIR }} ${{ env.EXE_NAME }}) -Destination $packDir
         $docs = @("LICENSE", "README.md", "ThirdPartyNotices.txt")
         foreach ($doc in $docs) {
-            if (Test-Path $doc) { Copy-Item -Path $doc -Destination $packDir }
+            if (Test-Path $doc) {
+                Copy-Item -Path $doc -Destination $packDir
+            }
         }
 
         # 3. 動態抓取 .NET 官方授權檔案。
         Write-Host "=== 開始動態下載 .NET 官方授權檔案 ==="
         $runtimeInfo = dotnet --list-runtimes
 
-        # ⚠️ 這裡修改了抓取邏輯：只抓 10 開頭的版本，並取清單最後一個（通常是最新的小版號）。
-        $runtimeLine = $runtimeInfo | Where-Object { $_ -match "^Microsoft\.NETCore\.App (10\.\d+\.\d+)" } | Select-Object -Last 1
+        $majorVersion = "${{ env.DOTNET_MAJOR_VERSION }}"
+        $runtimeLine = $runtimeInfo | Where-Object { $_ -match "^Microsoft\.NETCore\.App ($majorVersion\.\d+\.\d+)" } | Select-Object -Last 1
 
         if ($runtimeLine -match "^Microsoft\.NETCore\.App (\d+\.\d+\.\d+)") {
             $version = $Matches[1]
@@ -122,7 +130,7 @@ jobs:
                 }
             }
         } else {
-            Write-Warning "❌ 無法解析 .NET Runtime 10 的版本號，請確認安裝步驟。"
+            Write-Warning "❌ 無法解析 .NET Runtime 的版本號，請確認安裝步驟。"
         }
         Write-Host "======================================="
 
