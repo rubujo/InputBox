@@ -1110,14 +1110,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 優化：強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
         if (strength == 0)
         {
-            try
+            Task.Run(() =>
             {
-                dev.SetRumbleState(new GameInputRumbleParams());
-            }
-            catch
-            {
-                // 忽略失效設備的錯誤。
-            }
+                try
+                {
+                    dev.SetRumbleState(new GameInputRumbleParams());
+                }
+                catch
+                {
+                    // 忽略失效設備的錯誤。
+                }
+            });
 
             return Task.CompletedTask;
         }
@@ -1323,14 +1326,25 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     public void StopVibration()
     {
-        try
+        GameInputDevice? dev = _device;
+
+        if (dev == null)
         {
-            _device?.SetRumbleState(new GameInputRumbleParams());
+            return;
         }
-        catch
+
+        // 將 COM 呼叫推入 MTA 背景執行緒，避免在 STA (UI) 執行緒引發 InvalidCastException
+        Task.Run(() =>
         {
-            // 忽略
-        }
+            try
+            {
+                dev.SetRumbleState(new GameInputRumbleParams());
+            }
+            catch
+            {
+                // 忽略
+            }
+        });
     }
 
     /// <summary>
