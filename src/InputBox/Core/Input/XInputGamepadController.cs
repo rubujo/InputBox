@@ -82,6 +82,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private const int MaxControllerCount = 4;
 
     /// <summary>
+    /// 多控制器自動切換時的搖桿活動閾值（約為 XInput 類比搖桿最大 32767 的 25% 推動量）
+    /// </summary>
+    private const short ActiveThumbstickThreshold = 8000;
+
+    /// <summary>
     /// XInput 左搖桿死區觸發閾值（Enter）
     /// 當搖桿推動超過此數值時，才視為「推動」。
     /// </summary>
@@ -322,26 +327,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private void StopPolling()
     {
-        // 取得目前的 CTS 並將欄位設為 null，確保只會由一個執行緒處理取消。
-        CancellationTokenSource? cts = Interlocked.Exchange(ref _ctsPolling, null);
-
-        if (cts != null)
-        {
-            try
-            {
-                // 發出取消訊號。
-                if (!cts.IsCancellationRequested)
-                {
-                    cts.Cancel();
-                }
-
-                cts.Dispose();
-            }
-            catch (ObjectDisposedException)
-            {
-                // 已釋放則忽略。
-            }
-        }
+        CancelAndDisposeCts(ref _ctsPolling);
     }
 
     /// <summary>
@@ -581,15 +567,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 取得其他 Index 的狀態
             if (XInput.XInputGetState(i, out XInput.XInputState state) == 0)
             {
-                // 若其他控制器有明顯動作（按下按鈕、扳機超過閾值、搖桿超出基本死區）。
-                // 註：這裡的 8000 約為 XInput 類比搖桿（最大 32767）25% 的推動量。
+                // 若其他控制器有明顯動作（按下按鈕、扳機超過閾值、搖桿超過活動閾值）。
                 if (state.Gamepad.Buttons != 0 ||
                     state.Gamepad.LeftTrigger > TriggerThreshold ||
                     state.Gamepad.RightTrigger > TriggerThreshold ||
-                    Math.Abs(state.Gamepad.ThumbLeftX) > 8000 ||
-                    Math.Abs(state.Gamepad.ThumbLeftY) > 8000 ||
-                    Math.Abs(state.Gamepad.ThumbRightX) > 8000 ||
-                    Math.Abs(state.Gamepad.ThumbRightY) > 8000)
+                    Math.Abs(state.Gamepad.ThumbLeftX) > ActiveThumbstickThreshold ||
+                    Math.Abs(state.Gamepad.ThumbLeftY) > ActiveThumbstickThreshold ||
+                    Math.Abs(state.Gamepad.ThumbRightX) > ActiveThumbstickThreshold ||
+                    Math.Abs(state.Gamepad.ThumbRightY) > ActiveThumbstickThreshold)
                 {
                     // 重置原本的按鍵狀態，避免按住的按鍵殘留。
                     ResetHoldStates();
@@ -808,6 +793,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
         ushort strength,
         int milliseconds = 60)
     {
+        // 優化：強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
+        if (strength == 0)
+        {
+            StopVibration();
+
+            return Task.CompletedTask;
+        }
+
         // 將 XInput 呼叫推入背景執行緒，避免因藍牙手把休眠或驅動延遲而阻塞 UI 執行緒。
         return Task.Run(async () =>
         {
@@ -820,20 +813,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
             CancellationTokenSource newCts = new();
 
-            CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newCts);
+            CancelAndDisposeCts(ref _vibrationCts);
 
-            if (oldCts != null)
-            {
-                try
-                {
-                    oldCts.Cancel();
-                    oldCts.Dispose();
-                }
-                catch
-                {
-
-                }
-            }
+            _vibrationCts = newCts;
 
             CancellationToken token = newCts.Token;
 
@@ -919,20 +901,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         FeedbackService.UnregisterController(this);
 
         // 取消震動任務。
-        CancellationTokenSource? vCts = Interlocked.Exchange(ref _vibrationCts, null);
-
-        if (vCts != null)
-        {
-            try
-            {
-                vCts.Cancel();
-                vCts.Dispose();
-            }
-            catch
-            {
-
-            }
-        }
+        CancelAndDisposeCts(ref _vibrationCts);
 
         // 發出取消訊號。
         Task pollingTask = StopPollingAsync();
@@ -972,19 +941,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         FeedbackService.UnregisterController(this);
 
         // 取消震動任務。
-        CancellationTokenSource? vCts = Interlocked.Exchange(ref _vibrationCts, null);
-        if (vCts != null)
-        {
-            try
-            {
-                vCts.Cancel();
-                vCts.Dispose();
-            }
-            catch
-            {
-
-            }
-        }
+        CancelAndDisposeCts(ref _vibrationCts);
 
         // 發出取消訊號。
         StopPolling();
@@ -994,9 +951,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 能確保即使任務多執行一次，也不會觸發任何 UI 更新。
 
         // 清除所有事件訂閱。
-        // 這是 Dispose() 中的關鍵安全措施：
-        // 即使背景 Polling Task 在取消後仍多執行一次 Poll()，
-        // 也不會再觸發任何外部程式碼，避免 UI 已釋放後被開啟。
         ClearAllEvents();
 
         // 停止震動與釋放資源。
@@ -1006,14 +960,38 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 取消並處置 CancellationTokenSource
+    /// </summary>
+    /// <param name="source">CancellationTokenSource 來源</param>
+    private static void CancelAndDisposeCts(ref CancellationTokenSource? source)
+    {
+        CancellationTokenSource? cts = Interlocked.Exchange(ref source, null);
+
+        if (cts != null)
+        {
+            try
+            {
+                if (!cts.IsCancellationRequested)
+                {
+                    cts.Cancel();
+                }
+
+                cts.Dispose();
+            }
+            catch
+            {
+                // 忽略處置例外。
+            }
+        }
+    }
+
+    /// <summary>
     /// 處置資源
     /// </summary>
     private void DisposeResources()
     {
         // 停止震動。
-        XInput.XInputVibration stopVibration = default;
-
-        _ = XInput.XInputSetState(_userIndex, in stopVibration);
+        StopVibration();
 
         // 此處不再呼叫 StopPolling，因為它已在 Dispose/DisposeAsync 中被呼叫過，
         // 且 StopPolling 內部已包含原子處置邏輯。

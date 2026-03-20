@@ -32,14 +32,29 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private GameInput? _gameInput;
 
     /// <summary>
-    /// GameInput 設備
+    /// 目前使用的 GameInput 設備
     /// </summary>
     private GameInputDevice? _device;
 
     /// <summary>
-    /// 控制器的 User Index
+    /// 標記是否需要重新整理設備清單
     /// </summary>
-    private int _userIndex;
+    private volatile bool _needsRefresh = true;
+
+    /// <summary>
+    /// 保護設備存取的鎖
+    /// </summary>
+    private readonly Lock _deviceLock = new();
+
+    /// <summary>
+    /// GameInput 設備回呼註冊憑證
+    /// </summary>
+    private GameInput.GameInputCallbackRegistration? _deviceCallbackReg;
+
+    /// <summary>
+    /// 所有目前連接的設備清單（用於多控制器自動切換）
+    /// </summary>
+    private readonly List<GameInputDevice> _allDevices = [];
 
     /// <summary>
     /// 重新連接計數器
@@ -95,6 +110,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 斷線重連的降頻計數閾值
     /// </summary>
     private const int ReconnectThreshold = 30;
+
+    /// <summary>
+    /// 閒置判定閾值
+    /// </summary>
+    private const float IdleThreshold = 0.01f;
+
+    /// <summary>
+    /// 活動判定閾值（用於多控制器切換）
+    /// </summary>
+    private const float ActiveThreshold = 0.1f;
 
     /// <summary>
     /// 搖桿死區觸發閾值（Enter）
@@ -283,15 +308,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 私有建構子，透過 CreateAsync 建立實體。
     /// </summary>
     /// <param name="context">IInputContext</param>
-    /// <param name="userIndex">控制器的索引</param>
     /// <param name="repeatSettings">重複設定</param>
     private GameInputGamepadController(
         IInputContext context,
-        int userIndex = 0,
         GamepadRepeatSettings? repeatSettings = null)
     {
         _context = context;
-        _userIndex = userIndex;
         _repeatSettings = repeatSettings ?? new();
         _repeatSettings.Validate();
 
@@ -310,12 +332,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 非同步建立 GameInputGamepadController 實體
     /// </summary>
     /// <param name="context">IInputContext</param>
-    /// <param name="userIndex">控制器的索引</param>
     /// <param name="repeatSettings">重複設定</param>
     /// <returns>GameInputGamepadController</returns>
     public static async Task<GameInputGamepadController> CreateAsync(
         IInputContext context,
-        int userIndex = 0,
         GamepadRepeatSettings? repeatSettings = null)
     {
         // 探測支援性：在臨時背景執行緒（MTA）嘗試建立實體。
@@ -325,7 +345,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             using GameInput probe = GameInput.Create();
         }).ConfigureAwait(false);
 
-        return new GameInputGamepadController(context, userIndex, repeatSettings);
+        return new GameInputGamepadController(context, repeatSettings);
     }
 
     /// <summary>
@@ -389,7 +409,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         if (_device != null)
         {
-            _device.Dispose();
+            // 裝置的處置現在主要由 TryFindDevice 邏輯管理。
             _device = null;
 
             // 更新快取，讓 DeviceName 等屬性反映斷線狀態。
@@ -410,6 +430,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _gameInput = GameInput.Create();
             _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
+
+            // 註冊裝置連線／斷線事件。
+            // 這裡我們只將旗標設為需要重新整理，真正的列舉會在 Poll 執行緒中安全執行。
+            _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
+                null,
+                GameInputKind.Gamepad,
+                GameInputDeviceStatus.Connected,
+                GameInputEnumerationKind.Async,
+                (_, _, _, _) => _needsRefresh = true);
         }
         catch (Exception ex)
         {
@@ -461,125 +490,128 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         GameInput? gameInput = _gameInput;
 
-        GameInputDevice? dev = _device;
-
         if (gameInput == null)
         {
             return;
         }
 
-        // 1. 如果已經沒有設備，進入重新連接邏輯。
+        // 1. 如果需要重新整理或目前沒有設備，執行掃描。
+        if (_needsRefresh ||
+            _device == null)
+        {
+            _reconnectCounter++;
+
+            // 效能保護：如果目前沒手把，則降頻掃描（約每 500ms 一次）。
+            if (_device != null ||
+                _reconnectCounter >= ReconnectThreshold)
+            {
+                _reconnectCounter = 0;
+
+                TryFindDevice();
+            }
+        }
+
+        GameInputDevice? dev = _device;
+
         if (dev == null)
         {
-            // 確保狀態乾淨。
             HandleDisconnect();
 
+            return;
+        }
+
+        // 2. 讀取輸入資料。
+        GameInputReading? reading;
+        GamepadStateSnapshot? currentState = null;
+
+        try
+        {
+            reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, dev);
+
+            if (reading != null)
+            {
+                using (reading)
+                {
+                    currentState = reading.GetGamepadState();
+                }
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            // 裝置失效，標記需要重新整理。
+            _needsRefresh = true;
+            _device = null;
+
+            HandleDisconnect();
+
+            return;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"GameInput 讀取失敗：{ex.Message}");
+
+            reading = null;
+        }
+
+        if (reading == null ||
+            currentState == null)
+        {
+            // 讀取不到資料時不急著斷線，交由下一幀 TryFindDevice 處理。
+
+            return;
+        }
+
+        // 3. 處理狀態。
+        // 初始化：連線後的第一幀。
+        if (!_hasPreviousState)
+        {
+            _previousState = currentState;
+            _hasPreviousState = true;
+
+            ConnectionChanged?.Invoke(true);
+
+            return;
+        }
+
+        // 閒置偵測：若目前控制器沒動作，嘗試掃描其他控制器（降頻執行）。
+        if (IsStateIdle(currentState))
+        {
             _reconnectCounter++;
 
             if (_reconnectCounter >= ReconnectThreshold)
             {
                 _reconnectCounter = 0;
 
-                TryFindDevice();
-            }
-
-            return;
-        }
-
-        // 2. 核心修正：主動檢查設備連線狀態！
-        // 由於 GetCurrentReading 即使拔除也會回傳殘留資料，我們必須主動檢查 Status 旗標。
-        try
-        {
-            if (!dev.GetCurrentStatus().HasFlag(GameInputDeviceStatus.Connected))
-            {
-                HandleDisconnect();
-
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"檢查裝置狀態失敗（視同斷線）：{ex.Message}");
-
-            HandleDisconnect();
-
-            return;
-        }
-
-        // 3. 讀取輸入資料。
-        GameInputReading? reading;
-
-        try
-        {
-            reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, dev);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"GameInput 讀取失敗（可能已斷線）：{ex.Message}");
-
-            HandleDisconnect();
-
-            return;
-        }
-
-        if (reading == null)
-        {
-            HandleDisconnect();
-
-            return;
-        }
-
-        using (reading)
-        {
-            GamepadStateSnapshot? currentState = reading.GetGamepadState();
-
-            if (currentState != null)
-            {
-                // 初始化：連線後的第一幀。
-                if (!_hasPreviousState)
+                // 若成功切換到新裝置，本幀提早結束。
+                if (ScanForActiveDevice())
                 {
-                    _previousState = currentState;
-
-                    _hasPreviousState = true;
-
-                    ConnectionChanged?.Invoke(true);
-
                     return;
                 }
-
-                // 閒置偵測：若目前控制器沒動作，嘗試掃描其他控制器（降頻執行）。
-                bool isIdle = _previousState != null &&
-                    currentState.Buttons == _previousState.Buttons &&
-                    Math.Abs(currentState.LeftThumbstickX - _previousState.LeftThumbstickX) < 0.01f &&
-                    Math.Abs(currentState.LeftThumbstickY - _previousState.LeftThumbstickY) < 0.01f &&
-                    Math.Abs(currentState.RightThumbstickX - _previousState.RightThumbstickX) < 0.01f &&
-                    Math.Abs(currentState.RightThumbstickY - _previousState.RightThumbstickY) < 0.01f &&
-                    Math.Abs(currentState.LeftTrigger - _previousState.LeftTrigger) < 0.01f &&
-                    Math.Abs(currentState.RightTrigger - _previousState.RightTrigger) < 0.01f;
-
-                if (isIdle)
-                {
-                    _reconnectCounter++;
-
-                    if (_reconnectCounter >= ReconnectThreshold)
-                    {
-                        _reconnectCounter = 0;
-
-                        // 若成功切換到新裝置，本幀提早結束，等待下一幀處理新裝置的狀態。
-                        if (ScanForActiveDevice())
-                        {
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    _reconnectCounter = 0;
-                }
-
-                ProcessState(currentState);
             }
         }
+        else
+        {
+            _reconnectCounter = 0;
+        }
+
+        ProcessState(currentState);
+    }
+
+    /// <summary>
+    /// 判定狀態是否為閒置
+    /// </summary>
+    /// <param name="state">GamepadStateSnapshot</param>
+    /// <returns>是否閒置</returns>
+    private bool IsStateIdle(GamepadStateSnapshot state)
+    {
+        return _previousState != null &&
+            state.Buttons == 0 && _previousState.Buttons == 0 &&
+            Math.Abs(state.LeftThumbstickX) < IdleThreshold &&
+            Math.Abs(state.LeftThumbstickY) < IdleThreshold &&
+            Math.Abs(state.RightThumbstickX) < IdleThreshold &&
+            Math.Abs(state.RightThumbstickY) < IdleThreshold &&
+            state.LeftTrigger < IdleThreshold &&
+            state.RightTrigger < IdleThreshold;
     }
 
     /// <summary>
@@ -594,59 +626,108 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        // GameInput 透過列舉獲取裝置。
-        IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(GameInputKind.Gamepad);
-
-        try
+        lock (_deviceLock)
         {
-            if (devices.Count > _userIndex)
+            _needsRefresh = false;
+
+            // 執行一次完整的列舉。
+            IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(GameInputKind.Gamepad);
+
+            // 1. 釋放清單中已不再存在的舊裝置代理（Zero-allocation 替換 LINQ Any）。
+            for (int i = _allDevices.Count - 1; i >= 0; i--)
             {
-                _device?.Dispose();
-                _device = devices[_userIndex];
+                GameInputDevice oldDev = _allDevices[i];
 
-                UpdateDeviceInfo();
-
-                // 處置其餘沒用到的裝置。
-                for (int i = 0; i < devices.Count; i++)
+                try
                 {
-                    if (i != _userIndex)
+                    GameInputDeviceInfo oldInfo = oldDev.GetDeviceInfo();
+
+                    bool stillExists = false;
+
+                    for (int j = 0; j < devices.Count; j++)
                     {
-                        devices[i].Dispose();
+                        if (devices[j].GetDeviceInfo().DeviceId.Equals(oldInfo.DeviceId))
+                        {
+                            stillExists = true;
+
+                            break;
+                        }
+                    }
+
+                    if (!stillExists)
+                    {
+                        if (oldDev == _device)
+                        {
+                            _device = null;
+                        }
+
+                        oldDev.Dispose();
+
+                        _allDevices.RemoveAt(i);
                     }
                 }
-            }
-            else if (devices.Count > 0)
-            {
-                _device?.Dispose();
-                _device = devices[0];
-                _userIndex = 0;
-
-                UpdateDeviceInfo();
-
-                for (int i = 1; i < devices.Count; i++)
+                catch
                 {
-                    devices[i].Dispose();
+                    // 若裝置已失效，則直接移除。
+                    _allDevices.RemoveAt(i);
+                }
+            }
+
+            // 2. 加入新發現的裝置（Zero-allocation 替換 LINQ Any）。
+            for (int i = 0; i < devices.Count; i++)
+            {
+                GameInputDevice newDev = devices[i];
+
+                try
+                {
+                    GameInputDeviceInfo newInfo = newDev.GetDeviceInfo();
+
+                    bool alreadyTracked = false;
+
+                    for (int j = 0; j < _allDevices.Count; j++)
+                    {
+                        if (_allDevices[j].GetDeviceInfo().DeviceId.Equals(newInfo.DeviceId))
+                        {
+                            alreadyTracked = true;
+
+                            break;
+                        }
+                    }
+
+                    if (!alreadyTracked)
+                    {
+                        _allDevices.Add(newDev);
+                    }
+                    else
+                    {
+                        // 已經存在的，釋放重複產生的 COM 代理物件。
+                        newDev.Dispose();
+                    }
+                }
+                catch
+                {
+                    newDev.Dispose();
+                }
+            }
+
+            // 3. 確保目前有一個啟動中的裝置。
+            if (_allDevices.Count > 0)
+            {
+                if (_device == null)
+                {
+                    _device = _allDevices[0];
+
+                    _hasPreviousState = false;
+
+                    UpdateDeviceInfo();
                 }
             }
             else
             {
                 _device = null;
 
-                UpdateDeviceInfo();
+                HandleDisconnect();
             }
-        }
-        catch
-        {
-            // 發生異常時，清理所有未被 _device 持有的代理。
-            foreach (GameInputDevice d in devices)
-            {
-                if (d != _device)
-                {
-                    d.Dispose();
-                }
-            }
-
-            throw;
         }
     }
 
@@ -663,87 +744,56 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return false;
         }
 
-        IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(GameInputKind.Gamepad);
-
-        bool foundNewDevice = false;
-
-        try
+        lock (_deviceLock)
         {
-            for (int i = 0; i < devices.Count; i++)
+            for (int i = 0; i < _allDevices.Count; i++)
             {
-                GameInputDevice currentProxy = devices[i];
+                var otherDev = _allDevices[i];
 
-                // 1. 如果已經找到新裝置了，剩下的列舉物件全部直接釋放。
-                if (foundNewDevice)
+                if (otherDev == _device)
                 {
-                    currentProxy.Dispose();
-
                     continue;
                 }
 
-                // 2. 如果是目前正在使用的索引，我們不切換。
-                // 但這個列舉產生的「新代理物件」必須釋放，因為我們已經有 _device 持有舊代理了。
-                if (i == _userIndex)
+                try
                 {
-                    currentProxy.Dispose();
+                    // 檢查其他控制器的活動狀態。
+                    using GameInputReading? reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, otherDev);
 
-                    continue;
-                }
+                    GamepadStateSnapshot? state = reading?.GetGamepadState();
 
-                // 3. 檢查其他控制器的活動狀態。
-                using GameInputReading? reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, currentProxy);
-
-                GamepadStateSnapshot? state = reading?.GetGamepadState();
-
-                if (state != null)
-                {
-                    // 若其他控制器有明顯的動作（按下任何按鈕、推動搖桿或按板機），則切換過去。
-                    if (state.Buttons != 0 ||
-                        state.LeftTrigger > 0.1f ||
-                        state.RightTrigger > 0.1f ||
-                        Math.Abs(state.LeftThumbstickX) > 0.1f ||
-                        Math.Abs(state.LeftThumbstickY) > 0.1f ||
-                        Math.Abs(state.RightThumbstickX) > 0.1f ||
-                        Math.Abs(state.RightThumbstickY) > 0.1f)
+                    if (state != null)
                     {
-                        // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
-                        ResetHoldStates();
+                        // 若其他控制器有明顯的動作（按下任何按鈕、推動搖桿或按板機），則切換過去。
+                        if (state.Buttons != 0 ||
+                            state.LeftTrigger > ActiveThreshold ||
+                            state.RightTrigger > ActiveThreshold ||
+                            Math.Abs(state.LeftThumbstickX) > ActiveThreshold ||
+                            Math.Abs(state.LeftThumbstickY) > ActiveThreshold ||
+                            Math.Abs(state.RightThumbstickX) > ActiveThreshold ||
+                            Math.Abs(state.RightThumbstickY) > ActiveThreshold)
+                        {
+                            // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
+                            ResetHoldStates();
 
-                        // 釋放舊裝置代理。
-                        _device?.Dispose();
+                            // 切換裝置參考。
+                            _device = otherDev;
+                            _hasPreviousState = false;
 
-                        // 持有這個新代理物件。
-                        _device = currentProxy;
-                        _userIndex = i;
-                        _hasPreviousState = false;
+                            UpdateDeviceInfo();
 
-                        foundNewDevice = true;
-
-                        UpdateDeviceInfo();
-
-                        continue;
+                            return true;
+                        }
                     }
                 }
-
-                // 4. 沒用到，釋放掉這個臨時產生的 COM 代理物件。
-                currentProxy.Dispose();
-            }
-        }
-        catch
-        {
-            // 發生異常時，清理所有未被 _device 持有的代理。
-            foreach (GameInputDevice d in devices)
-            {
-                if (d != _device)
+                catch
                 {
-                    d.Dispose();
+                    // 忽略切換過程中的讀取錯誤。
                 }
             }
-
-            throw;
         }
 
-        return foundNewDevice;
+        return false;
     }
 
     /// <summary>
@@ -805,8 +855,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         GameInputGamepadButtons currentButtons = currentState.Buttons;
 
         // 處理搖桿模擬 D-Pad。
-        short thumbLX = (short)(currentState.LeftThumbstickX * 32767),
-            thumbLY = (short)(currentState.LeftThumbstickY * 32767);
+        short thumbLX = (short)(currentState.LeftThumbstickX * short.MaxValue),
+            thumbLY = (short)(currentState.LeftThumbstickY * short.MaxValue);
 
         ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY);
 
@@ -1057,6 +1107,21 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return Task.CompletedTask;
         }
 
+        // 優化：強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
+        if (strength == 0)
+        {
+            try
+            {
+                dev.SetRumbleState(new GameInputRumbleParams());
+            }
+            catch
+            {
+                // 忽略失效設備的錯誤。
+            }
+
+            return Task.CompletedTask;
+        }
+
         return Task.Run(async () =>
         {
             int token = Interlocked.Increment(ref _vibrationToken);
@@ -1192,8 +1257,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         await StopPollingAsync().ConfigureAwait(false);
 
-        // 清理資源與停止震動。
-        DisposeResources();
+        // 安全清理：確實等待背景清理完成。
+        await DisposeResourcesAsync().ConfigureAwait(false);
 
         // 關鍵安全措施：解除所有事件訂閱。
         ClearAllEvents();
@@ -1235,13 +1300,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 1. 發出取消訊號。
         StopPolling();
 
-        // 移除 GetAwaiter().GetResult() 避免在 UI 執行緒上發生死結。
-        // 背景輪詢任務會在收到取消訊號後自然結束，且接下來的 ClearAllEvents() 
-        // 能確保即使任務多執行一次，也不會觸發任何 UI 更新。
-
-        // 2. 清理資源。
+        // 2. 清理資源（同步環境下使用 SafeFireAndForget）。
         ClearAllEvents();
-        DisposeResources();
+        DisposeResourcesAsync().SafeFireAndForget();
 
         GC.SuppressFinalize(this);
     }
@@ -1273,20 +1334,31 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 處置資源
+    /// 非同步處置資源
     /// </summary>
-    private void DisposeResources()
+    /// <returns>Task</returns>
+    private Task DisposeResourcesAsync()
     {
         // 捕獲目前實例以供背景執行緒釋放。
         GameInput? gameInput = _gameInput;
         GameInputDevice? dev = _device;
+        GameInput.GameInputCallbackRegistration? callbackReg = _deviceCallbackReg;
+        List<GameInputDevice> devicesToDispose;
+
+        lock (_deviceLock)
+        {
+            devicesToDispose = [.. _allDevices];
+
+            _allDevices.Clear();
+        }
 
         _device = null;
         _gameInput = null;
+        _deviceCallbackReg = null;
 
         // 使用 Task.Run 確保 COM 物件在 MTA 背景執行緒中釋放。
         // 這能避免在 STA（UI）執行緒釋放時可能引發的 COM 異常或死結。
-        Task.Run(async () =>
+        return Task.Run(async () =>
         {
             try
             {
@@ -1306,6 +1378,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     }
                 }
 
+                // 移除裝置註冊回呼。
+                callbackReg?.Dispose();
+
+                // 釋放所有連線中的裝置代理。
+                foreach (GameInputDevice d in devicesToDispose)
+                {
+                    d.Dispose();
+                }
+
                 dev?.Dispose();
                 gameInput?.Dispose();
             }
@@ -1313,10 +1394,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
 
             }
-        }).SafeFireAndForget();
-
-        // 此處不再呼叫 StopPolling，因為它已在 Dispose/DisposeAsync 中被呼叫過，
-        // 且 StopPolling 內部已包含原子處置邏輯。
+        });
     }
 
     /// <summary>

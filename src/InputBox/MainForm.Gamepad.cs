@@ -54,10 +54,9 @@ public partial class MainForm
             {
                 try
                 {
-                    // 嘗試非同步初始化 GameInput。
+                    // 嘗試初始化 GameInput。
                     GameInputGamepadController controller = await GameInputGamepadController.CreateAsync(
                         _inputContext,
-                        0,
                         gamepadRepeatSettings);
 
                     if (IsDisposed)
