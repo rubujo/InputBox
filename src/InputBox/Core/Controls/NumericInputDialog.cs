@@ -964,81 +964,163 @@ internal sealed class NumericInputDialog : Form
 
         bool isHovered = false;
 
+        // 用來精準追蹤滑鼠「按壓中」的實體狀態。
+        bool isPressed = false;
+
         btn.MouseEnter += (s, e) =>
         {
             isHovered = true;
 
             onFocusStateChanged?.Invoke(true);
 
-            StartAnimationFeedback(false);
+            StartAnimationFeedback();
         };
         btn.MouseLeave += (s, e) =>
         {
             isHovered = false;
 
+            // 防呆：按著滑鼠拖到按鈕外，應解除按壓狀態。
+            isPressed = false;
+
             onFocusStateChanged?.Invoke(btn.Focused);
 
             StopFeedback();
+        };
+        // 監聽滑鼠左鍵的按下與鬆開，精準控制 isPressed 狀態。
+        btn.MouseDown += (s, e) =>
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isPressed = true;
+
+                StartAnimationFeedback();
+            }
+        };
+        btn.MouseUp += (s, e) =>
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isPressed = false;
+
+                StartAnimationFeedback();
+            }
         };
         btn.GotFocus += (s, e) =>
         {
             onFocusStateChanged?.Invoke(true);
 
-            StartAnimationFeedback(true);
+            StartAnimationFeedback();
         };
         btn.LostFocus += (s, e) =>
         {
+            // 防呆：失去焦點時強制解除按壓狀態。
+            isPressed = false;
+
             onFocusStateChanged?.Invoke(isHovered);
 
             StopFeedback();
         };
 
-        // 點擊後重置進度，保留背景直到失焦。
-        btn.Click += (s, e) =>
+        // 點擊後重置進度，並執行視線重新接合（Gaze Re-engagement）。
+        btn.Click += async (s, e) =>
         {
+            // 1. 打斷目前的動畫並將進度歸零。
             Interlocked.Increment(ref animationId);
 
             dwellProgress = 0f;
 
             btn.Invalidate();
+
+            await Task.Yield();
+
+            if (btn.IsDisposed)
+            {
+                return;
+            }
+
+            // 2. 視線重新接合（Gaze Re-engagement）。
+            if (!btn.IsDisposed &&
+                btn.Enabled)
+            {
+                Point cursorPos = btn.PointToClient(Cursor.Position);
+
+                // 檢查游標是否還在按鈕的範圍內
+                if (btn.ClientRectangle.Contains(cursorPos))
+                {
+                    isHovered = true;
+
+                    // 恢復溫和的 Hover 狀態並重啟進度條。
+                    StartAnimationFeedback();
+                }
+                else
+                {
+                    isHovered = false;
+
+                    StopFeedback();
+                }
+            }
         };
 
-        void StartAnimationFeedback(bool isKeyboardFocus)
+        void StartAnimationFeedback()
         {
             if (!btn.Enabled)
             {
                 return;
             }
 
-            if (SystemInformation.HighContrast)
+            long id = Interlocked.Increment(ref animationId);
+
+            dwellProgress = 0f;
+
+            // 只要是「純鍵盤焦點」或是「滑鼠正在實體按壓」，就無條件給予極端對比視覺！
+            bool isPureKeyboardFocus = (btn.Focused && !isHovered) ||
+                isPressed;
+
+            if (isPureKeyboardFocus)
             {
-                btn.BackColor = SystemColors.Highlight;
-                btn.ForeColor = SystemColors.HighlightText;
-            }
-            else
-            {
-                if (btn.IsDarkModeActive())
+                // 強烈視覺：純鍵盤焦點或實體按壓中。
+                if (SystemInformation.HighContrast)
                 {
-                    // 深色模式：白底黑字。
-                    btn.BackColor = Color.White;
-                    btn.ForeColor = Color.Black;
+                    btn.BackColor = SystemColors.Highlight;
+                    btn.ForeColor = SystemColors.HighlightText;
                 }
                 else
                 {
-                    // 淺色模式：黑底白字。
-                    btn.BackColor = Color.Black;
-                    btn.ForeColor = Color.White;
+                    btn.BackColor = btn.IsDarkModeActive() ?
+                        Color.White :
+                        Color.Black;
+                    btn.ForeColor = btn.IsDarkModeActive() ?
+                        Color.Black :
+                        Color.White;
                 }
+
+                // 加粗。
+                btn.Font = boldFont;
+                btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
             }
-
-            btn.Font = boldFont;
-            btn.Padding = new Padding(0);
-            btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
-
-            if (!isKeyboardFocus)
+            else
             {
-                long id = Interlocked.Increment(ref animationId);
+                // 溫和視覺：滑鼠／眼控懸停（Hover）。
+                if (SystemInformation.HighContrast)
+                {
+                    btn.BackColor = SystemColors.HotTrack;
+                    btn.ForeColor = SystemColors.HighlightText;
+                }
+                else
+                {
+                    btn.BackColor = btn.IsDarkModeActive() ?
+                        Color.FromArgb(60, 60, 60) :
+                        Color.FromArgb(220, 220, 220);
+                    btn.ForeColor = btn.IsDarkModeActive() ?
+                        Color.White :
+                        Color.Black;
+                }
 
+                // 不加粗，維持一般字體。
+                btn.Font = font;
+                btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
+
+                // 動畫回饋：只要有 Hover，即使按鈕已被點擊取得焦點，也強制啟動 Dwell！
                 btn.RunDwellAnimationAsync(
                         id,
                         () => Interlocked.Read(ref animationId),
@@ -1046,6 +1128,9 @@ internal sealed class NumericInputDialog : Form
                         ct: _cts.Token)
                     .SafeFireAndForget();
             }
+
+            btn.Padding = new Padding(0);
+            btn.Invalidate();
         }
 
         void StopFeedback()
@@ -1054,14 +1139,19 @@ internal sealed class NumericInputDialog : Form
 
             dwellProgress = 0f;
 
-            // 狀態守衛：只有在確實失焦且無懸停時才還原顏色。
-            if (!btn.Focused &&
-                !isHovered)
+            if (isHovered ||
+                btn.Focused)
             {
-                // 還原為預設顏色，觸發原生主題引擎。
+                // 狀態聰明降級：
+                // 1. 若滑鼠還在但失去焦點，退回 Hover 狀態。
+                // 2. 若滑鼠移開但還有焦點，退回強烈的 Focus 狀態。
+                StartAnimationFeedback();
+            }
+            else
+            {
+                // 徹底失去所有關注，還原為原始狀態。
                 btn.BackColor = Color.Empty;
                 btn.ForeColor = Color.Empty;
-
                 btn.Font = font;
                 btn.Padding = originalPadding;
                 btn.AccessibleDescription = description;
@@ -1087,15 +1177,24 @@ internal sealed class NumericInputDialog : Form
             bool isDefault = ReferenceEquals(AcceptButton, btn) &&
                 ActiveControl is not Button;
 
-            // 1. 基礎邊框（確保按鈕可辨識）：當按鈕既沒有焦點、不是預設動作，且無懸停時，繪製細微邊框。
-            if (!btn.Focused && !isHovered && !isDefault)
+            // 1. 基礎邊框（預設狀態）。
+            // 由於 btn.FlatAppearance.BorderSize = 0，必須手動繪製預設邊框，否則會跟背景融合。
+            // 還原 DimGray／DarkGray 畫筆，並確保在無焦點、無 Hover 時畫出。
+            if (!btn.Focused &&
+                !isHovered &&
+                !isDefault)
             {
                 using Pen basePen = new(isDark ? Color.DimGray : Color.DarkGray, 1);
-                e.Graphics.DrawRectangle(basePen, 0, 0, btn.Width - 1, btn.Height - 1);
+
+                e.Graphics.DrawRectangle(
+                    basePen,
+                    0,
+                    0,
+                    btn.Width - 1,
+                    btn.Height - 1);
             }
 
-            // 2. 繪製焦點邊框（Focus Border／Focus Ring）。
-            // 核心強化：將 AcceptButton（isDefault）的風格與 Tab Focus 統一起來。
+            // 2. 繪製焦點與 Hover 邊框（Focus／Hover Border）。
             if (btn.Focused ||
                 isHovered ||
                 isDefault)
@@ -1103,7 +1202,7 @@ internal sealed class NumericInputDialog : Form
                 int borderThickness = (int)Math.Max(3, 3 * currentScale),
                     inset = (int)Math.Max(2, 2 * currentScale);
 
-                // 最終修正：淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
+                // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
                 using Pen borderPen = new(
                     SystemInformation.HighContrast ?
                         SystemColors.HighlightText :
@@ -1136,8 +1235,12 @@ internal sealed class NumericInputDialog : Form
                 else
                 {
                     // A11y 絕對同步：淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
-                    Color baseColor = isDark ? Color.Firebrick : Color.DarkOrange,
-                        hatchColor = isDark ? Color.OrangeRed : Color.Orange;
+                    Color baseColor = isDark ?
+                            Color.Firebrick :
+                            Color.DarkOrange,
+                        hatchColor = isDark ?
+                            Color.OrangeRed :
+                            Color.Orange;
 
                     // 雙重編碼：實心背景 + 斜向條紋紋理。
                     using Brush bgBrush = new SolidBrush(baseColor);
