@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,11 +6,14 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-	<ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-	<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<ApplicationIcon>Resources\icon.ico</ApplicationIcon>
-	<NeutralLanguage>en</NeutralLanguage>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <NeutralLanguage>en</NeutralLanguage>
+    <AssemblyTitle>輸入框 InputBox</AssemblyTitle>
+    <Company>垃圾桶 rubujo</Company>
+    <Copyright>CC0 1.0 Universal</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -34,13 +37,13 @@
 
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-	  <None Include="..\..\README.md" Link="README.md">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <None Include="..\..\README.md" Link="README.md">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </None>
+      </None>
   </ItemGroup>
 
   <ItemGroup>
