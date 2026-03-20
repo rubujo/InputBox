@@ -34,6 +34,15 @@ public partial class MainForm
 
             _historyService.IsPrivacyMode = _tsmiPrivacyMode.Checked;
 
+            // 一旦開啟隱私模式，立刻清空先前的歷程記錄，防止誤觸洩漏。
+            if (_historyService.IsPrivacyMode)
+            {
+                _historyService.Clear();
+                
+                // 清空目前的輸入框。
+                TBInput.Clear(); 
+            }
+
             // 更新標題快取。
             UpdateTitlePrefix();
 
