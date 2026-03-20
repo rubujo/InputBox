@@ -600,7 +600,7 @@ public partial class MainForm
             BtnCopy.FlatAppearance.BorderColor = BtnCopy.BackColor;
             // 細邊框。
             BtnCopy.FlatAppearance.BorderSize = 1;
-            BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
+            BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Hover})";
 
             // 動畫回饋：僅在視線/滑鼠進入時播放。
             BtnCopy.RunDwellAnimationAsync(

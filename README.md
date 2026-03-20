@@ -35,7 +35,7 @@
   - **XInput**：系統原生支援，無需額外安裝。
   - **GameInput**：系統需具備 **GameInput 執行階段**。
     - 多數 Windows 11 系統已內建 GameInput 執行階段；若系統未提供或載入失敗，本應用程式會自動退避至 **XInput** 相容模式。
-    - **可轉散發組件（選用）**：可透過微軟 `[Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput)` NuGet 套件取得。
+    - **可轉散發組件（選用）**：可透過微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) NuGet 套件取得。
       - 安裝方式：執行套件 `redist` 目錄下的 `GameInputRedist.msi`。
 
 ## 三、使用方式

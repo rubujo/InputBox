@@ -8,7 +8,11 @@
 
 - **預設作業系統**：Microsoft Windows。
 - **編碼規範**：執行指令時必須確保環境使用 **UTF-8（Code Page 65001）**，避免使用舊有的 CP950（Big5），以確保非 ASCII 字元顯示正確。
-  - **PowerShell（pwsh／powershell）**：在執行任何命令前，必須先執行 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`。
+  - **PowerShell（pwsh／powershell）**：在執行任何命令前，必須先執行：
+    ```powershell
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+    ```
   - **Command Prompt（cmd）**：在執行任何命令前，必須先執行 `chcp 65001`。
 - **Shell 使用優先順序**：
   1. **PowerShell 7+（pwsh）**：優先使用跨平台版本。

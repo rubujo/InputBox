@@ -137,6 +137,10 @@
     <value>Focused</value>
     <comment>Appended to AccessibleDescription when a button gains focus.</comment>
   </data>
+  <data name="A11y_State_Hover" xml:space="preserve">
+    <value>Hovering</value>
+    <comment>State text appended to the accessibility description when the control is hovered.</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>Copies the text from the input box to the clipboard.</value>
     <comment>Accessibility description for the copy button, explaining its function.</comment>

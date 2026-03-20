@@ -574,6 +574,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Hovering 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_State_Hover {
+            get {
+                return ResourceManager.GetString("A11y_State_Hover", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Cannot return: The target window has been closed. 的當地語系化字串。
         /// </summary>
         internal static string A11y_TargetWindowLost {

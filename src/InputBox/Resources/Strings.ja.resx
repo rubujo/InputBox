@@ -134,8 +134,12 @@
     <comment>プラスボタンの表示テキストです。</comment>
   </data>
   <data name="A11y_State_Focused" xml:space="preserve">
-    <value>フォーカス中</value>
-    <comment>ボタンがフォーカスされた際、アクセシビリティ記述（AccessibleDescription）の末尾に追加される状態テキストです。</comment>
+    <value>フォーカス取得済み</value>
+    <comment>ボタンがフォーカスを得たとき、アクセシビリティの説明（AccessibleDescription）の後ろに追加される状態テキスト。</comment>
+  </data>
+  <data name="A11y_State_Hover" xml:space="preserve">
+    <value>ホバー中</value>
+    <comment>コントロールがホバー状態のとき、アクセシビリティの説明の後ろに追加される状態テキスト。</comment>
   </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>入力ボックスのテキストをクリップボードにコピーします。</value>

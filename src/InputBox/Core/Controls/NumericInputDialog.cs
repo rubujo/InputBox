@@ -777,7 +777,9 @@ internal sealed class NumericInputDialog : Form
             scale,
             _a11yFont,
             (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
-        _btnMinus.Click += (s, e) => HandleMinus();
+
+        AttachAutoRepeat(_btnMinus, HandleMinus);
+
         _btnMinus.Anchor = AnchorStyles.None;
         _btnMinus.TabIndex = 0;
 
@@ -787,7 +789,9 @@ internal sealed class NumericInputDialog : Form
             scale,
             _a11yFont,
             (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
-        _btnPlus.Click += (s, e) => HandlePlus();
+
+        AttachAutoRepeat(_btnPlus, HandlePlus);
+
         _btnPlus.Anchor = AnchorStyles.None;
         _btnPlus.TabIndex = 2;
 
@@ -1118,7 +1122,7 @@ internal sealed class NumericInputDialog : Form
 
                 // 不加粗，維持一般字體。
                 btn.Font = font;
-                btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
+                btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Hover})";
 
                 // 動畫回饋：只要有 Hover，即使按鈕已被點擊取得焦點，也強制啟動 Dwell！
                 btn.RunDwellAnimationAsync(
@@ -1256,5 +1260,77 @@ internal sealed class NumericInputDialog : Form
         };
 
         return btn;
+    }
+
+    /// <summary>
+    /// 為按鈕附加「長按連發（Auto-Repeat）」功能，並完美避開原生 Click 的衝突
+    /// </summary>
+    /// <param name="btn">Button</param>
+    /// <param name="action">Action</param>
+    private static void AttachAutoRepeat(Button btn, Action action)
+    {
+        System.Windows.Forms.Timer repeatTimer = new()
+        {
+            Interval = 500
+        };
+
+
+        bool isInitialDelay = true,
+            suppressNextClick = false;
+
+        // 1. 滑鼠按下時，啟動計時器。
+        btn.MouseDown += (s, e) =>
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isInitialDelay = true;
+
+                suppressNextClick = false;
+
+                // 初始防呆延遲：500ms，防止普通單擊被誤判。
+                repeatTimer.Interval = 500;
+                repeatTimer.Start();
+            }
+        };
+
+        void StopTimer() => repeatTimer.Stop();
+
+        // 2. 任何中斷動作都會停止連發。
+        btn.MouseUp += (s, e) => StopTimer();
+        btn.MouseLeave += (s, e) => StopTimer();
+        btn.LostFocus += (s, e) => StopTimer();
+
+        // 3. 計時器觸發：執行連發邏輯。
+        repeatTimer.Tick += (s, e) =>
+        {
+            // 標記：已經觸發過連發，攔截稍後鬆開時的多餘 Click。
+            suppressNextClick = true;
+
+            if (isInitialDelay)
+            {
+                isInitialDelay = false;
+
+                // 連發速度：每 100ms 一次（安全速度，不易過衝）。
+                repeatTimer.Interval = 100;
+            }
+
+            action();
+        };
+
+        // 4. 接管 Click 事件：執行動作，或過濾掉長按鬆開時產生的多餘點擊。
+        btn.Click += (s, e) =>
+        {
+            if (suppressNextClick)
+            {
+                // 攔截並重置。
+                suppressNextClick = false;
+
+                return;
+            }
+
+            action();
+        };
+
+        btn.Disposed += (s, e) => repeatTimer.Dispose();
     }
 }

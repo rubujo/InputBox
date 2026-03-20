@@ -135,7 +135,11 @@
   </data>
   <data name="A11y_State_Focused" xml:space="preserve">
     <value>已获得焦点</value>
-    <comment>当按钮获得焦点时，附加在无障碍描述（AccessibleDescription）后的状态文字。</comment>
+    <comment>当按钮获得焦点时，附加于无障碍描述（AccessibleDescription）后方的状态文字。</comment>
+  </data>
+  <data name="A11y_State_Hover" xml:space="preserve">
+    <value>指向中</value>
+    <comment>当控件处于指向（Hover）状态时，附加于无障碍描述后方的状态文字。</comment>
   </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>将输入框中的文字复制到剪贴板。</value>
