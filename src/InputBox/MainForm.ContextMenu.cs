@@ -38,9 +38,9 @@ public partial class MainForm
             if (_historyService.IsPrivacyMode)
             {
                 _historyService.Clear();
-                
+
                 // 清空目前的輸入框。
-                TBInput.Clear(); 
+                TBInput.Clear();
             }
 
             // 更新標題快取。
@@ -194,14 +194,14 @@ public partial class MainForm
         };
 
         // 視窗與操作。
-        ToolStripMenuItem tsmiWinOps = new(Strings.Menu_Settings_Window)
+        ToolStripMenuItem tsmiWinOps = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Window, 'W'))
         {
             AccessibleName = Strings.Menu_Settings_Window,
             AccessibleDescription = Strings.A11y_Menu_WinOps_Desc
         };
 
         // 不透明度。
-        ToolStripMenuItem tsmiOpacity = new(Strings.Settings_WindowOpacity)
+        ToolStripMenuItem tsmiOpacity = new(ControlExtensions.GetMnemonicText(Strings.Settings_WindowOpacity, 'O'))
         {
             AccessibleName = "OpacityGroup",
         };
@@ -218,7 +218,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_WindowOpacity,
-            Tag = Strings.Settings_WindowOpacity
+            Tag = new KeyValuePair<string, char>(Strings.Settings_WindowOpacity, 'S')
         };
         tsmiSetOpacity.Click += (s, e) =>
         {
@@ -247,7 +247,7 @@ public partial class MainForm
         tsmiOpacity.DropDownItems.Add(tsmiSetOpacity);
 
         // 重設不透明度。
-        ToolStripMenuItem tsmiResetOpacity = new(Strings.Btn_SetDefault)
+        ToolStripMenuItem tsmiResetOpacity = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
             AccessibleName = Strings.Btn_SetDefault
         };
@@ -264,6 +264,7 @@ public partial class MainForm
         /// </summary>
         /// <param name="parent">父選單項目</param>
         /// <param name="label">標籤文字</param>
+        /// <param name="mnemonic">助記鍵字母</param>
         /// <param name="getter">取得目前值的函式</param>
         /// <param name="setter">設定新值的函式</param>
         /// <param name="defValue">預設值</param>
@@ -272,6 +273,7 @@ public partial class MainForm
         void AddNumericItem(
             ToolStripMenuItem parent,
             string label,
+            char mnemonic,
             Func<int> getter,
             Action<int> setter,
             int defValue,
@@ -281,7 +283,7 @@ public partial class MainForm
             ToolStripMenuItem item = new(string.Empty)
             {
                 AccessibleName = label,
-                Tag = label,
+                Tag = new KeyValuePair<string, char>(label, mnemonic),
             };
 
             item.Click += (s, e) =>
@@ -304,36 +306,41 @@ public partial class MainForm
         AddNumericItem(
             tsmiWinOps,
             Strings.Settings_WindowRestoreDelay,
+            'R',
             () => AppSettings.Current.WindowRestoreDelay,
             v => AppSettings.Current.WindowRestoreDelay = v,
             50, 0, 5000);
         AddNumericItem(
             tsmiWinOps,
             Strings.Settings_ClipboardRetryDelay,
+            'C',
             () => AppSettings.Current.ClipboardRetryDelay,
             v => AppSettings.Current.ClipboardRetryDelay = v,
             20, 0, 1000);
         AddNumericItem(
             tsmiWinOps,
             Strings.Settings_TouchKeyboardDismissDelay,
+            'T',
             () => AppSettings.Current.TouchKeyboardDismissDelay,
             v => AppSettings.Current.TouchKeyboardDismissDelay = v,
             300, 0, 5000);
         AddNumericItem(
             tsmiWinOps,
             Strings.Settings_WindowSwitchBufferBase,
+            'B',
             () => AppSettings.Current.WindowSwitchBufferBase,
             v => AppSettings.Current.WindowSwitchBufferBase = v,
             150, 0, 5000);
         AddNumericItem(
             tsmiWinOps,
             Strings.Settings_InputJitterRange,
+            'J',
             () => AppSettings.Current.InputJitterRange,
             v => AppSettings.Current.InputJitterRange = v,
             50, 0, 1000);
 
         tsmiWinOps.DropDownItems.Add(new ToolStripSeparator());
-        ToolStripMenuItem tsmiResetWinOps = new(Strings.Btn_SetDefault)
+        ToolStripMenuItem tsmiResetWinOps = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
             AccessibleName = Strings.Btn_SetDefault
         };
@@ -358,12 +365,12 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(tsmiWinOps);
 
         // 回饋。
-        ToolStripMenuItem tsmiFeedback = new(Strings.Menu_Settings_Feedback)
+        ToolStripMenuItem tsmiFeedback = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Feedback, 'F'))
         {
             AccessibleName = Strings.Menu_Settings_Feedback,
             AccessibleDescription = Strings.A11y_Menu_Feedback_Desc
         };
-        ToolStripMenuItem tsmiVibEnable = new(Strings.Menu_Settings_Vibration)
+        ToolStripMenuItem tsmiVibEnable = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Vibration, 'V'))
         {
             CheckOnClick = true,
             Checked = AppSettings.Current.EnableVibration,
@@ -380,7 +387,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiIntensity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_VibrationIntensity,
-            Tag = Strings.Settings_VibrationIntensity
+            Tag = new KeyValuePair<string, char>(Strings.Settings_VibrationIntensity, 'I')
         };
         tsmiIntensity.Click += (s, e) =>
         {
@@ -411,7 +418,7 @@ public partial class MainForm
         tsmiFeedback.DropDownItems.Add(tsmiIntensity);
 
         tsmiFeedback.DropDownItems.Add(new ToolStripSeparator());
-        ToolStripMenuItem tsmiResetFeedback = new(Strings.Btn_SetDefault)
+        ToolStripMenuItem tsmiResetFeedback = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
             AccessibleName = Strings.Btn_SetDefault
         };
@@ -438,14 +445,14 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(tsmiFeedback);
 
         //　控制器。
-        ToolStripMenuItem tsmiGamepad = new(Strings.Menu_Settings_Gamepad)
+        ToolStripMenuItem tsmiGamepad = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Gamepad, 'G'))
         {
             AccessibleName = Strings.Menu_Settings_Gamepad,
             AccessibleDescription = Strings.A11y_Menu_Gamepad_Desc
         };
 
         // Provider（需重啟）。
-        ToolStripMenuItem tsmiProvider = new(Strings.Menu_Settings_Provider)
+        ToolStripMenuItem tsmiProvider = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Provider, 'P'))
         {
             AccessibleName = Strings.Menu_Settings_Provider,
             AccessibleDescription = Strings.A11y_Menu_Provider_Desc
@@ -479,7 +486,7 @@ public partial class MainForm
         AddProviderItem(AppSettings.GamepadProvider.GameInput);
 
         tsmiProvider.DropDownItems.Add(new ToolStripSeparator());
-        ToolStripMenuItem tsmiResetProvider = new(Strings.Btn_SetDefault)
+        ToolStripMenuItem tsmiResetProvider = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
             AccessibleName = Strings.Btn_SetDefault
         };
@@ -504,6 +511,7 @@ public partial class MainForm
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_ThumbDeadzoneEnter,
+            'E',
             () => AppSettings.Current.ThumbDeadzoneEnter,
             v =>
             {
@@ -517,6 +525,7 @@ public partial class MainForm
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_ThumbDeadzoneExit,
+            'Q',
             () => AppSettings.Current.ThumbDeadzoneExit,
             v =>
             {
@@ -530,6 +539,7 @@ public partial class MainForm
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_RepeatDelay,
+            'D',
             () => AppSettings.Current.RepeatInitialDelayFrames, v =>
             {
                 AppSettings.Current.RepeatInitialDelayFrames = v;
@@ -542,6 +552,7 @@ public partial class MainForm
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_RepeatSpeed,
+            'S',
             () => AppSettings.Current.RepeatIntervalFrames, v =>
             {
                 AppSettings.Current.RepeatIntervalFrames = v;
@@ -553,7 +564,7 @@ public partial class MainForm
             100);
 
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
-        ToolStripMenuItem tsmiResetGamepad = new(Strings.Btn_SetDefault)
+        ToolStripMenuItem tsmiResetGamepad = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
             AccessibleName = Strings.Btn_SetDefault
         };
@@ -583,7 +594,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiCap = new(string.Empty)
         {
             AccessibleName = Strings.Settings_HistoryCapacity,
-            Tag = Strings.Settings_HistoryCapacity
+            Tag = new KeyValuePair<string, char>(Strings.Settings_HistoryCapacity, 'H')
         };
         tsmiCap.Click += (s, e) =>
         {
@@ -686,9 +697,20 @@ public partial class MainForm
         {
             if (item is ToolStripMenuItem mi)
             {
-                // 使用 Tag 作為穩定的標籤識別碼，因為 AccessibleName 會隨數值更新。
-                string? label = mi.Tag as string ??
-                    mi.AccessibleName;
+                char mnemonic = ' ';
+
+                // 使用 Tag 作為穩定的標籤識別碼。
+                string? label;
+
+                if (mi.Tag is KeyValuePair<string, char> kvp)
+                {
+                    label = kvp.Key;
+                    mnemonic = kvp.Value;
+                }
+                else
+                {
+                    label = mi.Tag as string ?? mi.AccessibleName;
+                }
 
                 if (string.IsNullOrEmpty(label))
                 {
@@ -758,7 +780,11 @@ public partial class MainForm
 
                 if (fullText != null)
                 {
-                    mi.Text = fullText;
+                    // 關鍵修正：套用 GetMnemonicText 以確保手把按鍵提示始終顯示於末尾。
+                    mi.Text = mnemonic != ' ' ?
+                        ControlExtensions.GetMnemonicText(fullText, mnemonic) :
+                        fullText;
+
                     // 同步更新無障礙名稱，確保手把導覽時能播報目前數值。
                     mi.AccessibleName = fullText;
                 }

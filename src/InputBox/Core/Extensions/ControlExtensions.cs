@@ -220,7 +220,7 @@ public static class ControlExtensions
     }
 
     /// <summary>
-    /// 依據語言習慣產生包含助記鍵的文字
+    /// 依據語言習慣與內容產生包含助記鍵（Mnemonic）的文字
     /// </summary>
     /// <param name="text">原始文字</param>
     /// <param name="mnemonic">助記鍵字母</param>
@@ -229,17 +229,14 @@ public static class ControlExtensions
     {
         if (string.IsNullOrEmpty(text))
         {
-            return $"&{mnemonic}";
+            return $"&{char.ToUpperInvariant(mnemonic)}";
         }
 
-        // 簡單判斷：如果第一個字元是 ASCII（通常是英文），則使用前綴式 &。
-        // 如果是非 ASCII（如中日文），則使用後綴括號式 (&X)。
-        if (text[0] < 128)
-        {
-            return $"&{text}";
-        }
-
-        return $"{text} (&{mnemonic})";
+        // 核心設計：全語系一律採用後綴式提示。
+        // 對於遊戲控制器應用程式，明確的按鈕提示（如 "Copy to Clipboard (&A)"）
+        // 遠比 Windows 原生的內嵌底線（如 "Copy to Clipbo&ard"）更直覺且易於辨識。
+        // 這也確保了不同語言（中、日、英）之間 UI 邏輯的高度統一。
+        return $"{text} (&{char.ToUpperInvariant(mnemonic)})";
     }
 
     /// <summary>
