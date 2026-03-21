@@ -232,11 +232,18 @@ public static class ControlExtensions
             return $"&{char.ToUpperInvariant(mnemonic)}";
         }
 
+        char upperMnemonic = char.ToUpperInvariant(mnemonic);
+
+        // 冪等性檢查：如果字串中已經包含 '&' 標記或是相同的後綴提示，則直接回傳原文字。
+        // 這能防止重複調用或資源檔本身自帶標記時產生的「確定 (&A) (&A)」問題。
+        if (text.Contains('&') ||
+            text.Contains($"(&{upperMnemonic})", StringComparison.OrdinalIgnoreCase))
+        {
+            return text;
+        }
+
         // 核心設計：全語系一律採用後綴式提示。
-        // 對於遊戲控制器應用程式，明確的按鈕提示（如 "Copy to Clipboard (&A)"）
-        // 遠比 Windows 原生的內嵌底線（如 "Copy to Clipbo&ard"）更直覺且易於辨識。
-        // 這也確保了不同語言（中、日、英）之間 UI 邏輯的高度統一。
-        return $"{text} (&{char.ToUpperInvariant(mnemonic)})";
+        return $"{text} (&{upperMnemonic})";
     }
 
     /// <summary>
@@ -326,5 +333,40 @@ public static class ControlExtensions
                 break;
             }
         }
+    }
+
+    /// <summary>
+    /// 遞歸更新控制項及其所有子控制項的背景色與前景色。
+    /// </summary>
+    /// <param name="parent">要開始更新的父控制項。</param>
+    /// <param name="bg">新的背景顏色。</param>
+    /// <param name="fg">新的前景顏色。</param>
+    public static void UpdateRecursive(
+        this Control parent,
+        Color bg,
+        Color fg)
+    {
+        if (parent == null)
+        {
+            return;
+        }
+
+        parent.BackColor = bg;
+        parent.ForeColor = fg;
+
+        foreach (Control child in parent.Controls)
+        {
+            UpdateRecursive(child, bg, fg);
+        }
+    }
+
+    /// <summary>
+    /// 將控制項及其所有子控制項的顏色屬性重設為 Color.Empty，
+    /// 這將觸發 .NET 10 的原生主題引擎自動套用正確的系統配色。
+    /// </summary>
+    /// <param name="parent">父控制項。</param>
+    public static void ResetThemeRecursive(this Control parent)
+    {
+        UpdateRecursive(parent, Color.Empty, Color.Empty);
     }
 }

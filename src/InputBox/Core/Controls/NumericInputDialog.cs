@@ -384,9 +384,6 @@ internal sealed class NumericInputDialog : Form
 
         CancellationToken token = alertCts.Token;
 
-        // 核心強化：用於追蹤並確保最後一個臨時建立的字型資源能被釋放。
-        Font? lastTempFont = null;
-
         try
         {
             float scale = DeviceDpi / 96.0f;
@@ -414,13 +411,20 @@ internal sealed class NumericInputDialog : Form
 
                     if (SystemInformation.HighContrast)
                     {
-                        _nud.BackColor = intensity > 0.5f ?
+                        Color hcColor = intensity > 0.5f ?
                             alertColor :
-                            SystemColors.Highlight;
+                            SystemColors.Window;
+
+                        _nud.BackColor = hcColor;
+
+                        foreach (Control child in _nud.Controls)
+                        {
+                            child.BackColor = hcColor;
+                        }
                     }
                     else
                     {
-                        // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生泥綠色。
+                        // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生髒濁色。
                         Color pureBase = isDark ?
                             Color.White :
                             Color.Black;
@@ -431,16 +435,13 @@ internal sealed class NumericInputDialog : Form
 
                         Color flashColor = Color.FromArgb(255, rN, gN, bN);
 
-                        _nud.BackColor = flashColor;
+                        // 決定閃爍期間的前景對比色。
+                        Color flashFore = isDark ?
+                            Color.Black :
+                            Color.White;
 
-                        // 同步更新內部的 TextBox 編輯區背景，確保全區域視覺一致。
-                        foreach (Control child in _nud.Controls)
-                        {
-                            child.BackColor = flashColor;
-                        }
-
-                        // 核心變更：移除按鈕背景同步閃爍邏輯。
-                        // 數值邊界警示應僅作用於數值輸入區域，按鈕應維持其靜態焦點狀態。
+                        // 2. 遞歸背景與前景同步：僅作用於數據內容區域（_nud），按鈕保持其靜態視覺狀態。
+                        _nud.UpdateRecursive(flashColor, flashFore);
                     }
                 });
             }
@@ -500,14 +501,6 @@ internal sealed class NumericInputDialog : Form
                     _nud.Font = _nudFont;
                 }
             });
-
-            // 核心強化：無論視窗是否已處置，都必須釋放最後一個臨時建立的字型，防止 GDI 洩漏。
-            if (lastTempFont != null &&
-                lastTempFont != _nudFont)
-            {
-                lastTempFont.Dispose();
-                lastTempFont = null;
-            }
         }
     }
 
@@ -584,29 +577,25 @@ internal sealed class NumericInputDialog : Form
         {
             if (SystemInformation.HighContrast)
             {
-                _nud.BackColor = SystemColors.Highlight;
-                _nud.ForeColor = SystemColors.HighlightText;
+                _nud.UpdateRecursive(SystemColors.Highlight, SystemColors.HighlightText);
             }
             else
             {
                 if (_nud.IsDarkModeActive())
                 {
                     // 深色模式：白底黑字。
-                    _nud.BackColor = Color.White;
-                    _nud.ForeColor = Color.Black;
+                    _nud.UpdateRecursive(Color.White, Color.Black);
                 }
                 else
                 {
                     // 淺色模式：黑底白字。
-                    _nud.BackColor = Color.Black;
-                    _nud.ForeColor = Color.White;
+                    _nud.UpdateRecursive(Color.Black, Color.White);
                 }
             }
         }
         else
         {
-            _nud.BackColor = Color.Empty;
-            _nud.ForeColor = Color.Empty;
+            _nud.ResetThemeRecursive();
         }
     }
 
@@ -1183,7 +1172,7 @@ internal sealed class NumericInputDialog : Form
 
             // 1. 基礎邊框（預設狀態）。
             // 由於 btn.FlatAppearance.BorderSize = 0，必須手動繪製預設邊框，否則會跟背景融合。
-            // 還原 DimGray／DarkGray 畫筆，並確保在無焦點、無 Hover 時畫出。
+            // 還原 DimGray／DarkGray 畫筆，並確保在無焦點、無 Hover時畫出。
             if (!btn.Focused &&
                 !isHovered &&
                 !isDefault)

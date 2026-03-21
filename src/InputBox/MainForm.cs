@@ -315,8 +315,7 @@ public partial class MainForm : Form
         {
             GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
 
-            // 核心強化：確保靜態事件在視窗控制項控制代碼銷毀時被絕對釋放。
-            // 這能有效防止在 Form 控制代碼重建或異常關閉時引發的靜態資源洩漏。
+            // 確保靜態事件在視窗控制項控制代碼銷毀時被絕對釋放。
             SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
         }
         finally
@@ -330,17 +329,26 @@ public partial class MainForm : Form
         // 1. 立即發出全域取消訊號，中止所有 UI 相關的非同步任務。
         _formCts.Cancel();
 
-        // 確保系統快速鍵資源在視窗關閉前已被徹底釋放。
-        GlobalHotKeyService.UnregisterShowInputHotkey(Handle);
-
-        // 優先停止輸入源，防止其在通道關閉後仍嘗試寫入廣播。
-        _gamepadController?.Dispose();
-
-        // 停止 A11y 背景工作者。
+        // 2. 停止 A11y 背景工作者。
         // 先標記 Writer 完成，讓 ReadAllAsync 平順結束。
         _a11yChannel?.Writer.TryComplete();
 
-        // 原子性地取出並清理 CTS。
+        try
+        {
+            // 3. 執行硬體緊急停止：強制截斷所有馬達震動，防止掌機在視窗關閉後持續空轉。
+            FeedbackService.EmergencyStopAllActiveControllers();
+
+            // 4. 優先停止輸入源，防止其在通道關閉後仍嘗試寫入廣播。
+            IGamepadController? gamepad = Interlocked.Exchange(ref _gamepadController, null);
+            
+            gamepad?.Dispose();
+        }
+        catch
+        {
+            // 忽略緊急停止時的任何潛在錯誤。
+        }
+
+        // 5. 原子性地取出並清理 CTS。
         CancellationTokenSource? cts = Interlocked.Exchange(ref _a11yCts, null);
 
         if (cts != null)
@@ -356,14 +364,12 @@ public partial class MainForm : Form
             }
         }
 
-        // 確保在視窗關閉、物件釋放前，硬體震動已被同步切斷。
-        FeedbackService.EmergencyStopAllActiveControllers();
-
         // 清理靜態引用，防止記憶體洩漏。
         // 僅在最後一個 MainForm 關閉時才清理全域委派，確保多視窗擴充性。
         if (Application.OpenForms.OfType<MainForm>().Count() <= 1)
         {
             ClipboardService.OnRetry = null;
+
             Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
         }
 
@@ -379,8 +385,12 @@ public partial class MainForm : Form
         _alertCts?.Dispose();
 
         // 釋放 GDI 與選單資源。
+        _inputFont?.Dispose();
+        _inputFont = null;
+
         _a11yFont?.Dispose();
         _a11yFont = null;
+
         _boldBtnFont?.Dispose();
         _boldBtnFont = null;
 
@@ -747,23 +757,9 @@ public partial class MainForm : Form
 
         _lastAppliedDpi = currentDpi;
 
-        float scale = currentDpi / BaseDpi;
-
-        // 動態計算最小寬度與高度。
-        // 考慮到 A11y 強化後的加粗邊框（最高達 7 像素），需預留足夠空間。
-        int minWidth = (int)Math.Max(BaseMinWidth * scale, 300 * scale),
-            minHeight = (int)Math.Max(BaseMinHeight * scale, 80 * scale);
-
-        MinimumSize = new Size(minWidth, minHeight);
-
-        // 如果目前尺寸小於最小尺寸，則強制調整。
-        if (Width < MinimumSize.Width ||
-            Height < MinimumSize.Height)
-        {
-            Size = new Size(
-                Math.Max(Width, MinimumSize.Width),
-                Math.Max(Height, MinimumSize.Height));
-        }
+        // 此處不再執行昂貴的 ApplyLocalization，而是僅更新佈局約束。
+        // 這樣能避免 DPI 變更（如螢幕拖曳）時導致按鈕文字被意外重置。
+        UpdateLayoutConstraints();
 
         // A11y 物理鎖定：高對比模式下強制 100% 不透明度，確保絕對符合無障礙可讀性規範。
         if (SystemInformation.HighContrast)

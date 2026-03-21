@@ -35,7 +35,7 @@
   - 嚴格遵守 `async/await`。除事件處理器外，禁止使用 `async void`。
   - 事件處理器內必須包含完備的 `try-catch` 以防程式異常崩潰。
 - **UI 執行緒安全**：跨執行緒操作 UI 必須調用 `ControlExtensions.cs` 中的 `SafeInvoke` 系列方法。
-- **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`Mutex`、`Channel`）在類別釋放時被正確處置，確保無記憶體洩漏。
+- **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置（利用 `Interlocked.Exchange` 確保併發安全）並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
 - **DPI 適應性規範**：
   - 視窗必須實作 `UpdateMinimumSize` 邏輯，並在 `OnHandleCreated` 與 `OnDpiChanged` 中調用，確保在高 DPI 或縮放變更時佈局不崩潰。
   - 計算佈局尺寸時，必須基於 `DeviceDpi` 與 96.0f 的比例進行縮放（Scale）。
@@ -89,6 +89,7 @@
     - **頻率控制**：視覺律動頻率必須嚴格鎖定在 **1Hz**（1000ms 週期），遠低於 3Hz 的風險閾值。
     - **平滑漸變**：亮度與色彩變化必須使用**正弦波（Sine Wave）**過渡，確保在波峰與波底的變化率平滑流暢，減少對大腦視覺皮層的突發性刺激。
     - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍或 Dwell 動畫，必須改為「靜態顯著提醒」。
+    - **視覺凍結與抗抖動原則（Visual Freezing）**：為了保護眼動儀使用者，所有動態警示（如 Flash Alert）必須**嚴格禁止變動控制項的物理尺寸、Margin 或 Padding**。警示應僅透過「背景與前景色同步正弦波脈衝」與「亮度對比反轉」實現，確保文字內容與游標在閃爍期間保持絕對位移靜止（Zero-Jitter）。
   - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
 - **系統偏好同步與主題管理（System Sync & Theme Management）**：
   - 必須透過 `SystemEvents.UserPreferenceChanged` 監控 `UserPreferenceCategory.General` 與 `Accessibility`，確保當使用者變更 Windows 動畫、色彩或主題設定時，UI 視覺行為能立即同步。
@@ -190,6 +191,7 @@
 1.  **UI 空間適應**：日文與西歐語系長度通常較長，所有動態佈局（如 `NumericInputDialog`）必須確保 `AutoSize` 與 `MaximumSize` 同時開啟，以觸發自動換行。
 2.  **變數占位符**：嚴禁翻譯 `Strings.resx` 中的占位符（如 `{0}`），且必須確保不同語系中的占位符順序符合該語系語法（如「第 {0} 頁」對應「{0} ページ目」）。
 3.  **助記鍵（Mnemonics）**：所有語系的按鈕助記鍵字母必須儘可能保持一致（如確認為 `(A)`、取消為 `(B)`），以維持與手把按鍵映射的連動直覺。
+    - **助記鍵冪等性**：動態生成助記鍵提示時必須執行冪等性檢查，確保若資源檔內容已手動包含快捷標記時，不會產生重複後綴。
 4.  **資源註釋（Resource Comments）**：在 `.resx` 檔案中新增任何資源時，**必須**同時填寫 `<comment>` 標籤，且註釋內容必須使用與該資源**相同的語系**，以提供精確的開發與翻譯語境（Context）。
 
 ## 6. Git 提交規範

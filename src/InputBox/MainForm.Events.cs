@@ -1156,21 +1156,12 @@ public partial class MainForm
 
         try
         {
-            float scale = DeviceDpi / BaseDpi;
-
-            int normalThickness = (int)Math.Max(2, 2 * scale),
-                pulseThickness = (int)Math.Max(7, 7 * scale);
-
             // 決定警示色。
             // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
             // 淺色模式（黑底）：用 DarkOrange（8.3:1）；深色模式（白底）：用 Firebrick（5.8:1）。
             Color alertColor = SystemInformation.HighContrast ?
                 SystemColors.HighlightText :
                 (TBInput.IsDarkModeActive() ? Color.Firebrick : Color.DarkOrange);
-
-            // 快照目前全域字型，確保在動畫循環中不會誤處置它們。
-            Font? snapshotA11yFont = _a11yFont,
-                snapshotBoldFont = _boldBtnFont;
 
             void ApplyAlertVisuals(float intensity)
             {
@@ -1184,9 +1175,12 @@ public partial class MainForm
 
                 if (SystemInformation.HighContrast)
                 {
-                    PInputHost.BackColor = intensity > 0.5f ?
+                    Color hcColor = intensity > 0.5f ?
                         alertColor :
-                        SystemColors.Highlight;
+                        SystemColors.Window;
+
+                    PInputHost.BackColor = hcColor;
+                    TBInput.BackColor = hcColor;
                 }
                 else
                 {
@@ -1201,13 +1195,11 @@ public partial class MainForm
 
                     Color flashColor = Color.FromArgb(255, rB, gB, bB);
 
-                    PInputHost.BackColor = flashColor;
+                    // 決定閃爍期間的前景對比色。
+                    Color flashFore = isDark ? Color.Black : Color.White;
 
-                    // 2. 遞歸背景更新（Recursive Visual Sync）：同步更新輸入框編輯區，確保視覺一致性。
-                    TBInput.BackColor = flashColor;
-
-                    // 3. 警示作用域隔離（Alert Scoping）：按鈕即使具備焦點，也禁止參與同步背景閃爍。
-                    // 原有的按鈕閃爍邏輯已移除，按鈕將維持其靜態焦點樣式。
+                    // 2. 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
+                    PInputHost.UpdateRecursive(flashColor, flashFore);
                 }
             }
 

@@ -38,6 +38,11 @@ public partial class MainForm
     private record AnnouncementRequest(string Message, bool Interrupt, long Id);
 
     /// <summary>
+    /// 快取的輸入框字型（用於資源管理）
+    /// </summary>
+    private Font? _inputFont;
+
+    /// <summary>
     /// 快取的 A11y 字型（用於資源管理）
     /// </summary>
     private Font? _a11yFont;
@@ -105,6 +110,22 @@ public partial class MainForm
         TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
         _lblInput?.Text = Strings.A11y_TBInputName;
 
+        // 建立或更新輸入框專用的 28pt 大字體，確保在高 DPI 下絕對銳利。
+        const float inputFontSize = 28.0f;
+
+        Font newInputFont = new(
+            TBInput.Font.FontFamily,
+            inputFontSize * (DeviceDpi / 96.0f),
+            TBInput.Font.Style);
+
+        Font? oldInputFont = _inputFont;
+
+        _inputFont = newInputFont;
+
+        TBInput.Font = _inputFont;
+
+        oldInputFont?.Dispose();
+
         // 建立或更新 A11y 放大字型。
         Font newA11yFont = GetSharedA11yFont(DeviceDpi),
             newBoldFont = new(newA11yFont, FontStyle.Bold);
@@ -129,14 +150,35 @@ public partial class MainForm
         oldA11yFont?.Dispose();
         oldBoldFont?.Dispose();
 
-        // 重置 MinimumSize，避免切換短語系（如英文）時，按鈕寬度仍卡在長語系（如日文）的寬度。
+        // 確保標題快取與在地化字串同步，並立即套用至視窗。
+        UpdateTitlePrefix();
+        UpdateTitle();
+
+        // 根據新翻譯的文字長度，更新視窗佈局約束。
+        UpdateLayoutConstraints();
+    }
+
+    /// <summary>
+    /// 更新視窗佈局約束，包含 MinimumSize 與 ClientSize 的精確測量
+    /// </summary>
+    private void UpdateLayoutConstraints()
+    {
+        if (IsDisposed ||
+            !IsHandleCreated)
+        {
+            return;
+        }
+
+        float currentScale = DeviceDpi / 96.0f;
+
+        // 1. 測量按鈕所需寬度（考慮加粗狀態）。
+        // 重置 MinimumSize 以便重新測量（避免被舊值干擾）。
+        // 避免切換短語系（如英文）時，按鈕寬度仍卡在長語系（如日文）的寬度。
         BtnCopy.MinimumSize = Size.Empty;
 
         // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock），
         // 預先測量 Bold 狀態下的文字寬度，並鎖定為 MinimumSize，防止懸停加粗時佈局抖動。
-        Size boldSize = TextRenderer.MeasureText(BtnCopy.Text, _boldBtnFont);
-
-        float currentScale = DeviceDpi / 96.0f;
+        Size boldSize = TextRenderer.MeasureText(BtnCopy.Text, _boldBtnFont ?? BtnCopy.Font);
 
         int requiredBtnWidth = boldSize.Width + BtnCopy.Padding.Horizontal + (int)(10 * currentScale);
 
@@ -145,16 +187,17 @@ public partial class MainForm
             BtnCopy.MinimumSize = new Size(requiredBtnWidth, BtnCopy.MinimumSize.Height);
         }
 
+        // 2. 測量輸入區（Placeholder）所需邏輯寬度。
         // 依據語系與 Placeholder 內容動態調整 MainForm 的最小寬度。
         // 為了解決 ja 等語系文字過長壓縮輸入區的問題，我們根據 Placeholder 寬度進行計算。
         // 考慮到掌機（如 ROG Ally）在 150%-200% 高縮放下，邏輯寬度不可過大以免遮擋遊戲。
-        
+
         // 測量 Placeholder 在目前大字體（28pt）下的寬度。
         Size phtSize = TextRenderer.MeasureText(TBInput.PlaceholderText, TBInput.Font);
 
         // 轉換回邏輯像素（96 DPI）進行邊界限制。
         int measuredLogicWidth = (int)(phtSize.Width / currentScale);
-        
+
         // 設定輸入區邏輯寬度上限為 280px，下限為 180px。
         // 280px 能確保即便在 200% 縮放下，總寬度亦不致於佔據 1080p 螢幕超過一半。
         int finalInputLogicWidth = Math.Clamp(measuredLogicWidth + 20, 180, 280),
@@ -164,12 +207,36 @@ public partial class MainForm
                 TLPHost.Padding.Horizontal +
                 (int)(20 * currentScale);
 
-        // 更新視窗最小尺寸。
-        MinimumSize = new Size(totalMinWidth, MinimumSize.Height);
+        // 3. 實作視窗高度動態適應性。
+        // 取「設計工作區地板（60px）」與「文字實測需求高度」的最大值。
+        int clientFloorHeight = (int)(60 * currentScale);
 
-        // 確保標題快取與在地化字串同步，並立即套用至視窗。
-        UpdateTitlePrefix();
-        UpdateTitle();
+        Size textSize = TextRenderer.MeasureText("Ag", TBInput.Font);
+
+        int measuredTextHeight = textSize.Height + (int)(12 * currentScale),
+            finalClientHeight = Math.Max(clientFloorHeight, measuredTextHeight);
+
+        // 4. 設定視窗最終最小尺寸與工作區大小。
+        // 使用 SizeFromClientSize 確保 MinimumSize 包含標題列與邊框。
+        Size minWindowSize = SizeFromClientSize(new Size(totalMinWidth, finalClientHeight));
+
+        int finalWindowHeight = Math.Max(minWindowSize.Height, (int)(80 * currentScale));
+
+        // 更新視窗最小尺寸。
+        MinimumSize = new Size(minWindowSize.Width, finalWindowHeight);
+
+        // 如果目前寬度或高度低於測量出的地板，則強制擴張。
+        // 這能確保切換至長語系（如 ja）時，UI 立即適應而非維持舊尺寸。
+        if (Width < minWindowSize.Width ||
+            ClientSize.Height < finalClientHeight)
+        {
+            Size = new Size(
+                Math.Max(Width, minWindowSize.Width),
+                Math.Max(Height, finalWindowHeight));
+
+            // 佈局擴張後，立即執行智慧定位檢查，防止視窗邊緣跑出螢幕。
+            ApplySmartPosition();
+        }
     }
 
     /// <summary>
