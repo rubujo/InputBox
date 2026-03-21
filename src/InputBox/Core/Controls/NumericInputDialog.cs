@@ -455,15 +455,14 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            int totalDuration = AppSettings.PhotoSafeFrequencyMs,
-                delayMs = 16;
+            int totalDuration = AppSettings.PhotoSafeFrequencyMs;
+
+            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16));
 
             long startTime = Stopwatch.GetTimestamp();
 
-            while (true)
+            while (await timer.WaitForNextTickAsync(token))
             {
-                token.ThrowIfCancellationRequested();
-
                 long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
 
                 double elapsedMs = (double)elapsedTicks / Stopwatch.Frequency * 1000.0;
@@ -479,8 +478,6 @@ internal sealed class NumericInputDialog : Form
                 float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
 
                 ApplyAlertVisuals(intensity);
-
-                await Task.Delay(delayMs, token);
             }
         }
         catch (OperationCanceledException)

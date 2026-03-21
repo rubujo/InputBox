@@ -830,7 +830,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 處理自定義快捷按鍵與歷史導覽
+    /// 處理自定義快速鍵與歷史導覽
     /// </summary>
     /// <param name="e">KeyEventArgs</param>
     private void HandleKeyDown(KeyEventArgs e)
@@ -1216,15 +1216,14 @@ public partial class MainForm
                 return;
             }
 
-            int totalDuration = AppSettings.PhotoSafeFrequencyMs,
-                delayMs = 16;
+            int totalDuration = AppSettings.PhotoSafeFrequencyMs;
+
+            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16));
 
             long startTime = Stopwatch.GetTimestamp();
 
-            while (true)
+            while (await timer.WaitForNextTickAsync(token))
             {
-                token.ThrowIfCancellationRequested();
-
                 long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
 
                 double elapsedMs = (double)elapsedTicks / Stopwatch.Frequency * 1000.0;
@@ -1246,8 +1245,6 @@ public partial class MainForm
                 }
 
                 this.SafeInvoke(() => ApplyAlertVisuals(intensity));
-
-                await Task.Delay(delayMs, token);
             }
         }
         catch (OperationCanceledException)
@@ -1277,14 +1274,14 @@ public partial class MainForm
             {
                 this.SafeInvoke(() =>
                 {
-                    // 嚴格遵守自身焦點狀態。
-                    // 移除之前的 isActiveState 混合判斷，只看 TBInput.Focused。
-                    bool isTextBoxFocused = TBInput.Focused;
+                    // 1. 核心修正：還原 PInputHost 及其所有子控制項的顏色（包含 ForeColor），消除視覺殘留。
+                    PInputHost.ResetThemeRecursive();
 
-                    UpdateBorderColor(isTextBoxFocused);
+                    // 2. 恢復邊框樣式與厚度。
+                    UpdateBorderColor(TBInput.Focused);
 
-                    // 還原輸入框顏色。
-                    if (isTextBoxFocused)
+                    // 3. 根據焦點狀態重新套用強烈視覺回饋（若有焦點）。
+                    if (TBInput.Focused)
                     {
                         if (SystemInformation.HighContrast)
                         {
@@ -1304,12 +1301,6 @@ public partial class MainForm
                                 TBInput.ForeColor = Color.White;
                             }
                         }
-                    }
-                    else
-                    {
-                        // 只有當焦點真的離開了這個輸入區域（例如點擊了其他視窗），才徹底還原。
-                        TBInput.BackColor = Color.Empty;
-                        TBInput.ForeColor = Color.Empty;
                     }
                 });
             }

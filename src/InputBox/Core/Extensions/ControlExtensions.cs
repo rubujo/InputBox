@@ -305,7 +305,9 @@ public static class ControlExtensions
 
         Stopwatch stopwatch = Stopwatch.StartNew();
 
-        while (!ct.IsCancellationRequested &&
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16));
+
+        while (await timer.WaitForNextTickAsync(ct) &&
             animationIdGetter() == id &&
             !control.IsDisposed &&
             control.IsHandleCreated)
@@ -319,16 +321,6 @@ public static class ControlExtensions
             control.Invalidate();
 
             if (progress >= 1.0f)
-            {
-                break;
-            }
-
-            try
-            {
-                // 固定幀率（約 60 FPS）。
-                await Task.Delay(16, ct);
-            }
-            catch
             {
                 break;
             }
