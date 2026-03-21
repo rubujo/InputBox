@@ -835,7 +835,7 @@ public partial class MainForm
     /// <param name="e">KeyEventArgs</param>
     private void HandleKeyDown(KeyEventArgs e)
     {
-        // Alt + B：不複製直接返回前一個視窗（與遊戲手把 LB + RB + B 對等）。
+        // Alt + B：不複製直接返回前一個視窗（與遊戲控制器 LB + RB + B 對等）。
         if (e.Alt &&
             e.KeyCode == Keys.B)
         {

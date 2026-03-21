@@ -49,7 +49,7 @@ public partial class MainForm
                 IntervalFrames = config.RepeatIntervalFrames
             };
 
-            // 根據設定嘗試建立遊戲手把實作。
+            // 根據設定嘗試建立遊戲控制器實作。
             if (config.GamepadProviderType == AppSettings.GamepadProvider.GameInput)
             {
                 try

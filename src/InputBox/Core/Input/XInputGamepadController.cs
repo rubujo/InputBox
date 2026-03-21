@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace InputBox.Core.Input;
 
 /// <summary>
-/// 遊戲手把控制器（XInput 實作）
+/// Gamepad 控制介面（XInput 實作）
 /// </summary>
 internal sealed partial class XInputGamepadController : IGamepadController
 {

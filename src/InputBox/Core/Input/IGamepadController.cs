@@ -1,7 +1,7 @@
 ﻿namespace InputBox.Core.Input;
 
 /// <summary>
-/// 遊戲手把控制器介面
+/// Gamepad 控制介面
 /// </summary>
 internal interface IGamepadController : IDisposable, IAsyncDisposable
 {

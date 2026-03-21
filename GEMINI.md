@@ -41,7 +41,7 @@
   - 計算佈局尺寸時，必須基於 `DeviceDpi` 與 96.0f 的比例進行縮放（Scale）。
 - **自定義對話框控制器標準**：
   - 所有自定義對話框（如 `NumericInputDialog`）必須具備 `GamepadController` 屬性。
-  - 必須實作手把按鍵映射：`A/Start` 為確認、`B/Back` 為取消、`X` 為重設。
+  - 必須實作手把按鍵映射：`A／Start` 為確認、`B／Back` 為取消、`X` 為重設。
   - 視窗字型必須繼承或共享主視窗的 A11y 字型設定（預設為 11f 放大字型），確保視覺一致性與易讀性。
 
 ## 2. A11y 無障礙與視覺安全規範
@@ -100,7 +100,7 @@
   - **屬性疊加**：Designer 內設定的值為基礎，執行階段（Runtime）必須透過 `ApplyLocalization` 或分部類別（如 `MainForm.A11y.cs`）再次賦值以確保多語系正確性。
   - **禁止破壞結構**：嚴禁手動修改 `MainForm.Designer.cs` 中由設計工具生成的自動化佈局結構。
 
-## 3. 控制器 API 指引（XInput & GameInput）
+## 3. 遊戲控制器輸入 API 指引（XInput & GameInput）
 
 - **自動退避**：預設優先嘗試 `GameInput`；若初始化失敗，必須自動退避至 `XInput` 並告知使用者。
 - **震動安全性**：

@@ -13,7 +13,7 @@ using UsbVendorsLibrary;
 namespace InputBox.Core.Input;
 
 /// <summary>
-/// 遊戲手把控制器（GameInput 實作）
+/// Gamepad 控制介面（GameInput 實作）
 /// </summary>
 internal sealed partial class GameInputGamepadController : IGamepadController
 {

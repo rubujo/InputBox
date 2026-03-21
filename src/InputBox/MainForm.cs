@@ -125,7 +125,7 @@ public partial class MainForm : Form
     private ToolStripMenuItem? _tsmiPrivacyMode;
 
     /// <summary>
-    /// 上一次的遊戲手把連線狀態（用於防止重複廣播）
+    /// 上一次的遊戲控制器連線狀態（用於防止重複廣播）
     /// </summary>
     private bool? _lastGamepadConnectedState;
 

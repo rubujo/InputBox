@@ -384,8 +384,8 @@
     <comment>右键菜单项目，用于进入震动反馈相关设置。</comment>
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
-    <value>游戏手柄</value>
-    <comment>右键菜单项目，用于进入游戏手柄相关设置。</comment>
+    <value>游戏控制器</value>
+    <comment>右键菜单项目，用于进入游戏控制器相关设置。</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>震动</value>
@@ -396,8 +396,8 @@
     <comment>右键菜单项目，显示并设置震动强度。{0} 是目前的百分比数值。</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
-    <value>控制器 API</value>
-    <comment>右键菜单项目，显示目前的控制器 API 供应商信息。</comment>
+    <value>游戏控制器输入 API</value>
+    <comment>右键菜单项目，显示目前的游戏控制器输入 API 信息。</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>历史记录容量: {0}</value>

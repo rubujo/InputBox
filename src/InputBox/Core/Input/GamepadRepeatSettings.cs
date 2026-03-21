@@ -1,7 +1,7 @@
 ﻿namespace InputBox.Core.Input;
 
 /// <summary>
-/// 遊戲手把重複設定
+/// 遊戲控制器重複設定
 /// </summary>
 /// <remarks> 
 /// 單位為「Polling frame」，而非毫秒。

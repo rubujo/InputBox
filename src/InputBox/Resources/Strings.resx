@@ -385,7 +385,7 @@ Make sure that multiple instances of this application are not running at the sam
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
     <value>Gamepad</value>
-    <comment>Context menu item for controller related settings.</comment>
+    <comment>Context menu item for gamepad related settings.</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>Vibration</value>
@@ -396,8 +396,8 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Context menu item showing and setting vibration intensity. {0} is percentage.</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
-    <value>API Provider</value>
-    <comment>Context menu item showing current controller API provider info.</comment>
+    <value>Gamepad Input API</value>
+    <comment>Context menu item showing current gamepad input API info.</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>History Capacity: {0}</value>

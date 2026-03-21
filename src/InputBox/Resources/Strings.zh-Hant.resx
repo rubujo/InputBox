@@ -384,8 +384,8 @@
     <comment>右鍵選單項目，用於進入震動回饋相關設定。</comment>
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
-    <value>遊戲手把</value>
-    <comment>右鍵選單項目，用於進入遊戲手把相關設定。</comment>
+    <value>遊戲控制器</value>
+    <comment>右鍵選單項目，用於進入遊戲控制器相關設定。</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>震動</value>
@@ -396,8 +396,8 @@
     <comment>右鍵選單項目，顯示並設定震動強度。{0} 是目前的百分比數值。</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
-    <value>控制器 API</value>
-    <comment>右鍵選單項目，顯示目前的控制器 API 供應商資訊。</comment>
+    <value>遊戲控制器輸入 API</value>
+    <comment>右鍵選單項目，顯示目前的遊戲控制器輸入 API 資訊。</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>歷程記錄容量: {0}</value>

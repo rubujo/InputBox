@@ -158,7 +158,7 @@ internal sealed class NumericInputDialog : Form
     private volatile int _isFlashing = 0;
 
     /// <summary>
-    /// 遊戲手把控制器
+    /// Gamepad 控制介面
     /// </summary>
     private IGamepadController? _gamepadController;
 

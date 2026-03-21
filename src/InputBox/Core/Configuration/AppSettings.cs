@@ -240,7 +240,7 @@ public class AppSettings
     #region GamepadController 控制器設定
 
     /// <summary>
-    /// 遊戲手把控制器 API 類型
+    /// 遊戲控制器輸入 API 類型
     /// </summary>
     public enum GamepadProvider
     {
@@ -255,12 +255,12 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 遊戲手把控制器 API（預設為 XInput）
+    /// 遊戲控制器輸入 API（預設為 XInput）
     /// </summary>
     private volatile GamepadProvider _gamepadProviderType = GamepadProvider.XInput;
 
     /// <summary>
-    /// 遊戲手把控制器 API（預設為 XInput）
+    /// 遊戲控制器輸入 API
     /// </summary>
     public GamepadProvider GamepadProviderType
     {

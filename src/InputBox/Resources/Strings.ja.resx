@@ -384,8 +384,8 @@
     <comment>右クリックメニュー項目。振動フィードバックに関連する設定に移動するために使用します。</comment>
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
-    <value>ゲームパッド</value>
-    <comment>右クリックメニュー項目。ゲームパッドに関連する設定に移動するために使用します。</comment>
+    <value>ゲームコントローラー</value>
+    <comment>右クリックメニュー項目。ゲームコントローラーに関連する設定に移動するために使用します。</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>振動</value>
@@ -396,8 +396,8 @@
     <comment>右クリックメニュー項目。振動の強さを表示および設定します。{0} は現在のパーセント値です。</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
-    <value>API プロバイダー</value>
-    <comment>右クリックメニュー項目。現在のコントローラー API プロバイダー情報を表示します。</comment>
+    <value>ゲームコントローラー入力 API</value>
+    <comment>右クリックメニュー項目。現在のゲームコントローラー入力 API 情報を表示します。</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>履歴の保持数: {0}</value>
