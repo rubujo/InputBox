@@ -350,6 +350,7 @@ public partial class MainForm
                         return;
                     }
 
+                    // 檢查是否在擷取快速鍵模式或非作用中視窗。
                     if (ActiveForm != this ||
                         _isCapturingHotkey != 0)
                     {
@@ -574,7 +575,10 @@ public partial class MainForm
         // 取得目前活躍的選單（可能包含子選單）。
         ToolStrip? activeTs = GetActiveToolStrip();
 
-        if (activeTs == null) return false;
+        if (activeTs == null)
+        {
+            return false;
+        }
 
         switch (action)
         {
@@ -587,16 +591,18 @@ public partial class MainForm
 
                 return true;
             case "Left":
-                // 如果在子選單中，關閉子選單。
-                if (activeTs is ToolStripDropDown dropDown &&
-                    dropDown.OwnerItem != null)
                 {
-                    dropDown.Close();
+                    // 如果在子選單中，關閉子選單。
+                    if (activeTs is ToolStripDropDown dropDown &&
+                        dropDown.OwnerItem != null)
+                    {
+                        dropDown.Close();
+
+                        return true;
+                    }
 
                     return true;
                 }
-
-                return true;
             case "Right":
                 // 如果目前項有子選單，開啟它。
                 foreach (ToolStripItem item in activeTs.Items)
@@ -622,7 +628,23 @@ public partial class MainForm
                 {
                     if (item.Selected)
                     {
-                        item.PerformClick();
+                        // 判斷：如果是含有子選單的項目，A 鍵的行為改為「展開子選單」。
+                        if (item is ToolStripMenuItem tsmi &&
+                            tsmi.HasDropDownItems)
+                        {
+                            tsmi.ShowDropDown();
+
+                            // 展開後，自動把焦點移進子選單的第一個項目。
+                            if (tsmi.DropDown.Items.Count > 0)
+                            {
+                                NavigateToolStrip(tsmi.DropDown, true);
+                            }
+                        }
+                        else
+                        {
+                            // 一般項目則執行原本的點擊確認動作。
+                            item.PerformClick();
+                        }
 
                         return true;
                     }
@@ -630,9 +652,21 @@ public partial class MainForm
 
                 return true;
             case "Cancel":
-                _cmsInput?.Close();
+                {
+                    // 判斷：如果是活躍的子選單，B 鍵的行為改為「關閉子選單（退回上一層）」。
+                    if (activeTs is ToolStripDropDown dropDown &&
+                        dropDown.OwnerItem != null)
+                    {
+                        dropDown.Close();
+                    }
+                    else
+                    {
+                        // 如果已經在最外層的主選單，就直接關閉整個右鍵選單
+                        _cmsInput?.Close();
+                    }
 
-                return true;
+                    return true;
+                }
         }
 
         return false;

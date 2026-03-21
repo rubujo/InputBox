@@ -17,7 +17,7 @@ partial class DesignerBlocker { };
 
 public partial class MainForm
 {
-    private void MainForm_Activated(object sender, EventArgs e)
+    private async void MainForm_Activated(object sender, EventArgs e)
     {
         try
         {
@@ -27,12 +27,31 @@ public partial class MainForm
             {
                 try
                 {
-                    if (WindowState == FormWindowState.Normal &&
-                        TBInput != null &&
-                        !TBInput.IsDisposed &&
-                        TBInput.CanFocus)
+                    try
+                    {
+                        // 加上 50 毫秒延遲：讓 Windows 視窗放大動畫跑完，HWND 完全準備好。
+                        // 否則 TextBox 的 BackColor 會被系統底層強制洗白。
+                        await Task.Delay(50, _formCts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // 視窗關閉時安全退出。
+                        return;
+                    }
+
+                    if (IsDisposed ||
+                        TBInput == null ||
+                        TBInput.IsDisposed)
+                    {
+                        return;
+                    }
+
+                    if (TBInput.CanFocus)
                     {
                         TBInput.Focus();
+
+                        // 手動補發 Enter 事件，強制更新黑底與邊框視覺
+                        TBInput_Enter(TBInput, EventArgs.Empty);
                     }
                 }
                 finally

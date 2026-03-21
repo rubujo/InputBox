@@ -1,10 +1,10 @@
 # 輸入框（InputBox）
 
-![Windows 11 22H2 (22621+)](https://img.shields.io/badge/OS-Windows%2011%2022H2%20(22621%2B)-0078D6?logo=windows&logoColor=white&style=for-the-badge)
-![.NET 10](https://img.shields.io/badge/Runtime-.NET%2010-6B4EFF?logo=dotnet&logoColor=white&style=for-the-badge)
-![C#](https://img.shields.io/badge/Language-C%23-2E7D32?logo=csharp&logoColor=white&style=for-the-badge)
-![Input API](https://img.shields.io/badge/Input-GameInput%20%7C%20XInput-F57C00?logo=xbox&logoColor=white&style=for-the-badge)
-![License CC0-1.0](https://img.shields.io/badge/License-CC0--1.0-9E9E9E?style=for-the-badge)
+![Windows 11 22H2 (Build 22621+)](https://img.shields.io/badge/作業系統-Windows%2011%2022H2%20(22621%2B)-0078D6?style=for-the-badge)
+![.NET Runtime](https://img.shields.io/badge/Runtime-.NET%2010-6B4EFF?logo=dotnet&logoColor=white&style=for-the-badge)
+![程式語言](https://img.shields.io/badge/程式語言-C%23-2E7D32?style=for-the-badge)
+![遊戲控制器 API](https://img.shields.io/badge/遊戲控制器%20API-XInput%20%2F%20GameInput-F57C00?style=for-the-badge)
+![授權](https://img.shields.io/badge/授權-CC0%201.0%20Universal-9E9E9E?style=for-the-badge)
 
 一款適用於 Windows 電競掌機的文字輸入輔助應用程式，用於改善在《FINAL FANTASY XIV 繁體中文版》遊戲環境中，於特定操作情境下無法直接使用 Windows 觸控式鍵盤輸入中文的使用體驗。
 
@@ -20,7 +20,7 @@
   - **視覺安全保護**：當系統開啟「高對比」模式時，不透明度將強制鎖定為 100%，以確保最佳可讀性。
 - **支援 XInput 與 GameInput 控制器 API**：
   - **XInput**：適用於 Xbox 控制器及絕大多數模擬控制器。**（預設）**
-  - **GameInput**：支援現代標準，更低延遲，且無控制器數量限制。
+  - **GameInput**：支援現代標準，無控制器數量限制。
     - 本應用程式具備**自動退避機制**（**GameInput** 初始化失敗將自動切換至 **XInput**）。
 - **隱私模式**：支援不記錄輸入內容的隱私模式。開啟瞬間將自動清空目前的輸入框與歷程記錄，提供最高等級的防偷窺保護（可於右鍵選單切換）。
 - **支援輸入歷程記錄**：僅存在於記憶體中，關閉程式即清除。
@@ -55,9 +55,13 @@
 
 ### 2. 控制器操作（XInput／GameInput）
 
-- **A 鍵**：確認。
-  - 功能等同鍵盤 **Enter**，可開啟 Windows 觸控式鍵盤（`TabTip.exe`）或複製文字到 Windows 剪貼簿。
-- **B 鍵**：清除輸入。
+- **A 鍵**：多功能確認鍵。
+  - **文字方塊有文字時**：執行確認（複製並返回）。
+  - **文字方塊為空時**：**開啟功能選單**（方便單手快速存取設定）。
+  - **選單開啟時**：執行選取項目或**展開子選單**。
+- **B 鍵**：取消／清除。
+  - **選單開啟時**：**退回上一層選單**或關閉選單。
+  - **文字輸入時**：清除目前輸入內容。
 - **X 鍵**：刪除選取文字或游標前一個字元。
   - 功能等同鍵盤 **Backspace**。
 - **Y 鍵**：開啟右鍵選單（智慧功能選單）。
@@ -82,7 +86,7 @@
 
 - **右鍵選單導覽**：
   - **方向鍵 ↑／↓**：上下移動選取項目。
-  - **方向鍵 ←／→**：進入或退出子選單。
+  - **方向鍵 ←／→**：進入（或按控制器 **A 鍵**）或退出（或按控制器 **B 鍵**）子選單。
   - **A 鍵／Start 鍵**：執行選取的項目。
   - **B 鍵／Back 鍵**：關閉選單。
 - **數值輸入對話框操作**：

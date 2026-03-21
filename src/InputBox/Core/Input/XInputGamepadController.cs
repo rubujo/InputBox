@@ -279,6 +279,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="context">IInputContext</param>
     /// <param name="userIndex">控制器的 UserIndex，預設值為 0，有效值為 0~3。</param>
+    /// <param name="repeatSettings">連發設定（可選）</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public XInputGamepadController(
         IInputContext context,
@@ -594,7 +595,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 處裡重複
+    /// 處理重複輸入
     /// </summary>
     /// <param name="state">XInput.XInputState</param>
     private void HandleRepeat(XInput.XInputState state)
@@ -659,7 +660,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 偵測
+    /// 偵測按鍵按下
     /// </summary>
     /// <param name="currentState">目前的 XInputState</param>
     /// <param name="previousState">前一次的 XInputState</param>
@@ -855,10 +856,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 暫停
     /// </summary>
-    public void Pause()
-    {
-        StopPolling();
-    }
+    public void Pause() => StopPolling();
 
     /// <summary>
     /// 恢復
