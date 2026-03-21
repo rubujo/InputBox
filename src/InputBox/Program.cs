@@ -43,6 +43,12 @@ internal static class Program
         // 設定全域例外處理。
         Application.ThreadException += (sender, e) => HandleException(e.Exception);
         AppDomain.CurrentDomain.UnhandledException += (sender, e) => HandleException(e.ExceptionObject as Exception);
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            HandleException(e.Exception);
+
+            e.SetObserved();
+        };
 
         // 註冊系統事件：在關機或登出時，強制停止所有硬體震動。
         static void sessionEndingHandler(object s, SessionEndingEventArgs e)

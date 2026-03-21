@@ -1253,62 +1253,73 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     /// <param name="btn">Button</param>
     /// <param name="action">Action</param>
-    private static void AttachAutoRepeat(Button btn, Action action)
+    private void AttachAutoRepeat(Button btn, Action action)
     {
-        System.Windows.Forms.Timer repeatTimer = new()
-        {
-            Interval = 500
-        };
+        CancellationTokenSource? repeatCts = null;
 
+        bool suppressNextClick = false;
 
-        bool isInitialDelay = true,
-            suppressNextClick = false;
-
-        // 1. 滑鼠按下時，啟動計時器。
+        // 1. 滑鼠按下時，啟動連發任務。
         btn.MouseDown += (s, e) =>
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button != MouseButtons.Left ||
+                !btn.Enabled)
             {
-                isInitialDelay = true;
-
-                suppressNextClick = false;
-
-                // 初始防呆延遲：500ms，防止普通單擊被誤判。
-                repeatTimer.Interval = 500;
-                repeatTimer.Start();
+                return;
             }
-        };
 
-        void StopTimer() => repeatTimer.Stop();
+            suppressNextClick = false;
+
+            repeatCts?.Cancel();
+            repeatCts?.Dispose();
+            repeatCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+
+            CancellationToken token = repeatCts.Token;
+
+            // 啟動連發背景任務。
+            Task.Run(async () =>
+            {
+                try
+                {
+                    // 初始防呆延遲：500ms。
+                    await Task.Delay(500, token);
+
+                    suppressNextClick = true;
+
+                    // 連發頻率：每 100ms 一次（約 10 FPS）。
+                    using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(100));
+
+                    while (await timer.WaitForNextTickAsync(token))
+                    {
+                        this.SafeInvoke(action);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
+            },
+            token)
+            .SafeFireAndForget();
+        };
 
         // 2. 任何中斷動作都會停止連發。
-        btn.MouseUp += (s, e) => StopTimer();
-        btn.MouseLeave += (s, e) => StopTimer();
-        btn.LostFocus += (s, e) => StopTimer();
-
-        // 3. 計時器觸發：執行連發邏輯。
-        repeatTimer.Tick += (s, e) =>
+        void StopRepeat()
         {
-            // 標記：已經觸發過連發，攔截稍後鬆開時的多餘 Click。
-            suppressNextClick = true;
+            repeatCts?.Cancel();
+            repeatCts?.Dispose();
+            repeatCts = null;
+        }
 
-            if (isInitialDelay)
-            {
-                isInitialDelay = false;
+        btn.MouseUp += (s, e) => StopRepeat();
+        btn.MouseLeave += (s, e) => StopRepeat();
+        btn.LostFocus += (s, e) => StopRepeat();
 
-                // 連發速度：每 100ms 一次（安全速度，不易過衝）。
-                repeatTimer.Interval = 100;
-            }
-
-            action();
-        };
-
-        // 4. 接管 Click 事件：執行動作，或過濾掉長按鬆開時產生的多餘點擊。
+        // 3. 接管 Click 事件：執行動作，或過濾掉長按鬆開時產生的多餘點擊。
         btn.Click += (s, e) =>
         {
             if (suppressNextClick)
             {
-                // 攔截並重置。
                 suppressNextClick = false;
 
                 return;
@@ -1317,6 +1328,6 @@ internal sealed class NumericInputDialog : Form
             action();
         };
 
-        btn.Disposed += (s, e) => repeatTimer.Dispose();
+        btn.Disposed += (s, e) => StopRepeat();
     }
 }
