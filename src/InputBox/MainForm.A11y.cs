@@ -136,12 +136,36 @@ public partial class MainForm
         // 預先測量 Bold 狀態下的文字寬度，並鎖定為 MinimumSize，防止懸停加粗時佈局抖動。
         Size boldSize = TextRenderer.MeasureText(BtnCopy.Text, _boldBtnFont);
 
-        int requiredWidth = boldSize.Width + BtnCopy.Padding.Horizontal + 10;
+        float currentScale = DeviceDpi / 96.0f;
 
-        if (BtnCopy.MinimumSize.Width < requiredWidth)
+        int requiredBtnWidth = boldSize.Width + BtnCopy.Padding.Horizontal + (int)(10 * currentScale);
+
+        if (BtnCopy.MinimumSize.Width < requiredBtnWidth)
         {
-            BtnCopy.MinimumSize = new Size(requiredWidth, BtnCopy.MinimumSize.Height);
+            BtnCopy.MinimumSize = new Size(requiredBtnWidth, BtnCopy.MinimumSize.Height);
         }
+
+        // 依據語系與 Placeholder 內容動態調整 MainForm 的最小寬度。
+        // 為了解決 ja 等語系文字過長壓縮輸入區的問題，我們根據 Placeholder 寬度進行計算。
+        // 考慮到掌機（如 ROG Ally）在 150%-200% 高縮放下，邏輯寬度不可過大以免遮擋遊戲。
+        
+        // 測量 Placeholder 在目前大字體（28pt）下的寬度。
+        Size phtSize = TextRenderer.MeasureText(TBInput.PlaceholderText, TBInput.Font);
+
+        // 轉換回邏輯像素（96 DPI）進行邊界限制。
+        int measuredLogicWidth = (int)(phtSize.Width / currentScale);
+        
+        // 設定輸入區邏輯寬度上限為 280px，下限為 180px。
+        // 280px 能確保即便在 200% 縮放下，總寬度亦不致於佔據 1080p 螢幕超過一半。
+        int finalInputLogicWidth = Math.Clamp(measuredLogicWidth + 20, 180, 280),
+            minInputAreaWidth = (int)(finalInputLogicWidth * currentScale),
+            totalMinWidth = requiredBtnWidth +
+                minInputAreaWidth +
+                TLPHost.Padding.Horizontal +
+                (int)(20 * currentScale);
+
+        // 更新視窗最小尺寸。
+        MinimumSize = new Size(totalMinWidth, MinimumSize.Height);
 
         // 確保標題快取與在地化字串同步，並立即套用至視窗。
         UpdateTitlePrefix();
