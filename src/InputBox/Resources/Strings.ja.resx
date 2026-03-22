@@ -468,7 +468,7 @@
     <comment>設定項目の名称。振動の強さを調整するために使用します。</comment>
   </data>
   <data name="A11y_Menu_NumericDesc" xml:space="preserve">
-    <value>{0}。現在の値：{1}、範囲：{2} から {3} まで。</value>
+    <value>{0}。現在の値：{1}、範囲：{2} ～ {3}。</value>
     <comment>数値型メニュー項目のアクセシビリティ記述テンプレートです。{0} は項目名、{1} は現在の値、{2} は最小値、{3} は最大値です。</comment>
   </data>
   <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
@@ -484,7 +484,7 @@
     <comment>数値入力が最小制限に達した際に再生される A11y 読み上げメッセージ。</comment>
   </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
-    <value>現在の値：{0}。有効な範囲：{1} から {2} まで。</value>
+    <value>現在の値：{0}。有効な範囲：{1} ～ {2}。</value>
     <comment>数値入力フィールドのアクセシビリティ記述。有効な範囲情報を含みます。{0} は現在の値、{1} は最小値、{2} は最大値です。</comment>
   </data>
   <data name="A11y_Btn_OK_Desc" xml:space="preserve">
@@ -576,8 +576,20 @@
     <comment>振動切り替え項目のアクセシビリティ記述。</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
-    <value>コントローラー入力用の API（GameInput または XInput）を選択します。再起動が必要です。</value>
+    <value>コントローラー入力用の API（GameInput または XInput）を選択します。</value>
     <comment>コントローラー API プロバイダー項目のアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
+    <value>Microsoft の最新の GameInput API を使用します。最新のコントローラーに推奨されます。</value>
+    <comment>GameInput プロバイダー項目のアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
+    <value>レガシーな XInput API を使用します。古いデバイスとの互換性に最適です。</value>
+    <comment>XInput プロバイダー項目のアクセシビリティ記述。</comment>
+  </data>
+  <data name="A11y_Settings_RestartRequired" xml:space="preserve">
+    <value>（再起動が必要）</value>
+    <comment>再起動が必要な設定項目のアクセシビリティ説明に付加される接尾辞です。</comment>
   </data>
   <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
     <value>アプリケーションを終了し、すべてのリソースを解放します。</value>

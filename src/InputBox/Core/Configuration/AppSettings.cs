@@ -255,6 +255,26 @@ public class AppSettings
     }
 
     /// <summary>
+    /// 封裝相互關聯的手把設定，用於原子化更新快照
+    /// </summary>
+    public record GamepadConfigSnapshot(
+        int ThumbDeadzoneEnter,
+        int ThumbDeadzoneExit,
+        int RepeatInitialDelayFrames,
+        int RepeatIntervalFrames);
+
+    /// <summary>
+    /// 手把設定快照
+    /// </summary>
+    private volatile GamepadConfigSnapshot _gamepadSettings = new(7849, 2500, 30, 5);
+
+    /// <summary>
+    /// 取得手把設定快照
+    /// </summary>
+    [JsonIgnore]
+    public GamepadConfigSnapshot GamepadSettings => _gamepadSettings;
+
+    /// <summary>
     /// 遊戲控制器輸入 API（預設為 XInput）
     /// </summary>
     private volatile GamepadProvider _gamepadProviderType = GamepadProvider.XInput;
@@ -283,7 +303,7 @@ public class AppSettings
         {
             _thumbDeadzoneEnter = Math.Clamp(value, 0, 30000);
 
-            ValidateDeadzone();
+            UpdateGamepadSnapshot();
         }
     }
 
@@ -302,22 +322,59 @@ public class AppSettings
         {
             _thumbDeadzoneExit = Math.Clamp(value, 0, 30000);
 
-            ValidateDeadzone();
+            UpdateGamepadSnapshot();
         }
     }
 
     /// <summary>
-    /// 驗證死區設定，確保 Exit 與 Enter 之間有足夠的緩衝區防止抖動。
+    /// 更新手把設定快照，確保背景執行緒讀取到一致的數值組合
+    /// </summary>
+    private void UpdateGamepadSnapshot()
+    {
+        // 核心優化：先進行數值校驗，再同步更新快照。
+        // 透過將 Exit 閾值的修正邏輯封裝，確保 Enter 與 Exit 始終符合遲滯（Hysteresis）規範。
+        int validatedExit = CalculateValidDeadzoneExit(
+            _thumbDeadzoneEnter,
+            _thumbDeadzoneExit);
+
+        _thumbDeadzoneExit = validatedExit;
+
+        _gamepadSettings = new GamepadConfigSnapshot(
+            _thumbDeadzoneEnter,
+            validatedExit,
+            _repeatInitialDelayFrames,
+            _repeatIntervalFrames);
+    }
+
+    /// <summary>
+    /// 計算符合遲滯規範的死區重置閾值。
+    /// </summary>
+    /// <param name="enter">觸發閾值</param>
+    /// <param name="exit">原始重置閾值</param>
+    /// <returns>修正後的重置閾值</returns>
+    private static int CalculateValidDeadzoneExit(int enter, int exit)
+    {
+        // 防抖機制強化：
+        // 使用動態比例計算遲滯（Hysteresis）緩衝空間。
+        // 預設取 Enter 值的 30% 作為緩衝，且至少保留 2000 單位（約 XInput 滿程的 6%）。
+        int margin = Math.Max(2000, (int)(enter * 0.3f));
+
+        if (exit >= enter - margin)
+        {
+            return Math.Max(0, enter - margin);
+        }
+
+        return exit;
+    }
+
+    /// <summary>
+    /// 驗證死區設定（相容性方法，內部調用 CalculateValidDeadzoneExit）
     /// </summary>
     private void ValidateDeadzone()
     {
-        // 防抖機制強制介入：
-        // 如果 Exit 設定得太靠近 Enter（兩者差距小於 4000），極易造成搖桿微小抖動時的連點誤判。
-        // 此時強制將 Exit 壓低，確保有足夠的遲滯緩衝區（Hysteresis）。
-        if (_thumbDeadzoneExit >= _thumbDeadzoneEnter - 4000)
-        {
-            _thumbDeadzoneExit = Math.Min(2500, _thumbDeadzoneEnter / 2);
-        }
+        _thumbDeadzoneExit = CalculateValidDeadzoneExit(
+            _thumbDeadzoneEnter,
+            _thumbDeadzoneExit);
     }
 
     /// <summary>
@@ -331,7 +388,12 @@ public class AppSettings
     public int RepeatInitialDelayFrames
     {
         get => _repeatInitialDelayFrames;
-        set => _repeatInitialDelayFrames = Math.Clamp(value, 1, 300);
+        set
+        {
+            _repeatInitialDelayFrames = Math.Clamp(value, 1, 300);
+
+            UpdateGamepadSnapshot();
+        }
     }
 
     /// <summary>
@@ -345,7 +407,12 @@ public class AppSettings
     public int RepeatIntervalFrames
     {
         get => _repeatIntervalFrames;
-        set => _repeatIntervalFrames = Math.Clamp(value, 1, 100);
+        set
+        {
+            _repeatIntervalFrames = Math.Clamp(value, 1, 100);
+
+            UpdateGamepadSnapshot();
+        }
     }
 
     #endregion
@@ -398,7 +465,7 @@ public class AppSettings
                 }
                 catch (Exception ex)
                 {
-                    // 核心強化：讀取失敗時備份損壞檔案，加入退避重試機制以應對檔案鎖定。
+                    // 讀取失敗時備份損壞檔案，加入退避重試機制以應對檔案鎖定。
                     try
                     {
                         string strBackupPath = ConfigPath + ".bak";

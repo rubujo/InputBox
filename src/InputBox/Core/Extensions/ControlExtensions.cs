@@ -229,15 +229,18 @@ public static class ControlExtensions
     {
         if (string.IsNullOrEmpty(text))
         {
-            return $"&{char.ToUpperInvariant(mnemonic)}";
+            return $"(&{char.ToUpperInvariant(mnemonic)})";
         }
 
         char upperMnemonic = char.ToUpperInvariant(mnemonic);
 
-        // 冪等性檢查：如果字串中已經包含 '&' 標記或是相同的後綴提示，則直接回傳原文字。
-        // 這能防止重複調用或資源檔本身自帶標記時產生的「確定 (&A) (&A)」問題。
+        // 冪等性檢查：
+        // 1. 如果字串中已經包含 '&' 標記（如 "確定(&A)"）。
+        // 2. 如果字串結尾已經包含類似的括號提示（如 "確定 (A)" 或 "確定(A)"）。
+        // 這能防止重複調用或資源檔本身自帶標記時產生的「確定 (A) (A)」問題。
         if (text.Contains('&') ||
-            text.Contains($"(&{upperMnemonic})", StringComparison.OrdinalIgnoreCase))
+            text.EndsWith($"({upperMnemonic})", StringComparison.OrdinalIgnoreCase) ||
+            text.EndsWith($"(&{upperMnemonic})", StringComparison.OrdinalIgnoreCase))
         {
             return text;
         }
@@ -330,6 +333,10 @@ public static class ControlExtensions
     /// <summary>
     /// 遞歸更新控制項及其所有子控制項的背景色與前景色。
     /// </summary>
+    /// <remarks>
+    /// 針對複合控制項（如 NumericUpDown），透過強制遞歸確保內部的私有子元件（如 TextBox 編輯區）亦能同步配色，
+    /// 杜絕 A11y 閃爍時產生的視覺殘留（Ghosting）。
+    /// </remarks>
     /// <param name="parent">要開始更新的父控制項。</param>
     /// <param name="bg">新的背景顏色。</param>
     /// <param name="fg">新的前景顏色。</param>
@@ -338,14 +345,18 @@ public static class ControlExtensions
         Color bg,
         Color fg)
     {
-        if (parent == null)
+        if (parent == null ||
+            parent.IsDisposed)
         {
             return;
         }
 
+        // 1. 更新本體。
         parent.BackColor = bg;
         parent.ForeColor = fg;
 
+        // 2. 遞歸更新所有子控制項。
+        // 對於 NumericUpDown 等複合控制項，其 Controls 集合包含了內部的 TextBox 與按鈕。
         foreach (Control child in parent.Controls)
         {
             UpdateRecursive(child, bg, fg);

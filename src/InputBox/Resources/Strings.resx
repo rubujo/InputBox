@@ -576,8 +576,20 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Accessibility description for the vibration toggle item.</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
-    <value>Select the underlying API for controller input (GameInput or XInput). Requires restart.</value>
+    <value>Select the underlying API for controller input (GameInput or XInput).</value>
     <comment>Accessibility description for the API provider item.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
+    <value>Use Microsoft's modern GameInput API. Recommended for modern controllers.</value>
+    <comment>Accessibility description for GameInput provider option.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
+    <value>Use legacy XInput API. Best for compatibility with older devices.</value>
+    <comment>Accessibility description for XInput provider option.</comment>
+  </data>
+  <data name="A11y_Settings_RestartRequired" xml:space="preserve">
+    <value> (Restart required)</value>
+    <comment>Suffix added to accessibility descriptions for settings that require an app restart.</comment>
   </data>
   <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
     <value>Quit the application and release all resources.</value>

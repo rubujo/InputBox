@@ -313,9 +313,6 @@ public partial class MainForm
                     MoveCursorRight();
                 });
 
-                // 啟動同步：確保從設定檔讀取的死區與重複速度立即生效。
-                SyncGamepadSettings();
-
                 controller.StartPressed += () =>
                 {
                     this.SafeInvoke(() =>
@@ -558,6 +555,8 @@ public partial class MainForm
         catch (Exception ex)
         {
             Debug.WriteLine($"[控制器] 控制器系統初始化失敗：{ex.Message}");
+
+            AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
         }
         finally
         {
@@ -749,6 +748,9 @@ public partial class MainForm
             {
                 nextItem.Select();
 
+                // 焦點記憶。
+                _lastFocusedMenuItem = nextItem;
+
                 // A11y 強化：顯式播報選單項目名稱與描述（包含目前設定值）。
                 string? name = nextItem.AccessibleName ?? nextItem.Text,
                     desc = nextItem.AccessibleDescription;
@@ -873,22 +875,6 @@ public partial class MainForm
             // 撞到最右邊。
             AnnounceA11y(Strings.A11y_Nav_Bottom, interrupt: true);
         }
-    }
-
-    /// <summary>
-    /// 同步目前的設定至控制器實例
-    /// </summary>
-    private void SyncGamepadSettings()
-    {
-        if (_gamepadController == null)
-        {
-            return;
-        }
-
-        _gamepadController.ThumbDeadzoneEnter = AppSettings.Current.ThumbDeadzoneEnter;
-        _gamepadController.ThumbDeadzoneExit = AppSettings.Current.ThumbDeadzoneExit;
-        _gamepadController.RepeatSettings.InitialDelayFrames = AppSettings.Current.RepeatInitialDelayFrames;
-        _gamepadController.RepeatSettings.IntervalFrames = AppSettings.Current.RepeatIntervalFrames;
     }
 
     /// <summary>

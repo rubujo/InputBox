@@ -468,7 +468,7 @@
     <comment>設定項目名稱，用於調整震動強度。</comment>
   </data>
   <data name="A11y_Menu_NumericDesc" xml:space="preserve">
-    <value>{0}。目前值：{1}，範圍：{2} 至 {3}。</value>
+    <value>{0}。目前值：{1}，範圍：{2} ～ {3}。</value>
     <comment>數值型選單項目的無障礙描述範本。{0} 是項目名稱，{1} 是目前值，{2} 是最小值，{3} 是最大值。</comment>
   </data>
   <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
@@ -484,7 +484,7 @@
     <comment>當數值輸入達到最小限制時播放的 A11y 廣播訊息。</comment>
   </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
-    <value>目前值：{0}。有效範圍：{1} 至 {2}。</value>
+    <value>目前值：{0}。有效範圍：{1} ～ {2}。</value>
     <comment>數值輸入框的無障礙描述，包含有效範圍資訊。{0} 是目前值，{1} 是最小值，{2} 是最大值。</comment>
   </data>
   <data name="A11y_Btn_OK_Desc" xml:space="preserve">
@@ -576,8 +576,20 @@
     <comment>震動開關項目的無障礙描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
-    <value>選擇控制器的底層 API（GameInput 或 XInput）。需要重新啟動。</value>
-    <comment>控制器 API 供應商項目的無障礙描述。</comment>
+    <value>選擇手把輸入的底層 API（GameInput 或 XInput）。</value>
+    <comment>API 提供者項目的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
+    <value>使用微軟現代 GameInput API。建議現代控制器使用。</value>
+    <comment>GameInput 提供者選項的存取描述。</comment>
+  </data>
+  <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
+    <value>使用舊版 XInput API。對舊型裝置具備最佳相容性。</value>
+    <comment>XInput 提供者選項的存取描述。</comment>
+  </data>
+  <data name="A11y_Settings_RestartRequired" xml:space="preserve">
+    <value>（需重新啟動）</value>
+    <comment>附加於需要重新啟動程式之設定項目的存取描述後綴。</comment>
   </data>
   <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
     <value>結束應用程式並釋放所有資源。</value>

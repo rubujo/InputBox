@@ -169,6 +169,11 @@ public partial class MainForm : Form
     /// </summary>
     private bool _isActionCooldown = false;
 
+    /// <summary>
+    /// 記錄最後一個獲得焦點或被選取的選單項目，用於對話框關閉後的焦點還原。
+    /// </summary>
+    private ToolStripItem? _lastFocusedMenuItem = null;
+
     public MainForm()
     {
         InitializeComponent();
@@ -206,6 +211,9 @@ public partial class MainForm : Form
 
         // 綁定剪貼簿重試通知。
         ClipboardService.OnRetry = () => AnnounceA11y(Strings.A11y_Clipboard_Retrying);
+
+        // 設定預設動作按鈕，支援 A11y 視覺引導。
+        AcceptButton = BtnCopy;
 
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
         TBInput.MaxLength = 10000;
@@ -340,7 +348,7 @@ public partial class MainForm : Form
 
             // 4. 優先停止輸入源，防止其在通道關閉後仍嘗試寫入廣播。
             IGamepadController? gamepad = Interlocked.Exchange(ref _gamepadController, null);
-            
+
             gamepad?.Dispose();
         }
         catch
@@ -348,63 +356,28 @@ public partial class MainForm : Form
             // 忽略緊急停止時的任何潛在錯誤。
         }
 
-        // 5. 原子性地取出並清理 CTS。
-        CancellationTokenSource? cts = Interlocked.Exchange(ref _a11yCts, null);
-
-        if (cts != null)
+        // 5. 處置主取消權杖來源。
+        try
         {
-            try
-            {
-                cts.Cancel();
-                cts.Dispose();
-            }
-            catch (ObjectDisposedException)
-            {
+            _formCts.Cancel();
+            _formCts.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
 
-            }
         }
 
-        // 清理靜態引用，防止記憶體洩漏。
-        // 僅在最後一個 MainForm 關閉時才清理全域委派，確保多視窗擴充性。
-        if (Application.OpenForms.OfType<MainForm>().Count() <= 1)
-        {
-            ClipboardService.OnRetry = null;
+        // 6. 原子性地清理警示權杖。
+        CancellationTokenSource? alertCts = Interlocked.Exchange(ref _alertCts, null);
 
-            Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
-        }
+        alertCts?.Dispose();
 
-        // 處置輸入上下文，解除事件訂閱。
-        _inputContext?.Dispose();
+        // 7. 原子性地清理 A11y 廣播權杖。
+        CancellationTokenSource? a11yCts = Interlocked.Exchange(ref _a11yCts, null);
 
-        _historyService.Clear();
-
-        // 釋放鎖資源。
-        _gamepadInitLock.Dispose();
-
-        // 處置警示權杖。
-        _alertCts?.Dispose();
-
-        // 釋放 GDI 與選單資源。
-        _inputFont?.Dispose();
-        _inputFont = null;
-
-        _a11yFont?.Dispose();
-        _a11yFont = null;
-
-        _boldBtnFont?.Dispose();
-        _boldBtnFont = null;
-
-        if (_cmsInput != null)
-        {
-            _cmsInput.Font?.Dispose();
-            _cmsInput.Dispose();
-            _cmsInput = null;
-        }
+        a11yCts?.Dispose();
 
         base.OnFormClosing(e);
-
-        // 最後處置主取消權杖來源。
-        _formCts.Dispose();
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -611,13 +584,15 @@ public partial class MainForm : Form
     {
         base.OnDpiChanged(e);
 
+        // 更新最小尺寸與佈局約束。
         UpdateMinimumSize();
+
+        // 在 DPI 與佈局尺寸變更後，立即執行智慧重定位。
+        // 這能防止視窗在螢幕邊緣切換 DPI 時導致視窗內容暫時移出可視範圍。
+        ApplySmartPosition();
 
         // DPI 變更時，需重新計算並套用字型縮放。
         ApplyLocalization();
-
-        // DPI 變更後視窗尺寸會變，需重新檢查邊界。
-        ApplySmartPosition();
     }
 
     /// <summary>

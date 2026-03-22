@@ -65,21 +65,27 @@ internal sealed class AnnouncerLabel : Label
     /// </summary>
     /// <param name="message">訊息內容</param>
     /// <param name="interrupt">是否中斷目前的廣播</param>
-    public void Announce(string message, bool interrupt = false)
+    public void Announce(
+        string message,
+        bool interrupt = false)
     {
-        if (string.IsNullOrEmpty(message))
+        if (string.IsNullOrEmpty(message) ||
+            IsDisposed ||
+            !IsHandleCreated)
         {
             return;
         }
 
-        Debug.WriteLine($"[A11y 廣播] {message}");
-
+        // 重複訊息處理（ZWSP／ZWNJ 輪替）。
+        // 為了讓螢幕閱讀器報讀連續相同的訊息（如連續按「上」達到歷史頂端），
+        // 必須透過交替附加零寬字元強迫 UIA 識別內容變更。
         string finalMsg = message;
 
         if (message == _lastMessage)
         {
             _toggleFlag = !_toggleFlag;
 
+            // 輪替使用 ZWSP (\u200B) 與 ZWNJ (\u200C)。
             finalMsg = _toggleFlag ?
                 message + "\u200B" :
                 message + "\u200C";
@@ -87,31 +93,28 @@ internal sealed class AnnouncerLabel : Label
 
         _lastMessage = message;
 
-        // 根據是否打斷，動態切換 LiveRegion 的緊急程度。
-        LiveSetting = interrupt ?
-            AutomationLiveSetting.Assertive :
-            AutomationLiveSetting.Polite;
-
-        Text = finalMsg;
-        AccessibleName = finalMsg;
-
-        // 發送標準通知。
-        AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
-
         try
         {
-            // 觸發內建的 LiveRegion 變更事件。
-            // 這會自動引發 UIA LiveRegionChanged 事件（0x4e08）。
-            if (!IsDisposed &&
-                IsHandleCreated)
-            {
-                // 嘗試觸發 UIA 通知。
-                AccessibilityObject.RaiseLiveRegionChanged();
-            }
+            // 根據是否打斷，動態切換 LiveRegion 的緊急程度。
+            LiveSetting = interrupt ?
+                AutomationLiveSetting.Assertive :
+                AutomationLiveSetting.Polite;
+
+            Text = finalMsg;
+            AccessibleName = finalMsg;
+
+            // 1. 發送標準 NameChange 通知（相容於舊版 AT）。
+            AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+
+            // 2. 觸發現代 UIA LiveRegion 變更事件。
+            // 這能確保 NVDA／JAWS 在訊息寫入後能立即捕獲並報讀。
+            AccessibilityObject.RaiseLiveRegionChanged();
+
+            Debug.WriteLine($"[A11y 廣播] {finalMsg} (Interrupt: {interrupt})");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[A11y] 廣播時發生非預期錯誤：{ex.GetType().Name} - {message}");
+            Debug.WriteLine($"[A11y] 廣播失敗：{ex.Message}");
         }
     }
 }

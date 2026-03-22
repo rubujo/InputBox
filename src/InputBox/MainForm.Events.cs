@@ -63,6 +63,8 @@ public partial class MainForm
         catch (Exception ex)
         {
             Debug.WriteLine($"[事件] MainForm_Activated 處理失敗：{ex.Message}");
+
+            AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
         }
     }
 
@@ -154,6 +156,10 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            Debug.WriteLine($"[事件] MainForm_Shown 處理失敗：{ex.Message}");
+
+            AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
+
             MessageBox.Show(
                 ex.Message,
                 Strings.Err_Title,
@@ -396,11 +402,39 @@ public partial class MainForm
         }
 
         float scale = DeviceDpi / BaseDpi;
+
         bool isDark = BtnCopy.IsDarkModeActive();
 
-        // 1. 先繪製焦點邊框（Focus Border／Focus Ring）。
+        // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
+        // 核心優化：只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，指引 Enter 鍵動作並避免雙焦點誤導。
+        bool isDefault = ReferenceEquals(AcceptButton, BtnCopy) &&
+            ActiveControl is not Button;
+
+        // 1. 基礎邊框（預設狀態）。
+        // 由於 BorderSize = 0，必須手動繪製基礎邊框以保持物理辨識度。
+        if (!BtnCopy.Focused &&
+            !_isBtnHovered &&
+            !isDefault)
+        {
+            // A11y 強化：高對比模式下使用系統框線色，確保物理辨識度。
+            using Pen basePen = new(
+                SystemInformation.HighContrast ?
+                    SystemColors.WindowFrame :
+                    (isDark ? Color.DimGray : Color.DarkGray),
+                1);
+
+            e.Graphics.DrawRectangle(
+                basePen,
+                0,
+                0,
+                BtnCopy.Width - 1,
+                BtnCopy.Height - 1);
+        }
+
+        // 2. 繪製焦點、懸停與預設動作邊框（Focus／Hover／Default Border）。
         if (BtnCopy.Focused ||
-            _isBtnHovered)
+            _isBtnHovered ||
+            isDefault)
         {
             int borderThickness = (int)Math.Max(3, 3 * scale),
                 inset = (int)Math.Max(2, 2 * scale);
@@ -420,7 +454,7 @@ public partial class MainForm
                 BtnCopy.Height - (inset * 2) - 1);
         }
 
-        // 2. 後繪製注視進度條（Dwell Feedback）。
+        // 3. 繪製注視進度條（Dwell Feedback）。
         if (_dwellProgress > 0)
         {
             int barHeight = (int)(6 * scale),
@@ -437,9 +471,15 @@ public partial class MainForm
             else
             {
                 // A11y 絕對同步：淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
-                Color baseColor = isDark ? Color.Firebrick : Color.DarkOrange,
-                    hatchColor = isDark ? Color.OrangeRed : Color.Orange;
+                Color baseColor = isDark ?
+                        Color.Firebrick :
+                        Color.DarkOrange,
+                    hatchColor = isDark ?
+                        Color.OrangeRed :
+                        Color.Orange;
 
+                // 雙重編碼（CVD 色盲補償）。
+                // 實心背景 + 斜向條紋紋理，確保不同色覺類型皆能直觀辨識。
                 using Brush bgBrush = new SolidBrush(baseColor);
                 using Brush hatchBrush = new HatchBrush(
                     HatchStyle.BackwardDiagonal,
@@ -576,10 +616,8 @@ public partial class MainForm
                 BtnCopy.Font = _boldBtnFont;
             }
 
-            // 強烈的焦點邊框。
-            BtnCopy.FlatAppearance.BorderColor = Color.Cyan;
-            // 粗邊框。
-            BtnCopy.FlatAppearance.BorderSize = 2;
+            // 核心修正：邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
+            BtnCopy.FlatAppearance.BorderSize = 0;
 
             BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
         }
@@ -615,10 +653,8 @@ public partial class MainForm
                 BtnCopy.Font = _a11yFont;
             }
 
-            // 弱化或隱藏邊框，使其融入背景。
-            BtnCopy.FlatAppearance.BorderColor = BtnCopy.BackColor;
-            // 細邊框。
-            BtnCopy.FlatAppearance.BorderSize = 1;
+            // 核心修正：邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
+            BtnCopy.FlatAppearance.BorderSize = 0;
             BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Hover})";
 
             // 動畫回饋：僅在視線/滑鼠進入時播放。
@@ -671,7 +707,8 @@ public partial class MainForm
 
             BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
             BtnCopy.FlatAppearance.BorderColor = Color.Empty;
-            BtnCopy.FlatAppearance.BorderSize = 1;
+            // 邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
+            BtnCopy.FlatAppearance.BorderSize = 0;
         }
 
         BtnCopy.Invalidate();
@@ -1093,8 +1130,53 @@ public partial class MainForm
         // 啟用視窗。
         Activate();
 
-        // A11y 宣告：告知使用者視窗已開啟並就緒。
-        AnnounceA11y(Strings.A11y_MainFormName);
+        // 強效焦點補捉機制。
+        // 在全螢幕遊戲環境下呼叫時，系統焦點可能會有短暫的競爭期。
+        // 透過非同步重試確保 TBInput 絕對取得焦點。
+        Task.Run(async () =>
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                bool focused = false;
+
+                this.SafeInvoke(() =>
+                {
+                    if (IsDisposed ||
+                        !IsHandleCreated)
+                    {
+                        return;
+                    }
+
+                    if (TBInput != null &&
+                        TBInput.CanFocus)
+                    {
+                        TBInput.Focus();
+
+                        focused = TBInput.Focused;
+                    }
+                });
+
+                if (focused)
+                {
+                    break;
+                }
+
+                await Task.Delay(50, _formCts.Token);
+            }
+
+            // 焦點確定取得後，廣播 A11y 宣告。
+            this.SafeInvoke(() =>
+            {
+                if (IsDisposed ||
+                    !IsHandleCreated)
+                {
+                    return;
+                }
+
+                AnnounceA11y(Strings.A11y_MainFormName);
+            });
+        },
+        _formCts.Token).SafeFireAndForget();
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -1112,7 +1194,10 @@ public partial class MainForm
         // 這能防止先播報「正在返回...」隨後立刻接「錯誤/視窗已關閉」的語音衝突。
         if (!_navigationService.CanNavigateBack)
         {
-            await _navigationService.NavigateBackAsync(_gamepadController, msg => AnnounceA11y(msg), _formCts.Token);
+            await _navigationService.NavigateBackAsync(
+                _gamepadController,
+                msg => AnnounceA11y(msg),
+                _formCts.Token);
 
             return;
         }
@@ -1124,7 +1209,10 @@ public partial class MainForm
         }
 
         // 呼叫導航服務，並傳入目前的控制器實例以進行安全檢查與震動。
-        await _navigationService.NavigateBackAsync(_gamepadController, msg => AnnounceA11y(msg), _formCts.Token);
+        await _navigationService.NavigateBackAsync(
+            _gamepadController,
+            msg => AnnounceA11y(msg),
+            _formCts.Token);
 
         // 如果切換後，目前視窗仍是前景視窗，代表切換失敗。
         if (User32.ForegroundWindow == Handle)
@@ -1160,47 +1248,56 @@ public partial class MainForm
             // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
             // 淺色模式（黑底）：用 DarkOrange（8.3:1）；深色模式（白底）：用 Firebrick（5.8:1）。
             Color alertColor = SystemInformation.HighContrast ?
-                SystemColors.HighlightText :
+                SystemColors.Highlight :
                 (TBInput.IsDarkModeActive() ? Color.Firebrick : Color.DarkOrange);
 
             void ApplyAlertVisuals(float intensity)
             {
-                if (IsDisposed ||
-                    !IsHandleCreated)
+                this.SafeInvoke(() =>
                 {
-                    return;
-                }
+                    if (IsDisposed ||
+                        !IsHandleCreated)
+                    {
+                        return;
+                    }
 
-                bool isDark = TBInput.IsDarkModeActive();
+                    bool isDark = TBInput.IsDarkModeActive();
 
-                if (SystemInformation.HighContrast)
-                {
-                    Color hcColor = intensity > 0.5f ?
-                        alertColor :
-                        SystemColors.Window;
+                    if (SystemInformation.HighContrast)
+                    {
+                        bool isAlert = intensity > 0.5f;
 
-                    PInputHost.BackColor = hcColor;
-                    TBInput.BackColor = hcColor;
-                }
-                else
-                {
-                    // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan/RoyalBlue）插值產生髒濁色。
-                    Color pureBase = isDark ?
-                        Color.White :
-                        Color.Black;
+                        Color hcBack = isAlert ?
+                                alertColor :
+                                SystemColors.Window,
+                            hcFore = isAlert ?
+                                SystemColors.HighlightText :
+                                SystemColors.WindowText;
 
-                    int rB = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
-                        gB = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
-                        bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
+                        // A11y 強化：同步更新背景與前景，確保高對比下文字可讀性。
+                        PInputHost.UpdateRecursive(hcBack, hcFore);
+                    }
+                    else
+                    {
+                        // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan/RoyalBlue）插值產生髒濁色。
+                        Color pureBase = isDark ?
+                            Color.White :
+                            Color.Black;
 
-                    Color flashColor = Color.FromArgb(255, rB, gB, bB);
+                        int rB = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
+                            gB = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
+                            bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                    // 決定閃爍期間的前景對比色。
-                    Color flashFore = isDark ? Color.Black : Color.White;
+                        Color flashColor = Color.FromArgb(255, rB, gB, bB),
+                            // 決定閃爍期間的前景對比色。
+                            flashFore = isDark ?
+                                Color.Black :
+                                Color.White;
 
-                    // 2. 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
-                    PInputHost.UpdateRecursive(flashColor, flashFore);
-                }
+                        // 2. 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
+                        PInputHost.UpdateRecursive(flashColor, flashFore);
+                    }
+                });
             }
 
             // 嚴格遵守光敏性癲癇防護與使用者偏好：
@@ -1208,7 +1305,7 @@ public partial class MainForm
             // 則不進行循環閃爍，改為一次性的「長脈衝（Static Pulse）」回饋。
             if (!SystemInformation.UIEffectsEnabled)
             {
-                this.SafeInvoke(() => ApplyAlertVisuals(1.0f));
+                ApplyAlertVisuals(1.0f);
 
                 // 維持一段較長時間（800ms）讓低視能使用者感知狀態，隨後恢復。
                 await Task.Delay(800, token);
@@ -1238,13 +1335,7 @@ public partial class MainForm
 
                 float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
 
-                if (IsDisposed ||
-                    !IsHandleCreated)
-                {
-                    return;
-                }
-
-                this.SafeInvoke(() => ApplyAlertVisuals(intensity));
+                ApplyAlertVisuals(intensity);
             }
         }
         catch (OperationCanceledException)

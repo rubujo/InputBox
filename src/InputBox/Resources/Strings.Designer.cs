@@ -367,11 +367,29 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Select the underlying API for controller input (GameInput or XInput). Requires restart. 的當地語系化字串。
+        ///   查詢類似 Select the underlying API for controller input (GameInput or XInput). 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_Provider_Desc {
             get {
                 return ResourceManager.GetString("A11y_Menu_Provider_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Use Microsoft&apos;s modern GameInput API. Recommended for modern controllers. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Provider_GameInput_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Provider_GameInput_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Use legacy XInput API. Best for compatibility with older devices. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Provider_XInput_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Provider_XInput_Desc", resourceCulture);
             }
         }
         
@@ -543,6 +561,15 @@ namespace InputBox.Resources {
         internal static string A11y_Returning {
             get {
                 return ResourceManager.GetString("A11y_Returning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似  (Restart required) 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Settings_RestartRequired {
+            get {
+                return ResourceManager.GetString("A11y_Settings_RestartRequired", resourceCulture);
             }
         }
         
@@ -918,7 +945,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 API Provider 的當地語系化字串。
+        ///   查詢類似 Gamepad Input API 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Provider {
             get {

@@ -87,24 +87,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private const short ActiveThumbstickThreshold = 8000;
 
     /// <summary>
-    /// XInput 左搖桿死區觸發閾值（Enter）
-    /// 當搖桿推動超過此數值時，才視為「推動」。
-    /// </summary>
-    private int _thumbDeadzoneEnter;
-
-    /// <summary>
-    /// XInput 左搖桿死區重置閾值（Exit）- 遲滯緩衝值
-    /// 當搖桿回彈低於此數值時，才視為「放開」。此數值必須夠低以吸收硬體抖動。
-    /// </summary>
-    private int _thumbDeadzoneExit;
-
-    /// <summary>
     /// 取得或設定搖桿進入死區閾值
     /// </summary>
     public int ThumbDeadzoneEnter
     {
-        get => _thumbDeadzoneEnter;
-        set => _thumbDeadzoneEnter = value;
+        get => AppSettings.Current.ThumbDeadzoneEnter;
+        set => AppSettings.Current.ThumbDeadzoneEnter = value;
     }
 
     /// <summary>
@@ -112,8 +100,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     public int ThumbDeadzoneExit
     {
-        get => _thumbDeadzoneExit;
-        set => _thumbDeadzoneExit = value;
+        get => AppSettings.Current.ThumbDeadzoneExit;
+        set => AppSettings.Current.ThumbDeadzoneExit = value;
     }
 
     /// <summary>
@@ -295,11 +283,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
         _repeatSettings = repeatSettings ?? new();
         _repeatSettings.Validate();
 
-        AppSettings settings = AppSettings.Current;
-
-        _thumbDeadzoneEnter = settings.ThumbDeadzoneEnter;
-        _thumbDeadzoneExit = settings.ThumbDeadzoneExit;
-
         // 註冊至回饋服務以供緊急停止追蹤。
         FeedbackService.RegisterController(this);
 
@@ -394,6 +377,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private void Poll()
     {
+        // 0. 取得目前的設定快照，確保本幀處理邏輯的原子性。
+        AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
+
         // 嘗試讀取目前控制器狀態（本 Tick 只讀一次）。
         uint result = XInput.XInputGetState(_userIndex, out XInput.XInputState currentState);
 
@@ -479,7 +465,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
 
         // 將搖桿訊號合併到按鍵狀態中。
-        ApplyStickToButtons(ref currentState, _previousState);
+        ApplyStickToButtons(ref currentState, _previousState, config);
 
         // 只有在 Input 啟用時才處理按鍵。
         if (!_context.IsInputActive)
@@ -545,7 +531,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
         }
 
-        HandleRepeat(currentState);
+        HandleRepeat(currentState, config);
 
         _previousState = currentState;
         _hasPreviousState = true;
@@ -598,7 +584,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 處理重複輸入
     /// </summary>
     /// <param name="state">XInput.XInputState</param>
-    private void HandleRepeat(XInput.XInputState state)
+    /// <param name="config">AppSettings.GamepadConfigSnapshot</param>
+    private void HandleRepeat(
+        XInput.XInputState state,
+        AppSettings.GamepadConfigSnapshot config)
     {
         // 支援上下左右四個方向的長按重複判斷。
         XInput.GamepadButton? gbCurrentDirection =
@@ -629,13 +618,13 @@ internal sealed partial class XInputGamepadController : IGamepadController
         _repeatCounter++;
 
         // 初始延遲（由設定決定）。
-        if (_repeatCounter < _repeatSettings.InitialDelayFrames)
+        if (_repeatCounter < config.RepeatInitialDelayFrames)
         {
             return;
         }
 
         // Repeat 速度（由設定決定）。
-        if (_repeatCounter % _repeatSettings.IntervalFrames != 0)
+        if (_repeatCounter % config.RepeatIntervalFrames != 0)
         {
             return;
         }
@@ -723,9 +712,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="currentState">目前的 XInput.XInputState</param>
     /// <param name="previousState">前一次的 XInput.XInputState（用於遲滯判斷）</param>
-    private void ApplyStickToButtons(
+    /// <param name="config">AppSettings.GamepadConfigSnapshot</param>
+    private static void ApplyStickToButtons(
         ref XInput.XInputState currentState,
-        XInput.XInputState previousState)
+        XInput.XInputState previousState,
+        AppSettings.GamepadConfigSnapshot config)
     {
         // 注意：previousState 包含了上一幀的「實體按鍵」+「虛擬搖桿按鍵」的結果，
         // 這正好符合我們需要的遲滯行為（保持狀態）。
@@ -737,10 +728,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 決定閾值：
         // - 如果原本是 ON，使用較低的 Exit 閾值（讓它更容易保持 ON，不容易斷）。
         // - 如果原本是 OFF，使用較高的 Enter 閾值（需要推得夠深才觸發）。
-        int thresholdLeft = wasLeft ? _thumbDeadzoneExit : _thumbDeadzoneEnter,
-            thresholdRight = wasRight ? _thumbDeadzoneExit : _thumbDeadzoneEnter,
-            thresholdUp = wasUp ? _thumbDeadzoneExit : _thumbDeadzoneEnter,
-            thresholdDown = wasDown ? _thumbDeadzoneExit : _thumbDeadzoneEnter;
+        int thresholdLeft = wasLeft ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
+            thresholdRight = wasRight ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
+            thresholdUp = wasUp ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
+            thresholdDown = wasDown ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter;
 
         // 處理 X 軸（左右）。
         if (currentState.Gamepad.ThumbLeftX < -thresholdLeft)

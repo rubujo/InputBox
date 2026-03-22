@@ -223,7 +223,8 @@ internal sealed class NumericInputDialog : Form
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
         if (e.Category == UserPreferenceCategory.Accessibility ||
-            e.Category == UserPreferenceCategory.Color)
+            e.Category == UserPreferenceCategory.Color ||
+            e.Category == UserPreferenceCategory.General)
         {
             this.SafeInvoke(() =>
             {
@@ -251,8 +252,17 @@ internal sealed class NumericInputDialog : Form
     {
         if (disposing)
         {
-            _cts.Cancel();
-            _cts.Dispose();
+            // 處置取消權杖來源。
+            try
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+
             _a11yFont?.Dispose();
             _nudFont?.Dispose();
             _announcer?.Dispose();
@@ -386,15 +396,13 @@ internal sealed class NumericInputDialog : Form
 
         try
         {
-            float scale = DeviceDpi / 96.0f;
-
             bool isDark = _nud.IsDarkModeActive();
 
             // 決定警示色。
             // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
             // 淺色模式（黑底控制項）用 DarkOrange；深色模式（白底控制項）用 Firebrick。
             Color alertColor = SystemInformation.HighContrast ?
-                SystemColors.HighlightText :
+                SystemColors.Highlight :
                 (isDark ? Color.Firebrick : Color.DarkOrange);
 
             void ApplyAlertVisuals(float intensity)
@@ -407,24 +415,20 @@ internal sealed class NumericInputDialog : Form
                         return;
                     }
 
-                    bool isDark = _nud.IsDarkModeActive();
-
                     if (SystemInformation.HighContrast)
                     {
-                        Color hcColor = intensity > 0.5f ?
-                            alertColor :
-                            SystemColors.Window;
+                        bool isAlert = intensity > 0.5f;
 
-                        _nud.BackColor = hcColor;
+                        Color hcBack = isAlert ? alertColor : SystemColors.Window;
+                        Color hcFore = isAlert ? SystemColors.HighlightText : SystemColors.WindowText;
 
-                        foreach (Control child in _nud.Controls)
-                        {
-                            child.BackColor = hcColor;
-                        }
+                        // A11y 強化：同步更新背景與前景，確保高對比下文字可讀性。
+                        _nud.UpdateRecursive(hcBack, hcFore);
                     }
                     else
                     {
                         // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生髒濁色。
+                        // 這裡我們取主題反轉後的背景色作為過渡起點。
                         Color pureBase = isDark ?
                             Color.White :
                             Color.Black;
@@ -494,8 +498,6 @@ internal sealed class NumericInputDialog : Form
                 if (!IsDisposed && IsHandleCreated)
                 {
                     UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
-
-                    _nud.Font = _nudFont;
                 }
             });
         }
@@ -524,19 +526,27 @@ internal sealed class NumericInputDialog : Form
         {
             long currentId = Interlocked.Increment(ref _a11yDebounceId);
 
-            // 在獨立對話框模式下，我們手動加入 150ms 的音訊避讓與節流延遲。
+            // 在獨立對話框模式下，我們手動加入 200ms 的音訊避讓與節流延遲。
             Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(150, _cts.Token);
+                    // 統一 Audio Ducking 避讓延遲為 200ms。
+                    await Task.Delay(200, _cts.Token);
 
-                    // 只有最新的請求才會被執行，實現 Debounce 效果。
+                    // 序號檢查（Stale Check）。
+                    // 只有最新的請求才會被執行，達成在高頻率數值變更下的語音節流。
                     if (Interlocked.Read(ref _a11yDebounceId) == currentId &&
                         !IsDisposed &&
                         IsHandleCreated)
                     {
-                        this.SafeInvoke(() => _announcer.Announce(message, interrupt));
+                        this.SafeInvoke(() =>
+                        {
+                            if (!_announcer.IsDisposed)
+                            {
+                                _announcer.Announce(message, interrupt);
+                            }
+                        });
                     }
                 }
                 catch (OperationCanceledException)
@@ -597,13 +607,40 @@ internal sealed class NumericInputDialog : Form
     }
 
     /// <summary>
+    /// 更新視窗不透明度。
+    /// 根據規範，若系統開啟高對比模式，則強制為 1.0 以確保絕對可讀性。
+    /// </summary>
+    private void UpdateOpacity()
+    {
+        if (SystemInformation.HighContrast)
+        {
+            Opacity = 1.0;
+
+            return;
+        }
+
+        // 對話框預設不隨 AppSettings 變動，維持 1.0 或繼承父視窗（這裡採強制鎖定 A11y 邏輯）。
+        Opacity = 1.0;
+    }
+
+    /// <summary>
     /// 更新視窗最小尺寸
     /// </summary>
     private void UpdateMinimumSize()
     {
         float scale = DeviceDpi / 96.0f;
 
-        MinimumSize = new Size((int)(450 * scale), (int)(250 * scale));
+        // A11y 強化：使用 SizeFromClientSize 進行精確測量。
+        // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
+        Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
+
+        MinimumSize = SizeFromClientSize(minClientSize);
+
+        // A11y 物理鎖定：高對比模式下強制 100% 不透明度。
+        if (SystemInformation.HighContrast)
+        {
+            UpdateOpacity();
+        }
     }
 
     /// <summary>
@@ -732,7 +769,7 @@ internal sealed class NumericInputDialog : Form
                 _nud.Minimum,
                 _nud.Maximum);
 
-            // 核心強化：廣播包含項目名稱的完整訊息（例如：「不透明度：50%」）。
+            // 廣播包含項目名稱的完整訊息（例如：「不透明度：50%」）。
             string valStr = _nud.DecimalPlaces > 0 ?
                 _nud.Value.ToString($"F{_nud.DecimalPlaces}") :
                 _nud.Value.ToString("F0");
@@ -789,7 +826,7 @@ internal sealed class NumericInputDialog : Form
             _a11yFont);
         btnOk.Click += (s, e) => HandleConfirm();
         btnOk.Anchor = AnchorStyles.None;
-        btnOk.TabIndex = 3;
+        btnOk.TabIndex = 5;
 
         Button btnCancel = CreateEyeTrackerButton(
             ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'),
@@ -798,7 +835,7 @@ internal sealed class NumericInputDialog : Form
             _a11yFont);
         btnCancel.Click += (s, e) => HandleCancel();
         btnCancel.Anchor = AnchorStyles.None;
-        btnCancel.TabIndex = 4;
+        btnCancel.TabIndex = 3;
 
         AcceptButton = btnOk;
         CancelButton = btnCancel;
@@ -810,7 +847,7 @@ internal sealed class NumericInputDialog : Form
             _a11yFont);
         _btnReset.Click += (s, e) => HandleReset();
         _btnReset.Anchor = AnchorStyles.None;
-        _btnReset.TabIndex = 5;
+        _btnReset.TabIndex = 4;
 
         // 填充 3x2 網格。
         _tlpGrid.Controls.Add(_btnMinus, 0, 0);
@@ -1174,7 +1211,12 @@ internal sealed class NumericInputDialog : Form
                 !isHovered &&
                 !isDefault)
             {
-                using Pen basePen = new(isDark ? Color.DimGray : Color.DarkGray, 1);
+                // A11y 強化：高對比模式下使用系統框線色，確保物理辨識度。
+                using Pen basePen = new(
+                    SystemInformation.HighContrast ?
+                        SystemColors.WindowFrame :
+                        (isDark ? Color.DimGray : Color.DarkGray),
+                    1);
 
                 e.Graphics.DrawRectangle(
                     basePen,

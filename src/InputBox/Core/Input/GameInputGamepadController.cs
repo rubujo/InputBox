@@ -143,16 +143,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private const float ActiveThreshold = 0.1f;
 
     /// <summary>
-    /// 搖桿死區觸發閾值（Enter）
-    /// </summary>
-    private int _thumbDeadzoneEnter;
-
-    /// <summary>
-    /// 搖桿死區重置閾值（Exit）
-    /// </summary>
-    private int _thumbDeadzoneExit;
-
-    /// <summary>
     /// 快取的設備名稱（避免跨執行緒 COM 存取）
     /// </summary>
     private string _cachedDeviceName = string.Empty;
@@ -167,8 +157,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     public int ThumbDeadzoneEnter
     {
-        get => _thumbDeadzoneEnter;
-        set => _thumbDeadzoneEnter = value;
+        get => AppSettings.Current.ThumbDeadzoneEnter;
+        set => AppSettings.Current.ThumbDeadzoneEnter = value;
     }
 
     /// <summary>
@@ -176,8 +166,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     public int ThumbDeadzoneExit
     {
-        get => _thumbDeadzoneExit;
-        set => _thumbDeadzoneExit = value;
+        get => AppSettings.Current.ThumbDeadzoneExit;
+        set => AppSettings.Current.ThumbDeadzoneExit = value;
     }
 
     /// <summary>
@@ -337,11 +327,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _context = context;
         _repeatSettings = repeatSettings ?? new();
         _repeatSettings.Validate();
-
-        AppSettings settings = AppSettings.Current;
-
-        _thumbDeadzoneEnter = settings.ThumbDeadzoneEnter;
-        _thumbDeadzoneExit = settings.ThumbDeadzoneExit;
 
         // 註冊至回饋服務以供緊急停止追蹤。
         FeedbackService.RegisterController(this);
@@ -587,25 +572,24 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        // 裝置清單防抖與掃描邏輯。
+        // 0. 取得目前的設定快照，確保本幀處理邏輯的原子性。
+        AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
+
+        // 1. 裝置清單防抖與掃描邏輯。
         if (_needsRefresh)
         {
-            // 計算距離上次要求重整經過了多少毫秒。
             long elapsedTicks = Stopwatch.GetTimestamp() - _refreshRequestedTicks,
                 elapsedMs = elapsedTicks / (Stopwatch.Frequency / 1000);
 
-            // 只有冷卻時間到了，才真正執行昂貴的 EnumerateDevices。
             if (elapsedMs >= RefreshCooldownMs)
             {
                 _reconnectCounter = 0;
 
-                // TryFindDevice 內部會將 _needsRefresh 設為 false
                 TryFindDevice();
             }
         }
         else if (_device == null)
         {
-            // 盲目輪詢狀態下的降頻保護（500ms 掃一次）。
             _reconnectCounter++;
 
             if (_reconnectCounter >= ReconnectThreshold)
@@ -626,63 +610,104 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         // 2. 從佇列中取出所有事件（Event-Driven）。
-        List<GamepadStateSnapshot> statesToProcess = [];
+        // 核心優化：分離「邊緣偵測」與「狀態維持」。
+        bool hasNewState = false;
+
+        GamepadStateSnapshot? latestSnapshot = null;
 
         while (_readingQueue.TryDequeue(out GamepadStateSnapshot? state))
         {
-            statesToProcess.Add(state);
+            if (state == null)
+            {
+                continue;
+            }
+
+            hasNewState = true;
+
+            _reconnectCounter = 0;
+
+            // 必須處理每一個狀態以偵測「按下」與「放開」的邊緣（Edge），防止漏鍵。
+            ProcessEdgeTransitions(state, config);
+
+            latestSnapshot = state;
         }
 
-        // 如果這 16ms 內沒有任何新狀態，代表徹底閒置或玩家按住不放。
-        if (statesToProcess.Count == 0)
+        // 3. 處理基於時間的邏輯（連發與閒置偵測）。
+        if (hasNewState &&
+            latestSnapshot != null)
         {
-            if (_hasPreviousState &&
-                _previousState != null)
+            // 使用最後一個快照作為本 Tick 的最終狀態。
+            _previousState = latestSnapshot;
+            _hasPreviousState = true;
+
+            // 對齊 Timer Tick 執行連發邏輯，避免因硬體回報頻率過高導致連發過快。
+            HandleRepeat(_previousProcessedButtons, config);
+        }
+        else if (_hasPreviousState &&
+            _previousState != null)
+        {
+            // 如果這 16ms 內沒有任何新狀態，判定閒置或維持按住。
+            if (IsStateIdle(_previousState))
             {
-                // 使用上一次的狀態判定閒置。
-                if (IsStateIdle(_previousState))
-                {
-                    _reconnectCounter++;
+                _reconnectCounter++;
 
-                    if (_reconnectCounter >= ReconnectThreshold)
-                    {
-                        _reconnectCounter = 0;
-
-                        if (ScanForActiveDevice())
-                        {
-                            return;
-                        }
-                    }
-                }
-                else
+                if (_reconnectCounter >= ReconnectThreshold)
                 {
                     _reconnectCounter = 0;
 
-                    // 玩家按住按鍵不放，硬體不會觸發新事件。
-                    // 為了讓 UI 端的「連發（Repeat）」邏輯繼續計時，手動餵入上一次的狀態！
-                    ProcessState(_previousState);
+                    if (ScanForActiveDevice())
+                    {
+                        return;
+                    }
                 }
             }
+            else
+            {
+                _reconnectCounter = 0;
+
+                // 玩家按住按鍵不放且硬體無新事件時，繼續執行連發計時。
+                HandleRepeat(_previousProcessedButtons, config);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 處理邊緣轉換（按下／放開），確保所有輸入都能被捕捉。
+    /// </summary>
+    /// <param name="currentState">目前的遊戲控制器狀態快照</param>
+    /// <param name="config">遊戲控制器設定快照</param>
+    private void ProcessEdgeTransitions(
+        GamepadStateSnapshot currentState,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        GameInputGamepadButtons currentButtons = currentState.Buttons;
+
+        short thumbLX = (short)(currentState.LeftThumbstickX * short.MaxValue),
+            thumbLY = (short)(currentState.LeftThumbstickY * short.MaxValue);
+
+        ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY, config);
+
+        if (!_context.IsInputActive)
+        {
+            _repeatCounter = 0;
+            _repeatDirection = null;
+            _previousProcessedButtons = currentButtons;
 
             return;
         }
 
-        _reconnectCounter = 0;
+        // 偵測按下事件。
+        DetectRisingEdge(currentButtons, currentState);
 
-        // 依序處理這幀捕捉到的所有歷史狀態。
-        foreach (GamepadStateSnapshot state in statesToProcess)
-        {
-            // 由於改為歷史狀態佇列，這裡會依序觸發極短時間內的「按下」與「放開」事件，
-            // 從而完美解決漏鍵問題。
-            ProcessState(state);
-        }
+        // 儲存加工後的按鍵狀態，給下一個快照或下一幀比對用。
+        _previousProcessedButtons = currentButtons;
     }
 
     /// <summary>
     /// 判定狀態是否為閒置
     /// </summary>
-    /// <param name="state">GamepadStateSnapshot</param>
-    /// <returns>是否閒置</returns>
+    /// <param name="state">目前的遊戲控制器狀態快照</param>
+    /// <returns>若狀態為閒置，則回傳 true；否則回傳 false。</returns>
     private bool IsStateIdle(GamepadStateSnapshot state)
     {
         return _previousState != null &&
@@ -755,11 +780,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         _device = null;
                     }
 
-                    try 
-                    { 
+                    try
+                    {
                         oldDev.Dispose();
                     }
-                    catch 
+                    catch
                     {
                         // 忽略已經失效的 COM 釋放錯誤。
                     }
@@ -832,7 +857,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 掃描目前是否有其他正在活動的裝置，若有則切換
     /// </summary>
-    /// <returns>是否有成功切換至新裝置</returns>
+    /// <returns>若有切換至其他裝置，則回傳 true；否則回傳 false。</returns>
     private bool ScanForActiveDevice()
     {
         GameInput? gameInput = _gameInput;
@@ -971,7 +996,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 short thumbLX = (short)(state.LeftThumbstickX * short.MaxValue),
                     thumbLY = (short)(state.LeftThumbstickY * short.MaxValue);
 
-                ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY);
+                // 取得快照以確保初始化時死區校驗一致。
+                AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
+
+                ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY, config);
 
                 _previousProcessedButtons = currentButtons;
 
@@ -996,50 +1024,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 處理狀態
-    /// </summary>
-    /// <param name="currentState">GamepadStateSnapshot</param>
-    private void ProcessState(GamepadStateSnapshot currentState)
-    {
-        // 直接使用 GameInput 的按鈕旗標，避免不必要的 XInput 映射。
-        GameInputGamepadButtons currentButtons = currentState.Buttons;
-
-        // 處理搖桿模擬 D-Pad。
-        short thumbLX = (short)(currentState.LeftThumbstickX * short.MaxValue),
-            thumbLY = (short)(currentState.LeftThumbstickY * short.MaxValue);
-
-        ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY);
-
-        if (!_context.IsInputActive)
-        {
-            _repeatCounter = 0;
-            _repeatDirection = null;
-            _hasPreviousState = true;
-
-            return;
-        }
-
-        // 偵測事件觸發。
-        DetectRisingEdge(currentButtons, currentState);
-        // 處理重複輸入。
-        HandleRepeat(currentButtons);
-
-        _previousState = currentState;
-        // 儲存加工後的按鍵狀態，給下一幀的 DetectRisingEdge 比對用。
-        _previousProcessedButtons = currentButtons;
-        _hasPreviousState = true;
-    }
-
-    /// <summary>
     /// 將搖桿映射至 D-Pad 按鈕
     /// </summary>
-    /// <param name="currentButtons">GameInputGamepadButtons</param>
+    /// <param name="currentButtons">目前的按鈕狀態</param>
     /// <param name="thumbLX">左搖桿 X 軸值</param>
     /// <param name="thumbLY">左搖桿 Y 軸值</param>
+    /// <param name="config">遊戲控制器設定快照</param>
     private void ApplyStickToButtons(
         ref GameInputGamepadButtons currentButtons,
         short thumbLX,
-        short thumbLY)
+        short thumbLY,
+        AppSettings.GamepadConfigSnapshot config)
     {
         bool wasLeft = _hasPreviousState &&
                 _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadLeft),
@@ -1050,10 +1045,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             wasDown = _hasPreviousState &&
                 _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadDown);
 
-        int thresholdLeft = wasLeft ? _thumbDeadzoneExit : _thumbDeadzoneEnter,
-            thresholdRight = wasRight ? _thumbDeadzoneExit : _thumbDeadzoneEnter,
-            thresholdUp = wasUp ? _thumbDeadzoneExit : _thumbDeadzoneEnter,
-            thresholdDown = wasDown ? _thumbDeadzoneExit : _thumbDeadzoneEnter;
+        int thresholdLeft = wasLeft ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
+            thresholdRight = wasRight ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
+            thresholdUp = wasUp ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
+            thresholdDown = wasDown ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter;
 
         if (thumbLX < -thresholdLeft)
         {
@@ -1077,8 +1072,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 偵測 Rising Edge
     /// </summary>
-    /// <param name="currentButtons">GameInputGamepadButtons</param>
-    /// <param name="currentState">GamepadStateSnapshot</param>
+    /// <param name="currentButtons">目前的按鈕狀態</param>
+    /// <param name="currentState">目前的遊戲控制器狀態快照</param>
     private void DetectRisingEdge(
         GameInputGamepadButtons currentButtons,
         GamepadStateSnapshot currentState)
@@ -1184,8 +1179,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 處理重複
     /// </summary>
-    /// <param name="buttons">GameInputGamepadButtons</param>
-    private void HandleRepeat(GameInputGamepadButtons buttons)
+    private void HandleRepeat(
+        GameInputGamepadButtons buttons,
+        AppSettings.GamepadConfigSnapshot config)
     {
         GameInputGamepadButtons? currentDir =
             buttons.HasFlag(GameInputGamepadButtons.DPadLeft) ? GameInputGamepadButtons.DPadLeft :
@@ -1213,12 +1209,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _repeatCounter++;
 
         // 依照 XInput 版本，使用設定檔的延遲與間隔。
-        if (_repeatCounter < _repeatSettings.InitialDelayFrames)
+        if (_repeatCounter < config.RepeatInitialDelayFrames)
         {
             return;
         }
 
-        if (_repeatCounter % _repeatSettings.IntervalFrames != 0)
+        if (_repeatCounter % config.RepeatIntervalFrames != 0)
         {
             return;
         }
@@ -1244,9 +1240,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 震動
     /// </summary>
-    /// <param name="strength">震動強度，範圍為 0 到 65535</param>
-    /// <param name="milliseconds">震動持續時間，單位為毫秒，預設值為 60</param>
-    /// <returns>Task</returns>
     public Task VibrateAsync(ushort strength, int milliseconds = 60)
     {
         GameInputDevice? dev = _device;
@@ -1257,7 +1250,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return Task.CompletedTask;
         }
 
-        // 優化：強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
+        // 強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
         if (strength == 0)
         {
             Task.Run(() =>
@@ -1379,7 +1372,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 非同步處置
     /// </summary>
-    /// <returns>ValueTask</returns>
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -1463,12 +1455,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 停止輪詢（非同步）
     /// </summary>
-    /// <returns>Task</returns>
     private Task StopPollingAsync()
     {
         StopPolling();
 
-        return _taskPolling ?? Task.CompletedTask;
+        return _taskPolling ??
+            Task.CompletedTask;
     }
 
     /// <summary>
@@ -1500,7 +1492,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 非同步處置資源
     /// </summary>
-    /// <returns>Task</returns>
     private Task DisposeResourcesAsync()
     {
         // 捕獲目前實例以供背景執行緒釋放。

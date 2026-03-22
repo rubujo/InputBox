@@ -14,6 +14,19 @@ partial class DesignerBlocker { };
 public partial class MainForm
 {
     /// <summary>
+    /// 選單項目中繼資料，支援 A11y 動態描述生成。
+    /// </summary>
+    /// <param name="Label">標籤文字</param>
+    /// <param name="Mnemonic">助記鍵字母</param>
+    /// <param name="Min">最小值（選填）</param>
+    /// <param name="Max">最大值（選填）</param>
+    private sealed record MenuMetadata(
+        string Label,
+        char Mnemonic,
+        decimal? Min = null,
+        decimal? Max = null);
+
+    /// <summary>
     /// 初始化右鍵選單
     /// </summary>
     private void InitializeContextMenu()
@@ -218,7 +231,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_WindowOpacity,
-            Tag = new KeyValuePair<string, char>(Strings.Settings_WindowOpacity, 'S')
+            Tag = new MenuMetadata(Strings.Settings_WindowOpacity, 'S', 50, 100)
         };
         tsmiSetOpacity.Click += (s, e) =>
         {
@@ -283,7 +296,8 @@ public partial class MainForm
             ToolStripMenuItem item = new(string.Empty)
             {
                 AccessibleName = label,
-                Tag = new KeyValuePair<string, char>(label, mnemonic),
+                // 將範圍資訊封裝至 Metadata，支援動態 A11y 描述生成。
+                Tag = new MenuMetadata(label, mnemonic, min, max),
             };
 
             item.Click += (s, e) =>
@@ -298,6 +312,10 @@ public partial class MainForm
 
                     RefreshMenu();
                 }
+
+                // 焦點還原。
+                // 當數值輸入對話框關閉後，將焦點精確還原至原選單項，優化螢幕閱讀器導覽流暢度。
+                _lastFocusedMenuItem?.Select();
             };
 
             parent.DropDownItems.Add(item);
@@ -387,7 +405,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiIntensity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_VibrationIntensity,
-            Tag = new KeyValuePair<string, char>(Strings.Settings_VibrationIntensity, 'I')
+            Tag = new MenuMetadata(Strings.Settings_VibrationIntensity, 'I', 0, 1)
         };
         tsmiIntensity.Click += (s, e) =>
         {
@@ -463,7 +481,11 @@ public partial class MainForm
             ToolStripMenuItem item = new(provider.ToString())
             {
                 Checked = AppSettings.Current.GamepadProviderType == provider,
-                AccessibleName = provider.ToString()
+                AccessibleName = provider.ToString(),
+                // 為個別 API 提供者加入具體功能描述。
+                AccessibleDescription = provider == AppSettings.GamepadProvider.GameInput ?
+                    Strings.A11y_Menu_Provider_GameInput_Desc :
+                    Strings.A11y_Menu_Provider_XInput_Desc
             };
 
             item.Click += (s, e) =>
@@ -516,8 +538,6 @@ public partial class MainForm
             v =>
             {
                 AppSettings.Current.ThumbDeadzoneEnter = v;
-
-                SyncGamepadSettings();
             },
             7849,
             0,
@@ -530,8 +550,6 @@ public partial class MainForm
             v =>
             {
                 AppSettings.Current.ThumbDeadzoneExit = v;
-
-                SyncGamepadSettings();
             },
             2500,
             0,
@@ -540,11 +558,10 @@ public partial class MainForm
             tsmiGamepad,
             Strings.Settings_RepeatDelay,
             'D',
-            () => AppSettings.Current.RepeatInitialDelayFrames, v =>
+            () => AppSettings.Current.RepeatInitialDelayFrames,
+            v =>
             {
                 AppSettings.Current.RepeatInitialDelayFrames = v;
-
-                SyncGamepadSettings();
             },
             30,
             1,
@@ -553,11 +570,10 @@ public partial class MainForm
             tsmiGamepad,
             Strings.Settings_RepeatSpeed,
             'S',
-            () => AppSettings.Current.RepeatIntervalFrames, v =>
+            () => AppSettings.Current.RepeatIntervalFrames,
+            v =>
             {
                 AppSettings.Current.RepeatIntervalFrames = v;
-
-                SyncGamepadSettings();
             },
             5,
             1,
@@ -576,8 +592,6 @@ public partial class MainForm
             AppSettings.Current.RepeatIntervalFrames = 5;
             AppSettings.Save();
 
-            SyncGamepadSettings();
-
             RefreshMenu();
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
@@ -594,7 +608,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiCap = new(string.Empty)
         {
             AccessibleName = Strings.Settings_HistoryCapacity,
-            Tag = new KeyValuePair<string, char>(Strings.Settings_HistoryCapacity, 'H')
+            Tag = new MenuMetadata(Strings.Settings_HistoryCapacity, 'H', 1, 1000)
         };
         tsmiCap.Click += (s, e) =>
         {
@@ -702,14 +716,22 @@ public partial class MainForm
                 // 使用 Tag 作為穩定的標籤識別碼。
                 string? label;
 
-                if (mi.Tag is KeyValuePair<string, char> kvp)
+                if (mi.Tag is MenuMetadata meta)
+                {
+                    label = meta.Label;
+
+                    mnemonic = meta.Mnemonic;
+                }
+                else if (mi.Tag is KeyValuePair<string, char> kvp)
                 {
                     label = kvp.Key;
+
                     mnemonic = kvp.Value;
                 }
                 else
                 {
-                    label = mi.Tag as string ?? mi.AccessibleName;
+                    label = mi.Tag as string ??
+                        mi.AccessibleName;
                 }
 
                 if (string.IsNullOrEmpty(label))
@@ -787,6 +809,36 @@ public partial class MainForm
 
                     // 同步更新無障礙名稱，確保手把導覽時能播報目前數值。
                     mi.AccessibleName = fullText;
+
+                    // 針對可勾選項（隱私模式、震動等），附加狀態文字以提升播報穩定性。
+                    if (mi.CheckOnClick)
+                    {
+                        mi.AccessibleName += $" ({(mi.Checked ? Strings.A11y_Checked : Strings.A11y_Unchecked)})";
+                    }
+
+                    // A11y 強化：如果具備範圍資訊，動態生成詳細描述。
+                    if (mi.Tag is MenuMetadata { Min: not null, Max: not null } rangeMeta)
+                    {
+                        string currentStr = label == Strings.Settings_VibrationIntensity ?
+                            AppSettings.Current.VibrationIntensity.ToString("F1") :
+                            (label == Strings.Settings_WindowOpacity ?
+                                AppSettings.Current.WindowOpacity.ToString("P0") :
+                                fullText.Split(':').Last().Trim());
+
+                        mi.AccessibleDescription = string.Format(
+                            Strings.A11y_Menu_NumericDesc,
+                            label,
+                            currentStr,
+                            rangeMeta.Min,
+                            rangeMeta.Max);
+
+                        // 針對需重啟的項目，附加 A11y 警告後綴。
+                        if (label == Strings.Settings_HistoryCapacity ||
+                            label == Strings.Menu_Settings_Provider)
+                        {
+                            mi.AccessibleDescription += Strings.A11y_Settings_RestartRequired;
+                        }
+                    }
                 }
 
                 // 遞迴處理子項。

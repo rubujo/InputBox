@@ -110,7 +110,7 @@ public partial class MainForm
         TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
         _lblInput?.Text = Strings.A11y_TBInputName;
 
-        // 建立或更新輸入框專用的 28pt 大字體，確保在高 DPI 下絕對銳利。
+        // 1. 建立或更新輸入框專用的 28pt 大字體。
         const float inputFontSize = 28.0f;
 
         Font newInputFont = new(
@@ -118,39 +118,43 @@ public partial class MainForm
             inputFontSize * (DeviceDpi / 96.0f),
             TBInput.Font.Style);
 
-        Font? oldInputFont = _inputFont;
-
-        _inputFont = newInputFont;
+        // 原子化交換輸入框字型。
+        Font? oldInputFont = Interlocked.Exchange(ref _inputFont, newInputFont);
 
         TBInput.Font = _inputFont;
 
         oldInputFont?.Dispose();
 
-        // 建立或更新 A11y 放大字型。
+        // 2. 建立或更新 A11y 放大字型與粗體字型。
         Font newA11yFont = GetSharedA11yFont(DeviceDpi),
             newBoldFont = new(newA11yFont, FontStyle.Bold);
 
-        // 暫存舊的字型資源，以便在安全時處置。
-        Font? oldA11yFont = _a11yFont,
-            oldBoldFont = _boldBtnFont;
+        // 抗抖動寬度鎖定（Anti-Jitter Lock）：
+        // 為了防止字體加粗引發佈局抖動導致眼動儀「追逐目標」，必須預先計算 Bold 狀態的最大寬度並鎖定。
+        string btnText = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
 
-        _a11yFont = newA11yFont;
-        _boldBtnFont = newBoldFont;
+        Size boldSize = TextRenderer.MeasureText(btnText, newBoldFont);
 
-        // 按鈕。
+        // 鎖定最小寬度：測量值加上適當的內邊距補償。
+        BtnCopy.MinimumSize = new Size(
+            boldSize.Width + (int)(24 * (DeviceDpi / 96.0f)),
+            boldSize.Height + (int)(24 * (DeviceDpi / 96.0f)));
+
+        // 原子化交換 A11y 字型與按鈕粗體。
+        Font? oldA11yFont = Interlocked.Exchange(ref _a11yFont, newA11yFont),
+            oldBoldFont = Interlocked.Exchange(ref _boldBtnFont, newBoldFont);
+
+        // 套用至按鈕。
         BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
         BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
-        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
-
-        // 根據規範，套用統一的 A11y 共享字型。
-        // 先指派新字型，確保控制項不再使用舊字型。
+        BtnCopy.Text = btnText;
         BtnCopy.Font = _a11yFont;
 
-        // 現在可以安全處置舊的字型資源，防止 GDI 洩漏。
+        // 安全釋放舊資源。
         oldA11yFont?.Dispose();
         oldBoldFont?.Dispose();
 
-        // 確保標題快取與在地化字串同步，並立即套用至視窗。
+        // 確保標題快取與在地化字串同步。
         UpdateTitlePrefix();
         UpdateTitle();
 

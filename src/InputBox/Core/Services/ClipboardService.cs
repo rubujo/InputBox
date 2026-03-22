@@ -40,7 +40,9 @@ internal class ClipboardService
     /// <param name="text">要寫入的文字</param>
     /// <param name="timeoutMs">最大超時時間（毫秒），預設 2000ms</param>
     /// <returns>是否成功</returns>
-    public static async Task<bool> TrySetTextAsync(string? text, int timeoutMs = 2000)
+    public static async Task<bool> TrySetTextAsync(
+        string? text,
+        int timeoutMs = 2000)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -74,11 +76,12 @@ internal class ClipboardService
             {
                 try
                 {
-                    // 核心強化：WinForms 剪貼簿 API 嚴格要求在 STA 執行緒執行。
+                    // WinForms 剪貼簿 API 嚴格要求在 STA 執行緒執行。
                     // 我們嘗試取得目前活動視窗來進行 Invoke，確保執行緒安全性。
                     Form? syncForm = Application.OpenForms.Cast<Form>().FirstOrDefault();
 
-                    if (syncForm != null && syncForm.InvokeRequired)
+                    if (syncForm != null &&
+                        syncForm.InvokeRequired)
                     {
                         syncForm.Invoke(new Action(() => Clipboard.SetText(normalizedSource)));
                     }
