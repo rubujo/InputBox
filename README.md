@@ -134,7 +134,7 @@
 | | `WindowSwitchBufferBase` | 整數（毫秒） | `150` | `0 ~ 5000` | 切換回遊戲視窗前的基礎等待時間（毫秒）。 |
 | **隨機化設定** | `InputJitterRange` | 整數（毫秒） | `50` | `0 ~ 1000` | 視窗焦點切換的隨機抖動範圍（毫秒）。用於使操作行為更接近人類，避免被部分環境視為自動化操作。 |
 | **操作體驗調整** | `IsPrivacyMode` | 布林值 | `false` | - | 是否開啟隱私模式（`true`／`false`）。開啟後標題列會顯示 `(🔒)` 且不記錄輸入歷程。 |
-| **遊戲控制器輸入 API** | `GamepadProviderType` | 字串 | `"XInput"` | - | 選擇底層遊戲控制器輸入 API：`"XInput"` 或 `"GameInput"`。若 GameInput 初始化失敗將自動退避至 XInput。 |
+| **遊戲控制器輸入 API** | `GamepadProviderType` | 字串 | `"XInput"` | - | 選擇遊戲控制器輸入 API：`"XInput"` 或 `"GameInput"`。若 GameInput 初始化失敗將自動退避至 XInput。**備註**：使用 **GameInput** 時，遊戲控制器可能需在實際產生輸入（如按鍵或搖桿操作）後，才會開始回報狀態。初次連線時若尚未有反應，請稍候或操作遊戲控制器一次即可。 |
 | | `ThumbDeadzoneEnter` | 整數 | `7849` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿推動觸發閾值。若控制器搖桿因磨損而產生偏移，可提高此值。 |
 | | `ThumbDeadzoneExit` | 整數 | `2500` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿回彈重置閾值。此值必須顯著低於觸發閾值以防止抖動。 |
 | | `RepeatInitialDelayFrames` | 整數（幀） | `30` | `1 ~ 300` | 長按方向鍵時，開始重複輸入前的延遲（幀）。1 幀約為 16.6ms（60 FPS）。 |

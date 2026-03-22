@@ -749,6 +749,21 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch
                 {
+                    // 確保即使發生例外，COM 物件的釋放也不會被延遲。
+                    if (oldDev == _device)
+                    {
+                        _device = null;
+                    }
+
+                    try 
+                    { 
+                        oldDev.Dispose();
+                    }
+                    catch 
+                    {
+                        // 忽略已經失效的 COM 釋放錯誤。
+                    }
+
                     // 若裝置已失效，則直接移除。
                     _allDevices.RemoveAt(i);
                 }
