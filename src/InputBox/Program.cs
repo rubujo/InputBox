@@ -72,6 +72,9 @@ internal static class Program
             AppSettings.Load();
 
             Application.Run(new MainForm());
+
+            // 程式結束前處置全域字體快取，杜絕 GDI Handle 洩漏。
+            MainForm.DisposeCaches();
         }
         catch (Exception ex)
         {

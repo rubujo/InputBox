@@ -255,7 +255,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 震動 Token（用於追蹤目前的震動狀態，確保在非同步震動期間不會重複觸發震動或錯誤停止震動）
     /// </summary>
-    private int _vibrationToken = 0;
+    private long _vibrationToken = 0;
 
     /// <summary>
     /// 震動延遲任務的取消權杖來源
@@ -301,7 +301,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         _ctsPolling = new CancellationTokenSource();
 
-        CancellationToken token = _ctsPolling.Token;
+        CancellationToken token = _ctsPolling?.Token ?? CancellationToken.None;
 
         _taskPolling = Task.Run(() => PollingLoopAsync(token), token);
     }
@@ -780,12 +780,20 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">毫秒，預設為 60</param>
+    /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
     public Task VibrateAsync(
         ushort strength,
-        int milliseconds = 60)
+        int milliseconds = 60,
+        CancellationToken ct = default)
     {
-        // 優化：強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
+        // 如果外部在呼叫前就已經要求取消，直接返回（Fast-path）。
+        if (ct.IsCancellationRequested)
+        {
+            return Task.CompletedTask;
+        }
+
+        // 強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
         if (strength == 0)
         {
             StopVibration();
@@ -796,11 +804,17 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 將 XInput 呼叫推入背景執行緒，避免因藍牙手把休眠或驅動延遲而阻塞 UI 執行緒。
         return Task.Run(async () =>
         {
+            // 再檢查一次：避免在 Task ThreadPool 排隊等待時，外部就已經取消了。
+            if (ct.IsCancellationRequested)
+            {
+                return;
+            }
+
             // 捕獲目前的索引快照，確保開始與停止動作作用於同一個 Port。
             uint userIndex = _userIndex;
 
             // 每次呼叫時產生一個新的通行證（Token）。
-            int currentToken = Interlocked.Increment(ref _vibrationToken);
+            long currentToken = Interlocked.Increment(ref _vibrationToken);
 
             // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
             CancellationTokenSource newCts = new();
@@ -819,13 +833,29 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             _ = XInput.XInputSetState(userIndex, in vibration);
 
+            // 將「內部震動覆蓋權杖」與「外部傳入的取消權杖」綁定在一起。
+            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(newCts.Token, ct);
+
             try
             {
-                await Task.Delay(milliseconds, token).ConfigureAwait(false);
+                // 只要有新震動進來，或外部要求取消，這裡的 Delay 就會立刻中斷。
+                await Task.Delay(milliseconds, linkedCts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                // 任務被新的震動請求或釋放動作取消。
+                // 判斷是誰觸發了取消？
+                if (ct.IsCancellationRequested)
+                {
+                    // 狀況 A：外部 ct 被取消了（例如：使用者關閉視窗、切換頁面）
+                    // 這種情況下，不會有新的震動來接管，我們必須「強制煞車」！
+                    XInput.XInputVibration stop = default;
+
+                    _ = XInput.XInputSetState(userIndex, in stop);
+                }
+
+                // 狀況 B：外部 ct 沒事，是內部的 newCts 取消了
+                // 代表「有新的震動請求進來了」，新的 Task 已經啟動了馬達。
+                // 我們這裡什麼都不用做，直接 return 默默退場即可。
                 return;
             }
 
@@ -833,7 +863,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 1. 是否已處置。
             // 2. 我的通行證是不是最新的？
             if (_disposed ||
-                currentToken != _vibrationToken)
+                currentToken != Interlocked.Read(ref _vibrationToken))
             {
                 return;
             }
@@ -841,7 +871,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             XInput.XInputVibration stopVibration = default;
 
             _ = XInput.XInputSetState(userIndex, in stopVibration);
-        });
+        }, ct);
     }
 
     /// <summary>
@@ -954,22 +984,24 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <param name="source">CancellationTokenSource 來源</param>
     private static void CancelAndDisposeCts(ref CancellationTokenSource? source)
     {
+        // 使用 Interlocked.Exchange 確保執行緒安全，並將原參考設為 null。
         CancellationTokenSource? cts = Interlocked.Exchange(ref source, null);
 
         if (cts != null)
         {
             try
             {
-                if (!cts.IsCancellationRequested)
-                {
-                    cts.Cancel();
-                }
-
-                cts.Dispose();
+                // 直接呼叫 Cancel，若已取消則內部會自動忽略。
+                cts.Cancel();
             }
             catch
             {
-                // 忽略處置例外。
+                // 忽略因 Cancel 觸發回呼（Callbacks）時所引發的任何例外。
+            }
+            finally
+            {
+                // 確保 Dispose 一定會被執行，徹底釋放底層資源。
+                cts.Dispose();
             }
         }
     }

@@ -105,32 +105,32 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// AccessibleNumericUpDown 實例
     /// </summary>
-    private readonly AccessibleNumericUpDown _nud;
+    private AccessibleNumericUpDown? _nud;
 
     /// <summary>
     /// 3x2 網格連動區容器
     /// </summary>
-    private readonly TableLayoutPanel _tlpGrid;
+    private TableLayoutPanel? _tlpGrid;
 
     /// <summary>
     /// 增加按鈕
     /// </summary>
-    private readonly Button? _btnPlus;
+    private Button? _btnPlus;
 
     /// <summary>
     /// 減少按鈕
     /// </summary>
-    private readonly Button? _btnMinus;
+    private Button? _btnMinus;
 
     /// <summary>
     /// 重設按鈕
     /// </summary>
-    private readonly Button? _btnReset;
+    private Button? _btnReset;
 
     /// <summary>
     /// 用於 A11y 廣播的 Label
     /// </summary>
-    private readonly AnnouncerLabel _announcer;
+    private readonly AnnouncerLabel? _announcer;
 
     /// <summary>
     /// 統一放大的 A11y 字型
@@ -165,7 +165,7 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 取得目前數值
     /// </summary>
-    public decimal Value => _nud.Value;
+    public decimal Value => _nud?.Value ?? 0m;
 
     /// <summary>
     /// 設定控制器實作，並訂閱事件
@@ -231,7 +231,7 @@ internal sealed class NumericInputDialog : Form
             }
 
             // 數值顯示區字體需重新依據新縮放比例建立。
-            if (_a11yFont != null)
+            if (_a11yFont != null && _nud != null)
             {
                 // 將舊字體移入 MainForm 的回收桶，防止重繪時崩潰。
                 Font? oldNudFont = _nudFont;
@@ -250,7 +250,7 @@ internal sealed class NumericInputDialog : Form
             UpdateMinimumSize();
 
             // 強制所有控制項重新套用最新主題與字體。
-            UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
+            UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
         });
     }
 
@@ -264,7 +264,7 @@ internal sealed class NumericInputDialog : Form
             {
                 UpdateMinimumSize();
 
-                UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
+                UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
             });
         }
     }
@@ -296,6 +296,13 @@ internal sealed class NumericInputDialog : Form
             {
 
             }
+
+            // 原子化處置 UI 控制項與資源。
+            Interlocked.Exchange(ref _nud, null)?.Dispose();
+            Interlocked.Exchange(ref _tlpGrid, null)?.Dispose();
+            Interlocked.Exchange(ref _btnPlus, null)?.Dispose();
+            Interlocked.Exchange(ref _btnMinus, null)?.Dispose();
+            Interlocked.Exchange(ref _btnReset, null)?.Dispose();
 
             _nudFont?.Dispose();
             _announcer?.Dispose();
@@ -349,7 +356,8 @@ internal sealed class NumericInputDialog : Form
 
         FeedbackService.VibrateAsync(
                 _gamepadController,
-                VibrationPatterns.ActionFail)
+                VibrationPatterns.ActionFail,
+                _cts.Token)
             .SafeFireAndForget();
 
         FlashAlertAsync().SafeFireAndForget();
@@ -364,19 +372,19 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 處理數值增加，並保留焦點以支援眼動儀連發與鍵盤連點
     /// </summary>
-    private void HandlePlus() => this.SafeInvoke(_nud.UpButton);
+    private void HandlePlus() => this.SafeInvoke(() => _nud?.UpButton());
 
     /// <summary>
     /// 處理數值減少，並保留焦點以支援眼動儀連發與鍵盤連點
     /// </summary>
-    private void HandleMinus() => this.SafeInvoke(_nud.DownButton);
+    private void HandleMinus() => this.SafeInvoke(() => _nud?.DownButton());
 
     /// <summary>
     /// 處理確認按鍵事件
     /// </summary>
     private void HandleConfirm() => this.SafeInvoke(() =>
     {
-        _nud.ValidateValue();
+        _nud?.ValidateValue();
 
         DialogResult = DialogResult.OK;
 
@@ -398,8 +406,11 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleReset() => this.SafeInvoke(() =>
     {
-        _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
-        _nud.Focus();
+        if (_nud != null)
+        {
+            _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
+            _nud.Focus();
+        }
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -429,11 +440,9 @@ internal sealed class NumericInputDialog : Form
 
         try
         {
-            bool isDark = _nud.IsDarkModeActive();
+            bool isDark = this.IsDarkModeActive();
 
             // 決定警示色。
-            // 修正選色邏輯以對齊反轉後的控制項背景。
-            // 淺色模式（黑底控制項）用 DarkOrange；深色模式（白底控制項）用 Firebrick。
             Color alertColor = SystemInformation.HighContrast ?
                 SystemColors.Highlight :
                 (isDark ? Color.Firebrick : Color.DarkOrange);
@@ -443,7 +452,8 @@ internal sealed class NumericInputDialog : Form
                 this.SafeInvoke(() =>
                 {
                     if (IsDisposed ||
-                        !IsHandleCreated)
+                        !IsHandleCreated ||
+                        _nud == null)
                     {
                         return;
                     }
@@ -452,16 +462,17 @@ internal sealed class NumericInputDialog : Form
                     {
                         bool isAlert = intensity > 0.5f;
 
-                        Color hcBack = isAlert ? alertColor : SystemColors.Window;
-                        Color hcFore = isAlert ? SystemColors.HighlightText : SystemColors.WindowText;
+                        Color hcBack = isAlert ?
+                                alertColor :
+                                SystemColors.Window,
+                            hcFore = isAlert ?
+                                SystemColors.HighlightText :
+                                SystemColors.WindowText;
 
-                        // 同步更新背景與前景，確保高對比下文字可讀性。
                         _nud.UpdateRecursive(hcBack, hcFore);
                     }
                     else
                     {
-                        // 1. 閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生髒濁色。
-                        // 這裡我們取主題反轉後的背景色作為過渡起點。
                         Color pureBase = isDark ?
                             Color.White :
                             Color.Black;
@@ -470,14 +481,11 @@ internal sealed class NumericInputDialog : Form
                             gN = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
                             bN = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                        Color flashColor = Color.FromArgb(255, rN, gN, bN);
+                        Color flashColor = Color.FromArgb(255, rN, gN, bN),
+                            flashFore = isDark ?
+                                Color.Black :
+                                Color.White;
 
-                        // 決定閃爍期間的前景對比色。
-                        Color flashFore = isDark ?
-                            Color.Black :
-                            Color.White;
-
-                        // 2. 遞歸背景與前景同步：僅作用於數據內容區域（_nud），按鈕保持其靜態視覺狀態。
                         _nud.UpdateRecursive(flashColor, flashFore);
                     }
                 });
@@ -509,7 +517,6 @@ internal sealed class NumericInputDialog : Form
                     break;
                 }
 
-                // 使用 AppSettings.PhotoSafeFrequencyMs（1000ms）對齊閃爍週期。
                 double angle = elapsedMs / AppSettings.PhotoSafeFrequencyMs * 2.0 * Math.PI - (Math.PI / 2.0);
 
                 float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
@@ -528,9 +535,10 @@ internal sealed class NumericInputDialog : Form
             // 確保 UI 狀態還原。
             this.SafeInvoke(() =>
             {
-                if (!IsDisposed && IsHandleCreated)
+                if (!IsDisposed &&
+                    IsHandleCreated)
                 {
-                    UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
+                    UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
                 }
             });
         }
@@ -559,23 +567,21 @@ internal sealed class NumericInputDialog : Form
         {
             long currentId = Interlocked.Increment(ref _a11yDebounceId);
 
-            // 在獨立對話框模式下，我們手動加入 200ms 的音訊避讓與節流延遲。
             Task.Run(async () =>
             {
                 try
                 {
-                    // 統一 Audio Ducking 避讓延遲為 200ms。
+                    // 統一 Audio Ducking 避讓延遲。
                     await Task.Delay(200, _cts.Token);
 
-                    // 序號檢查（Stale Check）。
-                    // 只有最新的請求才會被執行，達成在高頻率數值變更下的語音節流。
                     if (Interlocked.Read(ref _a11yDebounceId) == currentId &&
                         !IsDisposed &&
                         IsHandleCreated)
                     {
                         this.SafeInvoke(() =>
                         {
-                            if (!_announcer.IsDisposed)
+                            if (_announcer != null &&
+                                !_announcer.IsDisposed)
                             {
                                 _announcer.Announce(message, interrupt);
                             }
@@ -621,7 +627,7 @@ internal sealed class NumericInputDialog : Form
             }
             else
             {
-                if (_nud.IsDarkModeActive())
+                if (this.IsDarkModeActive())
                 {
                     // 深色模式：白底黑字。
                     _nud.UpdateRecursive(Color.White, Color.Black);
@@ -716,6 +722,7 @@ internal sealed class NumericInputDialog : Form
         AutoSizeMode = AutoSizeMode.GrowAndShrink;
         AccessibleName = title;
         AccessibleRole = AccessibleRole.Dialog;
+        DoubleBuffered = true;
 
         // 建立 A11y 廣播器（作為備援）。
         _announcer = new AnnouncerLabel();
@@ -800,6 +807,11 @@ internal sealed class NumericInputDialog : Form
         // 當數值改變時，同步更新無障礙描述，並主動廣播最新數值。
         _nud.ValueChanged += (s, e) =>
         {
+            if (_nud == null)
+            {
+                return;
+            }
+
             _nud.AccessibleDescription = string.Format(
                 Strings.A11y_Value_Range_Desc,
                 _nud.Value,
@@ -836,7 +848,10 @@ internal sealed class NumericInputDialog : Form
             Strings.A11y_Btn_Minus_Desc,
             scale,
             _a11yFont,
-            (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+            (active) => UpdateFocusVisuals(
+                active ||
+                (_nud?.Focused == true) ||
+                (_nud?.ContainsFocus == true)));
 
         AttachAutoRepeat(_btnMinus, HandleMinus);
 
@@ -848,7 +863,10 @@ internal sealed class NumericInputDialog : Form
             Strings.A11y_Btn_Plus_Desc,
             scale,
             _a11yFont,
-            (active) => UpdateFocusVisuals(active || _nud.Focused || _nud.ContainsFocus));
+            (active) => UpdateFocusVisuals(
+                active ||
+                (_nud?.Focused == true) ||
+                (_nud?.ContainsFocus == true)));
 
         AttachAutoRepeat(_btnPlus, HandlePlus);
 
@@ -912,15 +930,15 @@ internal sealed class NumericInputDialog : Form
             }
 
             // 強化 Context 播報：包含提示文字、目前值與有效範圍。
-            string contextMessage = $"{lblPrompt.Text} {string.Format(Strings.A11y_Value_Range_Desc, _nud.Value, _nud.Minimum, _nud.Maximum)}";
+            string contextMessage = $"{lblPrompt.Text} {string.Format(Strings.A11y_Value_Range_Desc, Value, minimum, maximum)}";
 
             AnnounceA11y(contextMessage);
 
-            _nud.Focus();
+            _nud?.Focus();
 
             UpdateFocusVisuals(true);
 
-            this.SafeBeginInvoke(() => _nud.Select(0, _nud.Text.Length));
+            this.SafeBeginInvoke(() => _nud?.Select(0, _nud.Text.Length));
         };
 
         Activated += (s, e) =>
@@ -1034,6 +1052,12 @@ internal sealed class NumericInputDialog : Form
 
         btn.MouseEnter += (s, e) =>
         {
+            // 防止背景誤觸（Prevent Background Midas Touch）。
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             isHovered = true;
 
             onFocusStateChanged?.Invoke(true);
@@ -1074,7 +1098,8 @@ internal sealed class NumericInputDialog : Form
         {
             onFocusStateChanged?.Invoke(true);
 
-            StartAnimationFeedback();
+            // 根據規範：鍵盤焦點僅執行強烈靜態視覺回饋，不啟動填滿動畫。
+            ApplyStrongVisual();
         };
         btn.LostFocus += (s, e) =>
         {
@@ -1126,6 +1151,42 @@ internal sealed class NumericInputDialog : Form
             }
         };
 
+        void ApplyStrongVisual()
+        {
+            // 打斷目前的動畫。
+            Interlocked.Increment(ref animationId);
+
+            dwellProgress = 0f;
+
+            // 強烈視覺：純鍵盤焦點或實體按壓中。
+            if (SystemInformation.HighContrast)
+            {
+                btn.BackColor = SystemColors.Highlight;
+                btn.ForeColor = SystemColors.HighlightText;
+            }
+            else
+            {
+                bool isDark = btn.IsDarkModeActive();
+
+                btn.BackColor = isDark ?
+                    Color.White :
+                    Color.Black;
+                btn.ForeColor = isDark ?
+                    Color.Black :
+                    Color.White;
+            }
+
+            // 加粗（大）。
+            if (!ReferenceEquals(btn.Font, boldFont))
+            {
+                btn.Font = boldFont;
+            }
+
+            btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
+            btn.Padding = new Padding(0);
+            btn.Invalidate();
+        }
+
         void StartAnimationFeedback()
         {
             if (!btn.Enabled)
@@ -1133,74 +1194,51 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
+            // 分離式回饋原則：
+            // 1. 實體按壓中，或「具備鍵盤焦點且非滑鼠懸停」時，執行強烈靜態視覺。
+            // 2. 其餘情況（主要是 isHovered 為真時），必須啟動 Dwell 動畫以支援 Re-gaze。
+            if (isPressed ||
+                (btn.Focused && !isHovered))
+            {
+                ApplyStrongVisual();
+                return;
+            }
+
             long id = Interlocked.Increment(ref animationId);
 
             dwellProgress = 0f;
 
-            // 參考 BtnCopy 實作：區分「強烈視覺（焦點／按壓）」與「溫和視覺（懸停）」。
-            // 只要是「純鍵盤焦點」或是「滑鼠正在實體按壓」，就給予加粗（大）與極端對比。
-            bool isStrongVisual = (btn.Focused && !isHovered) || isPressed;
-
-            if (isStrongVisual)
+            // 溫和視覺：滑鼠／眼控懸停（Hover）。
+            if (SystemInformation.HighContrast)
             {
-                // 強烈視覺：純鍵盤焦點或實體按壓中。
-                if (SystemInformation.HighContrast)
-                {
-                    btn.BackColor = SystemColors.Highlight;
-                    btn.ForeColor = SystemColors.HighlightText;
-                }
-                else
-                {
-                    btn.BackColor = btn.IsDarkModeActive() ?
-                        Color.White :
-                        Color.Black;
-                    btn.ForeColor = btn.IsDarkModeActive() ?
-                        Color.Black :
-                        Color.White;
-                }
-
-                // 加粗（大）。
-                if (!ReferenceEquals(btn.Font, boldFont))
-                {
-                    btn.Font = boldFont;
-                }
-
-                btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
+                btn.BackColor = SystemColors.HotTrack;
+                btn.ForeColor = SystemColors.HighlightText;
             }
             else
             {
-                // 溫和視覺：滑鼠／眼控懸停（Hover）。
-                if (SystemInformation.HighContrast)
-                {
-                    btn.BackColor = SystemColors.HotTrack;
-                    btn.ForeColor = SystemColors.HighlightText;
-                }
-                else
-                {
-                    btn.BackColor = btn.IsDarkModeActive() ?
-                        Color.FromArgb(60, 60, 60) :
-                        Color.FromArgb(220, 220, 220);
-                    btn.ForeColor = btn.IsDarkModeActive() ?
-                        Color.White :
-                        Color.Black;
-                }
-
-                // 不加粗，維持一般字體（小）。
-                if (!ReferenceEquals(btn.Font, font))
-                {
-                    btn.Font = font;
-                }
-
-                btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Hover})";
-
-                // 動畫回饋：只要有 Hover，即使按鈕已被點擊取得焦點，也強制啟動 Dwell！
-                btn.RunDwellAnimationAsync(
-                        id,
-                        () => Interlocked.Read(ref animationId),
-                        (p) => dwellProgress = p,
-                        ct: _cts.Token)
-                    .SafeFireAndForget();
+                btn.BackColor = btn.IsDarkModeActive() ?
+                    Color.FromArgb(60, 60, 60) :
+                    Color.FromArgb(220, 220, 220);
+                btn.ForeColor = btn.IsDarkModeActive() ?
+                    Color.White :
+                    Color.Black;
             }
+
+            // 不加粗，維持一般字體（小）。
+            if (!ReferenceEquals(btn.Font, font))
+            {
+                btn.Font = font;
+            }
+
+            btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Hover})";
+
+            // 動畫回饋：只要有 Hover，啟動 Dwell！
+            btn.RunDwellAnimationAsync(
+                    id,
+                    () => Interlocked.Read(ref animationId),
+                    (p) => dwellProgress = p,
+                    ct: _cts.Token)
+                .SafeFireAndForget();
 
             btn.Padding = new Padding(0);
             btn.Invalidate();
@@ -1212,12 +1250,14 @@ internal sealed class NumericInputDialog : Form
 
             dwellProgress = 0f;
 
-            if (isHovered ||
-                btn.Focused)
+            if (btn.Focused)
             {
-                // 狀態聰明降級：
-                // 1. 若滑鼠還在但失去焦點，退回 Hover 狀態。
-                // 2. 若滑鼠移開但還有焦點，退回強烈的 Focus 狀態。
+                // 失去滑鼠懸停但仍有鍵盤焦點：切換回強烈視覺。
+                ApplyStrongVisual();
+            }
+            else if (isHovered)
+            {
+                // 失去鍵盤焦點但仍有滑鼠懸停：切換回動畫狀態。
                 StartAnimationFeedback();
             }
             else
@@ -1257,7 +1297,6 @@ internal sealed class NumericInputDialog : Form
 
             // 基礎邊框（預設狀態）。
             // 由於 btn.FlatAppearance.BorderSize = 0，必須手動繪製預設邊框，否則會跟背景融合。
-            // 還原 DimGray／DarkGray 畫筆，並確保在無焦點、無 Hover時畫出。
             if (!btn.Focused &&
                 !isHovered &&
                 !isDefault)
@@ -1285,7 +1324,7 @@ internal sealed class NumericInputDialog : Form
                 int borderThickness = (int)Math.Max(3, 3 * currentScale),
                     inset = (int)Math.Max(2, 2 * currentScale);
 
-                // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
+                // 完全對齊 BtnCopy：淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
                 using Pen borderPen = new(
                     SystemInformation.HighContrast ?
                         SystemColors.HighlightText :
@@ -1346,8 +1385,13 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     /// <param name="btn">Button</param>
     /// <param name="action">Action</param>
-    private void AttachAutoRepeat(Button btn, Action action)
+    private void AttachAutoRepeat(Button? btn, Action action)
     {
+        if (btn == null)
+        {
+            return;
+        }
+
         CancellationTokenSource? repeatCts = null;
 
         bool suppressNextClick = false;

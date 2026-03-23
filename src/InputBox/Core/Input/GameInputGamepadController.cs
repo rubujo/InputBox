@@ -308,7 +308,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 震動 Token
     /// </summary>
-    private int _vibrationToken = 0;
+    private long _vibrationToken = 0;
 
     /// <summary>
     /// 震動延遲任務的取消權杖來源
@@ -364,7 +364,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         _ctsPolling = new CancellationTokenSource();
 
-        CancellationToken token = _ctsPolling.Token;
+        CancellationToken token = _ctsPolling?.Token ?? CancellationToken.None;
 
         _taskPolling = Task.Run(() => PollingLoopAsync(token), token);
     }
@@ -1238,9 +1238,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 震動
+    /// 讓控制器震動
     /// </summary>
-    public Task VibrateAsync(ushort strength, int milliseconds = 60)
+    /// <param name="strength">強度</param>
+    /// <param name="milliseconds">持續時間（毫秒），預設值為 60 毫秒</param>
+    /// <param name="ct">取消權杖</param>
+    /// <returns>Task</returns>
+    public Task VibrateAsync(
+        ushort strength,
+        int milliseconds = 60,
+        CancellationToken ct = default)
     {
         GameInputDevice? dev = _device;
 
@@ -1253,44 +1260,47 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
         if (strength == 0)
         {
-            Task.Run(() =>
-            {
-                try
-                {
-                    dev.SetRumbleState(new GameInputRumbleParams());
-                }
-                catch
-                {
-                    // 忽略失效設備的錯誤。
-                }
-            });
+            StopVibration();
 
             return Task.CompletedTask;
         }
 
         return Task.Run(async () =>
         {
-            int token = Interlocked.Increment(ref _vibrationToken);
+            // 再次檢查，避免在 ThreadPool 排隊時外部就已取消
+            if (ct.IsCancellationRequested)
+            {
+                return;
+            }
 
-            // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
-            CancellationTokenSource newCts = new();
+            long token = Interlocked.Increment(ref _vibrationToken);
 
-            CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newCts);
+            // 取消並更換內部的 CTS，確保只有最後一個震動任務的延遲會執行。
+            CancellationTokenSource newInternalCts = new();
+
+            CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newInternalCts);
 
             if (oldCts != null)
             {
                 try
                 {
                     oldCts.Cancel();
-                    oldCts.Dispose();
                 }
                 catch
                 {
-
+                    // 忽略 Cancel 例外。
+                }
+                finally
+                {
+                    // 確保必定釋放。
+                    oldCts.Dispose();
                 }
             }
 
-            CancellationToken ctsToken = newCts.Token;
+            // 直接連結外部 ct 與內部 CTS，。
+            using CancellationTokenSource finalCts = CancellationTokenSource.CreateLinkedTokenSource(ct, newInternalCts.Token);
+            
+            CancellationToken ctsToken = finalCts.Token;
 
             // 強度。
             float intensity = strength / 65535f;
@@ -1319,7 +1329,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 // 檢查是否已被處置、裝置是否已變更、或是否有更新的震動請求。
                 if (_disposed ||
-                    token != _vibrationToken ||
+                    Interlocked.Read(ref _vibrationToken) != token ||
                     _device == null ||
                     _device != dev)
                 {
@@ -1331,13 +1341,27 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
             catch (OperationCanceledException)
             {
-                // 任務被新的震動請求或釋放動作取消。
+                // 如果是因為新任務進來或視窗關閉而取消，確保馬達停止。
+                try
+                {
+                    // 如果 token 沒變，代表是「外部 ct 取消的」，不是被新震動覆蓋的，
+                    // 這種情況必須我們自己負責把馬達關掉！
+                    if (Interlocked.Read(ref _vibrationToken) == token)
+                    {
+                        dev.SetRumbleState(new GameInputRumbleParams());
+                    }
+                }
+                catch
+                {
+
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"GameInput 震動發生錯誤：{ex.Message}");
             }
-        });
+        },
+        ct);
     }
 
     /// <summary>

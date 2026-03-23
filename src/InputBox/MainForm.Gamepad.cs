@@ -24,8 +24,11 @@ public partial class MainForm
     /// </summary>
     private async Task InitializeGamepadControllerAsync()
     {
+        SemaphoreSlim? initLock = _gamepadInitLock;
+
         // 使用號誌確保一次只有一個初始化流程在運行，防止連點熱鍵引發的競爭。
-        if (!await _gamepadInitLock.WaitAsync(0))
+        if (initLock == null ||
+            !await initLock.WaitAsync(0))
         {
             return;
         }
@@ -560,7 +563,7 @@ public partial class MainForm
         }
         finally
         {
-            _gamepadInitLock.Release();
+            initLock?.Release();
         }
     }
 
@@ -885,6 +888,9 @@ public partial class MainForm
     private Task VibrateAsync(VibrationProfile profile)
     {
         // 委派給 Service 處理。
-        return FeedbackService.VibrateAsync(_gamepadController, profile);
+        return FeedbackService.VibrateAsync(
+            _gamepadController,
+            profile,
+            _formCts?.Token ?? CancellationToken.None);
     }
 }

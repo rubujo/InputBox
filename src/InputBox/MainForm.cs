@@ -92,7 +92,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 用於管理視窗生命週期內所有非同步任務的取消權杖來源
     /// </summary>
-    private readonly CancellationTokenSource _formCts = new();
+    private CancellationTokenSource? _formCts = new();
 
     /// <summary>
     /// 用於管理警示動畫（FlashAlert）的中斷控制
@@ -102,7 +102,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 控制器初始化鎖（防止重複建立實例）
     /// </summary>
-    private readonly SemaphoreSlim _gamepadInitLock = new(1, 1);
+    private SemaphoreSlim? _gamepadInitLock = new(1, 1);
 
     /// <summary>
     /// 右鍵選單
@@ -156,9 +156,21 @@ public partial class MainForm : Form
     private string _cachedTitlePrefix = string.Empty;
 
     /// <summary>
-    /// 是否有待處理的主題變更（需重啟以完全套用）
+    /// 啟動時是否為深色模式
     /// </summary>
-    private bool _isThemeUpdatePending = false;
+    private readonly bool _initialIsDarkMode;
+
+    /// <summary>
+    /// 啟動時是否為高對比模式
+    /// </summary>
+    private readonly bool _initialHighContrast;
+
+    /// <summary>
+    /// 判斷是否有待處理的主題變更（需重啟以完全套用）
+    /// </summary>
+    private bool IsThemeUpdatePending =>
+        _initialIsDarkMode != this.IsDarkModeActive() ||
+        _initialHighContrast != SystemInformation.HighContrast;
 
     /// <summary>
     /// 上一次套用佈局時的 DPI 值（用於防抖）
@@ -199,8 +211,9 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
-        // 開啟雙重緩衝以消除閃爍。
-        DoubleBuffered = true;
+        // 記錄啟動時的主題狀態基準值。
+        _initialIsDarkMode = this.IsDarkModeActive();
+        _initialHighContrast = SystemInformation.HighContrast;
 
         Disposed += (s, e) =>
         {
@@ -362,7 +375,7 @@ public partial class MainForm : Form
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         // 立即發出全域取消訊號，中止所有 UI 相關的非同步任務。
-        _formCts.Cancel();
+        _formCts?.Cancel();
 
         // 停止 A11y 背景工作者。
         // 先標記 Writer 完成，並取消對應的 CTS 以強行中斷 Delay。
@@ -404,8 +417,42 @@ public partial class MainForm : Form
 
         a11yCts?.Dispose();
 
+        // 處置 UI 相關 Label 以防 GDI 洩漏。
+        Label? lblInput = Interlocked.Exchange(ref _lblInput, null);
+
+        lblInput?.Dispose();
+
+        AnnouncerLabel? lblA11y = Interlocked.Exchange(ref _lblA11yAnnouncer, null);
+
+        lblA11y?.Dispose();
+
+        FormInputContext? inputCtx = Interlocked.Exchange(ref _inputContext, null);
+
+        inputCtx?.Dispose();
+
+        SemaphoreSlim? initLock = Interlocked.Exchange(ref _gamepadInitLock, null);
+
+        initLock?.Dispose();
+
+        ContextMenuStrip? cmsInput = Interlocked.Exchange(ref _cmsInput, null);
+
+        cmsInput?.Dispose();
+
+        // 原子化處置輸入框專用字型。
+        Font? inputFont = Interlocked.Exchange(ref _inputFont, null);
+
+        if (inputFont != null)
+        {
+            AddFontToTrashCan(inputFont);
+        }
+
+        // 確保所有旗標正確歸零。
+        Interlocked.Exchange(ref _isCapturingHotkey, 0);
+
         // 最後處置主權杖。
-        _formCts.Dispose();
+        CancellationTokenSource? formCts = Interlocked.Exchange(ref _formCts, null);
+
+        formCts?.Dispose();
 
         base.OnFormClosing(e);
     }
@@ -459,7 +506,9 @@ public partial class MainForm : Form
                     {
                         try
                         {
-                            await Task.Delay(1200, _formCts.Token);
+                            await Task.Delay(
+                                1200,
+                                _formCts?.Token ?? CancellationToken.None);
 
                             if (IsDisposed)
                             {
@@ -504,7 +553,9 @@ public partial class MainForm : Form
                 {
                     try
                     {
-                        await Task.Delay(1500, _formCts.Token);
+                        await Task.Delay(
+                            1500,
+                            _formCts?.Token ?? CancellationToken.None);
 
                         this.SafeInvoke(() =>
                         {
@@ -522,12 +573,12 @@ public partial class MainForm : Form
                     }
 
                 },
-                _formCts.Token);
+                _formCts?.Token ?? CancellationToken.None);
 
                 return true;
             }
 
-            // A11y 語音引導：當使用者只按住修飾鍵（尚未按下主要按鍵）時，重新廣播提示語並給予輕微震動回饋。
+            // 當使用者只按住修飾鍵（尚未按下主要按鍵）時，重新廣播提示語並給予輕微震動回饋。
             string strA11yMsg = $"{Strings.Msg_PressAnyKey} ({Strings.A11y_Capture_Esc_Cancel})";
 
             AnnounceA11y(strA11yMsg);
@@ -634,7 +685,7 @@ public partial class MainForm : Form
             privacyInfo = AppSettings.Current.IsPrivacyMode ?
                 Strings.App_Privacy_Suffix :
                 string.Empty,
-            themeInfo = _isThemeUpdatePending ?
+            themeInfo = IsThemeUpdatePending ?
                 Strings.App_ThemePending_Suffix :
                 string.Empty;
 
@@ -784,7 +835,9 @@ public partial class MainForm : Form
     {
         try
         {
-            await Task.Delay(Delay_ButtonReset, _formCts.Token);
+            await Task.Delay(
+                Delay_ButtonReset,
+                _formCts?.Token ?? CancellationToken.None);
         }
         catch (OperationCanceledException)
         {
@@ -950,6 +1003,43 @@ public partial class MainForm : Form
             }
 
             return font;
+        }
+    }
+
+    /// <summary>
+    /// 處置所有快取的字體資源，防止程式結束後的 GDI 洩漏
+    /// </summary>
+    public static void DisposeCaches()
+    {
+        lock (_regularFontCache)
+        {
+            foreach (Font font in _regularFontCache.Values)
+            {
+                font.Dispose();
+            }
+
+            _regularFontCache.Clear();
+        }
+
+        lock (_boldFontCache)
+        {
+            foreach (Font font in _boldFontCache.Values)
+            {
+                font.Dispose();
+            }
+
+            _boldFontCache.Clear();
+        }
+
+        // 清理回收桶中剩餘的字體。
+        lock (_fontTrashCan)
+        {
+            foreach (Font font in _fontTrashCan)
+            {
+                font.Dispose();
+            }
+
+            _fontTrashCan.Clear();
         }
     }
 }

@@ -53,10 +53,11 @@ internal class FeedbackService
     /// </summary>
     /// <param name="controller">控制器實例（允許為 null）</param>
     /// <param name="profile">震動設定檔</param>
+    /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
-    public static Task VibrateAsync(IGamepadController? controller, VibrationProfile profile)
+    public static Task VibrateAsync(IGamepadController? controller, VibrationProfile profile, CancellationToken ct = default)
     {
-        return VibrateAsync(controller, profile.Strength, profile.Duration);
+        return VibrateAsync(controller, profile.Strength, profile.Duration, ct);
     }
 
     /// <summary>
@@ -70,8 +71,13 @@ internal class FeedbackService
     /// <param name="controller">控制器實例（允許為 null）</param>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">毫秒</param>
+    /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
-    public static async Task VibrateAsync(IGamepadController? controller, ushort strength, int milliseconds)
+    public static async Task VibrateAsync(
+        IGamepadController? controller,
+        ushort strength,
+        int milliseconds,
+        CancellationToken ct = default)
     {
         // 讀取設定檔開關。
         if (!AppSettings.Current.EnableVibration)
@@ -112,15 +118,19 @@ internal class FeedbackService
         try
         {
             // 傳送震動指令。
-            await controller.VibrateAsync(finalStrength, milliseconds);
+            await controller.VibrateAsync(finalStrength, milliseconds, ct);
 
             // 震動結束後的清理（停止馬達）。
             // 只有在世代 ID 依然吻合時，才發送停止指令。
             // 如果 ID 已變動，代表有更新的震動請求已發出，我們不應介入。
             if (Interlocked.Read(ref _vibrationGeneration) == currentGeneration)
             {
-                await controller.VibrateAsync(0, 0);
+                await controller.VibrateAsync(0, 0, ct);
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // 正常取消。
         }
         catch
         {

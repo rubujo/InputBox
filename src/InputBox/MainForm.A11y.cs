@@ -273,7 +273,7 @@ public partial class MainForm
         _a11yCts = new CancellationTokenSource();
 
         // 啟動背景工作者。
-        _ = ProcessA11yAnnouncementsAsync(_a11yCts.Token);
+        _ = ProcessA11yAnnouncementsAsync(_a11yCts?.Token ?? CancellationToken.None);
     }
 
     /// <summary>

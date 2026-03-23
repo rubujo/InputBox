@@ -31,7 +31,9 @@ public partial class MainForm
                     {
                         // 加上 50 毫秒延遲：讓 Windows 視窗放大動畫跑完，HWND 完全準備好。
                         // 否則 TextBox 的 BackColor 會被系統底層強制洗白。
-                        await Task.Delay(50, _formCts.Token);
+                        await Task.Delay(
+                            50,
+                            _formCts?.Token ?? CancellationToken.None);
                     }
                     catch (OperationCanceledException)
                     {
@@ -50,7 +52,7 @@ public partial class MainForm
                     {
                         TBInput.Focus();
 
-                        // 手動補發 Enter 事件，強制更新黑底與邊框視覺
+                        // 手動補發 Enter 事件，強制更新黑底與邊框視覺。
                         TBInput_Enter(TBInput, EventArgs.Empty);
                     }
                 }
@@ -76,7 +78,9 @@ public partial class MainForm
             // 延遲讓系統完成動畫與視窗狀態更新，再強制還原。
             try
             {
-                await Task.Delay(AppSettings.Current.WindowRestoreDelay, _formCts.Token);
+                await Task.Delay(
+                    AppSettings.Current.WindowRestoreDelay,
+                    _formCts?.Token ?? CancellationToken.None);
             }
             catch (OperationCanceledException)
             {
@@ -115,7 +119,9 @@ public partial class MainForm
             // 延遲 100ms 避開視窗開啟音效。
             try
             {
-                await Task.Delay(100, _formCts.Token);
+                await Task.Delay(
+                    100,
+                    _formCts?.Token ?? CancellationToken.None);
             }
             catch (OperationCanceledException)
             {
@@ -133,7 +139,9 @@ public partial class MainForm
             // 延後播報狀態摘要（隱私模式與目前快速鍵）。
             try
             {
-                await Task.Delay(1500, _formCts.Token);
+                await Task.Delay(
+                    1500,
+                    _formCts?.Token ?? CancellationToken.None);
             }
             catch (OperationCanceledException)
             {
@@ -179,18 +187,18 @@ public partial class MainForm
             {
                 this.SafeInvoke(() =>
                 {
+                    SuspendLayout();
+
                     try
                     {
                         // 抗抖動物理鎖定：鎖定 PInputHost 寬度，防止字體度量變更引發容器抖動。
                         int currentWidth = PInputHost.Width;
 
-                        PInputHost.MinimumSize = new Size(currentWidth, 0);
-                        PInputHost.MaximumSize = new Size(currentWidth, 0);
+                        // 鎖定寬度，但不限制高度（維持原本的高度限制狀態）。
+                        PInputHost.MinimumSize = new Size(currentWidth, PInputHost.MinimumSize.Height);
+                        PInputHost.MaximumSize = new Size(currentWidth, PInputHost.MaximumSize.Height);
 
-                        // 設定待處理標記並更新視覺提示。
-                        _isThemeUpdatePending = true;
-
-                        // 根據規範，系統無障礙設定（如高對比、大字型、動畫開關）變更時，需重新套用在地化資源與佈局。
+                        // 系統無障礙設定變更時，需重新套用在地化資源與佈局。
                         ApplyLocalization();
 
                         // 即時同步不透明度防護（高對比模式下強制 100%）。
@@ -224,6 +232,8 @@ public partial class MainForm
                     }
                     finally
                     {
+                        ResumeLayout(true);
+
                         // 解除物理鎖定（恢復自動調適能力）。
                         PInputHost.MinimumSize = Size.Empty;
                         PInputHost.MaximumSize = Size.Empty;
@@ -607,9 +617,14 @@ public partial class MainForm
             _originalBtnPadding = BtnCopy.Padding;
         }
 
-        if (isKeyboardFocus)
+        // 核心邏輯調整：
+        // 1. 若為鍵盤焦點觸發且滑鼠「不在」按鈕上，則套用強烈靜態視覺（不啟動動畫）。
+        // 2. 其餘情況（主要是滑鼠懸停），不論是否有焦點，皆啟動 Dwell 動畫以支援 Re-gaze。
+        bool isPureKeyboardFocus = isKeyboardFocus && !_isBtnHovered;
+
+        if (isPureKeyboardFocus)
         {
-            // 強烈視覺：鍵盤焦點（Tab 鍵切換過來）。
+            // 強烈視覺：純鍵盤焦點（Tab 鍵切換過來，且滑鼠不在上方）。
             // 目的：讓使用者明確知道按下 Enter 會觸發此按鈕。
 
             // 打斷並徹底重置 Dwell 進度。
@@ -649,9 +664,8 @@ public partial class MainForm
         }
         else
         {
-            // 溫和視覺：滑鼠／眼控 Hover。
-            // 目的：提示游標位置，但不搶走鍵盤焦點的風采。
-
+            // 溫和視覺與動畫：滑鼠／眼控懸停（Hover）。
+            // 備註：即便目前已有鍵盤焦點，只要滑鼠進入，就轉為 Dwell 動畫模式以支援 Re-gaze。
             if (SystemInformation.HighContrast)
             {
                 BtnCopy.BackColor = SystemColors.HotTrack;
@@ -684,12 +698,12 @@ public partial class MainForm
             BtnCopy.FlatAppearance.BorderSize = 0;
             BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Hover})";
 
-            // 動畫回饋：僅在視線/滑鼠進入時播放。
+            // 動畫回饋：只要有 Hover，不論焦點狀態，皆啟動 Dwell！
             BtnCopy.RunDwellAnimationAsync(
                     id,
                     () => Interlocked.Read(ref _animationId),
                     (p) => _dwellProgress = p,
-                    ct: _formCts.Token)
+                    ct: _formCts?.Token ?? CancellationToken.None)
                 .SafeFireAndForget();
         }
 
@@ -714,7 +728,15 @@ public partial class MainForm
             return;
         }
 
-        // 只有在確實失焦且無懸停，或強制還原時執行。
+        // 若滑鼠已移出但仍具備鍵盤焦點，則由 Hover 樣式跳回強烈靜態高亮。
+        if (!force && !_isBtnHovered && BtnCopy.Focused)
+        {
+            ApplyButtonHoverStyle(isKeyboardFocus: true);
+
+            return;
+        }
+
+        // 只有在確實失焦且無懸停，或強制還原時執行完整還原。
         if (force ||
             (!BtnCopy.Focused && !_isBtnHovered))
         {
@@ -734,7 +756,7 @@ public partial class MainForm
 
             BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
             BtnCopy.FlatAppearance.BorderColor = Color.Empty;
-            // 邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
+            // 邊框由 Paint 事件繪製，此處將原生 BorderSize = 0。
             BtnCopy.FlatAppearance.BorderSize = 0;
         }
 
@@ -1192,7 +1214,7 @@ public partial class MainForm
                     break;
                 }
 
-                await Task.Delay(50, _formCts.Token);
+                await Task.Delay(50, _formCts?.Token ?? CancellationToken.None);
             }
 
             // 焦點確定取得後，廣播 A11y 宣告。
@@ -1207,7 +1229,7 @@ public partial class MainForm
                 AnnounceA11y(Strings.A11y_MainFormName);
             });
         },
-        _formCts.Token).SafeFireAndForget();
+        _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -1228,7 +1250,7 @@ public partial class MainForm
             await _navigationService.NavigateBackAsync(
                 _gamepadController,
                 msg => AnnounceA11y(msg),
-                _formCts.Token);
+                _formCts?.Token ?? CancellationToken.None);
 
             return;
         }
@@ -1243,7 +1265,7 @@ public partial class MainForm
         await _navigationService.NavigateBackAsync(
             _gamepadController,
             msg => AnnounceA11y(msg),
-            _formCts.Token);
+            _formCts?.Token ?? CancellationToken.None);
 
         // 如果切換後，目前視窗仍是前景視窗，代表切換失敗。
         if (User32.ForegroundWindow == Handle)
@@ -1269,9 +1291,9 @@ public partial class MainForm
 
         // 建立本次動畫專用的中斷權杖。
         _alertCts?.Cancel();
-        _alertCts = CancellationTokenSource.CreateLinkedTokenSource(_formCts.Token);
+        _alertCts = CancellationTokenSource.CreateLinkedTokenSource(_formCts?.Token ?? CancellationToken.None);
 
-        CancellationToken token = _alertCts.Token;
+        CancellationToken token = _alertCts?.Token ?? CancellationToken.None;
 
         try
         {
@@ -1491,7 +1513,9 @@ public partial class MainForm
             {
                 try
                 {
-                    await Task.Delay(1000, _formCts.Token);
+                    await Task.Delay(
+                        1000,
+                        _formCts?.Token ?? CancellationToken.None);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1581,7 +1605,9 @@ public partial class MainForm
     {
         try
         {
-            await Task.Delay(AppSettings.Current.TouchKeyboardDismissDelay, _formCts.Token);
+            await Task.Delay(
+                AppSettings.Current.TouchKeyboardDismissDelay,
+                _formCts?.Token ?? CancellationToken.None);
 
             Interlocked.Exchange(ref _isShowingTouchKeyboard, 0);
         }

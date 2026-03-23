@@ -140,8 +140,12 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">持續時間（毫秒），預設值為 60 毫秒</param>
+    /// <param name="ct">取消權杖</param>
     /// <returns>Task。</returns>
-    Task VibrateAsync(ushort strength, int milliseconds = 60);
+    Task VibrateAsync(
+        ushort strength,
+        int milliseconds = 60,
+        CancellationToken ct = default);
 
     /// <summary>
     /// 同步強制停止震動（用於應用程式關閉等緊急情境）

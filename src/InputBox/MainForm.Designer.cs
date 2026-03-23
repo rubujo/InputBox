@@ -121,6 +121,7 @@ partial class MainForm
         AutoScaleMode = AutoScaleMode.Dpi;
         ClientSize = new Size(384, 60);
         Controls.Add(TLPHost);
+        DoubleBuffered = true;
         Font = new Font("Microsoft JhengHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 136);
         Icon = (Icon)resources.GetObject("$this.Icon");
         Name = "MainForm";

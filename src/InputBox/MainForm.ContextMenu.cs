@@ -34,7 +34,7 @@ public partial class MainForm
         _cmsInput ??= new ContextMenuStrip();
 
         // 動態加入主題變更重啟提示。
-        if (_isThemeUpdatePending)
+        if (IsThemeUpdatePending)
         {
             ToolStripMenuItem tsmiRestart = new()
             {
@@ -702,7 +702,7 @@ public partial class MainForm
             if (_cmsInput != null)
             {
                 // 在重新整理時，若有待處理變更則動態注入重啟選項。
-                if (_isThemeUpdatePending &&
+                if (IsThemeUpdatePending &&
                     !_cmsInput.Items.Cast<ToolStripItem>().Any(n => n.AccessibleName == Strings.Menu_ApplyThemeRestart))
                 {
                     ToolStripMenuItem tsmiRestart = new()
