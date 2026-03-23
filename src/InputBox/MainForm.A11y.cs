@@ -67,8 +67,8 @@ public partial class MainForm
         FontStyle fontStyle = FontStyle.Regular,
         FontFamily? family = null)
     {
-        // 根據規範，預設為 11f 放大字型。
-        const float baseFontSize = 11.0f,
+        // 根據規範，預設為 14f 放大字型。
+        const float baseFontSize = 14.0f,
             // 根據規範，基準 DPI 固定為 96.0f。
             baseDpi = 96.0f;
 

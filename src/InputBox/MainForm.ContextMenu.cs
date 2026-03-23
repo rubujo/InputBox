@@ -677,7 +677,7 @@ public partial class MainForm
         Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
 
         // 使用安全取得的 baseFont 來建立新字型。
-        _cmsInput.Font = new Font(baseFont.FontFamily, 11f * scale, FontStyle.Regular);
+        _cmsInput.Font = new Font(baseFont.FontFamily, 14f * scale, FontStyle.Regular);
 
         _cmsInput.Items.Add(_tsmiPrivacyMode);
         _cmsInput.Items.Add(tsmiHotkeySettings);

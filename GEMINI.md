@@ -34,15 +34,20 @@
 - **非同步規範**：
   - 嚴格遵守 `async/await`。除事件處理器外，禁止使用 `async void`。
   - 事件處理器內必須包含完備的 `try-catch` 以防程式異常崩潰。
+  - **權杖安全（Token Safety）**：存取 `CancellationTokenSource?` 欄位的 `.Token` 時，必須使用 `?.Token ?? CancellationToken.None` 模式，杜絕併發下的 `NullReferenceException`。
 - **UI 執行緒安全**：跨執行緒操作 UI 必須調用 `ControlExtensions.cs` 中的 `SafeInvoke` 系列方法。
 - **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置（利用 `Interlocked.Exchange` 確保併發安全）並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
+  - **字體快取池（Font Pool）**：`A11yFont` 必須透過基於 DPI 的快取池取得，禁止在未受管理下直接建立 `Font` 實例。
+  - **資源回收桶（Trash Can）**：更換字體時，舊字體必須進入 `AddFontToTrashCan` 回收桶並延遲釋放，避免 UI 重繪期間的資源占用。
+  - **全域處置**：程式結束前（`Program.cs`）必須調用 `DisposeCaches()` 徹底清理快取池。
 - **DPI 適應性規範**：
   - 視窗必須實作 `UpdateMinimumSize` 邏輯，並在 `OnHandleCreated` 與 `OnDpiChanged` 中調用，確保在高 DPI 或縮放變更時佈局不崩潰。
   - 計算佈局尺寸時，必須基於 `DeviceDpi` 與 96.0f 的比例進行縮放（Scale）。
 - **自定義對話框控制器標準**：
   - 所有自定義對話框（如 `NumericInputDialog`）必須具備 `GamepadController` 屬性。
   - 必須實作手把按鍵映射：`A／Start` 為確認、`B／Back` 為取消、`X` 為重設。
-  - 視窗字型必須繼承或共享主視窗的 A11y 字型設定（預設為 11f 放大字型），確保視覺一致性與易讀性。
+  - 視窗字型必須繼承或共享主視窗的 A11y 字型設定（基準為 **14f** 放大字型），確保視覺一致性與易讀性。
+  - 核心輸入框（`TBInput`）維持 **28f** 基準大小，作為視覺層級頂點。
 
 ## 2. A11y 無障礙與視覺安全規範
 
@@ -51,6 +56,8 @@
   - 必須實作基於 `Interlocked` 的「序號檢查」，確保在高頻率廣播下能自動捨棄過時訊息。
   - 廣播前保留 200ms 延遲以避開系統音效干擾與 Audio Ducking。
   - **重複訊息處理**：廣播重複訊息時，結尾應交替附加 `\u200B`（ZWSP）或 `\u200C`（ZWNJ）強迫 UIA 識別內容變動，確保連續觸發時螢幕閱讀器能正確重讀。
+- **視覺穩定性與防閃爍**：
+  - **雙重緩衝（Double Buffered）**：`MainForm` 與所有自定義對話框必須啟用 `DoubleBuffered = true`。
 - **分離式回饋原則（Separated Feedback）**：
   - **鍵盤焦點**：當控制項透過鍵盤（如 Tab 鍵）獲得焦點時，僅執行「強烈靜態視覺回饋」（如明暗反轉、字體加粗），禁止啟動耗時的填滿動畫。
   - **注視／懸停**：當視線進入或滑鼠懸停時，啟動「線性填滿（Linear Fill）」動畫，提供明確的動作預期感。
@@ -96,6 +103,7 @@
   - **動態主題管理（Dynamic Theme Management）**：
     - **禁止硬編碼預設色**：在執行階段（Runtime）還原控制項顏色時，禁止將 `BackColor` 或 `ForeColor` 賦值為特定的 `SystemColors` 靜態屬性（如 `SystemColors.Control`），這在 .NET 10 深色模式下會導致還原回錯誤的淺灰色。
     - **優先使用屬性重設**：還原預設配色時，應將顏色屬性設為 `Color.Empty`（或 `default`）。這能觸發 .NET 10 的原生主題引擎，自動根據當前系統配色（深色／淺色／高對比）套用正確的環境顏色。
+    - **主題重啟判定**：判定是否需要重啟的基準應基於啟動時的初始狀態（`initialIsDarkMode`, `initialHighContrast`），確保精確判定主題變更。
 - **⚠️ 核心限制：設計工具（Designer）保護與硬編碼原則**：
   - **設計時視覺化**：為了在 Visual Studio 設計工具內能直觀預覽文字與佈局（因 L10N 為非標準實作），允許且建議在 Designer 中硬編碼正體中文文字與 A11y 屬性。
   - **屬性疊加**：Designer 內設定的值為基礎，執行階段（Runtime）必須透過 `ApplyLocalization` 或分部類別（如 `MainForm.A11y.cs`）再次賦值以確保多語系正確性。
@@ -103,9 +111,10 @@
 
 ## 3. 遊戲控制器輸入 API 指引（XInput & GameInput）
 
-- **自動退避**：預設優先嘗試 `GameInput`；若初始化失敗，必須自動退避至 `XInput` 並告知使用者。
+- **自動退避機制**：當使用者設定使用 `GameInput` 但初始化失敗時，系統必須自動退避至 `XInput` 並告知使用者（AnnounceA11y）。應用程式之預設提供者應設定為相容性最高之 `XInput`。
 - **震動安全性**：
   - 必須實作 `VibrationToken`（Interlocked 遞增整數）機制，解決非同步停止震動時的競態條件。
+  - **連結權杖（Linked Token）**：震動延遲必須結合外部取消權杖與內部覆蓋權杖，確保在視窗關閉時馬達能立即停止。
   - 程式崩潰或結束前必須執行 `EmergencyStopAllActiveControllers()` 強制停止所有馬達。
 - **效能標準**：輪詢必須使用 `PeriodicTimer` 鎖定在 60 FPS（約 16.6ms），且必須受 `CancellationToken` 監控。
 
@@ -128,7 +137,7 @@
 ### 系統整合安全性
 
 - **P/Invoke**：必須套用 `[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]`。
-- **單一執行個體**：Mutex 必須具備 GUID 與 `Local\` 前綴以隔離使用者工作階段。
+- **單一執行個體**：Mutex 絕對禁止重複獲取。Mutex 必須具備 GUID 與 `Local\` 前綴以隔離使用者工作階段。
 - **原子操作**：儲存設定檔必須使用原子寫入機制（暫存檔 + `File.Move()`）。
 
 ## 5. 在地化術語規範
