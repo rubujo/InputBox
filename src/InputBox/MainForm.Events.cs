@@ -444,23 +444,28 @@ public partial class MainForm
 
         bool isDark = BtnCopy.IsDarkModeActive();
 
-        // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
-        // 只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，指引 Enter 鍵動作並避免雙焦點誤導。
+        // 雙焦點衝突防護（Dual-Focus Conflict Protection）：
+        // 判斷該按鈕是否為目前表單的預設動作按鈕（AcceptButton）。
+        // 根據規範，只有當目前焦點「不在任何按鈕上」且按鈕為「可用狀態」時，預設按鈕才顯示焦點邊框，
+        // 以指引 Enter 鍵動作並避免畫面上出現多個「焦點色」區域造成誤導。
         bool isDefault = ReferenceEquals(AcceptButton, BtnCopy) &&
-            ActiveControl is not Button;
+            ActiveControl is not Button &&
+            BtnCopy.Enabled;
 
-        // 基礎邊框（預設狀態）。
-        // 由於 BorderSize = 0，必須手動繪製基礎邊框以保持物理辨識度。
+        // 基礎邊框（預設狀態）：
+        // 由於 BorderSize = 0，手動繪製基礎邊框以保持物理辨識度。
+        // 使用動態厚度（至少 1 像素）以適應高 DPI 環境。
         if (!BtnCopy.Focused &&
             !_isBtnHovered &&
             !isDefault)
         {
-            // 高對比模式下使用系統框線色，確保物理辨識度。
+            int baseThickness = (int)Math.Max(1, scale);
+
             using Pen basePen = new(
                 SystemInformation.HighContrast ?
                     SystemColors.WindowFrame :
                     (isDark ? Color.DimGray : Color.DarkGray),
-                1);
+                baseThickness);
 
             e.Graphics.DrawRectangle(
                 basePen,
@@ -470,15 +475,16 @@ public partial class MainForm
                 BtnCopy.Height - 1);
         }
 
-        // 繪製焦點、懸停與預設動作邊框（Focus／Hover／Default Border）。
+        // 繪製焦點、懸停與預設動作邊框（Focus／Hover／Default Border）：
         if (BtnCopy.Focused ||
             _isBtnHovered ||
             isDefault)
         {
+            // 實施「Zero-Jitter」原則：使用固定的 3 像素厚度，與輸入框焦點邊框對齊。
             int borderThickness = (int)Math.Max(3, 3 * scale),
                 inset = (int)Math.Max(2, 2 * scale);
 
-            // 淺色模式表單（黑底控制項）用 Cyan；深色模式表單（白底控制項）用 RoyalBlue。
+            // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
             using Pen borderPen = new(
                 SystemInformation.HighContrast ?
                     SystemColors.HighlightText :
@@ -971,7 +977,7 @@ public partial class MainForm
         // ↓：下一筆。
         if (e.KeyCode == Keys.Down)
         {
-            // 取得游標目前所在的行數。 
+            // 取得游標目前所在的行數。
             int currentLine = TBInput.GetLineFromCharIndex(TBInput.SelectionStart),
                 // 取得文字方塊總共的行數（最後一行的 Index）。
                 totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
@@ -1306,7 +1312,7 @@ public partial class MainForm
 
             void ApplyAlertVisuals(float intensity)
             {
-                this.SafeInvoke(() =>
+                this.SafeInvokeAsync(() =>
                 {
                     if (IsDisposed ||
                         !IsHandleCreated)
@@ -1332,7 +1338,7 @@ public partial class MainForm
                     }
                     else
                     {
-                        // 閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan/RoyalBlue）插值產生髒濁色。
+                        // 閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan／RoyalBlue）插值產生髒濁色。
                         Color pureBase = isDark ?
                             Color.White :
                             Color.Black;
@@ -1342,15 +1348,15 @@ public partial class MainForm
                             bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
                         Color flashColor = Color.FromArgb(255, rB, gB, bB),
-                            // 決定閃爍期間的前景對比色。
-                            flashFore = isDark ?
+                            // 根據背景亮度的知覺亮度（Perceptual Luminance）決定前景文字色，確保對比度符合規範。
+                            flashFore = (flashColor.R * 0.299 + flashColor.G * 0.587 + flashColor.B * 0.114) > 128 ?
                                 Color.Black :
                                 Color.White;
 
                         // 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
                         PInputHost.UpdateRecursive(flashColor, flashFore);
                     }
-                });
+                }).SafeFireAndForget();
             }
 
             // 嚴格遵守光敏性癲癇防護與使用者偏好：
@@ -1368,7 +1374,7 @@ public partial class MainForm
 
             int totalDuration = AppSettings.PhotoSafeFrequencyMs;
 
-            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16));
+            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16.6));
 
             long startTime = Stopwatch.GetTimestamp();
 
@@ -1463,28 +1469,27 @@ public partial class MainForm
             return;
         }
 
-        // 根據 DPI 計算厚度差異。
+        // 根據規範實施「Zero-Jitter」原則：Padding 必須固定以防止佈局抖動。
+        // 使用 3 像素作為平衡美感與 A11y 辨識度的黃金厚度。
         float scale = DeviceDpi / BaseDpi;
 
-        int activeThickness = (int)Math.Max(5, 5 * scale),
-            normalThickness = (int)Math.Max(2, 2 * scale);
+        int fixedThickness = (int)Math.Max(3, 3 * scale);
+
+        // 始終維持固定的 Padding，消除焦點切換時的文字跳動。
+        PInputHost.Padding = new Padding(fixedThickness);
 
         if (isFocused)
         {
-            // 獲得焦點：加粗邊框（顯著形狀變化）+ 同步高對比配色。
-            // 語意一致性：使用與按鈕焦點框相同的配色邏輯。
-            // 最終修正：淺色模式（黑底控制項）用 Cyan（14:1）；深色模式（白底控制項）用 RoyalBlue（4.9:1）。
+            // 獲得焦點：僅變更背景色以提供視覺暗示。
+            // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
             PInputHost.BackColor = SystemInformation.HighContrast ?
                 SystemColors.Highlight :
                 (TBInput.IsDarkModeActive() ? Color.RoyalBlue : Color.Cyan);
-
-            PInputHost.Padding = new Padding(activeThickness);
         }
         else
         {
-            // 失去焦點：細邊框 + 預設還原色（觸發主題引擎）。
+            // 失去焦點：還原為透明／預設色。
             PInputHost.BackColor = Color.Empty;
-            PInputHost.Padding = new Padding(normalThickness);
         }
     }
 

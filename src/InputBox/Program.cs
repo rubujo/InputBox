@@ -72,9 +72,6 @@ internal static class Program
             AppSettings.Load();
 
             Application.Run(new MainForm());
-
-            // 程式結束前處置全域字體快取，杜絕 GDI Handle 洩漏。
-            MainForm.DisposeCaches();
         }
         catch (Exception ex)
         {
@@ -83,6 +80,10 @@ internal static class Program
         }
         finally
         {
+            // 程式結束前處置全域字體快取，杜絕 GDI Handle 洩漏。
+            // 移至 finally 確保在任何結束路徑下皆能執行。
+            MainForm.DisposeCaches();
+
             SystemEvents.SessionEnding -= sessionEndingHandler;
 
             ReleaseMutex();

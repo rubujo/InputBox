@@ -339,8 +339,9 @@ public partial class MainForm
                                     return;
                                 }
 
-                                // 增加延遲（200ms）以避開系統音效（如 Asterisk）的音訊高峰。
-                                await Task.Delay(200, cancellationToken);
+                                // 增加延遲以避開系統音效（如 Asterisk）的音訊高峰。
+                                // 根據規範，統一使用 AudioDuckingDelayMs。
+                                await Task.Delay(AnnouncerLabel.AudioDuckingDelayMs, cancellationToken);
 
                                 if (cancellationToken.IsCancellationRequested ||
                                     IsDisposed)

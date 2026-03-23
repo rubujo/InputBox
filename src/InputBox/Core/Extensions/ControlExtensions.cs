@@ -67,7 +67,52 @@ public static class ControlExtensions
     }
 
     /// <summary>
-    /// 安全的非同步 Invoke（支援 await）
+    /// 安全的非同步 Invoke（支援 Action）。
+    /// 在 async 任務內優先使用此方法，內部封裝了 .NET 10 原生 InvokeAsync 並加入安全檢查。
+    /// </summary>
+    /// <param name="control">控制項</param>
+    /// <param name="action">Action</param>
+    /// <returns>Task</returns>
+    public static async Task SafeInvokeAsync(this Control control, Action action)
+    {
+        if (control == null ||
+            control.IsDisposed)
+        {
+            return;
+        }
+
+        if (!control.IsHandleCreated)
+        {
+            action();
+
+            return;
+        }
+
+        try
+        {
+            // 調用 .NET 10 原生非同步調度 API。
+            await control.InvokeAsync(() =>
+            {
+                if (!control.IsDisposed && control.IsHandleCreated)
+                {
+                    action();
+                }
+            });
+        }
+        catch (ObjectDisposedException)
+        {
+
+        }
+        catch (InvalidOperationException)
+        {
+
+        }
+
+        // 其餘業務邏輯例外應讓它向上拋出，以便被全域例外處理器攔截。
+    }
+
+    /// <summary>
+    /// 安全的非同步 Invoke（支援包含 await 的非同步邏輯）
     /// </summary>
     /// <param name="control">要執行的控制項</param>
     /// <param name="action">要執行的非同步動作</param>
@@ -308,7 +353,8 @@ public static class ControlExtensions
 
         Stopwatch stopwatch = Stopwatch.StartNew();
 
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16));
+        // 根據規範：統一使用 60 FPS（16.6ms）物理頻率。
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16.6));
 
         while (await timer.WaitForNextTickAsync(ct) &&
             animationIdGetter() == id &&
@@ -351,11 +397,19 @@ public static class ControlExtensions
             return;
         }
 
-        // 1. 更新本體。
+        // 更新本體。
         parent.BackColor = bg;
         parent.ForeColor = fg;
 
-        // 2. 遞歸更新所有子控制項。
+        // 針對複合控制項（如 NumericUpDown）的特殊強化：
+        // NUD 內部的 TextBox 對於 BackColor 的變更可能存在渲染延遲，
+        // 透過強制 Invalidate 確保內部的私有子元件立即重繪，防止閃爍殘留（Ghosting）。
+        if (parent is NumericUpDown)
+        {
+            parent.Invalidate(true);
+        }
+
+        // 遞歸更新所有子控制項。
         // 對於 NumericUpDown 等複合控制項，其 Controls 集合包含了內部的 TextBox 與按鈕。
         foreach (Control child in parent.Controls)
         {

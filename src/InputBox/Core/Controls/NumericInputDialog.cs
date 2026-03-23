@@ -113,6 +113,16 @@ internal sealed class NumericInputDialog : Form
     private TableLayoutPanel? _tlpGrid;
 
     /// <summary>
+    /// 確認按鈕
+    /// </summary>
+    private readonly Button? _btnOk;
+
+    /// <summary>
+    /// 取消按鈕
+    /// </summary>
+    private readonly Button? _btnCancel;
+
+    /// <summary>
     /// 增加按鈕
     /// </summary>
     private Button? _btnPlus;
@@ -204,12 +214,32 @@ internal sealed class NumericInputDialog : Form
         }
     }
 
+    protected override void OnResizeEnd(EventArgs e)
+    {
+        base.OnResizeEnd(e);
+
+        // 拖曳結束時執行智慧定位修正。
+        ApplySmartPosition();
+    }
+
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
 
         UpdateMinimumSize();
 
+        // 使用 SafeBeginInvoke 讓字型替換邏輯排在 Handle 建立完成「之後」才執行。
+        this.SafeBeginInvoke(new Action(() =>
+        {
+            // 套用透明度。
+            UpdateOpacity();
+
+            // 執行初始位置檢查。
+            ApplySmartPosition();
+        }));
+
+        // 先解除再訂閱靜態事件，防止 Handle 重建時產生重複訂閱。
+        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
         SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
     }
 
@@ -230,8 +260,19 @@ internal sealed class NumericInputDialog : Form
                 MainForm.AddFontToTrashCan(oldA11yFont);
             }
 
+            // 同步更新所有按鈕的基礎字體。
+            if (_a11yFont != null)
+            {
+                _btnOk?.Font = _a11yFont;
+                _btnCancel?.Font = _a11yFont;
+                _btnPlus?.Font = _a11yFont;
+                _btnMinus?.Font = _a11yFont;
+                _btnReset?.Font = _a11yFont;
+            }
+
             // 數值顯示區字體需重新依據新縮放比例建立。
-            if (_a11yFont != null && _nud != null)
+            if (_a11yFont != null &&
+                _nud != null)
             {
                 // 將舊字體移入 MainForm 的回收桶，防止重繪時崩潰。
                 Font? oldNudFont = _nudFont;
@@ -292,10 +333,8 @@ internal sealed class NumericInputDialog : Form
                 _cts.Cancel();
                 _cts.Dispose();
             }
-            catch (ObjectDisposedException)
-            {
-
-            }
+            catch (ObjectDisposedException) { }
+            catch (AggregateException) { }
 
             // 原子化處置 UI 控制項與資源。
             Interlocked.Exchange(ref _nud, null)?.Dispose();
@@ -304,7 +343,8 @@ internal sealed class NumericInputDialog : Form
             Interlocked.Exchange(ref _btnMinus, null)?.Dispose();
             Interlocked.Exchange(ref _btnReset, null)?.Dispose();
 
-            _nudFont?.Dispose();
+            // 注意：_nudFont 與 _a11yFont 來自 MainForm 的共享快取池，
+            // 絕對禁止在此處手動處置，否則會導致 GDI+ 丟出 Parameter is not valid 異常。
             _announcer?.Dispose();
         }
 
@@ -384,6 +424,12 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleConfirm() => this.SafeInvoke(() =>
     {
+        if (IsDisposed ||
+            !IsHandleCreated)
+        {
+            return;
+        }
+
         _nud?.ValidateValue();
 
         DialogResult = DialogResult.OK;
@@ -396,6 +442,12 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleCancel() => this.SafeInvoke(() =>
     {
+        if (IsDisposed ||
+            !IsHandleCreated)
+        {
+            return;
+        }
+
         DialogResult = DialogResult.Cancel;
 
         Close();
@@ -406,11 +458,15 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleReset() => this.SafeInvoke(() =>
     {
-        if (_nud != null)
+        if (IsDisposed ||
+            !IsHandleCreated ||
+            _nud == null)
         {
-            _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
-            _nud.Focus();
+            return;
         }
+
+        _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
+        _nud.Focus();
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -482,7 +538,8 @@ internal sealed class NumericInputDialog : Form
                             bN = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
                         Color flashColor = Color.FromArgb(255, rN, gN, bN),
-                            flashFore = isDark ?
+                            // 根據背景亮度的知覺亮度（Perceptual Luminance）決定前景文字色，確保對比度符合規範。
+                            flashFore = (flashColor.R * 0.299 + flashColor.G * 0.587 + flashColor.B * 0.114) > 128 ?
                                 Color.Black :
                                 Color.White;
 
@@ -502,7 +559,7 @@ internal sealed class NumericInputDialog : Form
 
             int totalDuration = AppSettings.PhotoSafeFrequencyMs;
 
-            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16));
+            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16.6));
 
             long startTime = Stopwatch.GetTimestamp();
 
@@ -572,13 +629,14 @@ internal sealed class NumericInputDialog : Form
                 try
                 {
                     // 統一 Audio Ducking 避讓延遲。
-                    await Task.Delay(200, _cts.Token);
+                    await Task.Delay(AnnouncerLabel.AudioDuckingDelayMs, _cts.Token);
 
                     if (Interlocked.Read(ref _a11yDebounceId) == currentId &&
                         !IsDisposed &&
                         IsHandleCreated)
                     {
-                        this.SafeInvoke(() =>
+                        // 使用非同步釋放模式更新 UI。
+                        await this.SafeInvokeAsync(() =>
                         {
                             if (_announcer != null &&
                                 !_announcer.IsDisposed)
@@ -590,15 +648,14 @@ internal sealed class NumericInputDialog : Form
                 }
                 catch (OperationCanceledException)
                 {
-                    // 正常取消。
+
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[A11y] 對話框本地廣播失敗：{ex.Message}");
                 }
             },
-            _cts.Token)
-            .SafeFireAndForget();
+            _cts.Token).SafeFireAndForget();
         }
     }
 
@@ -663,23 +720,135 @@ internal sealed class NumericInputDialog : Form
     }
 
     /// <summary>
-    /// 更新視窗最小尺寸
+    /// 更新視窗最小尺寸與按鈕佈局約束
     /// </summary>
     private void UpdateMinimumSize()
     {
         float scale = DeviceDpi / 96.0f;
 
-        // 使用 SizeFromClientSize 進行精確測量。
+        // 1. 內容感知：更新所有按鈕的佈局約束（Bold 預測）。
+        // 確保按鈕在獲得焦點變為粗體時，物理邊界保持絕對靜止，達成 Zero-Jitter。
+        UpdateButtonConstraints(_btnOk, scale);
+        UpdateButtonConstraints(_btnCancel, scale);
+        UpdateButtonConstraints(_btnPlus, scale);
+        UpdateButtonConstraints(_btnMinus, scale);
+        UpdateButtonConstraints(_btnReset, scale);
+
+        // 2. 使用 SizeFromClientSize 進行精確測量。
         // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
         Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
 
         MinimumSize = SizeFromClientSize(minClientSize);
+
+        // 如果目前尺寸低於測量出的地板，則強制擴張。
+        if (Width < MinimumSize.Width ||
+            Height < MinimumSize.Height)
+        {
+            Size = MinimumSize;
+
+            // 佈局擴張後，執行智慧定位檢查。
+            ApplySmartPosition();
+        }
 
         // 高對比模式下強制 100% 不透明度。
         if (SystemInformation.HighContrast)
         {
             UpdateOpacity();
         }
+    }
+
+    /// <summary>
+    /// 更新單個按鈕的佈局約束與最小尺寸鎖定
+    /// </summary>
+    /// <param name="btn">目標按鈕</param>
+    /// <param name="scale">目前 DPI 縮放比例</param>
+    private void UpdateButtonConstraints(Button? btn, float scale)
+    {
+        if (btn == null ||
+            btn.IsDisposed)
+        {
+            return;
+        }
+
+        // 重置 MinimumSize 以便重新測量。
+        btn.MinimumSize = Size.Empty;
+
+        // 取得專屬於此視窗 DPI 的 Bold 字體實例。
+        Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, btn.Font.FontFamily);
+
+        // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock）。
+        // 使用 TextRenderer 預先測量 Bold 狀態下的文字寬度，並將其鎖定為 MinimumSize。
+        Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
+
+        int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),
+            baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
+
+        btn.MinimumSize = new Size(baseMinWidth, baseMinHeight);
+    }
+
+    /// <summary>
+    /// 執行智慧定位修正，確保視窗不會跑出螢幕邊界
+    /// </summary>
+    private void ApplySmartPosition()
+    {
+        // 脫離目前的佈局計算循環，確保所有 StartPosition 與 AutoSize 已處理完畢。
+        this.SafeBeginInvoke(() =>
+        {
+            if (IsDisposed ||
+                !IsHandleCreated)
+            {
+                return;
+            }
+
+            // 強制同步最新的實體佈局尺寸（關鍵：確保 Width/Height 是縮放後的真實值）。
+            this.PerformLayout();
+
+            // 以對話框中心點所在的螢幕為準。
+            Screen screen = Screen.FromControl(this);
+
+            Rectangle workArea = screen.WorkingArea;
+
+            int newX = Location.X,
+                newY = Location.Y;
+
+            bool adjusted = false;
+
+            // 檢查右邊界。
+            if (newX + Width > workArea.Right)
+            {
+                newX = workArea.Right - Width;
+                adjusted = true;
+            }
+
+            // 檢查左邊界。
+            if (newX < workArea.Left)
+            {
+                newX = workArea.Left;
+                adjusted = true;
+            }
+
+            // 檢查下邊界。
+            if (newY + Height > workArea.Bottom)
+            {
+                newY = workArea.Bottom - Height;
+                adjusted = true;
+            }
+
+            // 檢查上邊界。
+            if (newY < workArea.Top)
+            {
+                newY = workArea.Top;
+                adjusted = true;
+            }
+
+            if (adjusted)
+            {
+                Location = new Point(newX, newY);
+
+                // 告知使用者視窗已修正位置。
+                (Owner as MainForm)?.AnnounceA11y(Strings.A11y_SnapBack);
+            }
+        });
     }
 
     /// <summary>
@@ -738,8 +907,8 @@ internal sealed class NumericInputDialog : Form
         _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
 
         // 數值顯示區字體：使用 2.0x 的放大倍率以突顯數值。
-        // 注意：此字體為對話框特有，需獨立建立且強制為粗體。
-        _nudFont = new Font(_a11yFont.FontFamily, _a11yFont.Size * 2.0f, FontStyle.Bold);
+        // 從全域共享快取池取得，確保 GDI 資源受控且支援 DPI 適應。
+        _nudFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily, 2.0f);
 
         // 主佈局容器。
         TableLayoutPanel tlpMain = new()
@@ -874,26 +1043,26 @@ internal sealed class NumericInputDialog : Form
         _btnPlus.TabIndex = 2;
 
         // 第 2 列：操作按鈕。
-        Button btnOk = CreateEyeTrackerButton(
+        _btnOk = CreateEyeTrackerButton(
             ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'),
             Strings.A11y_Btn_OK_Desc,
             scale,
             _a11yFont);
-        btnOk.Click += (s, e) => HandleConfirm();
-        btnOk.Anchor = AnchorStyles.None;
-        btnOk.TabIndex = 5;
+        _btnOk.Click += (s, e) => HandleConfirm();
+        _btnOk.Anchor = AnchorStyles.None;
+        _btnOk.TabIndex = 5;
 
-        Button btnCancel = CreateEyeTrackerButton(
+        _btnCancel = CreateEyeTrackerButton(
             ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'),
             Strings.A11y_Btn_Cancel_Desc,
             scale,
             _a11yFont);
-        btnCancel.Click += (s, e) => HandleCancel();
-        btnCancel.Anchor = AnchorStyles.None;
-        btnCancel.TabIndex = 3;
+        _btnCancel.Click += (s, e) => HandleCancel();
+        _btnCancel.Anchor = AnchorStyles.None;
+        _btnCancel.TabIndex = 3;
 
-        AcceptButton = btnOk;
-        CancelButton = btnCancel;
+        AcceptButton = _btnOk;
+        CancelButton = _btnCancel;
 
         _btnReset = CreateEyeTrackerButton(
             ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'),
@@ -908,8 +1077,8 @@ internal sealed class NumericInputDialog : Form
         _tlpGrid.Controls.Add(_btnMinus, 0, 0);
         _tlpGrid.Controls.Add(_nud, 1, 0);
         _tlpGrid.Controls.Add(_btnPlus, 2, 0);
-        _tlpGrid.Controls.Add(btnOk, 2, 1);
-        _tlpGrid.Controls.Add(btnCancel, 0, 1);
+        _tlpGrid.Controls.Add(_btnOk, 2, 1);
+        _tlpGrid.Controls.Add(_btnCancel, 0, 1);
         _tlpGrid.Controls.Add(_btnReset, 1, 1);
 
         tlpMain.Controls.Add(lblPrompt, 0, 0);
@@ -938,6 +1107,9 @@ internal sealed class NumericInputDialog : Form
 
             UpdateFocusVisuals(true);
 
+            // 執行智慧定位修正，確保視窗初次顯示時不會跑出螢幕邊界。
+            ApplySmartPosition();
+
             this.SafeBeginInvoke(() => _nud?.Select(0, _nud.Text.Length));
         };
 
@@ -949,7 +1121,8 @@ internal sealed class NumericInputDialog : Form
                 {
                     await Task.Delay(50, _cts.Token);
 
-                    this.SafeInvoke(() =>
+                    // 優先使用 InvokeAsync 以避免阻塞背景執行緒。
+                    await InvokeAsync(() =>
                     {
                         if (!IsDisposed)
                         {
@@ -968,12 +1141,11 @@ internal sealed class NumericInputDialog : Form
 
         Deactivate += (s, e) =>
         {
+            // 根據規範：視窗失去焦點時必須立即暫停手把，防止背景誤觸。
+            // 移除原本的 ActiveForm == null 判斷，以對齊 MainForm 的全局暫停策略。
             this.SafeBeginInvoke(() =>
             {
-                if (ActiveForm == null)
-                {
-                    _gamepadController?.Pause();
-                }
+                _gamepadController?.Pause();
             });
         };
 
@@ -1010,12 +1182,16 @@ internal sealed class NumericInputDialog : Form
         Action<bool>? onFocusStateChanged = null)
     {
         // 取得專屬於此視窗 DPI 的 Bold 字體實例。
+        // 注意：此字體來自 MainForm 的共享快取池，絕對禁止在此處手動 Dispose，
+        // 否則會導致其他正在使用同字體的視窗（如 MainForm）發生 GDI 異常。
         Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, font.FontFamily);
 
-        // 使用 TextRenderer 預先測量 Bold 字型的最大寬度，確保加粗時不會引發佈局抖動。
+        // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock）。
+        // 使用 TextRenderer 預先測量 Bold 字型的最大寬度，並將其鎖定為按鈕的 MinimumSize，
+        // 確保按鈕在獲得焦點變為粗體時，物理邊界保持絕對靜止，防止眼動儀「視線追逐」。
         Size boldTextSize = TextRenderer.MeasureText(text, boldFont);
 
-        int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(24 * scale)),
+        int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),
             baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
 
         Button btn = new()
@@ -1035,9 +1211,6 @@ internal sealed class NumericInputDialog : Form
 
         // 消除 WinForms 原生 AcceptButton 產生的粗邊框。
         btn.FlatAppearance.BorderSize = 0;
-
-        // 確保資源在按鈕銷毀時被正確釋放，防止 GDI 洩漏。
-        btn.Disposed += (s, e) => boldFont.Dispose();
 
         Padding originalPadding = btn.Padding;
 
@@ -1291,22 +1464,26 @@ internal sealed class NumericInputDialog : Form
             bool isDark = btn.IsDarkModeActive();
 
             // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
-            // 只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，避免雙焦點誤導。
+            // 只有當目前焦點「不在任何按鈕上」且按鈕為「可用狀態」時，預設按鈕才顯示焦點邊框，避免雙焦點誤導。
             bool isDefault = ReferenceEquals(AcceptButton, btn) &&
-                ActiveControl is not Button;
+                ActiveControl is not Button &&
+                btn.Enabled;
 
             // 基礎邊框（預設狀態）。
             // 由於 btn.FlatAppearance.BorderSize = 0，必須手動繪製預設邊框，否則會跟背景融合。
+            // 使用動態厚度以對齊 MainForm 並適應高 DPI 環境。
             if (!btn.Focused &&
                 !isHovered &&
                 !isDefault)
             {
+                int baseThickness = (int)Math.Max(1, currentScale);
+
                 // 高對比模式下使用系統框線色，確保物理辨識度。
                 using Pen basePen = new(
                     SystemInformation.HighContrast ?
                         SystemColors.WindowFrame :
                         (isDark ? Color.DimGray : Color.DarkGray),
-                    1);
+                    baseThickness);
 
                 e.Graphics.DrawRectangle(
                     basePen,

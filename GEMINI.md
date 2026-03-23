@@ -34,15 +34,20 @@
 - **非同步規範**：
   - 嚴格遵守 `async/await`。除事件處理器外，禁止使用 `async void`。
   - 事件處理器內必須包含完備的 `try-catch` 以防程式異常崩潰。
+  - **UI 執行緒安全（UI Thread Safety）**：跨執行緒操作 UI 必須調用 `ControlExtensions.cs` 中的 `SafeInvoke` 系列方法。
+    - **非同步調度準則**：在 `async` 任務內，**必須優先使用** .NET 10 原生的 `await control.InvokeAsync(...)` 方法以避免阻塞背景執行緒。
+      - **`InvokeAsync(Action)`**：用於同步的 UI 屬性賦值或簡單方法調用。
+      - **`InvokeAsync(Func<Task>)`**：用於包含 `await` 的一連串非同步 UI 邏輯。
   - **權杖安全（Token Safety）**：存取 `CancellationTokenSource?` 欄位的 `.Token` 時，必須使用 `?.Token ?? CancellationToken.None` 模式，杜絕併發下的 `NullReferenceException`。
-- **UI 執行緒安全**：跨執行緒操作 UI 必須調用 `ControlExtensions.cs` 中的 `SafeInvoke` 系列方法。
-- **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置（利用 `Interlocked.Exchange` 確保併發安全）並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
-  - **字體快取池（Font Pool）**：`A11yFont` 必須透過基於 DPI 的快取池取得，禁止在未受管理下直接建立 `Font` 實例。
+- **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
+  - **原子化處置模式（Atomic Dispose Pattern）**：必須使用 `Interlocked.Exchange(ref _resource, null)?.Dispose()` 模式，確保「先交換歸零、後執行處置」，防止多執行緒下的重複釋放或空引用異常。
+  - **字體快取池（Font Pool）**：`A11yFont` 必須透過基於 DPI 的快取池（`MainForm.GetSharedA11yFont`）取得，禁止在未受管理下直接建立 `Font` 實例。快取池支援自定義倍率（Multiplier）參數以適應特殊 UI 組件。
   - **資源回收桶（Trash Can）**：更換字體時，舊字體必須進入 `AddFontToTrashCan` 回收桶並延遲釋放，避免 UI 重繪期間的資源占用。
   - **全域處置**：程式結束前（`Program.cs`）必須調用 `DisposeCaches()` 徹底清理快取池。
 - **DPI 適應性規範**：
-  - 視窗必須實作 `UpdateMinimumSize` 邏輯，並在 `OnHandleCreated` 與 `OnDpiChanged` 中調用，確保在高 DPI 或縮放變更時佈局不崩潰。
-  - 計算佈局尺寸時，必須基於 `DeviceDpi` 與 96.0f 的比例進行縮放（Scale）。
+  - 視窗必須實作**佈局約束與最小尺寸更新邏輯**（如 `UpdateLayoutConstraints` 或 `UpdateMinimumSize`），並在 `OnHandleCreated` 與 `OnDpiChanged` 中調用，確保在高 DPI 或縮放變更時佈局不崩潰、文字不被裁剪。
+  - **計算一致性**：計算佈局尺寸與縮放比例時，必須確保除數或被除數包含顯式的浮點數標記（如 `96.0f`）或進行 `(float)` 強制轉型，杜絕因整數除法截斷導致的高 DPI 佈局計算誤差。
+  - **智慧重定位（Smart Positioning）**：視窗在 DPI 變更、語系切換引發佈局擴張、或初始顯示時，必須執行螢幕邊界檢查（如 `ApplySmartPosition`），確保視窗內容不超出目前顯示器的可視區域（Working Area）。
 - **自定義對話框控制器標準**：
   - 所有自定義對話框（如 `NumericInputDialog`）必須具備 `GamepadController` 屬性。
   - 必須實作手把按鍵映射：`A／Start` 為確認、`B／Back` 為取消、`X` 為重設。
@@ -52,8 +57,9 @@
 ## 2. A11y 無障礙與視覺安全規範
 
 - **廣播機制**：
-  - 動態通知**必須**透過 `MainForm.AnnounceA11y` 發送，該機制內部使用 `Channel` 進行排隊。
-  - 必須實作基於 `Interlocked` 的「序號檢查」，確保在高頻率廣播下能自動捨棄過時訊息。
+  - 動態通知**優先**透過 `MainForm.AnnounceA11y` 發送，該機制內部使用 `Channel` 進行排隊。
+  - **標準化路徑**：開發者**禁止**繞過標準廣播器直接調用 UIA API，以確保 ZWSP/ZWNJ 交替補償與 Audio Ducking 延遲始終生效。
+  - **本地備援機制**：自定義對話框在無法訪問主廣播器時，允許實作基於 `Interlocked` 序號檢查的「防抖（Debounce）」廣播，以確保即時性。
   - 廣播前保留 200ms 延遲以避開系統音效干擾與 Audio Ducking。
   - **重複訊息處理**：廣播重複訊息時，結尾應交替附加 `\u200B`（ZWSP）或 `\u200C`（ZWNJ）強迫 UIA 識別內容變動，確保連續觸發時螢幕閱讀器能正確重讀。
 - **視覺穩定性與防閃爍**：
@@ -65,12 +71,15 @@
     - **規範**：對話框的 `AcceptButton` 在焦點位於非按鈕控制項（如輸入框）時，必須顯示與「焦點框」相同的視覺特徵（如 Cyan／RoyalBlue 邊框），指引 Enter 鍵的預設動作。
     - **雙焦點衝突防護**：當使用者將焦點移至其他按鈕時，原預設按鈕的「焦點色」邊框必須自動移除並轉為基礎邊框，確保畫面上只有一個「焦點色」區域。
   - **基礎可辨識性（Base Recognizability）**：
-    - **規範**：所有自定義繪製的按鈕在非活動狀態下必須具備至少 1 像素的基礎邊框（如灰色），嚴禁呈現為無邊界的懸浮文字，確保在不同背景下的物理辨識度。
+    - **規範**：所有自定義繪製的按鈕在非活動狀態下必須具備基礎邊框，嚴禁呈現為無邊界的懸浮文字，確保在不同背景下的物理辨識度。
+    - **DPI 適應性**：邊框厚度必須隨 DPI 縮放調整（建議至少為 `Math.Max(1, scale)`），確保在高解析度螢幕下仍具備清晰的物理邊界感。
     - **邊框停用原則**：若使用自定義 `Paint` 接管，必須將 `FlatAppearance.BorderSize` 設為 `0` 以消除原生邊框產生的粗細不均偽影。
 - **語意與導覽**：  - 佈局容器必須設定 `AccessibleRole = Grouping` 並補足 `AccessibleName` 與 `Description`。
 - **色覺與視覺安全規範**：
   - **眼動儀友善（Eye Tracker Optimized）**：
-    - **注視回饋（Dwell Feedback）**：必須實作 1000ms 的**線性填滿**進度條。填滿後應保持靜態高亮，禁止持續律動以減少使用者分心。
+    - **動態回饋場景區隔（Feedback Scenario Separation）**：
+      - **注視回饋（Dwell Feedback）**：屬於「使用者互動導向」。1000ms 線性填滿後應保持**靜態高亮**，**禁止持續律動**，以減少使用者分心並防止眼動儀「視線追逐」。
+      - **視覺警示（Flash Alert）**：屬於「系統狀態導向」。發生邊界錯誤時，必須執行 **1Hz 平滑脈衝**（心跳變幻）以提供顯著提醒，直至錯誤狀態解除或焦點轉移。
     - **失焦重置**：當視線離開控制項時，必須立即重置進度條並終止背景任務。
     - **非同步中止機制**：所有 UI 動畫任務必須實作基於 `Interlocked` 原子序號（animationId）的檢查機制，確保當焦點快速切換時，舊任務能立即中止。
     - **抗抖動寬度鎖定（Anti-Jitter Lock）**：為防止字體加粗引發佈局抖動導致眼動儀「追逐目標」，必須在初始化時預先計算 **Bold** 狀態的最大寬度並鎖定為 `MinimumSize`。
@@ -84,8 +93,14 @@
         - 禁止在深色模式下僅使用 `Color.Black` 作為焦點回饋，以免對比度不足。
     - **色盲友善警示色**：在一般主題下，優先選用暖橘色（如 DarkOrange）作為警示色，以獲得跨 CVD 類型（Protan／Deutan／Tritan）的最佳對比。
     - **插值基色中性化（Interpolation Neutrality）**：
+      - **規範**：執行閃爍動畫時，過渡起點（Base）必須固定為該控制項在該模式下的**焦點反轉底色**（深色模式用 `Color.White`，淺色模式用 `Color.Black`）。
+      - **警報色配對原則**：
+        - **淺色模式（黑底反轉）**：配對 **`DarkOrange`**。視覺效果為「由黑轉橘」的**發光呼吸感**，提供最佳物理辨識度。
+        - **深色模式（白底反轉）**：配對 **`Firebrick`（磚紅）**。視覺效果為「由白轉紅」的**緊急縮減感**，確保在純白背景下仍具備 AAA 級對比度（> 5:1）。
+      - **文字對比動態連動（Dynamic ForeColor Synchronization）**：
+        - **規範**：執行視覺脈衝（Flash Alert）時，文字顏色（ForeColor）**禁止**固定。必須依據當前背景色（BackColor）的知覺亮度（Perceptual Luminance）動態切換為黑色或白色，確保在脈衝的任何階段（尤其是波峰時），文字對比度皆能維持在 WCAG AA 等級（4.5:1）以上。
+        - **亮度計算標準**：判定亮度時必須統一使用 YUV 亮度權重公式：`Luminance = (0.299 * R) + (0.587 * G) + (0.114 * B)`。若結果 > 128 則判定為亮色（配對黑字），否則判定為深色（配對白字）。
       - **禁令**：禁止在兩個高飽和度色彩（如 Cyan 焦點色與 DarkOrange 警示色）之間進行線性插值。這會導致插值中點產生髒濁色（泥綠色或暗紫色）。
-      - **規範**：執行閃爍動畫時，過渡起點（Base）必須固定為該模式下的**純淨背景底色**（深色模式用 `Color.White`，淺色模式用 `Color.Black`），確保過渡路徑純淨且具備明確的發光呼吸感。
     - **警示作用域隔離（Alert Scoping）**：
       - **規範**：邊界觸頂／觸底警示應僅作用於**數據內容區域**（如輸入框背景或數值顯示區）。
       - **解耦原則**：與該數據互動的操作按鈕（如數值加減按鈕）即使具備焦點，也**禁止**參與同步背景閃爍。按鈕應維持其靜態視覺狀態（如 Cyan／RoyalBlue 焦點框），以維持「分離式回饋（Separated Feedback）」的資訊清晰度。
@@ -96,8 +111,10 @@
     - **頻率控制**：視覺律動頻率必須嚴格鎖定在 **1Hz**（1000ms 週期），遠低於 3Hz 的風險閾值。
     - **平滑漸變**：亮度與色彩變化必須使用**正弦波（Sine Wave）**過渡，確保在波峰與波底的變化率平滑流暢，減少對大腦視覺皮層的突發性刺激。
     - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍或 Dwell 動畫，必須改為「靜態顯著提醒」。
-    - **視覺凍結與抗抖動原則（Visual Freezing）**：為了保護眼動儀使用者，所有動態警示（如 Flash Alert）必須**嚴格禁止變動控制項的物理尺寸、Margin 或 Padding**。警示應僅透過「背景與前景色同步正弦波脈衝」與「亮度對比反轉」實現，確保文字內容與游標在閃爍期間保持絕對位移靜止（Zero-Jitter）。
-  - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
+    - **視覺凍結與抗抖動原則（Visual Freezing / Zero-Jitter）**：
+      - **規範**：為了保護眼動儀使用者，所有動態視覺狀態變更（包含 **Flash Alert** 視覺警示與 **Focus State** 焦點切換）必須**嚴格禁止變動控制項的物理尺寸、Margin 或 Padding**。
+      - **實作原則**：焦點高亮應透過「背景與前景色彩反轉」與「固定厚度（建議為 3px）的背景色區域」實現，確保文字內容與游標在狀態變更期間保持絕對位移靜止（Zero-Jitter）。
+    - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
 - **系統偏好同步與主題管理（System Sync & Theme Management）**：
   - 必須透過 `SystemEvents.UserPreferenceChanged` 監控 `UserPreferenceCategory.General` 與 `Accessibility`，確保當使用者變更 Windows 動畫、色彩或主題設定時，UI 視覺行為能立即同步。
   - **動態主題管理（Dynamic Theme Management）**：
@@ -113,10 +130,13 @@
 
 - **自動退避機制**：當使用者設定使用 `GameInput` 但初始化失敗時，系統必須自動退避至 `XInput` 並告知使用者（AnnounceA11y）。應用程式之預設提供者應設定為相容性最高之 `XInput`。
 - **震動安全性**：
-  - 必須實作 `VibrationToken`（Interlocked 遞增整數）機制，解決非同步停止震動時的競態條件。
+  - **震動令牌檢查（Vibration Token）**：必須實作 `_vibrationToken`（Interlocked 遞增長整數）機制，解決非同步停止震動時的競態條件，確保僅有最新的震動請求能控制馬達。
+  - **同步停止能力**：控制器實作必須具備同步的 `StopVibration()` 方法，以支援應用程式關閉或崩潰時的緊急清理。
   - **連結權杖（Linked Token）**：震動延遲必須結合外部取消權杖與內部覆蓋權杖，確保在視窗關閉時馬達能立即停止。
   - 程式崩潰或結束前必須執行 `EmergencyStopAllActiveControllers()` 強制停止所有馬達。
-- **效能標準**：輪詢必須使用 `PeriodicTimer` 鎖定在 60 FPS（約 16.6ms），且必須受 `CancellationToken` 監控。
+- **效能標準**：
+  - 輪詢必須使用 `PeriodicTimer` 鎖定在 60 FPS（約 16.6ms），且必須受 `CancellationToken` 監控。
+  - **幀與毫秒換算基準（Frame-to-ms Standard）**：為了確保手把長按連發（Auto-Repeat）在不同 API 下的體驗一致，所有以「幀（Frames）」為單位的設定值，在轉換為非同步延遲（Task.Delay）時，必須統一以 **1 幀 = 16.6 毫秒** 為基準進行精確換算（例如：30 幀預設為 500ms）。
 
 ## 4. 合規性與安全性紅線
 

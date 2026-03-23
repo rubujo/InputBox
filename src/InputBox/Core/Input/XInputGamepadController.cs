@@ -333,11 +333,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <returns>Task</returns>
     private async Task PollingLoopAsync(CancellationToken cancellationToken)
     {
+        // 使用 PeriodicTimer。
+        using PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(PollingIntervalMs));
+
         try
         {
-            // 使用 PeriodicTimer。
-            using PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(PollingIntervalMs));
-
             while (await periodicTimer.WaitForNextTickAsync(cancellationToken))
             {
                 // 在執行 Poll 前檢查是否已處置，避免觸發事件。
@@ -369,6 +369,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
         catch (Exception ex)
         {
             Debug.WriteLine($"輪詢迴圈發生致命錯誤：{ex.Message}");
+        }
+        finally
+        {
+            // 確保 Timer 被處置（雖然 using 會處理，但這裡明確中斷掛起）。
+            periodicTimer.Dispose();
         }
     }
 

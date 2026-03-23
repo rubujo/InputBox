@@ -62,7 +62,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 基礎 DPI
     /// </summary>
-    private const float BaseDpi = 96f;
+    private const float BaseDpi = 96.0f;
 
     /// <summary>
     /// 按鈕文字復原
@@ -137,7 +137,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 統一放大的 A11y 字型（實例引用）
     /// </summary>
-    private Font A11yFont => GetCachedFont(
+    private Font A11yFont => GetSharedA11yFont(
         DeviceDpi,
         FontStyle.Regular,
         BtnCopy?.Font?.FontFamily);
@@ -145,7 +145,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 快取的加粗字型（實例引用）
     /// </summary>
-    private Font BoldBtnFont => GetCachedFont(
+    private Font BoldBtnFont => GetSharedA11yFont(
         DeviceDpi,
         FontStyle.Bold,
         BtnCopy?.Font?.FontFamily);
@@ -981,25 +981,41 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 取得指定 DPI 的全域共享字體
+    /// 取得全域共享的 A11y 放大字型
     /// </summary>
-    /// <param name="dpi">視窗目前的 DeviceDpi</param>
-    /// <param name="style">字型樣式</param>
-    /// <param name="family">字型家族</param>
-    /// <returns>Font</returns>
-    public static Font GetCachedFont(int dpi, FontStyle style, FontFamily? family = null)
+    /// <param name="dpi">目前的 DeviceDpi</param>
+    /// <param name="style">字體樣式（預設為 Regular）</param>
+    /// <param name="family">字體家族（選用）</param>
+    /// <param name="sizeMultiplier">尺寸倍率（預設為 1.0）</param>
+    /// <returns>Font 實例</returns>
+    public static Font GetSharedA11yFont(
+        int dpi,
+        FontStyle style = FontStyle.Regular,
+        FontFamily? family = null,
+        float sizeMultiplier = 1.0f)
     {
-        Dictionary<int, Font> cache = style == FontStyle.Bold ?
+        // 根據樣式選擇對應的快取池。
+        Dictionary<int, Font> cache = style.HasFlag(FontStyle.Bold) ?
             _boldFontCache :
             _regularFontCache;
 
+        // 生成唯一的快取金鑰：結合 DPI 與倍率（以千分之一精度映射至整數）。
+        int cacheKey = (int)(dpi * sizeMultiplier * 1000);
+
         lock (cache)
         {
-            if (!cache.TryGetValue(dpi, out Font? font))
+            if (!cache.TryGetValue(cacheKey, out Font? font))
             {
-                font = GetSharedA11yFont(dpi, style, family);
+                // 基準尺寸為 14pt。
+                const float baseA11ySize = 14.0f;
 
-                cache[dpi] = font;
+                float finalSize = baseA11ySize * sizeMultiplier * (dpi / 96.0f);
+
+                family ??= FontFamily.GenericSansSerif;
+
+                font = new Font(family, finalSize, style);
+
+                cache[cacheKey] = font;
             }
 
             return font;
