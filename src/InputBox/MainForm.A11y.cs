@@ -43,11 +43,6 @@ public partial class MainForm
     private Font? _inputFont;
 
     /// <summary>
-    /// 快取的 A11y 字型（用於資源管理）
-    /// </summary>
-    private Font? _a11yFont;
-
-    /// <summary>
     /// 設定 A11y 廣播器的 LiveSetting 狀態
     /// </summary>
     /// <param name="setting">LiveSetting 設定</param>
@@ -65,10 +60,12 @@ public partial class MainForm
     /// </summary>
     /// <param name="dpi">目前的 DPI 數值</param>
     /// <param name="fontStyle">字型樣式，預設為 Regular</param>
+    /// <param name="family">字型家族，若未提供則從系統預設抓取</param>
     /// <returns>Font</returns>
     public static Font GetSharedA11yFont(
-        int dpi,
-        FontStyle fontStyle = FontStyle.Regular)
+        float dpi,
+        FontStyle fontStyle = FontStyle.Regular,
+        FontFamily? family = null)
     {
         // 根據規範，預設為 11f 放大字型。
         const float baseFontSize = 11.0f,
@@ -77,16 +74,17 @@ public partial class MainForm
 
         float scale = dpi / baseDpi;
 
-        if (scale == 0.0f)
+        if (scale <= 0.0f)
         {
             scale = 1.0f;
         }
 
-        // 優先使用系統訊息視窗字型作為基準。
-        Font baseFont = SystemFonts.MessageBoxFont ??
-            DefaultFont;
+        // 優先順序：傳入的家族 > 系統訊息視窗字型 > 預設字型。
+        FontFamily targetFamily = family ??
+            SystemFonts.MessageBoxFont?.FontFamily ??
+            DefaultFont.FontFamily;
 
-        return new Font(baseFont.FontFamily, baseFontSize * scale, fontStyle);
+        return new Font(targetFamily, baseFontSize * scale, fontStyle);
     }
 
     /// <summary>
@@ -110,7 +108,7 @@ public partial class MainForm
         TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
         _lblInput?.Text = Strings.A11y_TBInputName;
 
-        // 1. 建立或更新輸入框專用的 28pt 大字體。
+        // 建立或更新輸入框專用的 28pt 大字體。
         const float inputFontSize = 28.0f;
 
         Font newInputFont = new(
@@ -121,38 +119,24 @@ public partial class MainForm
         // 原子化交換輸入框字型。
         Font? oldInputFont = Interlocked.Exchange(ref _inputFont, newInputFont);
 
+        // 立即同步主視窗控制項字體。
         TBInput.Font = _inputFont;
 
-        oldInputFont?.Dispose();
+        if (oldInputFont != null)
+        {
+            AddFontToTrashCan(oldInputFont);
+        }
 
-        // 2. 建立或更新 A11y 放大字型與粗體字型。
-        Font newA11yFont = GetSharedA11yFont(DeviceDpi),
-            newBoldFont = new(newA11yFont, FontStyle.Bold);
-
-        // 抗抖動寬度鎖定（Anti-Jitter Lock）：
-        // 為了防止字體加粗引發佈局抖動導致眼動儀「追逐目標」，必須預先計算 Bold 狀態的最大寬度並鎖定。
-        string btnText = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
-
-        Size boldSize = TextRenderer.MeasureText(btnText, newBoldFont);
-
-        // 鎖定最小寬度：測量值加上適當的內邊距補償。
-        BtnCopy.MinimumSize = new Size(
-            boldSize.Width + (int)(24 * (DeviceDpi / 96.0f)),
-            boldSize.Height + (int)(24 * (DeviceDpi / 96.0f)));
-
-        // 原子化交換 A11y 字型與按鈕粗體。
-        Font? oldA11yFont = Interlocked.Exchange(ref _a11yFont, newA11yFont),
-            oldBoldFont = Interlocked.Exchange(ref _boldBtnFont, newBoldFont);
-
-        // 套用至按鈕。
-        BtnCopy.AccessibleName = Strings.A11y_BtnCopyName;
-        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
-        BtnCopy.Text = btnText;
-        BtnCopy.Font = _a11yFont;
-
-        // 安全釋放舊資源。
-        oldA11yFont?.Dispose();
-        oldBoldFont?.Dispose();
+        // 更新按鈕字體。
+        // 如果目前按鈕沒有焦點也沒有懸停，立即同步字體。
+        if (!BtnCopy.Focused && !_isBtnHovered)
+        {
+            BtnCopy.Font = A11yFont;
+        }
+        else if (BtnCopy.Focused)
+        {
+            BtnCopy.Font = BoldBtnFont;
+        }
 
         // 確保標題快取與在地化字串同步。
         UpdateTitlePrefix();
@@ -175,14 +159,16 @@ public partial class MainForm
 
         float currentScale = DeviceDpi / 96.0f;
 
-        // 1. 測量按鈕所需寬度（考慮加粗狀態）。
+        // 測量按鈕所需寬度（考慮加粗狀態）。
         // 重置 MinimumSize 以便重新測量（避免被舊值干擾）。
         // 避免切換短語系（如英文）時，按鈕寬度仍卡在長語系（如日文）的寬度。
         BtnCopy.MinimumSize = Size.Empty;
 
         // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock），
         // 預先測量 Bold 狀態下的文字寬度，並鎖定為 MinimumSize，防止懸停加粗時佈局抖動。
-        Size boldSize = TextRenderer.MeasureText(BtnCopy.Text, _boldBtnFont ?? BtnCopy.Font);
+        Size boldSize = TextRenderer.MeasureText(
+            BtnCopy.Text,
+            BoldBtnFont ?? BtnCopy.Font);
 
         int requiredBtnWidth = boldSize.Width + BtnCopy.Padding.Horizontal + (int)(10 * currentScale);
 
@@ -191,7 +177,7 @@ public partial class MainForm
             BtnCopy.MinimumSize = new Size(requiredBtnWidth, BtnCopy.MinimumSize.Height);
         }
 
-        // 2. 測量輸入區（Placeholder）所需邏輯寬度。
+        // 測量輸入區（Placeholder）所需邏輯寬度。
         // 依據語系與 Placeholder 內容動態調整 MainForm 的最小寬度。
         // 為了解決 ja 等語系文字過長壓縮輸入區的問題，我們根據 Placeholder 寬度進行計算。
         // 考慮到掌機（如 ROG Ally）在 150%-200% 高縮放下，邏輯寬度不可過大以免遮擋遊戲。
@@ -211,7 +197,7 @@ public partial class MainForm
                 TLPHost.Padding.Horizontal +
                 (int)(20 * currentScale);
 
-        // 3. 實作視窗高度動態適應性。
+        // 實作視窗高度動態適應性。
         // 取「設計工作區地板（60px）」與「文字實測需求高度」的最大值。
         int clientFloorHeight = (int)(60 * currentScale);
 
@@ -220,7 +206,7 @@ public partial class MainForm
         int measuredTextHeight = textSize.Height + (int)(12 * currentScale),
             finalClientHeight = Math.Max(clientFloorHeight, measuredTextHeight);
 
-        // 4. 設定視窗最終最小尺寸與工作區大小。
+        // 設定視窗最終最小尺寸與工作區大小。
         // 使用 SizeFromClientSize 確保 MinimumSize 包含標題列與邊框。
         Size minWindowSize = SizeFromClientSize(new Size(totalMinWidth, finalClientHeight));
 

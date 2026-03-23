@@ -72,7 +72,7 @@ public partial class MainForm
                 {
                     Debug.WriteLine($"[控制器] GameInput 初始化失敗，嘗試退避至 XInput：{ex.Message}");
 
-                    // A11y：告知使用者已切換至相容模式。
+                    // 告知使用者已切換至相容模式。
                     AnnounceA11y(Strings.A11y_Gamepad_Fallback);
 
                     // 退避至 XInput。
@@ -90,7 +90,7 @@ public partial class MainForm
                 // 捕獲目前的控制器實例，確保 Lambda 內部存取的安全性。
                 IGamepadController controller = _gamepadController;
 
-                // A11y：當手把連線狀態改變時進行廣播。
+                // 當手把連線狀態改變時進行廣播。
                 controller.ConnectionChanged += (isConnected) =>
                 {
                     this.SafeInvoke(() =>
@@ -371,7 +371,7 @@ public partial class MainForm
                         {
                             RestoreUIFromCaptureMode();
 
-                            // A11y 廣播：告知擷取已取消。
+                            // 告知擷取已取消。
                             AnnounceA11y(Strings.A11y_Capture_Cancelled);
 
                             // 播放警告音。
@@ -420,7 +420,7 @@ public partial class MainForm
                             {
                                 item.Select();
 
-                                // A11y 強化：開啟選單時立即報讀首個項目的名稱與描述。
+                                // 開啟選單時立即報讀首個項目的名稱與描述。
                                 string? name = item.AccessibleName ?? item.Text,
                                     desc = item.AccessibleDescription;
 
@@ -472,7 +472,7 @@ public partial class MainForm
                         if (controller.IsLeftShoulderHeld &&
                             controller.IsRightShoulderHeld)
                         {
-                            // A11y 廣播：告知使用者正在關閉程式。
+                            // 告知使用者正在關閉程式。
                             AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
 
                             this.SafeInvoke(Close);
@@ -515,7 +515,7 @@ public partial class MainForm
 
                             TBInput.SelectedText = string.Empty;
 
-                            // 語音最佳化：如果刪除內容太長，報讀字數而非內容。
+                            // 如果刪除內容太長，報讀字數而非內容。
                             if (len > 10)
                             {
                                 AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, len));
@@ -751,7 +751,7 @@ public partial class MainForm
                 // 焦點記憶。
                 _lastFocusedMenuItem = nextItem;
 
-                // A11y 強化：顯式播報選單項目名稱與描述（包含目前設定值）。
+                // 顯式播報選單項目名稱與描述（包含目前設定值）。
                 string? name = nextItem.AccessibleName ?? nextItem.Text,
                     desc = nextItem.AccessibleDescription;
 

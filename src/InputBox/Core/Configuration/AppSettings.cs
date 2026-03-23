@@ -331,7 +331,7 @@ public class AppSettings
     /// </summary>
     private void UpdateGamepadSnapshot()
     {
-        // 核心優化：先進行數值校驗，再同步更新快照。
+        // 先進行數值校驗，再同步更新快照。
         // 透過將 Exit 閾值的修正邏輯封裝，確保 Enter 與 Exit 始終符合遲滯（Hysteresis）規範。
         int validatedExit = CalculateValidDeadzoneExit(
             _thumbDeadzoneEnter,

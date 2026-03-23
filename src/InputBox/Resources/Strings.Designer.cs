@@ -637,6 +637,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 System theme has changed. Please select &quot;Apply System Theme&quot; from the context menu to restart the application and fully apply visual effects. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Theme_Changed_Hint {
+            get {
+                return ResourceManager.GetString("A11y_Theme_Changed_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Unchecked 的當地語系化字串。
         /// </summary>
         internal static string A11y_Unchecked {
@@ -696,6 +705,15 @@ namespace InputBox.Resources {
         internal static string App_Privacy_Suffix {
             get {
                 return ResourceManager.GetString("App_Privacy_Suffix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 🔄 的當地語系化字串。
+        /// </summary>
+        internal static string App_ThemePending_Suffix {
+            get {
+                return ResourceManager.GetString("App_ThemePending_Suffix", resourceCulture);
             }
         }
         
@@ -815,6 +833,15 @@ namespace InputBox.Resources {
         internal static string Err_TouchKeyboardNotFound {
             get {
                 return ResourceManager.GetString("Err_TouchKeyboardNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Apply System Theme (Restart Required) 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_ApplyThemeRestart {
+            get {
+                return ResourceManager.GetString("Menu_ApplyThemeRestart", resourceCulture);
             }
         }
         

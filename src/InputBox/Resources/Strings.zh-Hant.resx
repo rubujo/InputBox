@@ -623,4 +623,16 @@
     <value>遊戲手把初始化失敗，部分功能可能無法使用。</value>
     <comment>啟動時手把初始化失敗後，透過 A11y 廣播的語音訊息內容。</comment>
   </data>
+  <data name="Menu_ApplyThemeRestart" xml:space="preserve">
+    <value>套用系統主題（需重啟）</value>
+    <comment>右鍵選單項目，提示使用者重啟程式以完全套用深色/淺色主題變更。</comment>
+  </data>
+  <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
+    <value>系統主題已變更。請至右鍵選單點選「套用系統主題」以重啟程式並完全套用視覺效果。</value>
+    <comment>無障礙語音播報，當偵測到主題變更並需要使用者手動重啟時播放。</comment>
+  </data>
+  <data name="App_ThemePending_Suffix" xml:space="preserve">
+    <value>🔄</value>
+    <comment>偵測到系統主題變更但尚未重啟時，顯示於標題列應用程式名稱後方的圖示標記。</comment>
+  </data>
 </root>

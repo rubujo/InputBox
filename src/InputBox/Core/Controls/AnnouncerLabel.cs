@@ -85,7 +85,7 @@ internal sealed class AnnouncerLabel : Label
         {
             _toggleFlag = !_toggleFlag;
 
-            // 輪替使用 ZWSP (\u200B) 與 ZWNJ (\u200C)。
+            // 輪替使用 ZWSP（\u200B）與 ZWNJ（\u200C）。
             finalMsg = _toggleFlag ?
                 message + "\u200B" :
                 message + "\u200C";
@@ -103,14 +103,14 @@ internal sealed class AnnouncerLabel : Label
             Text = finalMsg;
             AccessibleName = finalMsg;
 
-            // 1. 發送標準 NameChange 通知（相容於舊版 AT）。
+            // 發送標準 NameChange 通知（相容於舊版 AT）。
             AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
 
-            // 2. 觸發現代 UIA LiveRegion 變更事件。
+            // 觸發現代 UIA LiveRegion 變更事件。
             // 這能確保 NVDA／JAWS 在訊息寫入後能立即捕獲並報讀。
             AccessibilityObject.RaiseLiveRegionChanged();
 
-            Debug.WriteLine($"[A11y 廣播] {finalMsg} (Interrupt: {interrupt})");
+            Debug.WriteLine($"[A11y 廣播] {finalMsg}（中斷：{interrupt}）");
         }
         catch (Exception ex)
         {

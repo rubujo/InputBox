@@ -31,6 +31,22 @@ public partial class MainForm
     /// </summary>
     private void InitializeContextMenu()
     {
+        _cmsInput ??= new ContextMenuStrip();
+
+        // 動態加入主題變更重啟提示。
+        if (_isThemeUpdatePending)
+        {
+            ToolStripMenuItem tsmiRestart = new()
+            {
+                Text = $"{Strings.App_ThemePending_Suffix} {Strings.Menu_ApplyThemeRestart}",
+                AccessibleName = Strings.Menu_ApplyThemeRestart
+            };
+            tsmiRestart.Click += (s, e) => AskForRestart();
+
+            _cmsInput.Items.Add(tsmiRestart);
+            _cmsInput.Items.Add(new ToolStripSeparator());
+        }
+
         // 隱私模式。
         _tsmiPrivacyMode = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_PrivacyMode, 'P'))
         {
@@ -58,10 +74,9 @@ public partial class MainForm
 
             // 更新標題快取。
             UpdateTitlePrefix();
-
             UpdateTitle();
 
-            // A11y 廣播：隱私模式狀態變更。
+            // 隱私模式狀態變更。
             AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
                 Strings.A11y_PrivacyMode_On :
                 Strings.A11y_PrivacyMode_Off);
@@ -118,10 +133,9 @@ public partial class MainForm
 
                 // 更新標題快取。
                 UpdateTitlePrefix();
-
                 UpdateTitle();
 
-                // A11y 廣播：告知修飾鍵狀態變更。
+                // 告知修飾鍵狀態變更。
                 string statusMsg = item.Checked ?
                     string.Format(Strings.A11y_Mod_On, label) :
                     string.Format(Strings.A11y_Mod_Off, label);
@@ -158,7 +172,7 @@ public partial class MainForm
             // 標題列提示（統一由 UpdateTitle 處理，確保包含快速鍵資訊）。
             UpdateTitle();
 
-            // A11y 廣播：告知進入擷取模式、操作方式及如何取消。
+            // 告知進入擷取模式、操作方式及如何取消。
             AnnounceA11y($"{Strings.Msg_PressAnyKey} {Strings.A11y_Capture_Esc_Cancel}");
 
             // 輸入框視覺強化。
@@ -375,7 +389,7 @@ public partial class MainForm
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            // A11y 廣播：告知視窗設定已重置。
+            // 告知視窗設定已重置。
             AnnounceA11y(Strings.Msg_InputCleared);
         };
         tsmiWinOps.DropDownItems.Add(tsmiResetWinOps);
@@ -429,7 +443,7 @@ public partial class MainForm
 
                 RefreshMenu();
 
-                // A11y 廣播：告知強度已更新。
+                // 告知強度已更新。
                 AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {val.Value}");
             }
         };
@@ -455,7 +469,7 @@ public partial class MainForm
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            // A11y 廣播：告知回饋設定已重置。
+            // 告知回饋設定已重置。
             AnnounceA11y(Strings.Msg_InputCleared);
         };
         tsmiFeedback.DropDownItems.Add(tsmiResetFeedback);
@@ -596,7 +610,7 @@ public partial class MainForm
 
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            // A11y 廣播：告知手把設定已重置。
+            // 告知手把設定已重置。
             AnnounceA11y(Strings.Msg_InputCleared);
         };
         tsmiGamepad.DropDownItems.Add(tsmiResetGamepad);
@@ -676,9 +690,6 @@ public partial class MainForm
         // 綁定選單至容器控制項，確保 TBInput 能保留其原始的 Windows 右鍵選單（剪下、複製、貼上）。
         PInputHost.ContextMenuStrip = _cmsInput;
         TLPHost.ContextMenuStrip = _cmsInput;
-
-        // 初始化所有項目文字。
-        RefreshMenu();
     }
 
     /// <summary>
@@ -690,6 +701,23 @@ public partial class MainForm
         {
             if (_cmsInput != null)
             {
+                // 在重新整理時，若有待處理變更則動態注入重啟選項。
+                if (_isThemeUpdatePending &&
+                    !_cmsInput.Items.Cast<ToolStripItem>().Any(n => n.AccessibleName == Strings.Menu_ApplyThemeRestart))
+                {
+                    ToolStripMenuItem tsmiRestart = new()
+                    {
+                        Text = $"{Strings.App_ThemePending_Suffix} {Strings.Menu_ApplyThemeRestart}",
+                        AccessibleName = Strings.Menu_ApplyThemeRestart
+                    };
+                    tsmiRestart.Click += (s, e) => AskForRestart();
+
+                    // 插入選單最前端。
+                    _cmsInput.Items.Insert(0, tsmiRestart);
+                    _cmsInput.Items.Insert(1, new ToolStripSeparator());
+                }
+
+
                 foreach (ToolStripItem item in _cmsInput.Items)
                 {
                     if (item is ToolStripMenuItem tsmi)
@@ -816,7 +844,7 @@ public partial class MainForm
                         mi.AccessibleName += $" ({(mi.Checked ? Strings.A11y_Checked : Strings.A11y_Unchecked)})";
                     }
 
-                    // A11y 強化：如果具備範圍資訊，動態生成詳細描述。
+                    // 如果具備範圍資訊，動態生成詳細描述。
                     if (mi.Tag is MenuMetadata { Min: not null, Max: not null } rangeMeta)
                     {
                         string currentStr = label == Strings.Settings_VibrationIntensity ?

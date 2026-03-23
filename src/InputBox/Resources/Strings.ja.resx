@@ -452,7 +452,7 @@
     <comment>数値入力ダイアログのプロンプトテキストです。{0} は設定中の項目名です。</comment>
   </data>
   <data name="Btn_OK" xml:space="preserve">
-    <value>OK</value>
+    <value>確定</value>
     <comment>ダイアログボックス内の確定ボタンのテキストです。</comment>
   </data>
   <data name="Btn_Cancel" xml:space="preserve">
@@ -622,5 +622,17 @@
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>ゲームパッドの初期化に失敗しました。一部の機能が利用できない可能性があります。</value>
     <comment>起動時にゲームパッドの初期化に失敗した際、A11y を通じて再生される音声メッセージの内容。</comment>
+  </data>
+  <data name="Menu_ApplyThemeRestart" xml:space="preserve">
+    <value>システムテーマを適用（再起動が必要）</value>
+    <comment>右クリックメニュー項目。ユーザーにアプリの再起動を促し、ダーク/ライトテーマの変更を完全に適用します。</comment>
+  </data>
+  <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
+    <value>システムテーマが変更されました。右クリックメニューから「システムテーマを適用」を選択してアプリを再起動し、視覚効果を完全に反映させてください。</value>
+    <comment>テーマの変更が検出され、手動での再起動が必要な際に再生されるアクセシビリティ音声ガイドです。</comment>
+  </data>
+  <data name="App_ThemePending_Suffix" xml:space="preserve">
+    <value>🔄</value>
+    <comment>システムテーマの変更が検出されましたが、まだ再起動されていない場合に、タイトルバーのアプリ名の後ろに表示されるアイコンマーカーです。</comment>
   </data>
 </root>

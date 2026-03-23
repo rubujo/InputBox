@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -622,5 +622,17 @@
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>游戏手柄初始化失败，部分功能可能无法使用。</value>
     <comment>启动时手柄初始化失败后，通过 A11y 广播的语音消息内容。</comment>
+  </data>
+  <data name="Menu_ApplyThemeRestart" xml:space="preserve">
+    <value>应用系统主题（需重启）</value>
+    <comment>右键菜单项目，提示用户重启程序以完全应用深色/浅色主题变更。</comment>
+  </data>
+  <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
+    <value>系统主题已变更。请至右键菜单点选“应用系统主题”以重启程序并完全应用视觉效果。</value>
+    <comment>无障碍语音播报，当侦测到主题变更并需要用户手动重启时播放。</comment>
+  </data>
+  <data name="App_ThemePending_Suffix" xml:space="preserve">
+    <value>🔄</value>
+    <comment>侦测到系统主题变更但尚未重启时，显示于标题列应用程序名称后方的图标标记。</comment>
   </data>
 </root>

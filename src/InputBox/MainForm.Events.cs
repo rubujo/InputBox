@@ -111,7 +111,7 @@ public partial class MainForm
                 TBInput.Focus();
             }
 
-            // A11y 廣播：歡迎訊息與操作提示。
+            // 歡迎訊息與操作提示。
             // 延遲 100ms 避開視窗開啟音效。
             try
             {
@@ -179,25 +179,54 @@ public partial class MainForm
             {
                 this.SafeInvoke(() =>
                 {
-                    // 根據規範，系統無障礙設定（如高對比、大字型、動畫開關）變更時，需重新套用在地化資源與佈局。
-                    ApplyLocalization();
-
-                    // 即時同步不透明度防護（高對比模式下強制 100%）。
-                    UpdateOpacity();
-
-                    // 同步目前焦點狀態的邊框。
-                    UpdateBorderColor(TBInput.Focused);
-
-                    if (TBInput.Focused)
+                    try
                     {
-                        // 重新觸發 Enter 邏輯以同步最新的高對比主題配色。
-                        TBInput_Enter(TBInput, EventArgs.Empty);
+                        // 抗抖動物理鎖定：鎖定 PInputHost 寬度，防止字體度量變更引發容器抖動。
+                        int currentWidth = PInputHost.Width;
+
+                        PInputHost.MinimumSize = new Size(currentWidth, 0);
+                        PInputHost.MaximumSize = new Size(currentWidth, 0);
+
+                        // 設定待處理標記並更新視覺提示。
+                        _isThemeUpdatePending = true;
+
+                        // 根據規範，系統無障礙設定（如高對比、大字型、動畫開關）變更時，需重新套用在地化資源與佈局。
+                        ApplyLocalization();
+
+                        // 即時同步不透明度防護（高對比模式下強制 100%）。
+                        UpdateOpacity();
+
+                        // 同步目前焦點狀態的邊框。
+                        UpdateBorderColor(TBInput.Focused);
+
+                        if (TBInput.Focused)
+                        {
+                            // 重新觸發 Enter 邏輯以同步最新的高對比主題配色。
+                            TBInput_Enter(TBInput, EventArgs.Empty);
+                        }
+
+                        // 更新標題列（顯示 🔄 Emoji）。
+                        UpdateTitlePrefix();
+                        UpdateTitle();
+
+                        // 更新右鍵選單（顯示重啟選項）。
+                        RefreshMenu();
+
+                        // 提示使用者環境已變動。
+                        string announceMsg = Strings.A11y_Theme_Changed_Hint;
+
+                        if (SystemInformation.HighContrast)
+                        {
+                            announceMsg = $"{Strings.A11y_Opacity_HighContrast} {announceMsg}";
+                        }
+
+                        AnnounceA11y(announceMsg);
                     }
-
-                    // A11y 廣播：告知使用者環境設定已同步。
-                    if (SystemInformation.HighContrast)
+                    finally
                     {
-                        AnnounceA11y(Strings.A11y_Opacity_HighContrast);
+                        // 解除物理鎖定（恢復自動調適能力）。
+                        PInputHost.MinimumSize = Size.Empty;
+                        PInputHost.MaximumSize = Size.Empty;
                     }
                 });
             }
@@ -281,7 +310,7 @@ public partial class MainForm
             {
                 RestoreUIFromCaptureMode();
 
-                // A11y 廣播：取消提示。
+                // 取消提示。
                 AnnounceA11y(Strings.A11y_Capture_Cancelled);
             }
 
@@ -406,17 +435,17 @@ public partial class MainForm
         bool isDark = BtnCopy.IsDarkModeActive();
 
         // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
-        // 核心優化：只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，指引 Enter 鍵動作並避免雙焦點誤導。
+        // 只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，指引 Enter 鍵動作並避免雙焦點誤導。
         bool isDefault = ReferenceEquals(AcceptButton, BtnCopy) &&
             ActiveControl is not Button;
 
-        // 1. 基礎邊框（預設狀態）。
+        // 基礎邊框（預設狀態）。
         // 由於 BorderSize = 0，必須手動繪製基礎邊框以保持物理辨識度。
         if (!BtnCopy.Focused &&
             !_isBtnHovered &&
             !isDefault)
         {
-            // A11y 強化：高對比模式下使用系統框線色，確保物理辨識度。
+            // 高對比模式下使用系統框線色，確保物理辨識度。
             using Pen basePen = new(
                 SystemInformation.HighContrast ?
                     SystemColors.WindowFrame :
@@ -431,7 +460,7 @@ public partial class MainForm
                 BtnCopy.Height - 1);
         }
 
-        // 2. 繪製焦點、懸停與預設動作邊框（Focus／Hover／Default Border）。
+        // 繪製焦點、懸停與預設動作邊框（Focus／Hover／Default Border）。
         if (BtnCopy.Focused ||
             _isBtnHovered ||
             isDefault)
@@ -439,7 +468,7 @@ public partial class MainForm
             int borderThickness = (int)Math.Max(3, 3 * scale),
                 inset = (int)Math.Max(2, 2 * scale);
 
-            // A11y 統一邏輯：淺色模式表單（黑底控制項）用 Cyan；深色模式表單（白底控制項）用 RoyalBlue。
+            // 淺色模式表單（黑底控制項）用 Cyan；深色模式表單（白底控制項）用 RoyalBlue。
             using Pen borderPen = new(
                 SystemInformation.HighContrast ?
                     SystemColors.HighlightText :
@@ -454,7 +483,7 @@ public partial class MainForm
                 BtnCopy.Height - (inset * 2) - 1);
         }
 
-        // 3. 繪製注視進度條（Dwell Feedback）。
+        // 繪製注視進度條（Dwell Feedback）。
         if (_dwellProgress > 0)
         {
             int barHeight = (int)(6 * scale),
@@ -470,7 +499,7 @@ public partial class MainForm
             }
             else
             {
-                // A11y 絕對同步：淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
+                // 淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
                 Color baseColor = isDark ?
                         Color.Firebrick :
                         Color.DarkOrange,
@@ -525,7 +554,7 @@ public partial class MainForm
             // 執行非同步動作（包含成功複製，或是空字串時的 1 秒冷卻等待）。
             await PerformCopyAsync();
 
-            // Gaze Re-engagement（視線重新接合）。
+            // 視線重新接合。
             // 動作或冷卻結束後，檢查眼控／滑鼠是否還停留在按鈕上。
             // 如果還在，主動重新觸發 Hover 樣式與 Dwell 動畫！
             if (BtnCopy != null &&
@@ -546,8 +575,6 @@ public partial class MainForm
                     // 如果動作結束時，滑鼠確實已經移開了，才徹底洗掉樣式
                     _isBtnHovered = false;
 
-                    // 讓方法內部自己去判斷（!BtnCopy.Focused && !_isBtnHovered）。
-                    // 這樣如果使用者是用 Tab 鍵停留在按鈕上（Focused = true），就不會被洗掉黑色背景！
                     RestoreButtonDefaultStyle();
                 }
             }
@@ -611,14 +638,13 @@ public partial class MainForm
             }
 
             // 形狀補償：字體加粗。
-            if (_boldBtnFont != null)
+            if (BoldBtnFont != null && !ReferenceEquals(BtnCopy.Font, BoldBtnFont))
             {
-                BtnCopy.Font = _boldBtnFont;
+                BtnCopy.Font = BoldBtnFont;
             }
 
-            // 核心修正：邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
+            // 邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
             BtnCopy.FlatAppearance.BorderSize = 0;
-
             BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
         }
         else
@@ -648,12 +674,13 @@ public partial class MainForm
             }
 
             // 不加粗：維持無障礙標準字體。
-            if (_a11yFont != null)
+            if (A11yFont != null &&
+                !ReferenceEquals(BtnCopy.Font, A11yFont))
             {
-                BtnCopy.Font = _a11yFont;
+                BtnCopy.Font = A11yFont;
             }
 
-            // 核心修正：邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
+            // 邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
             BtnCopy.FlatAppearance.BorderSize = 0;
             BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Hover})";
 
@@ -687,7 +714,7 @@ public partial class MainForm
             return;
         }
 
-        // 狀態守衛：只有在確實失焦且無懸停，或強制還原時執行。
+        // 只有在確實失焦且無懸停，或強制還原時執行。
         if (force ||
             (!BtnCopy.Focused && !_isBtnHovered))
         {
@@ -695,9 +722,9 @@ public partial class MainForm
             BtnCopy.BackColor = Color.Empty;
             BtnCopy.ForeColor = Color.Empty;
 
-            if (_a11yFont != null)
+            if (A11yFont != null)
             {
-                BtnCopy.Font = _a11yFont;
+                BtnCopy.Font = A11yFont;
             }
 
             if (_originalBtnPadding != default)
@@ -820,7 +847,7 @@ public partial class MainForm
             BtnCopy.Text = Strings.Msg_Copied;
             BtnCopy.AccessibleDescription = Strings.Msg_Copied;
 
-            // 語音最佳化：將兩條相關訊息合併為一條發送，確保在焦點切換前使用者能聽到完整結果。
+            // 將兩條相關訊息合併為一條發送，確保在焦點切換前使用者能聽到完整結果。
             AnnounceA11y($"{Strings.Msg_Copied}. {Strings.A11y_Returning}");
 
             // 複製後清除。
@@ -978,7 +1005,7 @@ public partial class MainForm
         {
             string currentHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
 
-            // A11y 廣播：告知快速鍵註冊失敗。
+            // 告知快速鍵註冊失敗。
             AnnounceA11y(Strings.Err_HotkeyRegFail_Brief);
 
             // 音效回饋。
@@ -1012,7 +1039,11 @@ public partial class MainForm
             // 視覺回饋（提示已經到底了）。
             FlashAlertAsync().SafeFireAndForget();
 
-            AnnounceA11y(direction < 0 ? Strings.A11y_Nav_Oldest : Strings.A11y_Nav_Newest, interrupt: true);
+            AnnounceA11y(
+                direction < 0 ?
+                    Strings.A11y_Nav_Oldest :
+                    Strings.A11y_Nav_Newest,
+                interrupt: true);
         }
 
         // 處理文字更新。
@@ -1204,7 +1235,7 @@ public partial class MainForm
 
         if (announce)
         {
-            // A11y 廣播：告知使用者正在返回前一個視窗。
+            // 告知使用者正在返回前一個視窗。
             AnnounceA11y(Strings.A11y_Returning);
         }
 
@@ -1245,7 +1276,7 @@ public partial class MainForm
         try
         {
             // 決定警示色。
-            // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
+            // 修正選色邏輯以對齊反轉後的控制項背景。
             // 淺色模式（黑底）：用 DarkOrange（8.3:1）；深色模式（白底）：用 Firebrick（5.8:1）。
             Color alertColor = SystemInformation.HighContrast ?
                 SystemColors.Highlight :
@@ -1274,12 +1305,12 @@ public partial class MainForm
                                 SystemColors.HighlightText :
                                 SystemColors.WindowText;
 
-                        // A11y 強化：同步更新背景與前景，確保高對比下文字可讀性。
+                        // 同步更新背景與前景，確保高對比下文字可讀性。
                         PInputHost.UpdateRecursive(hcBack, hcFore);
                     }
                     else
                     {
-                        // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan/RoyalBlue）插值產生髒濁色。
+                        // 閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan/RoyalBlue）插值產生髒濁色。
                         Color pureBase = isDark ?
                             Color.White :
                             Color.Black;
@@ -1294,7 +1325,7 @@ public partial class MainForm
                                 Color.Black :
                                 Color.White;
 
-                        // 2. 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
+                        // 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
                         PInputHost.UpdateRecursive(flashColor, flashFore);
                     }
                 });
@@ -1365,13 +1396,13 @@ public partial class MainForm
             {
                 this.SafeInvoke(() =>
                 {
-                    // 1. 核心修正：還原 PInputHost 及其所有子控制項的顏色（包含 ForeColor），消除視覺殘留。
+                    // 還原 PInputHost 及其所有子控制項的顏色（包含 ForeColor），消除視覺殘留。
                     PInputHost.ResetThemeRecursive();
 
-                    // 2. 恢復邊框樣式與厚度。
+                    // 恢復邊框樣式與厚度。
                     UpdateBorderColor(TBInput.Focused);
 
-                    // 3. 根據焦點狀態重新套用強烈視覺回饋（若有焦點）。
+                    // 根據焦點狀態重新套用強烈視覺回饋（若有焦點）。
                     if (TBInput.Focused)
                     {
                         if (SystemInformation.HighContrast)
@@ -1477,7 +1508,7 @@ public partial class MainForm
     /// </summary>
     private void RestoreUIFromCaptureMode()
     {
-        // 狀態守衛：若目前不處於擷取模式，則不執行還原邏輯。
+        // 若目前不處於擷取模式，則不執行還原邏輯。
         // 這能防止鍵盤 Esc 與手把 B 同時觸發取消時的重複 UI 重新整理。
         if (_isCapturingHotkey == 0)
         {

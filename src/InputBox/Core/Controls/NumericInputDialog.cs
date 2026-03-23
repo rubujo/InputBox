@@ -79,7 +79,7 @@ internal sealed class NumericInputDialog : Form
         /// <param name="e">MouseEventArgs</param>
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            // 核心修正：強制攔截並阻斷 Windows 系統的「一次捲動多行」設定（預設為 3）。
+            // 強制攔截並阻斷 Windows 系統的「一次捲動多行」設定（預設為 3）。
             if (e is HandledMouseEventArgs hme)
             {
                 hme.Handled = true;
@@ -135,12 +135,12 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 統一放大的 A11y 字型
     /// </summary>
-    private readonly Font _a11yFont;
+    private Font? _a11yFont;
 
     /// <summary>
     /// NUD 專屬放大字型，需手動 Dispose
     /// </summary>
-    private readonly Font _nudFont;
+    private Font? _nudFont;
 
     /// <summary>
     /// 用於管理對話框生命週期內非同步任務的取消權杖來源
@@ -217,7 +217,41 @@ internal sealed class NumericInputDialog : Form
     {
         base.OnDpiChanged(e);
 
-        UpdateMinimumSize();
+        // 當 DPI 變更時，強制全視窗重新讀取全域共享字體。
+        this.SafeInvoke(() =>
+        {
+            // 重新取得並套用 A11y 字型實例（依據新的 DeviceDpi）。
+            Font? oldA11yFont = _a11yFont;
+
+            _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
+
+            if (oldA11yFont != null)
+            {
+                MainForm.AddFontToTrashCan(oldA11yFont);
+            }
+
+            // 數值顯示區字體需重新依據新縮放比例建立。
+            if (_a11yFont != null)
+            {
+                // 將舊字體移入 MainForm 的回收桶，防止重繪時崩潰。
+                Font? oldNudFont = _nudFont;
+
+                _nudFont = new Font(_a11yFont.FontFamily, _a11yFont.Size * 2.0f, FontStyle.Bold);
+
+                _nud.Font = _nudFont;
+
+                if (oldNudFont != null)
+                {
+                    MainForm.AddFontToTrashCan(oldNudFont);
+                }
+            }
+
+            // 更新佈局約束。
+            UpdateMinimumSize();
+
+            // 強制所有控制項重新套用最新主題與字體。
+            UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
+        });
     }
 
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
@@ -263,7 +297,6 @@ internal sealed class NumericInputDialog : Form
 
             }
 
-            _a11yFont?.Dispose();
             _nudFont?.Dispose();
             _announcer?.Dispose();
         }
@@ -300,7 +333,7 @@ internal sealed class NumericInputDialog : Form
             _gamepadController?.Resume();
         }
 
-        // A11y 廣播：告知使用者手把連線狀態變更。
+        // 告知使用者手把連線狀態變更。
         AnnounceA11y(connected ?
             Strings.A11y_Gamepad_Connected :
             Strings.A11y_Gamepad_Disconnected);
@@ -399,7 +432,7 @@ internal sealed class NumericInputDialog : Form
             bool isDark = _nud.IsDarkModeActive();
 
             // 決定警示色。
-            // A11y 強化：修正選色邏輯以對齊反轉後的控制項背景。
+            // 修正選色邏輯以對齊反轉後的控制項背景。
             // 淺色模式（黑底控制項）用 DarkOrange；深色模式（白底控制項）用 Firebrick。
             Color alertColor = SystemInformation.HighContrast ?
                 SystemColors.Highlight :
@@ -422,12 +455,12 @@ internal sealed class NumericInputDialog : Form
                         Color hcBack = isAlert ? alertColor : SystemColors.Window;
                         Color hcFore = isAlert ? SystemColors.HighlightText : SystemColors.WindowText;
 
-                        // A11y 強化：同步更新背景與前景，確保高對比下文字可讀性。
+                        // 同步更新背景與前景，確保高對比下文字可讀性。
                         _nud.UpdateRecursive(hcBack, hcFore);
                     }
                     else
                     {
-                        // 1. 核心修正：閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生髒濁色。
+                        // 1. 閃爍基色改為純淨底色（黑／白），避免與焦點色插值產生髒濁色。
                         // 這裡我們取主題反轉後的背景色作為過渡起點。
                         Color pureBase = isDark ?
                             Color.White :
@@ -630,13 +663,13 @@ internal sealed class NumericInputDialog : Form
     {
         float scale = DeviceDpi / 96.0f;
 
-        // A11y 強化：使用 SizeFromClientSize 進行精確測量。
+        // 使用 SizeFromClientSize 進行精確測量。
         // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
         Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
 
         MinimumSize = SizeFromClientSize(minClientSize);
 
-        // A11y 物理鎖定：高對比模式下強制 100% 不透明度。
+        // 高對比模式下強制 100% 不透明度。
         if (SystemInformation.HighContrast)
         {
             UpdateOpacity();
@@ -694,7 +727,11 @@ internal sealed class NumericInputDialog : Form
         // 根據 DPI 縮放比例計算佈局參數。
         float scale = DeviceDpi / 96.0f;
 
-        _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
+        // 取得共享的 A11y 放大字型（預設為 Regular）。
+        _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
+
+        // 數值顯示區字體：使用 2.0x 的放大倍率以突顯數值。
+        // 注意：此字體為對話框特有，需獨立建立且強制為粗體。
         _nudFont = new Font(_a11yFont.FontFamily, _a11yFont.Size * 2.0f, FontStyle.Bold);
 
         // 主佈局容器。
@@ -954,7 +991,8 @@ internal sealed class NumericInputDialog : Form
         Font font,
         Action<bool>? onFocusStateChanged = null)
     {
-        Font boldFont = new(font, FontStyle.Bold);
+        // 取得專屬於此視窗 DPI 的 Bold 字體實例。
+        Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, font.FontFamily);
 
         // 使用 TextRenderer 預先測量 Bold 字型的最大寬度，確保加粗時不會引發佈局抖動。
         Size boldTextSize = TextRenderer.MeasureText(text, boldFont);
@@ -977,10 +1015,10 @@ internal sealed class NumericInputDialog : Form
             ForeColor = Color.Empty
         };
 
-        // 核心修正：消除 WinForms 原生 AcceptButton 產生的粗邊框。
-        // 我們完全交由下方的 Paint 事件來繪製符合 A11y 規範的焦點框。
+        // 消除 WinForms 原生 AcceptButton 產生的粗邊框。
         btn.FlatAppearance.BorderSize = 0;
 
+        // 確保資源在按鈕銷毀時被正確釋放，防止 GDI 洩漏。
         btn.Disposed += (s, e) => boldFont.Dispose();
 
         Padding originalPadding = btn.Padding;
@@ -1051,7 +1089,7 @@ internal sealed class NumericInputDialog : Form
         // 點擊後重置進度，並執行視線重新接合（Gaze Re-engagement）。
         btn.Click += async (s, e) =>
         {
-            // 1. 打斷目前的動畫並將進度歸零。
+            // 打斷目前的動畫並將進度歸零。
             Interlocked.Increment(ref animationId);
 
             dwellProgress = 0f;
@@ -1065,7 +1103,7 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            // 2. 視線重新接合（Gaze Re-engagement）。
+            // 視線重新接合（Gaze Re-engagement）。
             if (!btn.IsDisposed &&
                 btn.Enabled)
             {
@@ -1099,11 +1137,11 @@ internal sealed class NumericInputDialog : Form
 
             dwellProgress = 0f;
 
-            // 只要是「純鍵盤焦點」或是「滑鼠正在實體按壓」，就無條件給予極端對比視覺！
-            bool isPureKeyboardFocus = (btn.Focused && !isHovered) ||
-                isPressed;
+            // 參考 BtnCopy 實作：區分「強烈視覺（焦點／按壓）」與「溫和視覺（懸停）」。
+            // 只要是「純鍵盤焦點」或是「滑鼠正在實體按壓」，就給予加粗（大）與極端對比。
+            bool isStrongVisual = (btn.Focused && !isHovered) || isPressed;
 
-            if (isPureKeyboardFocus)
+            if (isStrongVisual)
             {
                 // 強烈視覺：純鍵盤焦點或實體按壓中。
                 if (SystemInformation.HighContrast)
@@ -1121,8 +1159,12 @@ internal sealed class NumericInputDialog : Form
                         Color.White;
                 }
 
-                // 加粗。
-                btn.Font = boldFont;
+                // 加粗（大）。
+                if (!ReferenceEquals(btn.Font, boldFont))
+                {
+                    btn.Font = boldFont;
+                }
+
                 btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
             }
             else
@@ -1143,8 +1185,12 @@ internal sealed class NumericInputDialog : Form
                         Color.Black;
                 }
 
-                // 不加粗，維持一般字體。
-                btn.Font = font;
+                // 不加粗，維持一般字體（小）。
+                if (!ReferenceEquals(btn.Font, font))
+                {
+                    btn.Font = font;
+                }
+
                 btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Hover})";
 
                 // 動畫回饋：只要有 Hover，即使按鈕已被點擊取得焦點，也強制啟動 Dwell！
@@ -1179,7 +1225,12 @@ internal sealed class NumericInputDialog : Form
                 // 徹底失去所有關注，還原為原始狀態。
                 btn.BackColor = Color.Empty;
                 btn.ForeColor = Color.Empty;
-                btn.Font = font;
+
+                if (!ReferenceEquals(btn.Font, font))
+                {
+                    btn.Font = font;
+                }
+
                 btn.Padding = originalPadding;
                 btn.AccessibleDescription = description;
             }
@@ -1200,18 +1251,18 @@ internal sealed class NumericInputDialog : Form
             bool isDark = btn.IsDarkModeActive();
 
             // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
-            // 核心優化：只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，避免雙焦點誤導。
+            // 只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，避免雙焦點誤導。
             bool isDefault = ReferenceEquals(AcceptButton, btn) &&
                 ActiveControl is not Button;
 
-            // 1. 基礎邊框（預設狀態）。
+            // 基礎邊框（預設狀態）。
             // 由於 btn.FlatAppearance.BorderSize = 0，必須手動繪製預設邊框，否則會跟背景融合。
             // 還原 DimGray／DarkGray 畫筆，並確保在無焦點、無 Hover時畫出。
             if (!btn.Focused &&
                 !isHovered &&
                 !isDefault)
             {
-                // A11y 強化：高對比模式下使用系統框線色，確保物理辨識度。
+                // 高對比模式下使用系統框線色，確保物理辨識度。
                 using Pen basePen = new(
                     SystemInformation.HighContrast ?
                         SystemColors.WindowFrame :
@@ -1226,7 +1277,7 @@ internal sealed class NumericInputDialog : Form
                     btn.Height - 1);
             }
 
-            // 2. 繪製焦點與 Hover 邊框（Focus／Hover Border）。
+            // 繪製焦點與 Hover 邊框（Focus／Hover Border）。
             if (btn.Focused ||
                 isHovered ||
                 isDefault)
@@ -1249,8 +1300,8 @@ internal sealed class NumericInputDialog : Form
                     btn.Height - (inset * 2) - 1);
             }
 
-            // 3. 後繪製注視進度條（Dwell Feedback）。
-            // A11y 強化：使用紋理（Hatch Pattern）補償全色盲使用者。
+            // 後繪製注視進度條（Dwell Feedback）。
+            // 使用紋理（Hatch Pattern）補償全色盲使用者。
             if (dwellProgress > 0)
             {
                 int barHeight = (int)(6 * currentScale),
@@ -1266,7 +1317,7 @@ internal sealed class NumericInputDialog : Form
                 }
                 else
                 {
-                    // A11y 絕對同步：淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
+                    // 淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
                     Color baseColor = isDark ?
                             Color.Firebrick :
                             Color.DarkOrange,
@@ -1301,7 +1352,7 @@ internal sealed class NumericInputDialog : Form
 
         bool suppressNextClick = false;
 
-        // 1. 滑鼠按下時，啟動連發任務。
+        // 滑鼠按下時，啟動連發任務。
         btn.MouseDown += (s, e) =>
         {
             if (e.Button != MouseButtons.Left ||
@@ -1345,7 +1396,7 @@ internal sealed class NumericInputDialog : Form
             .SafeFireAndForget();
         };
 
-        // 2. 任何中斷動作都會停止連發。
+        // 任何中斷動作都會停止連發。
         void StopRepeat()
         {
             repeatCts?.Cancel();
@@ -1357,7 +1408,7 @@ internal sealed class NumericInputDialog : Form
         btn.MouseLeave += (s, e) => StopRepeat();
         btn.LostFocus += (s, e) => StopRepeat();
 
-        // 3. 接管 Click 事件：執行動作，或過濾掉長按鬆開時產生的多餘點擊。
+        // 接管 Click 事件：執行動作，或過濾掉長按鬆開時產生的多餘點擊。
         btn.Click += (s, e) =>
         {
             if (suppressNextClick)

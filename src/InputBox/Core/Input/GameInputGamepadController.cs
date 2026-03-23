@@ -572,10 +572,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        // 0. 取得目前的設定快照，確保本幀處理邏輯的原子性。
+        // 取得目前的設定快照，確保本幀處理邏輯的原子性。
         AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
-        // 1. 裝置清單防抖與掃描邏輯。
+        // 裝置清單防抖與掃描邏輯。
         if (_needsRefresh)
         {
             long elapsedTicks = Stopwatch.GetTimestamp() - _refreshRequestedTicks,
@@ -609,8 +609,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        // 2. 從佇列中取出所有事件（Event-Driven）。
-        // 核心優化：分離「邊緣偵測」與「狀態維持」。
+        // 從佇列中取出所有事件（Event-Driven）。
+        // 分離「邊緣偵測」與「狀態維持」。
         bool hasNewState = false;
 
         GamepadStateSnapshot? latestSnapshot = null;
@@ -632,7 +632,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             latestSnapshot = state;
         }
 
-        // 3. 處理基於時間的邏輯（連發與閒置偵測）。
+        // 處理基於時間的邏輯（連發與閒置偵測）。
         if (hasNewState &&
             latestSnapshot != null)
         {

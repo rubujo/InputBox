@@ -623,4 +623,16 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Gamepad controller initialization failed. Some features may be unavailable.</value>
     <comment>Error message played via A11y when the gamepad controller fails to initialize at startup.</comment>
   </data>
+  <data name="Menu_ApplyThemeRestart" xml:space="preserve">
+    <value>Apply System Theme (Restart Required)</value>
+    <comment>Menu item prompting the user to restart the application to fully apply dark/light theme changes.</comment>
+  </data>
+  <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
+    <value>System theme has changed. Please select "Apply System Theme" from the context menu to restart the application and fully apply visual effects.</value>
+    <comment>Accessibility voice prompt played when a theme change is detected and requires a manual restart.</comment>
+  </data>
+  <data name="App_ThemePending_Suffix" xml:space="preserve">
+    <value>🔄</value>
+    <comment>Icon marker displayed in the title bar when a system theme change is detected but the application hasn't been restarted yet.</comment>
+  </data>
 </root>

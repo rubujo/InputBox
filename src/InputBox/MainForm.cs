@@ -65,16 +65,6 @@ public partial class MainForm : Form
     private const float BaseDpi = 96f;
 
     /// <summary>
-    /// 基礎最小寬度
-    /// </summary>
-    private const int BaseMinWidth = 400;
-
-    /// <summary>
-    /// 基礎最小高度
-    /// </summary>
-    private const int BaseMinHeight = 100;
-
-    /// <summary>
     /// 按鈕文字復原
     /// </summary>
     private const int Delay_ButtonReset = 1000;
@@ -130,14 +120,45 @@ public partial class MainForm : Form
     private bool? _lastGamepadConnectedState;
 
     /// <summary>
-    /// 快取的加粗字型（A11y 視覺強化，需手動 Dispose）
+    /// 待回收的舊字體資源池（防止跨視窗引用時發生 ObjectDisposedException）
     /// </summary>
-    private Font? _boldBtnFont;
+    private static readonly List<Font> _fontTrashCan = [];
+
+    /// <summary>
+    /// 全域共享的 A11y 標準字型快取（依據 DPI 儲存，支援 PerMonitorV2）
+    /// </summary>
+    private static readonly Dictionary<int, Font> _regularFontCache = [];
+
+    /// <summary>
+    /// 全域共享的 A11y 加粗字型快取（依據 DPI 儲存，支援 PerMonitorV2）
+    /// </summary>
+    private static readonly Dictionary<int, Font> _boldFontCache = [];
+
+    /// <summary>
+    /// 統一放大的 A11y 字型（實例引用）
+    /// </summary>
+    private Font A11yFont => GetCachedFont(
+        DeviceDpi,
+        FontStyle.Regular,
+        BtnCopy?.Font?.FontFamily);
+
+    /// <summary>
+    /// 快取的加粗字型（實例引用）
+    /// </summary>
+    private Font BoldBtnFont => GetCachedFont(
+        DeviceDpi,
+        FontStyle.Bold,
+        BtnCopy?.Font?.FontFamily);
 
     /// <summary>
     /// 快取的視窗標題前綴（包含標題、隱私狀態與快速鍵）
     /// </summary>
     private string _cachedTitlePrefix = string.Empty;
+
+    /// <summary>
+    /// 是否有待處理的主題變更（需重啟以完全套用）
+    /// </summary>
+    private bool _isThemeUpdatePending = false;
 
     /// <summary>
     /// 上一次套用佈局時的 DPI 值（用於防抖）
@@ -178,6 +199,9 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
+        // 開啟雙重緩衝以消除閃爍。
+        DoubleBuffered = true;
+
         Disposed += (s, e) =>
         {
             _formCts?.Dispose();
@@ -209,6 +233,9 @@ public partial class MainForm : Form
         // 初始化右鍵選單。
         InitializeContextMenu();
 
+        // 確保在選單建立後立即填充動態文字與在地化標籤。
+        RefreshMenu();
+
         // 綁定剪貼簿重試通知。
         ClipboardService.OnRetry = () => AnnounceA11y(Strings.A11y_Clipboard_Retrying);
 
@@ -221,7 +248,7 @@ public partial class MainForm : Form
         // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>
         {
-            // 核心修正：攔截並阻斷系統多倍捲動與 TextBox 原生捲動行為。
+            // 攔截並阻斷系統多倍捲動與 TextBox 原生捲動行為。
             if (e is HandledMouseEventArgs hme)
             {
                 hme.Handled = true;
@@ -334,48 +361,51 @@ public partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // 1. 立即發出全域取消訊號，中止所有 UI 相關的非同步任務。
+        // 立即發出全域取消訊號，中止所有 UI 相關的非同步任務。
         _formCts.Cancel();
 
-        // 2. 停止 A11y 背景工作者。
-        // 先標記 Writer 完成，讓 ReadAllAsync 平順結束。
+        // 停止 A11y 背景工作者。
+        // 先標記 Writer 完成，並取消對應的 CTS 以強行中斷 Delay。
         _a11yChannel?.Writer.TryComplete();
+        _a11yCts?.Cancel();
+
+        // 非同步硬體緊急清理。
+        // 將同步的硬體 I/O 操作（如 XInput 設定）移至背景執行，防止阻塞 UI 執行緒導致關閉停頓。
+        Task.Run(() =>
+        {
+            try
+            {
+                FeedbackService.EmergencyStopAllActiveControllers();
+            }
+            catch
+            {
+                // 忽略背景清理的任何錯誤。
+            }
+        });
 
         try
         {
-            // 3. 執行硬體緊急停止：強制截斷所有馬達震動，防止掌機在視窗關閉後持續空轉。
-            FeedbackService.EmergencyStopAllActiveControllers();
-
-            // 4. 優先停止輸入源，防止其在通道關閉後仍嘗試寫入廣播。
+            // 優先停止輸入源。
             IGamepadController? gamepad = Interlocked.Exchange(ref _gamepadController, null);
 
             gamepad?.Dispose();
         }
         catch
         {
-            // 忽略緊急停止時的任何潛在錯誤。
+            // 忽略個別控制器的釋放失敗。
         }
 
-        // 5. 處置主取消權杖來源。
-        try
-        {
-            _formCts.Cancel();
-            _formCts.Dispose();
-        }
-        catch (ObjectDisposedException)
-        {
-
-        }
-
-        // 6. 原子性地清理警示權杖。
+        // 原子性清理其餘權杖資源。
         CancellationTokenSource? alertCts = Interlocked.Exchange(ref _alertCts, null);
 
         alertCts?.Dispose();
 
-        // 7. 原子性地清理 A11y 廣播權杖。
         CancellationTokenSource? a11yCts = Interlocked.Exchange(ref _a11yCts, null);
 
         a11yCts?.Dispose();
+
+        // 最後處置主權杖。
+        _formCts.Dispose();
 
         base.OnFormClosing(e);
     }
@@ -418,13 +448,13 @@ public partial class MainForm : Form
 
                     string fullHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
 
-                    // 核心修正：調用帶參數的 UpdateTitle 以顯示更新成功狀態，同時保留快速鍵資訊。
+                    // 調用帶參數的 UpdateTitle 以顯示更新成功狀態，同時保留快速鍵資訊。
                     UpdateTitle($"{Strings.Msg_HotkeyUpdated}: {fullHotkeyStr}");
 
                     BtnCopy.Enabled = false;
                     BtnCopy.Text = Strings.Msg_HotkeyUpdated;
 
-                    // A11y 廣播：延後播報（1200ms），確保在視窗標題變更引發的語音中斷結束後再進行播報。
+                    // 延後播報（1200ms），確保在視窗標題變更引發的語音中斷結束後再進行播報。
                     async Task DelayedAnnounce()
                     {
                         try
@@ -457,7 +487,7 @@ public partial class MainForm : Form
                     // 發生錯誤，仍需還原 UI。
                     RestoreUIFromCaptureMode();
 
-                    // 核心修正：調用帶參數的 UpdateTitle 以顯示錯誤狀態，同時保留快速鍵資訊。
+                    // 調用帶參數的 UpdateTitle 以顯示錯誤狀態，同時保留快速鍵資訊。
                     UpdateTitle(Strings.Err_Title);
 
                     BtnCopy.Enabled = false;
@@ -525,7 +555,7 @@ public partial class MainForm : Form
 
             if (keyData == (Keys.Enter | Keys.Shift))
             {
-                // A11y 廣播：告知使用者已換行。
+                // 告知使用者已換行。
                 AnnounceA11y(Strings.A11y_New_Line);
 
                 // 物理回饋。
@@ -603,9 +633,12 @@ public partial class MainForm : Form
         string hotkeyInfo = $"[{GlobalHotKeyService.GetHotKeyDisplayString()}]",
             privacyInfo = AppSettings.Current.IsPrivacyMode ?
                 Strings.App_Privacy_Suffix :
+                string.Empty,
+            themeInfo = _isThemeUpdatePending ?
+                Strings.App_ThemePending_Suffix :
                 string.Empty;
 
-        _cachedTitlePrefix = $"{Strings.App_Title}{privacyInfo} {hotkeyInfo}";
+        _cachedTitlePrefix = $"{Strings.App_Title} {themeInfo}{privacyInfo} {hotkeyInfo}";
     }
 
     /// <summary>
@@ -626,7 +659,7 @@ public partial class MainForm : Form
             // 立即套用視覺變更。
             UpdateOpacity();
 
-            // A11y 廣播：目前百分比。
+            // 目前百分比。
             AnnounceA11y(string.Format(Strings.A11y_Opacity_Changed, config.WindowOpacity));
 
             // 震動回饋。
@@ -712,7 +745,7 @@ public partial class MainForm : Form
         {
             Location = new Point(newX, newY);
 
-            // A11y 廣播：告知使用者視窗已修正位置。
+            // 告知使用者視窗已修正位置。
             AnnounceA11y(Strings.A11y_SnapBack);
         }
     }
@@ -736,7 +769,7 @@ public partial class MainForm : Form
         // 這樣能避免 DPI 變更（如螢幕拖曳）時導致按鈕文字被意外重置。
         UpdateLayoutConstraints();
 
-        // A11y 物理鎖定：高對比模式下強制 100% 不透明度，確保絕對符合無障礙可讀性規範。
+        // 高對比模式下強制 100% 不透明度，確保絕對符合無障礙可讀性規範。
         if (SystemInformation.HighContrast)
         {
             UpdateOpacity();
@@ -810,6 +843,9 @@ public partial class MainForm : Form
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question) == DialogResult.Yes)
         {
+            // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
+            FeedbackService.EmergencyStopAllActiveControllers();
+
             Program.ReleaseMutex();
 
             // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
@@ -826,6 +862,46 @@ public partial class MainForm : Form
 
             Environment.Exit(0);
         }
+    }
+
+    /// <summary>
+    /// 將不再使用的字體移入回收桶進行延遲處置
+    /// </summary>
+    /// <param name="font">要回收的字體實例</param>
+    public static void AddFontToTrashCan(Font font)
+    {
+        if (font == null)
+        {
+            return;
+        }
+
+        lock (_fontTrashCan)
+        {
+            _fontTrashCan.Add(font);
+        }
+
+        // 啟動延遲清理任務，避免字體堆積引發 GDI 資源洩漏。
+        // 等待足夠長的時間（例如 2 秒），確保所有進行中的重繪事件都已結束，不再使用該字體。
+        Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(2000);
+
+                lock (_fontTrashCan)
+                {
+                    if (_fontTrashCan.Contains(font))
+                    {
+                        font.Dispose();
+                        _fontTrashCan.Remove(font);
+                    }
+                }
+            }
+            catch
+            {
+                // 忽略背景清理的任何錯誤。
+            }
+        });
     }
 
     /// <summary>
@@ -848,6 +924,32 @@ public partial class MainForm : Form
         catch
         {
             // 緊急清理路徑，忽略所有錯誤。
+        }
+    }
+
+    /// <summary>
+    /// 取得指定 DPI 的全域共享字體
+    /// </summary>
+    /// <param name="dpi">視窗目前的 DeviceDpi</param>
+    /// <param name="style">字型樣式</param>
+    /// <param name="family">字型家族</param>
+    /// <returns>Font</returns>
+    public static Font GetCachedFont(int dpi, FontStyle style, FontFamily? family = null)
+    {
+        Dictionary<int, Font> cache = style == FontStyle.Bold ?
+            _boldFontCache :
+            _regularFontCache;
+
+        lock (cache)
+        {
+            if (!cache.TryGetValue(dpi, out Font? font))
+            {
+                font = GetSharedA11yFont(dpi, style, family);
+
+                cache[dpi] = font;
+            }
+
+            return font;
         }
     }
 }
