@@ -29,18 +29,20 @@
 - **目標框架**：基於 `.NET 10（net10.0-windows）`。
 - **現代 C# 特性**：
   - 優先使用 `PeriodicTimer`（替代 Timer）。
-  - 優先使用 C# 13 的 `System.Threading.Lock` 物件（替代 `Monitor` 或 `lock(object)`）。
+  - **執行緒鎖定嚴格規範**：必須使用 C# 13 的 `System.Threading.Lock` 物件。
+    - 嚴禁直接鎖定集合本身（如 `lock(_dictionary)`），必須獨立宣告（如 `private readonly Lock _cacheLock = new();`）並鎖定該專用物件，杜絕舊版 Monitor 降級與潛在死結風險。
   - 使用 `LibraryImport` 進行高效能 P/Invoke。
 - **非同步規範**：
   - 嚴格遵守 `async/await`。除事件處理器外，禁止使用 `async void`。
   - 事件處理器內必須包含完備的 `try-catch` 以防程式異常崩潰。
-  - **UI 執行緒安全（UI Thread Safety）**：跨執行緒操作 UI 必須調用 `ControlExtensions.cs` 中的 `SafeInvoke` 系列方法。
+  - **UI 執行緒安全（UI Thread Safety）**：跨執行緒操作 UI 必須調用 `ControlExtensions.cs` 中的 `SafeInvoke` 或 `SafeBeginInvoke` 系列方法。若是背景執行緒涉及單一執行緒單元（STA）的 COM 存取（如剪貼簿），必須實作嚴謹的 `InvokeRequired` 與 `try-catch` 檢查以防視窗關閉時引發崩潰。
     - **非同步調度準則**：在 `async` 任務內，**必須優先使用** .NET 10 原生的 `await control.InvokeAsync(...)` 方法以避免阻塞背景執行緒。
       - **`InvokeAsync(Action)`**：用於同步的 UI 屬性賦值或簡單方法調用。
       - **`InvokeAsync(Func<Task>)`**：用於包含 `await` 的一連串非同步 UI 邏輯。
   - **權杖安全（Token Safety）**：存取 `CancellationTokenSource?` 欄位的 `.Token` 時，必須使用 `?.Token ?? CancellationToken.None` 模式，杜絕併發下的 `NullReferenceException`。
 - **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
   - **原子化處置模式（Atomic Dispose Pattern）**：必須使用 `Interlocked.Exchange(ref _resource, null)?.Dispose()` 模式，確保「先交換歸零、後執行處置」，防止多執行緒下的重複釋放或空引用異常。
+  - **權杖處置絕對紅線**：終止非同步任務時，嚴禁單獨呼叫 `?.Cancel()` 然後遺棄。必須使用擴充方法 `Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();` 以徹底清理底層控制代碼。
   - **共享資源歸零規範（Shared Resource Nullification）**：對於從全域快取池（如 `GetSharedA11yFont`）取得或由多個組件共享且「禁止由個別視窗手動處置」的資源，在類別釋放（`Dispose` 或 `OnFormClosing`）時，必須將其欄位設為 `null`（建議使用 `Interlocked.Exchange(ref _field, null)`）。這能防止已釋放的視窗繼續持有快取資源的引用，優化 GC 回收效率，並杜絕因誤用已失效引用而產生的邏輯錯誤。
   - **字體快取池（Font Pool）**：`A11yFont` 必須透過基於 DPI 的快取池（`MainForm.GetSharedA11yFont`）取得，禁止在未受管理下直接建立 `Font` 實例。快取池支援自定義倍率（Multiplier）參數以適應特殊 UI 組件。
   - **資源回收桶（Trash Can）與共享安全**：
