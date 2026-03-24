@@ -26,16 +26,6 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
     private readonly Random _random = new();
 
     /// <summary>
-    /// 按鍵放開檢查頻率
-    /// </summary>
-    private const int Delay_KeyReleaseCheck = 15;
-
-    /// <summary>
-    /// 等待按鍵放開的超時上限
-    /// </summary>
-    private const int Timeout_KeyRelease = 2000;
-
-    /// <summary>
     /// 檢查目前是否具備有效的返回目標
     /// </summary>
     public bool CanNavigateBack => _windowFocusManager.CapturedHwnd != IntPtr.Zero &&
@@ -63,7 +53,7 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
             // 播放警告音效與失敗震動。
             FeedbackService.PlaySound(SystemSounds.Exclamation);
 
-            _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail);
+            _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail, cancellationToken);
 
             announceErrorAction?.Invoke(Resources.Strings.A11y_TargetWindowLost);
 
@@ -73,12 +63,12 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
         // 播放音效／震動，給予即時回饋。
         FeedbackService.PlaySound(SystemSounds.Exclamation);
 
-        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart);
+        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart, cancellationToken);
 
         using CancellationTokenSource ctsTimeout = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken);
 
-        ctsTimeout.CancelAfter(Timeout_KeyRelease);
+        ctsTimeout.CancelAfter(AppSettings.KeyReleaseTimeoutMs);
 
         try
         {
@@ -89,7 +79,7 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
                 ShouldWaitForKeyRelease(controller) &&
                 !ctsTimeout.Token.IsCancellationRequested)
             {
-                await Task.Delay(Delay_KeyReleaseCheck, ctsTimeout.Token);
+                await Task.Delay(AppSettings.KeyReleaseCheckIntervalMs, ctsTimeout.Token);
             }
         }
         catch (OperationCanceledException)
@@ -110,7 +100,7 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
             await Task.Delay(baseDelay + jitter, cancellationToken);
         }
         catch (OperationCanceledException)
-        { 
+        {
             return;
         }
 
@@ -118,7 +108,7 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
         await _windowFocusManager.RestorePreviousWindowAsync(cancellationToken);
 
         // 切換完成後的震動。
-        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess);
+        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess, cancellationToken);
     }
 
     /// <summary>

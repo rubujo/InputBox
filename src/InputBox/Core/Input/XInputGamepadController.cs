@@ -80,22 +80,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
     /// </summary>
-    private const int PollingIntervalMs = 16;
-
-    /// <summary>
-    /// 斷線重連的降頻計數閾值
-    /// </summary>
-    private const int ReconnectThreshold = 30;
-
-    /// <summary>
-    /// 最大支援的控制器數量（XInput 標準）
-    /// </summary>
-    private const int MaxControllerCount = 4;
-
-    /// <summary>
-    /// 多控制器自動切換時的搖桿活動閾值（約為 XInput 類比搖桿最大 32767 的 25% 推動量）
-    /// </summary>
-    private const short ActiveThumbstickThreshold = 8000;
+    private const double PollingIntervalMs = 16.6;
 
     /// <summary>
     /// 取得或設定搖桿進入死區閾值
@@ -114,11 +99,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
         get => AppSettings.Current.ThumbDeadzoneExit;
         set => AppSettings.Current.ThumbDeadzoneExit = value;
     }
-
-    /// <summary>
-    /// 觸發鍵閾值（XInput 標準：30）
-    /// </summary>
-    private const byte TriggerThreshold = 30;
 
     /// <summary>
     /// 控制器上鍵
@@ -443,7 +423,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 降頻重連掃描（約每 500ms 一次）。
             _reconnectCounter++;
 
-            if (_reconnectCounter < ReconnectThreshold)
+            if (_reconnectCounter < AppSettings.GamepadReconnectThresholdFrames)
             {
                 return;
             }
@@ -451,7 +431,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _reconnectCounter = 0;
 
             // 嘗試搜尋其他可用的控制器。
-            for (uint i = 0; i < MaxControllerCount; i++)
+            for (uint i = 0; i < AppSettings.XInputMaxControllers; i++)
             {
                 if (XInput.XInputGetState(i, out XInput.XInputState newState) == 0)
                 {
@@ -488,7 +468,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             {
                 _reconnectCounter++;
 
-                if (_reconnectCounter >= ReconnectThreshold)
+                if (_reconnectCounter >= AppSettings.GamepadReconnectThresholdFrames)
                 {
                     _reconnectCounter = 0;
 
@@ -535,8 +515,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             // 處理觸發鍵。
             // 更新「按住」狀態。
-            IsLeftTriggerHeld = currentState.Gamepad.LeftTrigger > TriggerThreshold;
-            IsRightTriggerHeld = currentState.Gamepad.RightTrigger > TriggerThreshold;
+            IsLeftTriggerHeld = currentState.Gamepad.LeftTrigger > AppSettings.XInputTriggerThreshold;
+            IsRightTriggerHeld = currentState.Gamepad.RightTrigger > AppSettings.XInputTriggerThreshold;
 
             Detect(currentState, _previousState, XInput.GamepadButton.DpadUp, UpPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.DpadDown, DownPressed);
@@ -569,7 +549,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 偵測事件觸發（Rising Edge：原本沒按 -> 現在按了）。
             // 處理 LT。
             bool wasLtDownBefore = _hasPreviousState &&
-                _previousState.Gamepad.LeftTrigger > TriggerThreshold;
+                _previousState.Gamepad.LeftTrigger > AppSettings.XInputTriggerThreshold;
 
             if (IsLeftTriggerHeld &&
                 !wasLtDownBefore)
@@ -579,7 +559,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             // 處理 RT。
             bool wasRtDownBefore = _hasPreviousState &&
-                _previousState.Gamepad.RightTrigger > TriggerThreshold;
+                _previousState.Gamepad.RightTrigger > AppSettings.XInputTriggerThreshold;
 
             if (IsRightTriggerHeld &&
                 !wasRtDownBefore)
@@ -600,7 +580,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <returns>是否有成功切換至新裝置</returns>
     private bool ScanForActiveDevice()
     {
-        for (uint i = 0; i < MaxControllerCount; i++)
+        for (uint i = 0; i < AppSettings.XInputMaxControllers; i++)
         {
             // 略過目前正在使用的索引
             if (i == _userIndex)
@@ -613,12 +593,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
             {
                 // 若其他控制器有明顯動作（按下按鈕、扳機超過閾值、搖桿超過活動閾值）。
                 if (state.Gamepad.Buttons != 0 ||
-                    state.Gamepad.LeftTrigger > TriggerThreshold ||
-                    state.Gamepad.RightTrigger > TriggerThreshold ||
-                    Math.Abs(state.Gamepad.ThumbLeftX) > ActiveThumbstickThreshold ||
-                    Math.Abs(state.Gamepad.ThumbLeftY) > ActiveThumbstickThreshold ||
-                    Math.Abs(state.Gamepad.ThumbRightX) > ActiveThumbstickThreshold ||
-                    Math.Abs(state.Gamepad.ThumbRightY) > ActiveThumbstickThreshold)
+                    state.Gamepad.LeftTrigger > AppSettings.XInputTriggerThreshold ||
+                    state.Gamepad.RightTrigger > AppSettings.XInputTriggerThreshold ||
+                    Math.Abs(state.Gamepad.ThumbLeftX) > AppSettings.XInputActiveThumbstickThreshold ||
+                    Math.Abs(state.Gamepad.ThumbLeftY) > AppSettings.XInputActiveThumbstickThreshold ||
+                    Math.Abs(state.Gamepad.ThumbRightX) > AppSettings.XInputActiveThumbstickThreshold ||
+                    Math.Abs(state.Gamepad.ThumbRightY) > AppSettings.XInputActiveThumbstickThreshold)
                 {
                     // 重置原本的按鍵狀態，避免按住的按鍵殘留。
                     ResetHoldStates();

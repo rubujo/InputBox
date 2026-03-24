@@ -310,7 +310,7 @@ public partial class MainForm
         }
 
         // 基礎寬度 3px，隨 DPI 縮放。
-        float scale = DeviceDpi / 96.0f;
+        float scale = DeviceDpi / AppSettings.BaseDpi;
 
         int caretWidth = (int)Math.Max(3, 3 * scale);
         int caretHeight = TBInput.Height;
@@ -341,6 +341,13 @@ public partial class MainForm
     {
         try
         {
+            // 銷毀自定義游標，釋放系統共用資源
+            User32.DestroyCaret();
+
+            // 重置快取，確保下次進入時一定會重新建立游標。
+            _lastCaretWidth = -1;
+            _lastCaretHeight = -1;
+
             // 區分滑鼠與鍵盤的焦點轉移。
             if (BtnCopy != null &&
                 BtnCopy.Focused)
@@ -483,7 +490,7 @@ public partial class MainForm
             return;
         }
 
-        float scale = DeviceDpi / BaseDpi;
+        float scale = DeviceDpi / AppSettings.BaseDpi;
 
         bool isDark = BtnCopy.IsDarkModeActive();
 
@@ -1486,51 +1493,48 @@ public partial class MainForm
 
             void ApplyAlertVisuals(float intensity)
             {
-                this.SafeInvokeAsync(() =>
+                if (IsDisposed ||
+                    !IsHandleCreated)
                 {
-                    if (IsDisposed ||
-                        !IsHandleCreated)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    bool isDark = TBInput.IsDarkModeActive();
+                bool isDark = TBInput.IsDarkModeActive();
 
-                    if (SystemInformation.HighContrast)
-                    {
-                        bool isAlert = intensity > 0.5f;
+                if (SystemInformation.HighContrast)
+                {
+                    bool isAlert = intensity > 0.5f;
 
-                        Color hcBack = isAlert ?
-                                alertColor :
-                                SystemColors.Window,
-                            hcFore = isAlert ?
-                                SystemColors.HighlightText :
-                                SystemColors.WindowText;
+                    Color hcBack = isAlert ?
+                            alertColor :
+                            SystemColors.Window,
+                        hcFore = isAlert ?
+                            SystemColors.HighlightText :
+                            SystemColors.WindowText;
 
-                        // 同步更新背景與前景，確保高對比下文字可讀性。
-                        PInputHost.UpdateRecursive(hcBack, hcFore);
-                    }
-                    else
-                    {
-                        // 閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan／RoyalBlue）插值產生髒濁色。
-                        Color pureBase = isDark ?
-                            Color.White :
-                            Color.Black;
+                    // 同步更新背景與前景，確保高對比下文字可讀性。
+                    PInputHost.UpdateRecursive(hcBack, hcFore);
+                }
+                else
+                {
+                    // 閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan／RoyalBlue）插值產生髒濁色。
+                    Color pureBase = isDark ?
+                        Color.White :
+                        Color.Black;
 
-                        int rB = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
-                            gB = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
-                            bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
+                    int rB = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
+                        gB = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
+                        bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                        Color flashColor = Color.FromArgb(255, rB, gB, bB),
-                            // 根據背景亮度的知覺亮度（Perceptual Luminance）決定前景文字色，確保對比度符合規範。
-                            flashFore = (flashColor.R * 0.299 + flashColor.G * 0.587 + flashColor.B * 0.114) > 128 ?
-                                Color.Black :
-                                Color.White;
+                    Color flashColor = Color.FromArgb(255, rB, gB, bB),
+                        // 根據背景亮度的知覺亮度（Perceptual Luminance）決定前景文字色，確保對比度符合規範。
+                        flashFore = (flashColor.R * 0.299 + flashColor.G * 0.587 + flashColor.B * 0.114) > 128 ?
+                            Color.Black :
+                            Color.White;
 
-                        // 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
-                        PInputHost.UpdateRecursive(flashColor, flashFore);
-                    }
-                }).SafeFireAndForget();
+                    // 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
+                    PInputHost.UpdateRecursive(flashColor, flashFore);
+                }
             }
 
             // 嚴格遵守光敏性癲癇防護與使用者偏好：
@@ -1538,7 +1542,7 @@ public partial class MainForm
             // 則不進行循環閃爍，改為一次性的「長脈衝（Static Pulse）」回饋。
             if (!SystemInformation.UIEffectsEnabled)
             {
-                ApplyAlertVisuals(1.0f);
+                await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
 
                 // 維持一段較長時間（800ms）讓低視能使用者感知狀態，隨後恢復。
                 await Task.Delay(800, token);
@@ -1548,7 +1552,7 @@ public partial class MainForm
 
             int totalDuration = AppSettings.PhotoSafeFrequencyMs;
 
-            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16.6));
+            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
 
             long startTime = Stopwatch.GetTimestamp();
 
@@ -1568,7 +1572,7 @@ public partial class MainForm
 
                 float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
 
-                ApplyAlertVisuals(intensity);
+                await this.SafeInvokeAsync(() => ApplyAlertVisuals(intensity));
             }
         }
         catch (OperationCanceledException)
@@ -1645,7 +1649,7 @@ public partial class MainForm
 
         // 根據規範實施「Zero-Jitter」原則：Padding 必須固定以防止佈局抖動。
         // 使用 3 像素作為平衡美感與 A11y 辨識度的黃金厚度。
-        float scale = DeviceDpi / BaseDpi;
+        float scale = DeviceDpi / AppSettings.BaseDpi;
 
         int fixedThickness = (int)Math.Max(3, 3 * scale);
 

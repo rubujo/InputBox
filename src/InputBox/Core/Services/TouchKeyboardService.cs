@@ -37,7 +37,7 @@ internal class TouchKeyboardService
                 return false;
             }
 
-            Process.Start(new ProcessStartInfo(strTabTipPath)
+            using Process? p = Process.Start(new ProcessStartInfo(strTabTipPath)
             {
                 UseShellExecute = true
             });

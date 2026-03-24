@@ -52,6 +52,121 @@ public class AppSettings
 
     #endregion
 
+    #region 進階系統與效能參數
+
+    /// <summary>
+    /// 系統目標物理更新率（60 FPS 對應的毫秒數：16.6）
+    /// <para>用於非同步計時器（PeriodicTimer）與連發計算，確保各處頻率一致。</para>
+    /// </summary>
+    public const double TargetFrameTimeMs = 16.6;
+
+    /// <summary>
+    /// 基礎 DPI 縮放值
+    /// <para>用於計算高 DPI 環境下的 UI 控制項尺寸與字體縮放。</para>
+    /// </summary>
+    public const float BaseDpi = 96.0f;
+
+    /// <summary>
+    /// 按鈕文字與視覺復原的延遲時間（毫秒）
+    /// </summary>
+    public const int ButtonResetDelayMs = 1000;
+
+    /// <summary>
+    /// Audio Ducking 避讓延遲（毫秒）
+    /// <para>廣播前保留此延遲以避開系統音效干擾。</para>
+    /// </summary>
+    public const int AudioDuckingDelayMs = 200;
+
+    /// <summary>
+    /// 單筆歷程記錄與輸入框的最大字數限制
+    /// </summary>
+    public const int MaxHistoryEntryLength = 10000;
+
+    #endregion
+
+    #region 視窗與剪貼簿控制參數
+
+    /// <summary>
+    /// 切換視窗重試間隔（毫秒）
+    /// </summary>
+    public const int WindowSwitchRetryDelayMs = 50;
+
+    /// <summary>
+    /// 切換視窗最大重試次數
+    /// </summary>
+    public const int WindowSwitchMaxRetries = 3;
+
+    /// <summary>
+    /// 視窗導航時，按鍵放開的檢查頻率（毫秒）
+    /// </summary>
+    public const int KeyReleaseCheckIntervalMs = 15;
+
+    /// <summary>
+    /// 視窗導航時，等待按鍵放開的超時上限（毫秒）
+    /// </summary>
+    public const int KeyReleaseTimeoutMs = 2000;
+
+    /// <summary>
+    /// 剪貼簿操作最大重試次數
+    /// </summary>
+    public const int ClipboardMaxRetries = 10;
+
+    /// <summary>
+    /// 剪貼簿退避重試的延遲上限（毫秒）
+    /// </summary>
+    public const int ClipboardMaxRetryDelayMs = 200;
+
+    /// <summary>
+    /// 寫入剪貼簿後的系統緩衝等待時間（毫秒）
+    /// </summary>
+    public const int ClipboardBufferDelayMs = 50;
+
+    #endregion
+
+    #region 控制器底層感測參數
+
+    /// <summary>
+    /// 裝置重整的冷卻時間（毫秒），過濾掌機虛擬裝置切換造成的連發事件
+    /// </summary>
+    public const int GamepadRefreshCooldownMs = 500;
+
+    /// <summary>
+    /// 斷線重連的降頻計數閾值（幀）
+    /// </summary>
+    public const int GamepadReconnectThresholdFrames = 30;
+
+    /// <summary>
+    /// GameInput 閒置判定閾值
+    /// </summary>
+    public const float GameInputIdleThreshold = 0.01f;
+
+    /// <summary>
+    /// GameInput 活動判定閾值
+    /// </summary>
+    public const float GameInputActiveThreshold = 0.1f;
+
+    /// <summary>
+    /// GameInput 扳機鍵觸發閾值
+    /// </summary>
+    public const float GameInputTriggerThreshold = 0.12f;
+
+    /// <summary>
+    /// XInput 最大支援控制器數量
+    /// </summary>
+    public const int XInputMaxControllers = 4;
+
+    /// <summary>
+    /// XInput 多控制器切換時的搖桿活動閾值
+    /// </summary>
+    public const short XInputActiveThumbstickThreshold = 8000;
+
+    /// <summary>
+    /// XInput 扳機鍵觸發閾值
+    /// </summary>
+    public const byte XInputTriggerThreshold = 30;
+
+    #endregion
+
     #region MainForm 視窗與操作設定
 
     /// <summary>

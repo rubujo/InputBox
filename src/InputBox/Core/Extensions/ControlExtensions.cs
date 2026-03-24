@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using InputBox.Core.Configuration;
 
 namespace InputBox.Core.Extensions;
 
@@ -26,10 +27,13 @@ public static class ControlExtensions
         try
         {
             // 如果控制代碼尚未建立，無法使用 Invoke，直接在當前執行緒執行。
-            // 這種情境通常發生在建構子或 Load 事件前，本來就還在同一執行緒。
+            // 但如果當前是背景執行緒，執行 UI 更新會導致崩潰或不可預期的行為，因此必須丟棄。
             if (!control.IsHandleCreated)
             {
-                action();
+                if (SynchronizationContext.Current is WindowsFormsSynchronizationContext)
+                {
+                    action();
+                }
 
                 return;
             }
@@ -84,7 +88,10 @@ public static class ControlExtensions
 
         if (!control.IsHandleCreated)
         {
-            action();
+            if (SynchronizationContext.Current is WindowsFormsSynchronizationContext)
+            {
+                action();
+            }
 
             return;
         }
@@ -129,8 +136,14 @@ public static class ControlExtensions
         }
 
         // 如果控制代碼尚未建立，直接執行（因為此時通常還沒跨執行緒）。
+        // 防護：若目前為背景執行緒，不可直接執行 UI 相關邏輯，直接放棄。
         if (!control.IsHandleCreated)
         {
+            if (SynchronizationContext.Current is not WindowsFormsSynchronizationContext)
+            {
+                return;
+            }
+
             try
             {
                 await action();
@@ -316,7 +329,7 @@ public static class ControlExtensions
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         // 根據規範：統一使用 60 FPS（16.6ms）物理頻率。
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(16.6));
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
 
         while (await timer.WaitForNextTickAsync(ct) &&
             animationIdGetter() == id &&

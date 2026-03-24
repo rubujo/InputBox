@@ -10,21 +10,6 @@ namespace InputBox.Core.Services;
 internal class ClipboardService
 {
     /// <summary>
-    /// 剪貼簿重試次數
-    /// </summary>
-    private const int Retry_Clipboard = 10;
-
-    /// <summary>
-    /// 最大延遲時間，避免過度重試導致長時間卡死
-    /// </summary>
-    private const int MaxDelay_Clipboard = 200;
-
-    /// <summary>
-    /// 延遲時間，確保剪貼簿操作完成（避免某些系統環境下的非同步問題）
-    /// </summary>
-    private const int Delay_ClipboardBuffer = 50;
-
-    /// <summary>
     /// 重試時的通知回呼（主要用於 A11y 廣播通知）
     /// </summary>
     public static Action? OnRetry { get; set; }
@@ -72,7 +57,7 @@ internal class ClipboardService
             int retryCount = 0;
 
             while (!cts.IsCancellationRequested &&
-                retryCount < Retry_Clipboard)
+                retryCount < AppSettings.ClipboardMaxRetries)
             {
                 try
                 {
@@ -91,10 +76,20 @@ internal class ClipboardService
                     }
 
                     // 寫入後稍微等待，確保作業系統已完成通知廣播。
-                    await Task.Delay(Delay_ClipboardBuffer, cts.Token);
+                    await Task.Delay(AppSettings.ClipboardBufferDelayMs, cts.Token);
 
                     // 驗證寫入結果。
-                    string clipboardText = Clipboard.GetText();
+                    string clipboardText = string.Empty;
+
+                    if (syncForm != null &&
+                        syncForm.InvokeRequired)
+                    {
+                        syncForm.Invoke(new Action(() => clipboardText = Clipboard.GetText()));
+                    }
+                    else
+                    {
+                        clipboardText = Clipboard.GetText();
+                    }
 
                     if (!string.IsNullOrEmpty(clipboardText))
                     {
@@ -137,7 +132,7 @@ internal class ClipboardService
 
                 retryCount++;
 
-                if (retryCount >= Retry_Clipboard)
+                if (retryCount >= AppSettings.ClipboardMaxRetries)
                 {
                     break;
                 }
@@ -147,7 +142,7 @@ internal class ClipboardService
 
                 try
                 {
-                    await Task.Delay(Math.Min(baseDelay, MaxDelay_Clipboard), cts.Token);
+                    await Task.Delay(Math.Min(baseDelay, AppSettings.ClipboardMaxRetryDelayMs), cts.Token);
                 }
                 catch (OperationCanceledException)
                 {

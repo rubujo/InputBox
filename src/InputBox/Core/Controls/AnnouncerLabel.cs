@@ -12,12 +12,6 @@ namespace InputBox.Core.Controls;
 internal sealed class AnnouncerLabel : Label
 {
     /// <summary>
-    /// 統一的 Audio Ducking 避讓延遲（毫秒）。
-    /// 根據規範，廣播前應保留此延遲以避開系統音效干擾。
-    /// </summary>
-    public const int AudioDuckingDelayMs = 200;
-
-    /// <summary>
     /// 最後一次廣播的訊息，用於處理重複訊息的特殊情況
     /// </summary>
     private string _lastMessage = string.Empty;

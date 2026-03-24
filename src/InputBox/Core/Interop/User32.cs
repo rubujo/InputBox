@@ -48,6 +48,10 @@ public static partial class User32
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool DestroyCaret();
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool FlashWindowEx(in FlashWindowInfo flashInfo);
 
     /// <summary>

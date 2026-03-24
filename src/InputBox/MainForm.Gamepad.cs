@@ -580,7 +580,14 @@ public partial class MainForm
         }
         finally
         {
-            initLock?.Release();
+            try
+            {
+                initLock?.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // 忽略已釋放的鎖。
+            }
         }
     }
 
@@ -844,18 +851,24 @@ public partial class MainForm
     /// </summary>
     private void MoveCursorLeft()
     {
-        if (TBInput != null &&
-            !TBInput.IsDisposed &&
-            !string.IsNullOrEmpty(TBInput.Text) &&
-            TBInput.SelectionStart > 0)
+        if (TBInput == null ||
+            TBInput.IsDisposed)
         {
+            return;
+        }
+
+        bool hasSelection = TBInput.SelectionLength > 0;
+
+        if (hasSelection || TBInput.SelectionStart > 0)
+        {
+            if (hasSelection)
+            {
+                TBInput.SelectionLength = 0;
+            }
             // 組合鍵：LB + Left 執行單字跳轉。
-            if (_gamepadController?.IsLeftShoulderHeld == true)
+            else if (_gamepadController?.IsLeftShoulderHeld == true)
             {
                 TBInput.WordJump(false);
-
-                // 跳轉後必須清空選取範圍，確保游標正確定位。
-                TBInput.SelectionLength = 0;
             }
             else
             {
@@ -869,9 +882,7 @@ public partial class MainForm
 
             VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
         }
-        else if (TBInput != null &&
-            !TBInput.IsDisposed &&
-            TBInput.SelectionStart == 0)
+        else if (TBInput.SelectionStart == 0)
         {
             FeedbackService.PlaySound(SystemSounds.Beep);
 
@@ -888,13 +899,24 @@ public partial class MainForm
     /// </summary>
     private void MoveCursorRight()
     {
-        if (TBInput != null &&
-            !TBInput.IsDisposed &&
-            !string.IsNullOrEmpty(TBInput.Text) &&
+        if (TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        bool hasSelection = TBInput.SelectionLength > 0;
+
+        if (hasSelection ||
             TBInput.SelectionStart < TBInput.Text.Length)
         {
+            if (hasSelection)
+            {
+                TBInput.SelectionStart += TBInput.SelectionLength;
+                TBInput.SelectionLength = 0;
+            }
             // 組合鍵：LB + Right 執行單字跳轉。
-            if (_gamepadController?.IsLeftShoulderHeld == true)
+            else if (_gamepadController?.IsLeftShoulderHeld == true)
             {
                 TBInput.WordJump(true);
             }
@@ -908,9 +930,7 @@ public partial class MainForm
             // 手動報讀游標目前的絕對位置。
             AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
         }
-        else if (TBInput != null &&
-            !TBInput.IsDisposed &&
-            TBInput.SelectionStart == TBInput.Text.Length)
+        else if (TBInput.SelectionStart == TBInput.Text.Length)
         {
             FeedbackService.PlaySound(SystemSounds.Beep);
 

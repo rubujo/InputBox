@@ -65,17 +65,7 @@ public partial class MainForm : Form
     private AnnouncerLabel? _lblA11yAnnouncer;
 
     /// <summary>
-    /// 基礎 DPI
-    /// </summary>
-    private const float BaseDpi = 96.0f;
-
-    /// <summary>
-    /// 按鈕文字復原
-    /// </summary>
-    private const int Delay_ButtonReset = 1000;
-
-    /// <summary>
-    /// 最後一次開啟觸控式鍵盤的時間（用於防止重複開啟）
+    /// 快取的原始邊距（用於懸停零邊距策略）
     /// </summary>
     private DateTime _lastTouchKeyboardOpened = DateTime.MinValue;
 
@@ -276,7 +266,7 @@ public partial class MainForm : Form
         AcceptButton = BtnCopy;
 
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
-        TBInput.MaxLength = 10000;
+        TBInput.MaxLength = AppSettings.MaxHistoryEntryLength;
 
         // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>
@@ -459,15 +449,15 @@ public partial class MainForm : Form
         cmsInput?.Dispose();
 
         // 原子化處置輸入框專用字型。
-        Font? inputFont = Interlocked.Exchange(ref _inputFont, null);
-
-        if (inputFont != null)
-        {
-            AddFontToTrashCan(inputFont);
-        }
+        Interlocked.Exchange(ref _inputFont, null);
 
         // 確保所有旗標正確歸零。
         Interlocked.Exchange(ref _isCapturingHotkey, 0);
+
+        // 解除靜態委派，防止記憶體洩漏。
+        Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
+
+        ClipboardService.OnRetry = null;
 
         // 最後處置主權杖。
         CancellationTokenSource? formCts = Interlocked.Exchange(ref _formCts, null);
@@ -593,7 +583,7 @@ public partial class MainForm : Form
                     }
 
                 },
-                _formCts?.Token ?? CancellationToken.None);
+                _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
 
                 return true;
             }
@@ -909,7 +899,7 @@ public partial class MainForm : Form
         try
         {
             await Task.Delay(
-                Delay_ButtonReset,
+                AppSettings.ButtonResetDelayMs,
                 _formCts?.Token ?? CancellationToken.None);
         }
         catch (OperationCanceledException)
@@ -1109,7 +1099,7 @@ public partial class MainForm : Form
                 // 基準尺寸為 14pt。
                 const float baseA11ySize = 14.0f;
 
-                float finalSize = baseA11ySize * sizeMultiplier * (dpi / 96.0f);
+                float finalSize = baseA11ySize * sizeMultiplier * (dpi / AppSettings.BaseDpi);
 
                 family ??= FontFamily.GenericSansSerif;
 
@@ -1131,7 +1121,14 @@ public partial class MainForm : Form
         {
             foreach (Font font in _regularFontCache.Values)
             {
-                font.Dispose();
+                try
+                {
+                    font.Dispose();
+                }
+                catch
+                {
+
+                }
             }
 
             _regularFontCache.Clear();
@@ -1141,7 +1138,14 @@ public partial class MainForm : Form
         {
             foreach (Font font in _boldFontCache.Values)
             {
-                font.Dispose();
+                try
+                {
+                    font.Dispose();
+                }
+                catch
+                {
+
+                }
             }
 
             _boldFontCache.Clear();
@@ -1152,7 +1156,14 @@ public partial class MainForm : Form
         {
             foreach (Font font in _fontTrashCan)
             {
-                font.Dispose();
+                try
+                {
+                    font.Dispose();
+                }
+                catch
+                {
+
+                }
             }
 
             _fontTrashCan.Clear();

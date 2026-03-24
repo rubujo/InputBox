@@ -1,4 +1,5 @@
-﻿using InputBox.Core.Interop;
+﻿using InputBox.Core.Configuration;
+using InputBox.Core.Interop;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -29,16 +30,6 @@ public class WindowFocusService
             }
         }
     }
-
-    /// <summary>
-    /// 切換視窗重試間隔
-    /// </summary>
-    private const int Delay_WindowSwitchRetry = 50;
-
-    /// <summary>
-    /// 視窗切換重試次數
-    /// </summary>
-    private const int Retry_WindowSwitch = 3;
 
     /// <summary>
     /// 捕捉目前的前景視窗作為返回目標
@@ -102,12 +93,12 @@ public class WindowFocusService
         try
         {
             // 嘗試多次切換，直到成功或次數用盡。
-            for (int i = 0; i < Retry_WindowSwitch; i++)
+            for (int i = 0; i < AppSettings.WindowSwitchMaxRetries; i++)
             {
                 User32.SetForegroundWindow(targetHwnd);
 
                 // 給系統一點時間反應。
-                await Task.Delay(Delay_WindowSwitchRetry, cancellationToken);
+                await Task.Delay(AppSettings.WindowSwitchRetryDelayMs, cancellationToken);
 
                 // 如果已經成功切換過去，就結束。
                 if (User32.ForegroundWindow == targetHwnd)

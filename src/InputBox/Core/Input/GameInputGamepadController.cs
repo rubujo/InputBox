@@ -48,11 +48,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private long _refreshRequestedTicks;
 
     /// <summary>
-    /// 裝置重整的冷卻時間（毫秒）- 用於過濾 ROG Ally 等掌機虛擬裝置切換造成的連發事件
-    /// </summary>
-    private const int RefreshCooldownMs = 500;
-
-    /// <summary>
     /// 儲存 GameInput 讀取回呼註冊憑證
     /// </summary>
     private GameInput.GameInputCallbackRegistration? _readingCallbackReg;
@@ -135,22 +130,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
     /// </summary>
-    private const int PollingIntervalMs = 16;
-
-    /// <summary>
-    /// 斷線重連的降頻計數閾值
-    /// </summary>
-    private const int ReconnectThreshold = 30;
-
-    /// <summary>
-    /// 閒置判定閾值
-    /// </summary>
-    private const float IdleThreshold = 0.01f;
-
-    /// <summary>
-    /// 活動判定閾值
-    /// </summary>
-    private const float ActiveThreshold = 0.1f;
+    private const double PollingIntervalMs = 16.6;
 
     /// <summary>
     /// 快取的設備名稱
@@ -179,11 +159,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         get => AppSettings.Current.ThumbDeadzoneExit;
         set => AppSettings.Current.ThumbDeadzoneExit = value;
     }
-
-    /// <summary>
-    /// 觸發鍵閾值（GameInput 標準：0.12）
-    /// </summary>
-    private const float TriggerThreshold = 0.12f;
 
     /// <summary>
     /// 控制器上鍵
@@ -498,24 +473,27 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 這樣 COM 物件的單元模型就會與輪詢執行緒一致，解決 InvalidCastException。
         try
         {
-            _gameInput = GameInput.Create();
-            _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
+            if (_gameInput == null)
+            {
+                _gameInput = GameInput.Create();
+                _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
 
-            // 註冊裝置連線／斷線事件。
-            // 這裡我們只將旗標設為需要重新整理，真正的列舉會在 Poll 執行緒中安全執行。
-            _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
-                null,
-                GameInputKind.Gamepad,
-                GameInputDeviceStatus.Connected,
-                // 這會強迫 Windows 系統「立刻」交出設備名單，並瞬間觸發 callback 讓 _needsRefresh 變成 true。
-                GameInputEnumerationKind.Blocking,
-                (_, _, _, _) =>
-                {
-                    _needsRefresh = true;
+                // 註冊裝置連線／斷線事件。
+                // 這裡我們只將旗標設為需要重新整理，真正的列舉會在 Poll 執行緒中安全執行。
+                _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
+                    null,
+                    GameInputKind.Gamepad,
+                    GameInputDeviceStatus.Connected,
+                    // 這會強迫 Windows 系統「立刻」交出設備名單，並瞬間觸發 callback 讓 _needsRefresh 變成 true。
+                    GameInputEnumerationKind.Blocking,
+                    (_, _, _, _) =>
+                    {
+                        _needsRefresh = true;
 
-                    // 記錄觸發當下的時間。
-                    _refreshRequestedTicks = Stopwatch.GetTimestamp();
-                });
+                        // 記錄觸發當下的時間。
+                        _refreshRequestedTicks = Stopwatch.GetTimestamp();
+                    });
+            }
         }
         catch (Exception ex)
         {
@@ -597,7 +575,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             long elapsedTicks = Stopwatch.GetTimestamp() - _refreshRequestedTicks,
                 elapsedMs = elapsedTicks / (Stopwatch.Frequency / 1000);
 
-            if (elapsedMs >= RefreshCooldownMs)
+            if (elapsedMs >= AppSettings.GamepadRefreshCooldownMs)
             {
                 _reconnectCounter = 0;
 
@@ -608,7 +586,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _reconnectCounter++;
 
-            if (_reconnectCounter >= ReconnectThreshold)
+            if (_reconnectCounter >= AppSettings.GamepadReconnectThresholdFrames)
             {
                 _reconnectCounter = 0;
 
@@ -667,7 +645,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 _reconnectCounter++;
 
-                if (_reconnectCounter >= ReconnectThreshold)
+                if (_reconnectCounter >= AppSettings.GamepadReconnectThresholdFrames)
                 {
                     _reconnectCounter = 0;
 
@@ -730,12 +708,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         return _previousState != null &&
             state.Buttons == 0 && _previousState.Buttons == 0 &&
-            Math.Abs(state.LeftThumbstickX) < IdleThreshold &&
-            Math.Abs(state.LeftThumbstickY) < IdleThreshold &&
-            Math.Abs(state.RightThumbstickX) < IdleThreshold &&
-            Math.Abs(state.RightThumbstickY) < IdleThreshold &&
-            state.LeftTrigger < IdleThreshold &&
-            state.RightTrigger < IdleThreshold;
+            Math.Abs(state.LeftThumbstickX) < AppSettings.GameInputIdleThreshold &&
+            Math.Abs(state.LeftThumbstickY) < AppSettings.GameInputIdleThreshold &&
+            Math.Abs(state.RightThumbstickX) < AppSettings.GameInputIdleThreshold &&
+            Math.Abs(state.RightThumbstickY) < AppSettings.GameInputIdleThreshold &&
+            state.LeftTrigger < AppSettings.GameInputIdleThreshold &&
+            state.RightTrigger < AppSettings.GameInputIdleThreshold;
     }
 
     /// <summary>
@@ -907,12 +885,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     {
                         // 若其他控制器有明顯的動作（按下任何按鈕、推動搖桿或按板機），則切換過去。
                         if (state.Buttons != 0 ||
-                            state.LeftTrigger > ActiveThreshold ||
-                            state.RightTrigger > ActiveThreshold ||
-                            Math.Abs(state.LeftThumbstickX) > ActiveThreshold ||
-                            Math.Abs(state.LeftThumbstickY) > ActiveThreshold ||
-                            Math.Abs(state.RightThumbstickX) > ActiveThreshold ||
-                            Math.Abs(state.RightThumbstickY) > ActiveThreshold)
+                            state.LeftTrigger > AppSettings.GameInputActiveThreshold ||
+                            state.RightTrigger > AppSettings.GameInputActiveThreshold ||
+                            Math.Abs(state.LeftThumbstickX) > AppSettings.GameInputActiveThreshold ||
+                            Math.Abs(state.LeftThumbstickY) > AppSettings.GameInputActiveThreshold ||
+                            Math.Abs(state.RightThumbstickX) > AppSettings.GameInputActiveThreshold ||
+                            Math.Abs(state.RightThumbstickY) > AppSettings.GameInputActiveThreshold)
                         {
                             // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
                             ResetHoldStates();
@@ -1105,8 +1083,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
         IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.View);
         IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.B);
-        IsLeftTriggerHeld = currentState.LeftTrigger > TriggerThreshold;
-        IsRightTriggerHeld = currentState.RightTrigger > TriggerThreshold;
+        IsLeftTriggerHeld = currentState.LeftTrigger > AppSettings.GameInputTriggerThreshold;
+        IsRightTriggerHeld = currentState.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         // 偵測按下事件。
         if (currentButtons.HasFlag(GameInputGamepadButtons.DPadUp) &&
@@ -1194,7 +1172,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool prevLtDown = _hasPreviousState &&
-            _previousState!.LeftTrigger > TriggerThreshold;
+            _previousState!.LeftTrigger > AppSettings.GameInputTriggerThreshold;
 
         if (IsLeftTriggerHeld &&
             !prevLtDown)
@@ -1203,7 +1181,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool prevRtDown = _hasPreviousState &&
-            _previousState!.RightTrigger > TriggerThreshold;
+            _previousState!.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         if (IsRightTriggerHeld &&
             !prevRtDown)
@@ -1633,7 +1611,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     d.Dispose();
                 }
 
-                dev?.Dispose();
                 gameInput?.Dispose();
             }
             catch (Exception)

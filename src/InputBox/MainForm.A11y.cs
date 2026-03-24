@@ -1,4 +1,5 @@
-﻿using InputBox.Core.Controls;
+﻿using InputBox.Core.Configuration;
+using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Resources;
 using System.Diagnostics;
@@ -118,7 +119,7 @@ public partial class MainForm
             return;
         }
 
-        float currentScale = DeviceDpi / 96.0f;
+        float currentScale = DeviceDpi / AppSettings.BaseDpi;
 
         // 測量按鈕所需寬度（考慮加粗狀態）。
         // 重置 MinimumSize 以便重新測量（避免被舊值干擾）。
@@ -302,7 +303,7 @@ public partial class MainForm
 
                                 // 增加延遲以避開系統音效（如 Asterisk）的音訊高峰。
                                 // 根據規範，統一使用 AudioDuckingDelayMs。
-                                await Task.Delay(AnnouncerLabel.AudioDuckingDelayMs, cancellationToken);
+                                await Task.Delay(AppSettings.AudioDuckingDelayMs, cancellationToken);
 
                                 if (cancellationToken.IsCancellationRequested ||
                                     IsDisposed)

@@ -109,13 +109,20 @@ public static class TaskExtensions
             // 記錄至 Debug 視窗。
             Debug.WriteLine($"[背景任務例外] {ex.Message}");
 
-            // 如果有提供額外的處理動作（如記錄至日誌或彈出視窗），則執行它。
-            onException?.Invoke(ex);
+            try
+            {
+                // 如果有提供額外的處理動作（如記錄至日誌或彈出視窗），則執行它。
+                onException?.Invoke(ex);
 
-            // 執行全域處理（使用快照確保原子性）。
-            Action<Exception>? handler = _globalExceptionHandler;
+                // 執行全域處理（使用快照確保原子性）。
+                Action<Exception>? handler = _globalExceptionHandler;
 
-            handler?.Invoke(ex);
+                handler?.Invoke(ex);
+            }
+            catch (Exception secondaryEx)
+            {
+                Debug.WriteLine($"[背景任務例外] 例外處理程序發生錯誤：{secondaryEx.Message}");
+            }
         }
     }
 }
