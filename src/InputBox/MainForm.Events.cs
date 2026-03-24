@@ -252,7 +252,7 @@ public partial class MainForm
         try
         {
             // Tab 鍵進入時，中止正在進行的警示動畫。
-            _alertCts?.Cancel();
+            _alertCts?.CancelAndDispose();
 
             // 如果正在擷取快速鍵，則不執行一般的進入變色邏輯，保留擷取模式的視覺狀態。
             if (_isCapturingHotkey != 0)
@@ -363,7 +363,7 @@ public partial class MainForm
                 // 必須放行，讓 TBInput 乖乖清除黑色背景，避免雙重焦點！
             }
 
-            _alertCts?.Cancel();
+            _alertCts?.CancelAndDispose();
 
             // 如果正在擷取快速鍵時失去焦點，則取消擷取模式。
             if (_isCapturingHotkey != 0)
@@ -854,7 +854,7 @@ public partial class MainForm
 
                 // 異步等待 1 秒冷卻，涵蓋閃爍動畫週期。
                 // 期間所有的點擊都會被 BtnCopy_Click 攔截，但不會破壞 UI 狀態。
-                await Task.Delay(1000);
+                await Task.Delay(1000, _formCts?.Token ?? CancellationToken.None);
 
                 _isActionCooldown = false;
 
@@ -1476,7 +1476,8 @@ public partial class MainForm
         }
 
         // 建立本次動畫專用的中斷權杖。
-        _alertCts?.Cancel();
+        Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
+
         _alertCts = CancellationTokenSource
             .CreateLinkedTokenSource(_formCts?.Token ?? CancellationToken.None);
 
@@ -1582,20 +1583,7 @@ public partial class MainForm
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
-
-            if (_alertCts != null)
-            {
-                try
-                {
-                    _alertCts.Dispose();
-                }
-                catch
-                {
-
-                }
-
-                _alertCts = null;
-            }
+            Interlocked.Exchange(ref _alertCts, null)?.Dispose();
 
             if (!IsDisposed &&
                 IsHandleCreated)

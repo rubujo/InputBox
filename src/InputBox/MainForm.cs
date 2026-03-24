@@ -130,9 +130,19 @@ public partial class MainForm : Form
     private static readonly Dictionary<int, Font> _regularFontCache = [];
 
     /// <summary>
+    /// 全域共享的 A11y 標準字型快取鎖（用於保護靜態字型快取）
+    /// </summary>
+    private static readonly Lock _regularFontCacheLock = new();
+
+    /// <summary>
     /// 全域共享的 A11y 加粗字型快取（依據 DPI 儲存，支援 PerMonitorV2）
     /// </summary>
     private static readonly Dictionary<int, Font> _boldFontCache = [];
+
+    /// <summary>
+    /// 全域共享的 A11y 加粗字型快取鎖（用於保護靜態字型快取）
+    /// </summary>
+    private static readonly Lock _boldFontCacheLock = new();
 
     /// <summary>
     /// 統一放大的 A11y 字型（實例引用）
@@ -1084,15 +1094,19 @@ public partial class MainForm : Form
         FontFamily? family = null,
         float sizeMultiplier = 1.0f)
     {
-        // 根據樣式選擇對應的快取池。
+        // 根據樣式選擇對應的快取池與鎖。
         Dictionary<int, Font> cache = style.HasFlag(FontStyle.Bold) ?
             _boldFontCache :
             _regularFontCache;
 
+        Lock cacheLock = style.HasFlag(FontStyle.Bold) ?
+            _boldFontCacheLock :
+            _regularFontCacheLock;
+
         // 生成唯一的快取金鑰：結合 DPI 與倍率（以千分之一精度映射至整數）。
         int cacheKey = (int)(dpi * sizeMultiplier * 1000);
 
-        lock (cache)
+        lock (cacheLock)
         {
             if (!cache.TryGetValue(cacheKey, out Font? font))
             {
@@ -1117,7 +1131,7 @@ public partial class MainForm : Form
     /// </summary>
     public static void DisposeCaches()
     {
-        lock (_regularFontCache)
+        lock (_regularFontCacheLock)
         {
             foreach (Font font in _regularFontCache.Values)
             {
@@ -1134,7 +1148,7 @@ public partial class MainForm : Form
             _regularFontCache.Clear();
         }
 
-        lock (_boldFontCache)
+        lock (_boldFontCacheLock)
         {
             foreach (Font font in _boldFontCache.Values)
             {

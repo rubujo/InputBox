@@ -62,7 +62,7 @@ internal class TouchKeyboardService
             // 延遲一下再重置，防止快速連點。
             Task.Run(async () =>
             {
-                await Task.Delay(500);
+                await Task.Delay(500, CancellationToken.None);
 
                 Interlocked.Exchange(ref _isOpening, 0);
             }).SafeFireAndForget();

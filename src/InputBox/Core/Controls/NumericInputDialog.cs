@@ -751,9 +751,8 @@ internal sealed class NumericInputDialog : Form
             return;
         }
 
-        // 使用 using 確保 CTS 被正確處置。
-        _alertCts?.Cancel();
-        _alertCts?.Dispose();
+        Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
+
         _alertCts = CancellationTokenSource
             .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
 
@@ -848,6 +847,7 @@ internal sealed class NumericInputDialog : Form
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
+            Interlocked.Exchange(ref _alertCts, null)?.Dispose();
 
             // 確保 UI 狀態還原。
             this.SafeInvoke(() =>
@@ -1286,7 +1286,8 @@ internal sealed class NumericInputDialog : Form
         };
         _nud.Leave += (s, e) =>
         {
-            _alertCts?.Cancel();
+            _alertCts?.CancelAndDispose();
+
             User32.DestroyCaret();
 
             // 重置游標快取，確保下次焦點進入時能正確重建游標
@@ -2021,8 +2022,7 @@ internal sealed class NumericInputDialog : Form
 
             suppressNextClick = false;
 
-            repeatCts?.Cancel();
-            repeatCts?.Dispose();
+            repeatCts?.CancelAndDispose();
             repeatCts = CancellationTokenSource
                 .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
 
@@ -2064,8 +2064,7 @@ internal sealed class NumericInputDialog : Form
         // 任何中斷動作都會停止連發。
         void StopRepeat()
         {
-            repeatCts?.Cancel();
-            repeatCts?.Dispose();
+            repeatCts?.CancelAndDispose();
             repeatCts = null;
         }
 
