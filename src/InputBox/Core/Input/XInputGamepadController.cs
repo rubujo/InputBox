@@ -535,19 +535,21 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
 
             // 處理右搖桿虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
-            int currentRsDir = _rsRepeatDirection;
+            int thresholdLeft = _rsRepeatDirection == -1 ?
+                    config.ThumbDeadzoneExit :
+                    config.ThumbDeadzoneEnter,
+                thresholdRight = _rsRepeatDirection == 1 ?
+                    config.ThumbDeadzoneExit :
+                    config.ThumbDeadzoneEnter,
+                currentRsDir = 0;
 
-            if (currentState.Gamepad.ThumbRightX < -config.ThumbDeadzoneEnter)
+            if (currentState.Gamepad.ThumbRightX < -thresholdLeft)
             {
                 currentRsDir = -1;
             }
-            else if (currentState.Gamepad.ThumbRightX > config.ThumbDeadzoneEnter)
+            else if (currentState.Gamepad.ThumbRightX > thresholdRight)
             {
                 currentRsDir = 1;
-            }
-            else if (Math.Abs((int)currentState.Gamepad.ThumbRightX) < config.ThumbDeadzoneExit)
-            {
-                currentRsDir = 0;
             }
 
             // 偵測正緣觸發（使用「進入本區塊前」的舊方向進行比對）。
@@ -673,7 +675,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _repeatCounter++;
 
             if (_repeatCounter >= config.RepeatInitialDelayFrames &&
-                _repeatCounter % config.RepeatIntervalFrames == 0)
+                (_repeatCounter - config.RepeatInitialDelayFrames) % config.RepeatIntervalFrames == 0)
             {
                 if (gbCurrentDirection == XInput.GamepadButton.DpadLeft)
                 {
@@ -707,7 +709,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _rsRepeatCounter++;
 
             if (_rsRepeatCounter >= config.RepeatInitialDelayFrames &&
-                _rsRepeatCounter % config.RepeatIntervalFrames == 0)
+                (_rsRepeatCounter - config.RepeatInitialDelayFrames) % config.RepeatIntervalFrames == 0)
             {
                 if (rsDir == -1)
                 {

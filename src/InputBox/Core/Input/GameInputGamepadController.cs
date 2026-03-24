@@ -1160,21 +1160,23 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         // 處理右搖桿（RS）虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
         float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
-              exitThreshold = config.ThumbDeadzoneExit / 32768f;
+              exitThreshold = config.ThumbDeadzoneExit / 32768f,
+              thresholdLeft = _rsRepeatDirection == -1 ?
+                exitThreshold :
+                enterThreshold,
+              thresholdRight = _rsRepeatDirection == 1 ?
+                exitThreshold :
+                enterThreshold;
 
-        int curRsDir = _rsRepeatDirection;
+        int curRsDir = 0;
 
-        if (currentState.RightThumbstickX < -enterThreshold)
+        if (currentState.RightThumbstickX < -thresholdLeft)
         {
             curRsDir = -1;
         }
-        else if (currentState.RightThumbstickX > enterThreshold)
+        else if (currentState.RightThumbstickX > thresholdRight)
         {
             curRsDir = 1;
-        }
-        else if (Math.Abs(currentState.RightThumbstickX) < exitThreshold)
-        {
-            curRsDir = 0;
         }
 
         // 偵測正緣觸發。
@@ -1247,7 +1249,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             // 依照 XInput 版本，使用設定檔的延遲與間隔。
             if (_repeatCounter >= config.RepeatInitialDelayFrames &&
-                _repeatCounter % config.RepeatIntervalFrames == 0)
+                (_repeatCounter - config.RepeatInitialDelayFrames) % config.RepeatIntervalFrames == 0)
             {
                 if (currentDir == GameInputGamepadButtons.DPadLeft)
                 {
@@ -1281,7 +1283,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _rsRepeatCounter++;
 
             if (_rsRepeatCounter >= config.RepeatInitialDelayFrames &&
-                _rsRepeatCounter % config.RepeatIntervalFrames == 0)
+                (_rsRepeatCounter - config.RepeatInitialDelayFrames) % config.RepeatIntervalFrames == 0)
             {
                 if (rsDir == -1)
                 {
