@@ -667,17 +667,8 @@ public partial class MainForm
         };
         tsmiExit.Click += (s, e) => Close();
 
-        _cmsInput = new ContextMenuStrip();
-
-        // 根據目前視窗的 DPI 縮放係數來放大字體。
-        // 使用浮點數以確保計算精準。
-        float scale = DeviceDpi / 96.0f;
-
-        // 安全取得基準字型，若系統未能提供則退避至預設字型。
-        Font baseFont = SystemFonts.MessageBoxFont ?? DefaultFont;
-
-        // 使用安全取得的 baseFont 來建立新字型。
-        _cmsInput.Font = new Font(baseFont.FontFamily, 14f * scale, FontStyle.Regular);
+        // 使用共享快取取得選單字型。
+        _cmsInput.Font = GetSharedA11yFont(DeviceDpi);
 
         _cmsInput.Items.Add(_tsmiPrivacyMode);
         _cmsInput.Items.Add(tsmiHotkeySettings);
@@ -872,6 +863,64 @@ public partial class MainForm
                 // 遞迴處理子項。
                 RefreshMenuText(mi);
             }
+        }
+    }
+
+    /// <summary>
+    /// 在輸入框下方開啟右鍵選單，並自動選取第一個有效項目
+    /// </summary>
+    private void ShowContextMenuAtInput()
+    {
+        if (IsDisposed ||
+            TBInput == null ||
+            TBInput.IsDisposed ||
+            _cmsInput == null)
+        {
+            return;
+        }
+
+        if (!_cmsInput.Visible)
+        {
+            // 在文字方塊下方開啟選單。
+            _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
+
+            // 選取第一個有效的項目。
+            foreach (ToolStripItem item in _cmsInput.Items)
+            {
+                if (item.Enabled &&
+                    item.Visible &&
+                    item is not ToolStripSeparator)
+                {
+                    item.Select();
+
+                    // 播報首個項目的名稱與描述。
+                    string? name = item.AccessibleName ?? item.Text,
+                        desc = item.AccessibleDescription;
+
+                    if (item is ToolStripMenuItem mi &&
+                        mi.CheckOnClick)
+                    {
+                        string status = mi.Checked ?
+                            Strings.A11y_Checked :
+                            Strings.A11y_Unchecked;
+
+                        name = $"{name}, {status}";
+                    }
+
+                    string announcement = string.IsNullOrEmpty(desc) ?
+                        (name ?? string.Empty) :
+                        $"{name}. {desc}";
+
+                    if (!string.IsNullOrEmpty(announcement))
+                    {
+                        AnnounceA11y(announcement, interrupt: true);
+                    }
+
+                    break;
+                }
+            }
+
+            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
         }
     }
 }

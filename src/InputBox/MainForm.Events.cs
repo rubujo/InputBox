@@ -287,10 +287,53 @@ public partial class MainForm
                 TBInput.BackColor = Color.Black;
                 TBInput.ForeColor = Color.White;
             }
+
+            // 強化游標辨識度。
+            UpdateCaretWidth();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[事件] TBInput_Enter 處理失敗：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 根據 DPI 與無障礙設定更新輸入框游標寬度
+    /// </summary>
+    private void UpdateCaretWidth()
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed ||
+            !TBInput.IsHandleCreated)
+        {
+            return;
+        }
+
+        // 基礎寬度 3px，隨 DPI 縮放。
+        float scale = DeviceDpi / 96.0f;
+
+        int caretWidth = (int)Math.Max(3, 3 * scale);
+        int caretHeight = TBInput.Height;
+
+        // 高對比模式下額外加粗。
+        if (SystemInformation.HighContrast) caretWidth += (int)(2 * scale);
+
+        // 比對邏輯：若目前的寬度與高度與快取值相同，則直接返回，不重複調用 CreateCaret。
+        if (caretWidth == _lastCaretWidth &&
+            caretHeight == _lastCaretHeight)
+        {
+            return;
+        }
+
+        // 使用 Win32 API 重新建立游標。
+        // hBitmap 為 0 代表實心反轉色。
+        if (User32.CreateCaret(TBInput.Handle, IntPtr.Zero, caretWidth, caretHeight))
+        {
+            User32.ShowCaret(TBInput.Handle);
+
+            // 僅在真正建立成功後更新快取。
+            _lastCaretWidth = caretWidth;
+            _lastCaretHeight = caretHeight;
         }
     }
 
@@ -956,6 +999,140 @@ public partial class MainForm
             return;
         }
 
+        // ←：游標左移／選取。
+        if (e.KeyCode == Keys.Left)
+        {
+            this.SafeBeginInvoke(() =>
+            {
+                if (e.Shift)
+                {
+                    if (TBInput.SelectionLength > 0)
+                    {
+                        AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), true);
+                    }
+                }
+                else
+                {
+                    AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+                }
+            });
+
+            return;
+        }
+
+        // →：游標右移／選取。
+        if (e.KeyCode == Keys.Right)
+        {
+            this.SafeBeginInvoke(() =>
+            {
+                if (e.Shift)
+                {
+                    if (TBInput.SelectionLength > 0)
+                    {
+                        AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), true);
+                    }
+                }
+                else
+                {
+                    AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+                }
+            });
+
+            return;
+        }
+
+        // Home, End, Ctrl + Left/Right：跳轉游標。
+        if (e.KeyCode == Keys.Home ||
+            e.KeyCode == Keys.End ||
+            (e.Control && (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)))
+        {
+            this.SafeBeginInvoke(() =>
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+            });
+
+            return;
+        }
+
+        // Backspace：刪除文字。
+        if (e.KeyCode == Keys.Back)
+        {
+            // 擷取刪除前的狀態。
+            string oldText = TBInput.Text;
+            int oldStart = TBInput.SelectionStart,
+                oldLen = TBInput.SelectionLength;
+
+            // 檢查是否可以刪除。
+            if (oldLen == 0 &&
+                oldStart == 0)
+            {
+                VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+                AnnounceA11y(Strings.A11y_Cannot_Delete, true);
+
+                return;
+            }
+
+            this.SafeBeginInvoke(() =>
+            {
+                // 比對內容是否真的減少。
+                if (TBInput.TextLength < oldText.Length)
+                {
+                    if (oldLen > 0)
+                    {
+                        AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, oldLen), true);
+                    }
+                    else
+                    {
+                        char deletedChar = oldText[oldStart - 1];
+
+                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                    }
+                }
+            });
+
+            return;
+        }
+
+        // Delete：刪除文字。
+        if (e.KeyCode == Keys.Delete)
+        {
+            // 擷取刪除前的狀態。
+            string oldText = TBInput.Text;
+
+            int oldStart = TBInput.SelectionStart,
+                oldLen = TBInput.SelectionLength;
+
+            // 檢查是否可以刪除。
+            if (oldLen == 0 &&
+                oldStart == oldText.Length)
+            {
+                VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+                return;
+            }
+
+            this.SafeBeginInvoke(() =>
+            {
+                // 比對內容是否真的減少。
+                if (TBInput.TextLength < oldText.Length)
+                {
+                    if (oldLen > 0)
+                    {
+                        AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, oldLen), true);
+                    }
+                    else
+                    {
+                        char deletedChar = oldText[oldStart];
+
+                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                    }
+                }
+            });
+
+            return;
+        }
+
         // ↑：上一筆。
         if (e.KeyCode == Keys.Up)
         {
@@ -999,25 +1176,21 @@ public partial class MainForm
     /// </summary>
     private void ClearInput()
     {
-        // 如果已經是空的，不需要大動作清除。
-        if (string.IsNullOrEmpty(TBInput.Text))
-        {
-            FeedbackService.PlaySound(SystemSounds.Beep);
-
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-            return;
-        }
+        // 統一震動回饋，確保鍵盤 Esc 或手把觸發時皆有觸覺感應。
+        VibrateAsync(VibrationPatterns.ClearInput).SafeFireAndForget();
 
         FeedbackService.PlaySound(SystemSounds.Beep);
 
-        VibrateAsync(VibrationPatterns.ClearInput).SafeFireAndForget();
+        // 如果文字框不為空，執行清除並重置歷程索引。
+        if (!string.IsNullOrEmpty(TBInput.Text))
+        {
+            TBInput.Clear();
 
-        TBInput.Clear();
+            // 重置 InputHistoryManager 索引值。
+            _historyService.ResetIndex();
+        }
 
-        // 重置 InputHistoryManager 索引值。
-        _historyService.ResetIndex();
-
+        // 統一播報訊息。
         AnnounceA11y(Strings.Msg_InputCleared);
     }
 
@@ -1297,7 +1470,8 @@ public partial class MainForm
 
         // 建立本次動畫專用的中斷權杖。
         _alertCts?.Cancel();
-        _alertCts = CancellationTokenSource.CreateLinkedTokenSource(_formCts?.Token ?? CancellationToken.None);
+        _alertCts = CancellationTokenSource
+            .CreateLinkedTokenSource(_formCts?.Token ?? CancellationToken.None);
 
         CancellationToken token = _alertCts?.Token ?? CancellationToken.None;
 

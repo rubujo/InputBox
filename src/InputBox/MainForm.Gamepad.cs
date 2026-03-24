@@ -395,6 +395,17 @@ public partial class MainForm
                         }
                         else
                         {
+                            // B 鍵僅負責「清空文字」。
+                            // 若已是空的，則僅發送錯誤震動提示，不執行返回，以防連點誤觸導致視窗意外關閉。
+                            if (string.IsNullOrEmpty(TBInput.Text))
+                            {
+                                FeedbackService.PlaySound(SystemSounds.Beep);
+
+                                VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+                                return;
+                            }
+
                             ClearInput();
                         }
                     });
@@ -453,6 +464,12 @@ public partial class MainForm
                         VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
                     }
                 });
+
+                // 右搖桿文字選取實作。
+                controller.RSLeftPressed += () => this.SafeInvoke(() => ExpandSelection(-1));
+                controller.RSLeftRepeat += () => this.SafeInvoke(() => ExpandSelection(-1));
+                controller.RSRightPressed += () => this.SafeInvoke(() => ExpandSelection(1));
+                controller.RSRightRepeat += () => this.SafeInvoke(() => ExpandSelection(1));
 
                 controller.XPressed += () =>
                 {
@@ -606,18 +623,21 @@ public partial class MainForm
                     return true;
                 }
             case "Right":
-                // 如果目前項有子選單，開啟它。
+                // 遍歷當前活動選單項目。
                 foreach (ToolStripItem item in activeTs.Items)
                 {
+                    // 如果目前選取的項目擁有子選單，則開啟它並進入。
                     if (item.Selected &&
                         item is ToolStripMenuItem tsmi &&
                         tsmi.HasDropDownItems)
                     {
+                        // 展開子選單。
                         tsmi.ShowDropDown();
 
+                        // 自動將焦點導向子選單內的第一個有效項目，提升導覽效率。
                         if (tsmi.DropDown.Items.Count > 0)
                         {
-                            NavigateToolStrip(tsmi.DropDown, true);
+                            NavigateToolStrip(tsmi.DropDown, forward: true);
                         }
 
                         return true;
@@ -626,25 +646,29 @@ public partial class MainForm
 
                 return true;
             case "Confirm":
+                // 遍歷當前活動選單項目，找出目前被選取的項。
                 foreach (ToolStripItem item in activeTs.Items)
                 {
                     if (item.Selected)
                     {
-                        // 判斷：如果是含有子選單的項目，A 鍵的行為改為「展開子選單」。
+                        // 邏輯優化：若點擊的是含有子選單的項目（如語系切換或進階設定），
+                        // A 鍵（Confirm）的行為應改為「展開並自動進入子選單」以提升操作流暢度。
                         if (item is ToolStripMenuItem tsmi &&
                             tsmi.HasDropDownItems)
                         {
+                            // 展開子選單。
                             tsmi.ShowDropDown();
 
-                            // 展開後，自動把焦點移進子選單的第一個項目。
+                            // 展開後立即將焦點（Select）導向子選單內的第一個有效項目。
+                            // NavigateToolStrip 內部會自動跳過分隔線並同步處理 A11y 資訊播報與震動反饋。
                             if (tsmi.DropDown.Items.Count > 0)
                             {
-                                NavigateToolStrip(tsmi.DropDown, true);
+                                NavigateToolStrip(tsmi.DropDown, forward: true);
                             }
                         }
                         else
                         {
-                            // 一般項目則執行原本的點擊確認動作。
+                            // 對於一般功能項目，執行點擊動作（通常會伴隨選單自動關閉）。
                             item.PerformClick();
                         }
 
@@ -825,13 +849,25 @@ public partial class MainForm
             !string.IsNullOrEmpty(TBInput.Text) &&
             TBInput.SelectionStart > 0)
         {
-            TBInput.SelectionStart--;
+            // 組合鍵：LB + Left 執行單字跳轉。
+            if (_gamepadController?.IsLeftShoulderHeld == true)
+            {
+                TBInput.WordJump(false);
+
+                // 跳轉後必須清空選取範圍，確保游標正確定位。
+                TBInput.SelectionLength = 0;
+            }
+            else
+            {
+                TBInput.SelectionStart--;
+            }
+
             TBInput.ScrollToCaret();
 
-            // 手動報讀游標右側的字元，讓使用者知道跨過了什麼字。
-            char crossedChar = TBInput.Text[TBInput.SelectionStart];
+            // 手動報讀游標目前的絕對位置。
+            AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
 
-            AnnounceA11y(crossedChar.ToString(), interrupt: true);
+            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
         }
         else if (TBInput != null &&
             !TBInput.IsDisposed &&
@@ -857,14 +893,20 @@ public partial class MainForm
             !string.IsNullOrEmpty(TBInput.Text) &&
             TBInput.SelectionStart < TBInput.Text.Length)
         {
-            // 往右移之前，先抓取要跨過的字元。
-            char crossedChar = TBInput.Text[TBInput.SelectionStart];
+            // 組合鍵：LB + Right 執行單字跳轉。
+            if (_gamepadController?.IsLeftShoulderHeld == true)
+            {
+                TBInput.WordJump(true);
+            }
+            else
+            {
+                TBInput.SelectionStart++;
+            }
 
-            TBInput.SelectionStart++;
             TBInput.ScrollToCaret();
 
-            // 報讀該字元。
-            AnnounceA11y(crossedChar.ToString(), interrupt: true);
+            // 手動報讀游標目前的絕對位置。
+            AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
         }
         else if (TBInput != null &&
             !TBInput.IsDisposed &&
@@ -892,5 +934,62 @@ public partial class MainForm
             _gamepadController,
             profile,
             _formCts?.Token ?? CancellationToken.None);
+    }
+
+    /// <summary>
+    /// 擴張或縮減文字選取範圍
+    /// </summary>
+    /// <param name="direction">方向（-1 為左，1 為右）</param>
+    private void ExpandSelection(int direction)
+    {
+        if (ActiveForm != this ||
+            _isCapturingHotkey != 0 ||
+            TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        int start = TBInput.SelectionStart,
+            length = TBInput.SelectionLength;
+
+        bool success = false;
+
+        // 向左擴張選取。
+        if (direction < 0)
+        {
+            if (start > 0)
+            {
+                TBInput.SelectionStart = start - 1;
+                TBInput.SelectionLength = length + 1;
+
+                success = true;
+            }
+        }
+        else
+        {
+            // 向右擴張選取。
+            if (start + length < TBInput.TextLength)
+            {
+                TBInput.SelectionLength = length + 1;
+
+                success = true;
+            }
+        }
+
+        if (success)
+        {
+            // A11y：報讀目前選取的文字內容。
+            if (TBInput.SelectionLength > 0)
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), interrupt: true);
+            }
+
+            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+        }
+        else
+        {
+            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+        }
     }
 }

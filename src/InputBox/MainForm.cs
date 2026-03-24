@@ -15,6 +15,11 @@ namespace InputBox;
 public partial class MainForm : Form
 {
     /// <summary>
+    /// 標題快取同步鎖
+    /// </summary>
+    private readonly Lock _titleLock = new();
+
+    /// <summary>
     /// InputHistoryService
     /// </summary>
     private readonly InputHistoryService _historyService;
@@ -125,6 +130,11 @@ public partial class MainForm : Form
     private static readonly List<Font> _fontTrashCan = [];
 
     /// <summary>
+    /// 回收桶專用鎖（用於保護靜態字體回收池）
+    /// </summary>
+    private static readonly Lock _trashCanLock = new();
+
+    /// <summary>
     /// 全域共享的 A11y 標準字型快取（依據 DPI 儲存，支援 PerMonitorV2）
     /// </summary>
     private static readonly Dictionary<int, Font> _regularFontCache = [];
@@ -176,6 +186,16 @@ public partial class MainForm : Form
     /// 上一次套用佈局時的 DPI 值（用於防抖）
     /// </summary>
     private float _lastAppliedDpi = -1;
+
+    /// <summary>
+    /// 上一次建立游標時的寬度快取
+    /// </summary>
+    private int _lastCaretWidth = 0;
+
+    /// <summary>
+    /// 上一次建立游標時的高度快取
+    /// </summary>
+    private int _lastCaretHeight = 0;
 
     /// <summary>
     /// 快取的原始邊距（用於懸停零邊距策略）
@@ -616,6 +636,47 @@ public partial class MainForm : Form
             }
         }
 
+        // F10：Windows 標準選單鍵。
+        // Alt + M：助記符選單鍵（Menu），對標 Alt + B（Back）。
+        if (keyData == Keys.F10 ||
+            keyData == (Keys.Alt | Keys.M))
+        {
+            this.SafeInvoke(ShowContextMenuAtInput);
+
+            return true;
+        }
+
+        // Alt + Up／Down：調整不透明度。
+        if (keyData == (Keys.Alt | Keys.Up))
+        {
+            AdjustOpacity(0.05f);
+
+            return true;
+        }
+
+        if (keyData == (Keys.Alt | Keys.Down))
+        {
+            AdjustOpacity(-0.05f);
+
+            return true;
+        }
+
+        // Alt + R：重設不透明度。
+        if (keyData == (Keys.Alt | Keys.R))
+        {
+            ResetOpacity();
+
+            return true;
+        }
+
+        // Alt + P：切換隱私模式。
+        if (keyData == (Keys.Alt | Keys.P))
+        {
+            TogglePrivacyMode();
+
+            return true;
+        }
+
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
@@ -674,6 +735,12 @@ public partial class MainForm : Form
 
         // DPI 變更時，需重新計算並套用字型縮放。
         ApplyLocalization();
+
+        // 若輸入框正取得焦點，同步更新游標寬度以符合新 DPI。
+        if (TBInput.Focused)
+        {
+            UpdateCaretWidth();
+        }
     }
 
     /// <summary>
@@ -689,7 +756,10 @@ public partial class MainForm : Form
                 Strings.App_ThemePending_Suffix :
                 string.Empty;
 
-        _cachedTitlePrefix = $"{Strings.App_Title} {themeInfo}{privacyInfo} {hotkeyInfo}";
+        lock (_titleLock)
+        {
+            _cachedTitlePrefix = $"{Strings.App_Title} {themeInfo}{privacyInfo} {hotkeyInfo}";
+        }
     }
 
     /// <summary>
@@ -750,6 +820,9 @@ public partial class MainForm : Form
         {
             return;
         }
+
+        // 強制同步 Win32 座標狀態。
+        Update();
 
         Screen screen = Screen.FromControl(this);
 
@@ -886,6 +959,14 @@ public partial class MainForm : Form
     }
 
     /// <summary>
+    /// 切換隱私模式
+    /// </summary>
+    private void TogglePrivacyMode()
+    {
+        _tsmiPrivacyMode?.Checked = !_tsmiPrivacyMode.Checked;
+    }
+
+    /// <summary>
     /// 要求使用者重啟應用程式以套用變更
     /// </summary>
     private static void AskForRestart()
@@ -918,9 +999,9 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 將不再使用的字體移入回收桶進行延遲處置
+    /// 將不再使用的私有字體加入回收桶，延遲處置
     /// </summary>
-    /// <param name="font">要回收的字體實例</param>
+    /// <param name="font">Font</param>
     public static void AddFontToTrashCan(Font font)
     {
         if (font == null)
@@ -928,33 +1009,52 @@ public partial class MainForm : Form
             return;
         }
 
-        lock (_fontTrashCan)
+        lock (_trashCanLock)
         {
             _fontTrashCan.Add(font);
-        }
 
-        // 啟動延遲清理任務，避免字體堆積引發 GDI 資源洩漏。
-        // 等待足夠長的時間（例如 2 秒），確保所有進行中的重繪事件都已結束，不再使用該字體。
-        Task.Run(async () =>
-        {
-            try
+            // 防護機制：若回收桶堆積超過 50 個字體，立即執行一次緊急清理。
+            // 這種情境通常發生在極端 DPI 切換或長時間執行的環境中。
+            if (_fontTrashCan.Count > 50)
             {
-                await Task.Delay(2000);
-
-                lock (_fontTrashCan)
+                foreach (Font f in _fontTrashCan)
                 {
-                    if (_fontTrashCan.Contains(font))
+                    try
                     {
-                        font.Dispose();
-                        _fontTrashCan.Remove(font);
+                        f.Dispose();
+                    }
+                    catch
+                    {
+
                     }
                 }
+
+                _fontTrashCan.Clear();
             }
-            catch
+
+            // 啟動延遲清理任務，避免字體堆積引發 GDI 資源洩漏。
+            // 等待足勝長的時間（例如 2 秒），確保所有進行中的重繪事件都已結束，不再使用該字體。
+            Task.Run(async () =>
             {
-                // 忽略背景清理的任何錯誤。
-            }
-        });
+                try
+                {
+                    await Task.Delay(2000);
+
+                    lock (_trashCanLock)
+                    {
+                        if (_fontTrashCan.Contains(font))
+                        {
+                            font.Dispose();
+                            _fontTrashCan.Remove(font);
+                        }
+                    }
+                }
+                catch
+                {
+                    // 忽略背景清理的任何錯誤。
+                }
+            });
+        }
     }
 
     /// <summary>
@@ -1048,7 +1148,7 @@ public partial class MainForm : Form
         }
 
         // 清理回收桶中剩餘的字體。
-        lock (_fontTrashCan)
+        lock (_trashCanLock)
         {
             foreach (Font font in _fontTrashCan)
             {

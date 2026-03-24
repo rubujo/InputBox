@@ -201,6 +201,14 @@
     <value>已到頂部。</value>
     <comment>無障礙訊息，當游標移動到文字開頭時播放。</comment>
   </data>
+  <data name="A11y_Selected_Text" xml:space="preserve">
+    <value>已選取：{0}</value>
+    <comment>播報目前選取的文字內容</comment>
+  </data>
+  <data name="A11y_Cursor_Move" xml:space="preserve">
+    <value>游標位於第 {0} 個字元</value>
+    <comment>播報目前游標的絕對位置</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>沒有文字可供複製。</value>
     <comment>無障礙訊息，當嘗試複製空文字時播放。</comment>

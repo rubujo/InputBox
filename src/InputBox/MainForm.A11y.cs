@@ -56,38 +56,6 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 取得專案統一的 A11y 放大字型
-    /// </summary>
-    /// <param name="dpi">目前的 DPI 數值</param>
-    /// <param name="fontStyle">字型樣式，預設為 Regular</param>
-    /// <param name="family">字型家族，若未提供則從系統預設抓取</param>
-    /// <returns>Font</returns>
-    public static Font GetSharedA11yFont(
-        float dpi,
-        FontStyle fontStyle = FontStyle.Regular,
-        FontFamily? family = null)
-    {
-        // 根據規範，預設為 14f 放大字型。
-        const float baseFontSize = 14.0f,
-            // 根據規範，基準 DPI 固定為 96.0f。
-            baseDpi = 96.0f;
-
-        float scale = dpi / baseDpi;
-
-        if (scale <= 0.0f)
-        {
-            scale = 1.0f;
-        }
-
-        // 優先順序：傳入的家族 > 系統訊息視窗字型 > 預設字型。
-        FontFamily targetFamily = family ??
-            SystemFonts.MessageBoxFont?.FontFamily ??
-            DefaultFont.FontFamily;
-
-        return new Font(targetFamily, baseFontSize * scale, fontStyle);
-    }
-
-    /// <summary>
     /// 執行階段套用在地化資源與 A11y 屬性
     /// </summary>
     private void ApplyLocalization()
@@ -108,28 +76,21 @@ public partial class MainForm
         TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
         _lblInput?.Text = Strings.A11y_TBInputName;
 
-        // 建立或更新輸入框專用的 28pt 大字體。
-        const float inputFontSize = 28.0f;
-
-        Font newInputFont = new(
+        // 從全域共享快取池取得輸入框專用的 28pt 大字體（14pt * 2.0）。
+        // 既然使用共享快取，則不應手動放入回收桶，由快取池統一管理生命週期。
+        _inputFont = GetSharedA11yFont(
+            DeviceDpi,
+            TBInput.Font.Style,
             TBInput.Font.FontFamily,
-            inputFontSize * (DeviceDpi / 96.0f),
-            TBInput.Font.Style);
-
-        // 原子化交換輸入框字型。
-        Font? oldInputFont = Interlocked.Exchange(ref _inputFont, newInputFont);
+            2.0f);
 
         // 立即同步主視窗控制項字體。
         TBInput.Font = _inputFont;
 
-        if (oldInputFont != null)
-        {
-            AddFontToTrashCan(oldInputFont);
-        }
-
         // 更新按鈕字體。
         // 如果目前按鈕沒有焦點也沒有懸停，立即同步字體。
-        if (!BtnCopy.Focused && !_isBtnHovered)
+        if (!BtnCopy.Focused &&
+            !_isBtnHovered)
         {
             BtnCopy.Font = A11yFont;
         }

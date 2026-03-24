@@ -41,8 +41,11 @@
   - **權杖安全（Token Safety）**：存取 `CancellationTokenSource?` 欄位的 `.Token` 時，必須使用 `?.Token ?? CancellationToken.None` 模式，杜絕併發下的 `NullReferenceException`。
 - **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
   - **原子化處置模式（Atomic Dispose Pattern）**：必須使用 `Interlocked.Exchange(ref _resource, null)?.Dispose()` 模式，確保「先交換歸零、後執行處置」，防止多執行緒下的重複釋放或空引用異常。
+  - **共享資源歸零規範（Shared Resource Nullification）**：對於從全域快取池（如 `GetSharedA11yFont`）取得或由多個組件共享且「禁止由個別視窗手動處置」的資源，在類別釋放（`Dispose` 或 `OnFormClosing`）時，必須將其欄位設為 `null`（建議使用 `Interlocked.Exchange(ref _field, null)`）。這能防止已釋放的視窗繼續持有快取資源的引用，優化 GC 回收效率，並杜絕因誤用已失效引用而產生的邏輯錯誤。
   - **字體快取池（Font Pool）**：`A11yFont` 必須透過基於 DPI 的快取池（`MainForm.GetSharedA11yFont`）取得，禁止在未受管理下直接建立 `Font` 實例。快取池支援自定義倍率（Multiplier）參數以適應特殊 UI 組件。
-  - **資源回收桶（Trash Can）**：更換字體時，舊字體必須進入 `AddFontToTrashCan` 回收桶並延遲釋放，避免 UI 重繪期間的資源占用。
+  - **資源回收桶（Trash Can）與共享安全**：
+    - **非共享實例**：更換視窗私有的字體實例（非來自快取池者）時，舊字體必須進入 `AddFontToTrashCan` 回收桶並延遲釋放。
+    - **共享實例（安全紅線）**：來自全域快取池（`GetSharedA11yFont`）的字體實例**絕對禁止**由個別視窗手動處置或放入回收桶。處置共享字體會導致其他視窗引發 `ObjectDisposedException`。快取池生命週期由 `Program.cs` 統一管控。
   - **全域處置**：程式結束前（`Program.cs`）必須調用 `DisposeCaches()` 徹底清理快取池。
 - **DPI 適應性規範**：
   - 視窗必須實作**佈局約束與最小尺寸更新邏輯**（如 `UpdateLayoutConstraints` 或 `UpdateMinimumSize`），並在 `OnHandleCreated` 與 `OnDpiChanged` 中調用，確保在高 DPI 或縮放變更時佈局不崩潰、文字不被裁剪。

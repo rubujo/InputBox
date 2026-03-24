@@ -201,6 +201,14 @@
     <value>已到顶端。</value>
     <comment>无障碍消息，当光标移动到文本开头时播放。</comment>
   </data>
+  <data name="A11y_Selected_Text" xml:space="preserve">
+    <value>已选取：{0}</value>
+    <comment>播报目前选取的文字内容</comment>
+  </data>
+  <data name="A11y_Cursor_Move" xml:space="preserve">
+    <value>光标位于第 {0} 个字符</value>
+    <comment>播报目前游标的绝对位置</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>没有可复制的文字。</value>
     <comment>无障碍消息，当尝试复制空文本时播放。</comment>

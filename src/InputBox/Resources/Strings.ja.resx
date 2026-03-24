@@ -201,6 +201,14 @@
     <value>先頭に到達しました。</value>
     <comment>アクセシビリティメッセージ。カーソルがテキストの先頭に到達したときに再生されます。</comment>
   </data>
+  <data name="A11y_Selected_Text" xml:space="preserve">
+    <value>選択済み：{0}</value>
+    <comment>選択されたテキストの内容を報知</comment>
+  </data>
+  <data name="A11y_Cursor_Move" xml:space="preserve">
+    <value>カーソル位置：{0} 文字目</value>
+    <comment>現在のカーソルの絶対位置を報知</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>コピーするテキストがありません。</value>
     <comment>アクセシビリティメッセージ。テキストが空の状態でコピーしようとしたときに再生されます。</comment>

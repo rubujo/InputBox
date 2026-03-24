@@ -201,6 +201,14 @@
     <value>Start of text reached.</value>
     <comment>Accessibility message played when the cursor reaches the beginning of the text.</comment>
   </data>
+  <data name="A11y_Selected_Text" xml:space="preserve">
+    <value>Selected: {0}</value>
+    <comment>Announces the currently selected text content</comment>
+  </data>
+  <data name="A11y_Cursor_Move" xml:space="preserve">
+    <value>Cursor at character {0}</value>
+    <comment>Announces the current absolute cursor position</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>No text to copy.</value>
     <comment>Accessibility message played when attempting to copy empty text.</comment>

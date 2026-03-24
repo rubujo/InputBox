@@ -35,7 +35,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 目前使用的 GameInput 設備
     /// </summary>
-    private GameInputDevice? _device;
+    private volatile GameInputDevice? _device;
 
     /// <summary>
     /// 標記是否需要重新整理設備清單
@@ -108,6 +108,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private int _repeatCounter;
 
     /// <summary>
+    /// 右搖桿重複計數器
+    /// </summary>
+    private int _rsRepeatCounter;
+
+    /// <summary>
     /// 是否有前一次的 GamepadStateSnapshot
     /// </summary>
     private volatile bool _hasPreviousState;
@@ -121,6 +126,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 控制器按鈕重複方向
     /// </summary>
     private GameInputGamepadButtons? _repeatDirection;
+
+    /// <summary>
+    /// 右搖桿重複方向（虛擬按鍵）
+    /// </summary>
+    private int _rsRepeatDirection; // -1: Left, 1: Right, 0: None
 
     /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
@@ -138,12 +148,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private const float IdleThreshold = 0.01f;
 
     /// <summary>
-    /// 活動判定閾值（用於多控制器切換）
+    /// 活動判定閾值
     /// </summary>
     private const float ActiveThreshold = 0.1f;
 
     /// <summary>
-    /// 快取的設備名稱（避免跨執行緒 COM 存取）
+    /// 快取的設備名稱
     /// </summary>
     private string _cachedDeviceName = string.Empty;
 
@@ -266,6 +276,26 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? RightRepeat;
 
     /// <summary>
+    /// 右搖桿左推按下事件
+    /// </summary>
+    public event Action? RSLeftPressed;
+
+    /// <summary>
+    /// 右搖桿右推按下事件
+    /// </summary>
+    public event Action? RSRightPressed;
+
+    /// <summary>
+    /// 右搖桿左推重複事件
+    /// </summary>
+    public event Action? RSLeftRepeat;
+
+    /// <summary>
+    /// 右搖桿右推重複事件
+    /// </summary>
+    public event Action? RSRightRepeat;
+
+    /// <summary>
     /// 當左觸發鍵（LT 鍵）被按下時觸發
     /// </summary>
     public event Action? LeftTriggerPressed;
@@ -314,6 +344,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 震動延遲任務的取消權杖來源
     /// </summary>
     private CancellationTokenSource? _vibrationCts;
+
+    /// <summary>
+    /// 保護震動狀態切換的鎖物件
+    /// </summary>
+    private readonly Lock _vibrationLock = new();
 
     /// <summary>
     /// 私有建構子，透過 CreateAsync 建立實體。
@@ -374,26 +409,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void StopPolling()
     {
-        // 取得目前的 CTS 並將欄位設為 null，確保只會由一個執行緒處理取消。
-        CancellationTokenSource? cts = Interlocked.Exchange(ref _ctsPolling, null);
-
-        if (cts != null)
-        {
-            try
-            {
-                // 發出取消訊號。
-                if (!cts.IsCancellationRequested)
-                {
-                    cts.Cancel();
-                }
-
-                cts.Dispose();
-            }
-            catch (ObjectDisposedException)
-            {
-
-            }
-        }
+        CancelAndDisposeCts(ref _ctsPolling);
     }
 
     /// <summary>
@@ -640,8 +656,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _previousState = latestSnapshot;
             _hasPreviousState = true;
 
-            // 對齊 Timer Tick 執行連發邏輯，避免因硬體回報頻率過高導致連發過快。
-            HandleRepeat(_previousProcessedButtons, config);
+            // 對齊 Timer Tick 執行連發邏輯，傳入最新快照的右搖桿數值。
+            HandleRepeat(_previousProcessedButtons, latestSnapshot.RightThumbstickX, config);
         }
         else if (_hasPreviousState &&
             _previousState != null)
@@ -666,7 +682,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 _reconnectCounter = 0;
 
                 // 玩家按住按鍵不放且硬體無新事件時，繼續執行連發計時。
-                HandleRepeat(_previousProcessedButtons, config);
+                HandleRepeat(_previousProcessedButtons, _previousState.RightThumbstickX, config);
             }
         }
     }
@@ -682,8 +698,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         GameInputGamepadButtons currentButtons = currentState.Buttons;
 
-        short thumbLX = (short)(currentState.LeftThumbstickX * short.MaxValue),
-            thumbLY = (short)(currentState.LeftThumbstickY * short.MaxValue);
+        short thumbLX = (short)(currentState.LeftThumbstickX * 32768f),
+            thumbLY = (short)(currentState.LeftThumbstickY * 32768f);
 
         ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY, config);
 
@@ -691,6 +707,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _repeatCounter = 0;
             _repeatDirection = null;
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
             _previousProcessedButtons = currentButtons;
 
             return;
@@ -940,10 +958,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             GameInputDeviceInfo info = dev.GetDeviceInfo();
 
-            // 1. 更新震動支援狀態。
+            // 更新震動支援狀態。
             _supportsRumble = info.SupportedRumbleMotors != GameInputRumbleMotors.None;
 
-            // 2. 更新裝置名稱。
+            // 更新裝置名稱。
             string displayName = string.Empty;
 
             if (UsbIds.TryGetVendorName(info.VendorId, out string vendorName))
@@ -993,8 +1011,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 // 這裡直接使用 state.Buttons 等屬性即可。
                 GameInputGamepadButtons currentButtons = state.Buttons;
 
-                short thumbLX = (short)(state.LeftThumbstickX * short.MaxValue),
-                    thumbLY = (short)(state.LeftThumbstickY * short.MaxValue);
+                short thumbLX = (short)(state.LeftThumbstickX * 32768f),
+                    thumbLY = (short)(state.LeftThumbstickY * 32768f);
 
                 // 取得快照以確保初始化時死區校驗一致。
                 AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
@@ -1157,6 +1175,24 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             YPressed?.Invoke();
         }
 
+        // 偵測右搖桿（RS）虛擬按下。
+        int curRsDir = currentState.RightThumbstickX < -AppSettings.Current.ThumbDeadzoneEnter / 32768f ? -1 :
+                currentState.RightThumbstickX > AppSettings.Current.ThumbDeadzoneEnter / 32768f ? 1 : 0,
+            prevRsDir = _previousState?.RightThumbstickX < -AppSettings.Current.ThumbDeadzoneExit / 32768f ? -1 :
+                _previousState?.RightThumbstickX > AppSettings.Current.ThumbDeadzoneExit / 32768f ? 1 : 0;
+
+        if (curRsDir == -1 &&
+            prevRsDir != -1)
+        {
+            RSLeftPressed?.Invoke();
+        }
+
+        if (curRsDir == 1 &&
+            prevRsDir != 1)
+        {
+            RSRightPressed?.Invoke();
+        }
+
         bool prevLtDown = _hasPreviousState &&
             _previousState!.LeftTrigger > TriggerThreshold;
 
@@ -1179,8 +1215,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 處理重複
     /// </summary>
+    /// <param name="buttons">GameInputGamepadButtons</param>
+    /// <param name="rsX">當前右搖桿 X 軸數值</param>
+    /// <param name="config">AppSettings.GamepadConfigSnapshot</param>
     private void HandleRepeat(
         GameInputGamepadButtons buttons,
+        float rsX,
         AppSettings.GamepadConfigSnapshot config)
     {
         GameInputGamepadButtons? currentDir =
@@ -1235,6 +1275,38 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             DownRepeat?.Invoke();
         }
+
+        // 2. 處理右搖桿（RS）重複輸入。
+        int rsDir = rsX < -config.ThumbDeadzoneExit / 32768f ? -1 :
+            rsX > config.ThumbDeadzoneExit / 32768f ? 1 : 0;
+
+        if (rsDir == 0)
+        {
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
+        }
+        else if (_rsRepeatDirection != rsDir)
+        {
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = rsDir;
+        }
+        else
+        {
+            _rsRepeatCounter++;
+
+            if (_rsRepeatCounter >= config.RepeatInitialDelayFrames &&
+                _rsRepeatCounter % config.RepeatIntervalFrames == 0)
+            {
+                if (rsDir == -1)
+                {
+                    RSLeftRepeat?.Invoke();
+                }
+                else if (rsDir == 1)
+                {
+                    RSRightRepeat?.Invoke();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -1273,33 +1345,23 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 return;
             }
 
-            long token = Interlocked.Increment(ref _vibrationToken);
-
-            // 取消並更換內部的 CTS，確保只有最後一個震動任務的延遲會執行。
+            long token;
             CancellationTokenSource newInternalCts = new();
 
-            CancellationTokenSource? oldCts = Interlocked.Exchange(ref _vibrationCts, newInternalCts);
-
-            if (oldCts != null)
+            lock (_vibrationLock)
             {
-                try
-                {
-                    oldCts.Cancel();
-                }
-                catch
-                {
-                    // 忽略 Cancel 例外。
-                }
-                finally
-                {
-                    // 確保必定釋放。
-                    oldCts.Dispose();
-                }
+                // 原子化遞增 Token 並更換 CTS，確保配對絕對正確。
+                token = Interlocked.Increment(ref _vibrationToken);
+
+                CancelAndDisposeCts(ref _vibrationCts);
+
+                _vibrationCts = newInternalCts;
             }
 
-            // 直接連結外部 ct 與內部 CTS，。
-            using CancellationTokenSource finalCts = CancellationTokenSource.CreateLinkedTokenSource(ct, newInternalCts.Token);
-            
+            // 直接連結外部 ct 與內部 CTS。
+            using CancellationTokenSource finalCts = CancellationTokenSource
+                .CreateLinkedTokenSource(ct, newInternalCts.Token);
+
             CancellationToken ctsToken = finalCts.Token;
 
             // 強度。
@@ -1396,6 +1458,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 非同步處置
     /// </summary>
+    /// <returns>ValueTask</returns>
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -1409,20 +1472,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         FeedbackService.UnregisterController(this);
 
         // 取消震動任務。
-        CancellationTokenSource? vCts = Interlocked.Exchange(ref _vibrationCts, null);
-
-        if (vCts != null)
-        {
-            try
-            {
-                vCts.Cancel();
-                vCts.Dispose();
-            }
-            catch
-            {
-
-            }
-        }
+        CancelAndDisposeCts(ref _vibrationCts);
 
         await StopPollingAsync().ConfigureAwait(false);
 
@@ -1450,26 +1500,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 取消註冊。
         FeedbackService.UnregisterController(this);
 
-        // 取消震動任務。
-        CancellationTokenSource? vCts = Interlocked.Exchange(ref _vibrationCts, null);
+        // 確保在資源釋放前馬達已確實接收到歸零指令。
+        StopVibration();
 
-        if (vCts != null)
-        {
-            try
-            {
-                vCts.Cancel();
-                vCts.Dispose();
-            }
-            catch
-            {
-
-            }
-        }
-
-        // 1. 發出取消訊號。
+        // 發出取消訊號。
         StopPolling();
 
-        // 2. 清理資源（同步環境下使用 SafeFireAndForget）。
+        // 清理資源（同步環境下使用 SafeFireAndForget）。
         ClearAllEvents();
         DisposeResourcesAsync().SafeFireAndForget();
 
@@ -1479,6 +1516,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 停止輪詢（非同步）
     /// </summary>
+    /// <returns>Task</returns>
     private Task StopPollingAsync()
     {
         StopPolling();
@@ -1492,6 +1530,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     public void StopVibration()
     {
+        lock (_vibrationLock)
+        {
+            // 立即遞增 Token 並取消現有任務的延遲，確保進行中的 VibrateAsync 任務失效。
+            Interlocked.Increment(ref _vibrationToken);
+
+            CancelAndDisposeCts(ref _vibrationCts);
+        }
+
         GameInputDevice? dev = _device;
 
         if (dev == null)
@@ -1499,23 +1545,39 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        // 將 COM 呼叫推入 MTA 背景執行緒，避免在 STA (UI) 執行緒引發 InvalidCastException
-        Task.Run(() =>
+        // 判斷目前執行緒的單元模型（Apartment State）。
+        // GameInput 的 COM 物件建立於 MTA 背景執行緒，若在 STA（如 UI 執行緒）直接存取會引發 InvalidCastException (E_NOINTERFACE)。
+        if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    dev.SetRumbleState(new GameInputRumbleParams());
+                }
+                catch
+                {
+                    // 忽略背景清理的任何錯誤。
+                }
+            });
+        }
+        else
         {
             try
             {
                 dev.SetRumbleState(new GameInputRumbleParams());
             }
-            catch
+            catch (Exception ex)
             {
-                // 忽略
+                Debug.WriteLine($"GameInput 停止震動失敗：{ex.Message}");
             }
-        });
+        }
     }
 
     /// <summary>
     /// 非同步處置資源
     /// </summary>
+    /// <returns>Task</returns>
     private Task DisposeResourcesAsync()
     {
         // 捕獲目前實例以供背景執行緒釋放。
@@ -1574,7 +1636,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 dev?.Dispose();
                 gameInput?.Dispose();
             }
-            catch
+            catch (Exception)
             {
 
             }
@@ -1614,8 +1676,40 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         DownRepeat = null;
         LeftRepeat = null;
         RightRepeat = null;
+        RSLeftPressed = null;
+        RSRightPressed = null;
+        RSLeftRepeat = null;
+        RSRightRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         ConnectionChanged = null;
+    }
+
+    /// <summary>
+    /// 取消並處置 CancellationTokenSource
+    /// </summary>
+    /// <param name="source">CancellationTokenSource 來源</param>
+    private static void CancelAndDisposeCts(ref CancellationTokenSource? source)
+    {
+        // 使用 Interlocked.Exchange 確保執行緒安全，並將原參考設為 null。
+        CancellationTokenSource? cts = Interlocked.Exchange(ref source, null);
+
+        if (cts != null)
+        {
+            try
+            {
+                // 直接呼叫 Cancel，若已取消則內部會自動忽略。
+                cts.Cancel();
+            }
+            catch
+            {
+                // 忽略因 Cancel 觸發回呼（Callbacks）時所引發的任何例外。
+            }
+            finally
+            {
+                // 確保 Dispose 一定會被執行，徹底釋放底層資源。
+                cts.Dispose();
+            }
+        }
     }
 }

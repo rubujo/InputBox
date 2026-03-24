@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace InputBox.Core.Extensions;
 
@@ -147,65 +148,26 @@ public static class ControlExtensions
             return;
         }
 
-        if (control.InvokeRequired)
+        try
         {
-            TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            try
+            // 利用 .NET 10 原生支援的非同步調度，簡化邏輯並減少 TaskCompletionSource 的配置開銷。
+            await control.InvokeAsync(async (ct) =>
             {
-                control.BeginInvoke(new MethodInvoker(async () =>
+                // 進入 UI 執行緒後的最終安全檢查。
+                if (!control.IsDisposed &&
+                    control.IsHandleCreated)
                 {
-                    try
-                    {
-                        // 再次檢查狀態，因為排程到執行可能有延遲。
-                        if (control.IsDisposed ||
-                            !control.IsHandleCreated)
-                        {
-                            tcs.TrySetResult();
-
-                            return;
-                        }
-
-                        await action();
-
-                        tcs.TrySetResult();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        tcs.TrySetCanceled();
-                    }
-                    catch (Exception ex)
-                    {
-                        // 確保例外能傳回呼叫端。
-                        tcs.TrySetException(ex);
-                    }
-                }));
-            }
-            catch (ObjectDisposedException)
-            {
-                tcs.TrySetResult();
-            }
-            catch (InvalidOperationException)
-            {
-                tcs.TrySetResult();
-            }
-            catch (Exception ex)
-            {
-                tcs.TrySetException(ex);
-            }
-
-            await tcs.Task;
+                    await action();
+                }
+            });
         }
-        else
+        catch (ObjectDisposedException)
         {
-            try
-            {
-                await action();
-            }
-            catch (ObjectDisposedException)
-            {
 
-            }
+        }
+        catch (InvalidOperationException)
+        {
+
         }
     }
 
@@ -425,5 +387,171 @@ public static class ControlExtensions
     public static void ResetThemeRecursive(this Control parent)
     {
         UpdateRecursive(parent, Color.Empty, Color.Empty);
+    }
+
+    /// <summary>
+    /// 執行單字跳轉邏輯（智慧偵測空白、標點符號、字元類型轉換，支援全形與 IME 情境）
+    /// </summary>
+    /// <param name="tb">目標文字方塊</param>
+    /// <param name="forward">是否向右跳轉</param>
+    public static void WordJump(this TextBox tb, bool forward)
+    {
+        if (tb == null ||
+            tb.IsDisposed)
+        {
+            return;
+        }
+
+        string text = tb.Text;
+
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        int pos = tb.SelectionStart,
+            len = text.Length;
+
+        if (forward)
+        {
+            if (pos >= len)
+            {
+                return;
+            }
+
+            // 取得起始字元的類別。
+            CharType startType = GetCharType(text[pos]);
+
+            // 持續移動，直到字元類型發生變化。
+            // 若起始是空白，則會直接跳到下一個非空白單字的開始。
+            // 若起始是文字，則會跳到該類型文字的邊界。
+            while (pos < len &&
+                GetCharType(text[pos]) == startType)
+            {
+                pos++;
+            }
+
+            // UX 補償：若跳轉後停在空白處，則繼續跳過後續所有空白，停在下一個實體單字的開始。
+            if (pos < len &&
+                GetCharType(text[pos]) == CharType.WhiteSpace)
+            {
+                while (pos < len &&
+                    GetCharType(text[pos]) == CharType.WhiteSpace)
+                {
+                    pos++;
+                }
+            }
+
+            tb.SelectionStart = pos;
+        }
+        else
+        {
+            if (pos <= 0)
+            {
+                return;
+            }
+
+            // 往回找，先跳過起始點左側的所有空白（如果有）。
+            while (pos > 0 &&
+                GetCharType(text[pos - 1]) == CharType.WhiteSpace)
+            {
+                pos--;
+            }
+
+            if (pos > 0)
+            {
+                // 取得目前單字末尾字元的類別。
+                CharType targetType = GetCharType(text[pos - 1]);
+
+                // 往回跳轉，直到字元類型變化（例如：從數字變回中文）。
+                while (pos > 0 &&
+                    GetCharType(text[pos - 1]) == targetType)
+                {
+                    pos--;
+                }
+            }
+
+            tb.SelectionStart = pos;
+        }
+
+        tb.ScrollToCaret();
+    }
+
+    /// <summary>
+    /// 內部定義字元類別，用於精準跳轉判定（支援全形感知）
+    /// </summary>
+    private enum CharType
+    {
+        /// <summary>
+        /// 空白（含全形）
+        /// </summary>
+        WhiteSpace,
+        /// <summary>
+        /// 拉丁字母（含全形 Ａ-Ｚ）
+        /// </summary>
+        Latin,
+        /// <summary>
+        /// 中日韓文字
+        /// </summary>
+        CJK,
+        /// <summary>
+        /// 數字（含全形 ０-９）
+        /// </summary>
+        Digit,
+        /// <summary>
+        /// 標點符號（含全形）
+        /// </summary>
+        Punctuation,
+        /// <summary>
+        /// 特殊符號（含全形）
+        /// </summary>
+        Symbol,
+        /// <summary>
+        /// 其他
+        /// </summary>
+        Other
+    }
+
+    /// <summary>
+    /// 取得字元的精確類別，特別針對全形與 CJK 環境優化
+    /// </summary>
+    private static CharType GetCharType(char c)
+    {
+        // 空白處理（.NET 已內建全形空格 U+3000 的支援）。
+        if (char.IsWhiteSpace(c)) return CharType.WhiteSpace;
+
+        // 數字處理（含全形）。
+        if (char.IsDigit(c)) return CharType.Digit;
+
+        // 標點與符號。
+        if (char.IsPunctuation(c))
+        {
+            return CharType.Punctuation;
+        }
+
+        if (char.IsSymbol(c))
+        {
+            return CharType.Symbol;
+        }
+
+        // 字母與 CJK 判定（利用 Unicode 類別細分）。
+        UnicodeCategory cat = char.GetUnicodeCategory(c);
+
+        // CJK 漢字、假名、韓文通常歸類為 OtherLetter。
+        if (cat == UnicodeCategory.OtherLetter)
+        {
+            return CharType.CJK;
+        }
+
+        // 拉丁字母、希臘文等歸類為 Uppercase／Lowercase Letter。
+        if (cat == UnicodeCategory.UppercaseLetter ||
+            cat == UnicodeCategory.LowercaseLetter ||
+            cat == UnicodeCategory.TitlecaseLetter ||
+            cat == UnicodeCategory.ModifierLetter)
+        {
+            return CharType.Latin;
+        }
+
+        return CharType.Other;
     }
 }

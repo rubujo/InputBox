@@ -52,6 +52,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private int _repeatCounter;
 
     /// <summary>
+    /// 右搖桿重複計數器
+    /// </summary>
+    private int _rsRepeatCounter;
+
+    /// <summary>
     /// 是否有前一次的 XInputState
     /// </summary>
     private volatile bool _hasPreviousState;
@@ -65,6 +70,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 控制器按鈕重複方向
     /// </summary>
     private XInput.GamepadButton? _repeatDirection;
+
+    /// <summary>
+    /// 右搖桿重複方向（虛擬按鍵）
+    /// <para>-1：Left、1：Right、0：None</para>
+    /// </summary>
+    private int _rsRepeatDirection;
 
     /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
@@ -213,6 +224,26 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? RightRepeat;
 
     /// <summary>
+    /// 右搖桿左推按下事件
+    /// </summary>
+    public event Action? RSLeftPressed;
+
+    /// <summary>
+    /// 右搖桿右推按下事件
+    /// </summary>
+    public event Action? RSRightPressed;
+
+    /// <summary>
+    /// 右搖桿左推重複事件
+    /// </summary>
+    public event Action? RSLeftRepeat;
+
+    /// <summary>
+    /// 右搖桿右推重複事件
+    /// </summary>
+    public event Action? RSRightRepeat;
+
+    /// <summary>
     /// 當左觸發鍵（LT 鍵）被按下時觸發
     /// </summary>
     public event Action? LeftTriggerPressed;
@@ -261,6 +292,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 震動延遲任務的取消權杖來源
     /// </summary>
     private CancellationTokenSource? _vibrationCts;
+
+    /// <summary>
+    /// 保護震動狀態切換的鎖物件
+    /// </summary>
+    private readonly Lock _vibrationLock = new();
 
     /// <summary>
     /// XInputGamepadController
@@ -514,6 +550,22 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
 
+            // 處理右搖桿虛擬按鍵偵測。
+            int currentRsDir = currentState.Gamepad.ThumbRightX < -config.ThumbDeadzoneEnter ? -1 :
+                    currentState.Gamepad.ThumbRightX > config.ThumbDeadzoneEnter ? 1 : 0,
+                prevRsDir = _previousState.Gamepad.ThumbRightX < -config.ThumbDeadzoneExit ? -1 :
+                    _previousState.Gamepad.ThumbRightX > config.ThumbDeadzoneExit ? 1 : 0;
+
+            if (currentRsDir == -1 && prevRsDir != -1)
+            {
+                RSLeftPressed?.Invoke();
+            }
+
+            if (currentRsDir == 1 && prevRsDir != 1)
+            {
+                RSRightPressed?.Invoke();
+            }
+
             // 偵測事件觸發（Rising Edge：原本沒按 -> 現在按了）。
             // 處理 LT。
             bool wasLtDownBefore = _hasPreviousState &&
@@ -594,7 +646,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         XInput.XInputState state,
         AppSettings.GamepadConfigSnapshot config)
     {
-        // 支援上下左右四個方向的長按重複判斷。
+        // 處理 D-Pad 重複輸入。
         XInput.GamepadButton? gbCurrentDirection =
             state.Has(XInput.GamepadButton.DpadLeft) ? XInput.GamepadButton.DpadLeft :
             state.Has(XInput.GamepadButton.DpadRight) ? XInput.GamepadButton.DpadRight :
@@ -602,54 +654,72 @@ internal sealed partial class XInputGamepadController : IGamepadController
             state.Has(XInput.GamepadButton.DpadDown) ? XInput.GamepadButton.DpadDown :
             null;
 
-        // 沒有按方向鍵 → 重置狀態。
         if (gbCurrentDirection is null)
         {
             _repeatCounter = 0;
             _repeatDirection = null;
-
-            return;
         }
-
-        // 方向改變 → 重置 repeat（重新給初始延遲）。
-        if (_repeatDirection != gbCurrentDirection)
+        else if (_repeatDirection != gbCurrentDirection)
         {
             _repeatCounter = 0;
             _repeatDirection = gbCurrentDirection;
+        }
+        else
+        {
+            _repeatCounter++;
 
-            return;
+            if (_repeatCounter >= config.RepeatInitialDelayFrames &&
+                _repeatCounter % config.RepeatIntervalFrames == 0)
+            {
+                if (gbCurrentDirection == XInput.GamepadButton.DpadLeft)
+                {
+                    LeftRepeat?.Invoke();
+                }
+                else if (gbCurrentDirection == XInput.GamepadButton.DpadRight)
+                {
+                    RightRepeat?.Invoke();
+                }
+                else if (gbCurrentDirection == XInput.GamepadButton.DpadUp)
+                {
+                    UpRepeat?.Invoke();
+                }
+                else if (gbCurrentDirection == XInput.GamepadButton.DpadDown)
+                {
+                    DownRepeat?.Invoke();
+                }
+            }
         }
 
-        _repeatCounter++;
+        // 處理右搖桿（RS）重複輸入。
+        int rsDir = state.Gamepad.ThumbRightX < -config.ThumbDeadzoneExit ? -1 :
+            state.Gamepad.ThumbRightX > config.ThumbDeadzoneExit ? 1 : 0;
 
-        // 初始延遲（由設定決定）。
-        if (_repeatCounter < config.RepeatInitialDelayFrames)
+        if (rsDir == 0)
         {
-            return;
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
         }
+        else if (_rsRepeatDirection != rsDir)
+        {
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = rsDir;
+        }
+        else
+        {
+            _rsRepeatCounter++;
 
-        // Repeat 速度（由設定決定）。
-        if (_repeatCounter % config.RepeatIntervalFrames != 0)
-        {
-            return;
-        }
-
-        // 觸發對應的重複事件。
-        if (gbCurrentDirection == XInput.GamepadButton.DpadLeft)
-        {
-            LeftRepeat?.Invoke();
-        }
-        else if (gbCurrentDirection == XInput.GamepadButton.DpadRight)
-        {
-            RightRepeat?.Invoke();
-        }
-        else if (gbCurrentDirection == XInput.GamepadButton.DpadUp)
-        {
-            UpRepeat?.Invoke();
-        }
-        else if (gbCurrentDirection == XInput.GamepadButton.DpadDown)
-        {
-            DownRepeat?.Invoke();
+            if (_rsRepeatCounter >= config.RepeatInitialDelayFrames &&
+                _rsRepeatCounter % config.RepeatIntervalFrames == 0)
+            {
+                if (rsDir == -1)
+                {
+                    RSLeftRepeat?.Invoke();
+                }
+                else if (rsDir == 1)
+                {
+                    RSRightRepeat?.Invoke();
+                }
+            }
         }
     }
 
@@ -768,6 +838,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     public void StopVibration()
     {
+        lock (_vibrationLock)
+        {
+            // 立即遞增 Token 並取消現有任務的延遲，確保進行中的 VibrateAsync 任務失效。
+            Interlocked.Increment(ref _vibrationToken);
+
+            CancelAndDisposeCts(ref _vibrationCts);
+        }
+
         try
         {
             XInput.XInputVibration stopVibration = default;
@@ -776,7 +854,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
         catch
         {
-            // 忽略
+            // 忽略。
         }
     }
 
@@ -818,15 +896,20 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 捕獲目前的索引快照，確保開始與停止動作作用於同一個 Port。
             uint userIndex = _userIndex;
 
-            // 每次呼叫時產生一個新的通行證（Token）。
-            long currentToken = Interlocked.Increment(ref _vibrationToken);
+            long currentToken;
 
-            // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
             CancellationTokenSource newCts = new();
 
-            CancelAndDisposeCts(ref _vibrationCts);
+            lock (_vibrationLock)
+            {
+                // 每次呼叫時產生一個新的通行證（Token）。
+                currentToken = Interlocked.Increment(ref _vibrationToken);
 
-            _vibrationCts = newCts;
+                // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
+                CancelAndDisposeCts(ref _vibrationCts);
+
+                _vibrationCts = newCts;
+            }
 
             CancellationToken token = newCts.Token;
 
@@ -839,7 +922,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _ = XInput.XInputSetState(userIndex, in vibration);
 
             // 將「內部震動覆蓋權杖」與「外部傳入的取消權杖」綁定在一起。
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(newCts.Token, ct);
+            using CancellationTokenSource linkedCts = CancellationTokenSource
+                .CreateLinkedTokenSource(newCts.Token, ct);
 
             try
             {
@@ -1056,6 +1140,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
         DownRepeat = null;
         LeftRepeat = null;
         RightRepeat = null;
+        RSLeftPressed = null;
+        RSRightPressed = null;
+        RSLeftRepeat = null;
+        RSRightRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         ConnectionChanged = null;

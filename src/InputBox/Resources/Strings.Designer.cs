@@ -205,6 +205,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Cursor at character {0} 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Cursor_Move {
+            get {
+                return ResourceManager.GetString("A11y_Cursor_Move", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Deleted {0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Delete_Char {
@@ -561,6 +570,15 @@ namespace InputBox.Resources {
         internal static string A11y_Returning {
             get {
                 return ResourceManager.GetString("A11y_Returning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Selected: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Selected_Text {
+            get {
+                return ResourceManager.GetString("A11y_Selected_Text", resourceCulture);
             }
         }
         

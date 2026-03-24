@@ -75,7 +75,9 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
 
         _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart);
 
-        using CancellationTokenSource ctsTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using CancellationTokenSource ctsTimeout = CancellationTokenSource
+            .CreateLinkedTokenSource(cancellationToken);
+
         ctsTimeout.CancelAfter(Timeout_KeyRelease);
 
         try

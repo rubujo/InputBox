@@ -55,6 +55,36 @@ public static class TaskExtensions
     }
 
     /// <summary>
+    /// 安全地取消並處置 CancellationTokenSource
+    /// </summary>
+    /// <param name="cts">CancellationTokenSource</param>
+    public static void CancelAndDispose(this CancellationTokenSource? cts)
+    {
+        if (cts == null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!cts.IsCancellationRequested)
+            {
+                cts.Cancel();
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (AggregateException)
+        {
+        }
+        finally
+        {
+            cts.Dispose();
+        }
+    }
+
+    /// <summary>
     /// 執行非同步任務並安全地處理任何可能發生的例外
     /// </summary>
     /// <param name="task">Task</param>

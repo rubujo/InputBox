@@ -40,6 +40,14 @@ public static partial class User32
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool CreateCaret(nint hWnd, nint hBitmap, int nWidth, int nHeight);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool ShowCaret(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool FlashWindowEx(in FlashWindowInfo flashInfo);
 
     /// <summary>
