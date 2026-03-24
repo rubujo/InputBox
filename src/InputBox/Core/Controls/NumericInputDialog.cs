@@ -159,6 +159,11 @@ internal sealed class NumericInputDialog : Form
     private CancellationTokenSource? _cts = new();
 
     /// <summary>
+    /// 右搖桿虛擬選取的起點錨點
+    /// </summary>
+    private int? _rsSelectionAnchor = null;
+
+    /// <summary>
     /// A11y 廣播防抖用的序號
     /// </summary>
     private long _a11yDebounceId = 0;
@@ -548,39 +553,50 @@ internal sealed class NumericInputDialog : Form
             return;
         }
 
-        int start = textBox.SelectionStart,
-            length = textBox.SelectionLength;
-
-        bool canExpand = forward ? (start + length < textBox.TextLength) : (start > 0);
-
-        if (canExpand)
+        // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點。
+        if (textBox.SelectionLength == 0 ||
+            _rsSelectionAnchor == null ||
+            (textBox.SelectionStart != _rsSelectionAnchor.Value &&
+             textBox.SelectionStart + textBox.SelectionLength != _rsSelectionAnchor.Value))
         {
-            if (!forward)
-            {
-                textBox.SelectionStart = start - 1;
-            }
-
-            textBox.SelectionLength = length + 1;
-
-            if (textBox.SelectionLength > 0)
-            {
-                AnnounceA11y(string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
-            }
-
-            FeedbackService.VibrateAsync(
-                    _gamepadController,
-                    VibrationPatterns.CursorMove,
-                    _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
+            _rsSelectionAnchor = textBox.SelectionStart;
         }
-        else
+
+        nint anchor = _rsSelectionAnchor.Value;
+
+        // 推算活動邊緣。
+        nint caret = (textBox.SelectionStart == anchor) ?
+            (anchor + textBox.SelectionLength) :
+            textBox.SelectionStart;
+
+        int direction = forward ? 1 : -1;
+
+        nint newCaret = Math.Clamp(caret + direction, 0, textBox.TextLength);
+
+        if (newCaret == caret)
         {
             FeedbackService.VibrateAsync(
                     _gamepadController,
                     VibrationPatterns.ActionFail,
                     _cts?.Token ?? CancellationToken.None)
                 .SafeFireAndForget();
+
+            return;
         }
+
+        // 使用 Win32 EM_SETSEL 設定選取範圍。
+        User32.SendMessage(textBox.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
+
+        if (textBox.SelectionLength > 0)
+        {
+            AnnounceA11y(string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
+        }
+
+        FeedbackService.VibrateAsync(
+                _gamepadController,
+                VibrationPatterns.CursorMove,
+                _cts?.Token ?? CancellationToken.None)
+            .SafeFireAndForget();
     });
 
     /// <summary>

@@ -401,6 +401,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             // 重置狀態防止殘留，避免放開按鍵的事件遺失。
             ResetHoldStates();
 
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
+
             ConnectionChanged?.Invoke(false);
         }
 
@@ -634,8 +637,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _previousState = latestSnapshot;
             _hasPreviousState = true;
 
-            // 對齊 Timer Tick 執行連發邏輯，傳入最新快照的右搖桿數值。
-            HandleRepeat(_previousProcessedButtons, latestSnapshot.RightThumbstickX, config);
+            // 對齊 Timer Tick 執行連發邏輯。
+            HandleRepeat(_previousProcessedButtons, config);
         }
         else if (_hasPreviousState &&
             _previousState != null)
@@ -660,7 +663,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 _reconnectCounter = 0;
 
                 // 玩家按住按鍵不放且硬體無新事件時，繼續執行連發計時。
-                HandleRepeat(_previousProcessedButtons, _previousState.RightThumbstickX, config);
+                HandleRepeat(_previousProcessedButtons, config);
             }
         }
     }
@@ -693,7 +696,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         // 偵測按下事件。
-        DetectRisingEdge(currentButtons, currentState);
+        DetectRisingEdge(currentButtons, currentState, config);
 
         // 儲存加工後的按鍵狀態，給下一個快照或下一幀比對用。
         _previousProcessedButtons = currentButtons;
@@ -1070,9 +1073,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="currentButtons">目前的按鈕狀態</param>
     /// <param name="currentState">目前的遊戲控制器狀態快照</param>
+    /// <param name="config">遊戲控制器設定快照</param>
     private void DetectRisingEdge(
         GameInputGamepadButtons currentButtons,
-        GamepadStateSnapshot currentState)
+        GamepadStateSnapshot currentState,
+        AppSettings.GamepadConfigSnapshot config)
     {
         GameInputGamepadButtons prevButtons = _hasPreviousState ?
             _previousProcessedButtons :
@@ -1153,22 +1158,42 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             YPressed?.Invoke();
         }
 
-        // 偵測右搖桿（RS）虛擬按下。
-        int curRsDir = currentState.RightThumbstickX < -AppSettings.Current.ThumbDeadzoneEnter / 32768f ? -1 :
-                currentState.RightThumbstickX > AppSettings.Current.ThumbDeadzoneEnter / 32768f ? 1 : 0,
-            prevRsDir = _previousState?.RightThumbstickX < -AppSettings.Current.ThumbDeadzoneExit / 32768f ? -1 :
-                _previousState?.RightThumbstickX > AppSettings.Current.ThumbDeadzoneExit / 32768f ? 1 : 0;
+        // 處理右搖桿（RS）虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
+        float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
+              exitThreshold = config.ThumbDeadzoneExit / 32768f;
 
+        int curRsDir = _rsRepeatDirection;
+
+        if (currentState.RightThumbstickX < -enterThreshold)
+        {
+            curRsDir = -1;
+        }
+        else if (currentState.RightThumbstickX > enterThreshold)
+        {
+            curRsDir = 1;
+        }
+        else if (Math.Abs(currentState.RightThumbstickX) < exitThreshold)
+        {
+            curRsDir = 0;
+        }
+
+        // 偵測正緣觸發。
         if (curRsDir == -1 &&
-            prevRsDir != -1)
+            _rsRepeatDirection != -1)
         {
             RSLeftPressed?.Invoke();
         }
-
-        if (curRsDir == 1 &&
-            prevRsDir != 1)
+        else if (curRsDir == 1 &&
+            _rsRepeatDirection != 1)
         {
             RSRightPressed?.Invoke();
+        }
+
+        // 偵測方向變化並更新狀態。
+        if (curRsDir != _rsRepeatDirection)
+        {
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = curRsDir;
         }
 
         bool prevLtDown = _hasPreviousState &&
@@ -1194,11 +1219,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 處理重複
     /// </summary>
     /// <param name="buttons">GameInputGamepadButtons</param>
-    /// <param name="rsX">當前右搖桿 X 軸數值</param>
     /// <param name="config">AppSettings.GamepadConfigSnapshot</param>
     private void HandleRepeat(
         GameInputGamepadButtons buttons,
-        float rsX,
         AppSettings.GamepadConfigSnapshot config)
     {
         GameInputGamepadButtons? currentDir =
@@ -1212,61 +1235,46 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _repeatCounter = 0;
             _repeatDirection = null;
-
-            return;
         }
-
-        if (_repeatDirection != currentDir)
+        else if (_repeatDirection != currentDir)
         {
             _repeatCounter = 0;
             _repeatDirection = currentDir;
+        }
+        else
+        {
+            _repeatCounter++;
 
-            return;
-        }
-
-        _repeatCounter++;
-
-        // 依照 XInput 版本，使用設定檔的延遲與間隔。
-        if (_repeatCounter < config.RepeatInitialDelayFrames)
-        {
-            return;
-        }
-
-        if (_repeatCounter % config.RepeatIntervalFrames != 0)
-        {
-            return;
-        }
-
-        if (currentDir == GameInputGamepadButtons.DPadLeft)
-        {
-            LeftRepeat?.Invoke();
-        }
-        else if (currentDir == GameInputGamepadButtons.DPadRight)
-        {
-            RightRepeat?.Invoke();
-        }
-        else if (currentDir == GameInputGamepadButtons.DPadUp)
-        {
-            UpRepeat?.Invoke();
-        }
-        else if (currentDir == GameInputGamepadButtons.DPadDown)
-        {
-            DownRepeat?.Invoke();
+            // 依照 XInput 版本，使用設定檔的延遲與間隔。
+            if (_repeatCounter >= config.RepeatInitialDelayFrames &&
+                _repeatCounter % config.RepeatIntervalFrames == 0)
+            {
+                if (currentDir == GameInputGamepadButtons.DPadLeft)
+                {
+                    LeftRepeat?.Invoke();
+                }
+                else if (currentDir == GameInputGamepadButtons.DPadRight)
+                {
+                    RightRepeat?.Invoke();
+                }
+                else if (currentDir == GameInputGamepadButtons.DPadUp)
+                {
+                    UpRepeat?.Invoke();
+                }
+                else if (currentDir == GameInputGamepadButtons.DPadDown)
+                {
+                    DownRepeat?.Invoke();
+                }
+            }
         }
 
         // 2. 處理右搖桿（RS）重複輸入。
-        int rsDir = rsX < -config.ThumbDeadzoneExit / 32768f ? -1 :
-            rsX > config.ThumbDeadzoneExit / 32768f ? 1 : 0;
+        // 已在 DetectRisingEdge 中使用 Hysteresis 邏輯更新了 _rsRepeatDirection。
+        int rsDir = _rsRepeatDirection;
 
         if (rsDir == 0)
         {
             _rsRepeatCounter = 0;
-            _rsRepeatDirection = 0;
-        }
-        else if (_rsRepeatDirection != rsDir)
-        {
-            _rsRepeatCounter = 0;
-            _rsRepeatDirection = rsDir;
         }
         else
         {

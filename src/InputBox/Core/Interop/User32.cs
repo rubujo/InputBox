@@ -54,6 +54,9 @@ public static partial class User32
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool FlashWindowEx(in FlashWindowInfo flashInfo);
 
+    [LibraryImport("user32.dll", EntryPoint = "SendMessageW")]
+    internal static partial nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
+
     /// <summary>
     /// FlashWindowEx 結構
     /// </summary>
@@ -102,7 +105,11 @@ public static partial class User32
         /// <summary>
         /// 全域快速鍵訊息
         /// </summary>
-        HotKey = 0x0312
+        HotKey = 0x0312,
+        /// <summary>
+        /// 設定編輯控制項的選取範圍
+        /// </summary>
+        EM_SETSEL = 0x00B1
     }
 
     /// <summary>

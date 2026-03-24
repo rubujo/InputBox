@@ -405,24 +405,26 @@ public static class ControlExtensions
     /// <summary>
     /// 執行單字跳轉邏輯（智慧偵測空白、標點符號、字元類型轉換，支援全形與 IME 情境）
     /// </summary>
-    /// <param name="tb">目標文字方塊</param>
+    /// <param name="textBox">目標文字方塊</param>
     /// <param name="forward">是否向右跳轉</param>
-    public static void WordJump(this TextBox tb, bool forward)
+    public static void WordJump(this TextBox textBox, bool forward)
     {
-        if (tb == null ||
-            tb.IsDisposed)
+        if (textBox == null ||
+            textBox.IsDisposed)
         {
             return;
         }
 
-        string text = tb.Text;
+        string text = textBox.Text;
 
         if (string.IsNullOrEmpty(text))
         {
             return;
         }
 
-        int pos = tb.SelectionStart,
+        int pos = forward ?
+            (textBox.SelectionStart + textBox.SelectionLength) :
+            textBox.SelectionStart,
             len = text.Length;
 
         if (forward)
@@ -436,8 +438,6 @@ public static class ControlExtensions
             CharType startType = GetCharType(text[pos]);
 
             // 持續移動，直到字元類型發生變化。
-            // 若起始是空白，則會直接跳到下一個非空白單字的開始。
-            // 若起始是文字，則會跳到該類型文字的邊界。
             while (pos < len &&
                 GetCharType(text[pos]) == startType)
             {
@@ -454,8 +454,6 @@ public static class ControlExtensions
                     pos++;
                 }
             }
-
-            tb.SelectionStart = pos;
         }
         else
         {
@@ -476,18 +474,19 @@ public static class ControlExtensions
                 // 取得目前單字末尾字元的類別。
                 CharType targetType = GetCharType(text[pos - 1]);
 
-                // 往回跳轉，直到字元類型變化（例如：從數字變回中文）。
+                // 往回跳轉，直到字元類型變化。
                 while (pos > 0 &&
                     GetCharType(text[pos - 1]) == targetType)
                 {
                     pos--;
                 }
             }
-
-            tb.SelectionStart = pos;
         }
 
-        tb.ScrollToCaret();
+        // 跳轉單字後應解除選取狀態，並將游標移至新位置。
+        textBox.SelectionStart = pos;
+        textBox.SelectionLength = 0;
+        textBox.ScrollToCaret();
     }
 
     /// <summary>
@@ -531,10 +530,16 @@ public static class ControlExtensions
     private static CharType GetCharType(char c)
     {
         // 空白處理（.NET 已內建全形空格 U+3000 的支援）。
-        if (char.IsWhiteSpace(c)) return CharType.WhiteSpace;
+        if (char.IsWhiteSpace(c))
+        {
+            return CharType.WhiteSpace;
+        }
 
         // 數字處理（含全形）。
-        if (char.IsDigit(c)) return CharType.Digit;
+        if (char.IsDigit(c))
+        {
+            return CharType.Digit;
+        }
 
         // 標點與符號。
         if (char.IsPunctuation(c))

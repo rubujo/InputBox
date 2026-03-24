@@ -2,6 +2,7 @@
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
+using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
@@ -970,46 +971,46 @@ public partial class MainForm
             return;
         }
 
-        int start = TBInput.SelectionStart,
-            length = TBInput.SelectionLength;
-
-        bool success = false;
-
-        // 向左擴張選取。
-        if (direction < 0)
+        // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點。
+        // 這能確保手動點擊或鍵盤選取後，RS 選取能從正確的位置開始。
+        if (TBInput.SelectionLength == 0 ||
+            _rsSelectionAnchor == null ||
+            (TBInput.SelectionStart != _rsSelectionAnchor.Value &&
+             TBInput.SelectionStart + TBInput.SelectionLength != _rsSelectionAnchor.Value))
         {
-            if (start > 0)
-            {
-                TBInput.SelectionStart = start - 1;
-                TBInput.SelectionLength = length + 1;
-
-                success = true;
-            }
-        }
-        else
-        {
-            // 向右擴張選取。
-            if (start + length < TBInput.TextLength)
-            {
-                TBInput.SelectionLength = length + 1;
-
-                success = true;
-            }
+            _rsSelectionAnchor = TBInput.SelectionStart;
         }
 
-        if (success)
-        {
-            // A11y：報讀目前選取的文字內容。
-            if (TBInput.SelectionLength > 0)
-            {
-                AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), interrupt: true);
-            }
+        nint anchor = _rsSelectionAnchor.Value;
 
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-        }
-        else
+        // 推算目前的活動邊緣（Caret）。
+        // WinForms SelectionStart 始終為較小的索引，因此若 Start 與錨點一致，則 Caret 在右側；否則 Caret 在左側。
+        nint caret = (TBInput.SelectionStart == anchor) ?
+            (anchor + TBInput.SelectionLength) :
+            TBInput.SelectionStart;
+
+        // 防禦性寫法：確保方向永遠只會是 -1、0 或 1，杜絕任何溢出造成的邏輯錯亂。
+        int safeDirection = Math.Sign(direction);
+
+        nint newCaret = Math.Clamp(caret + safeDirection, 0, TBInput.TextLength);
+
+        if (newCaret == caret)
         {
             VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+            return;
         }
+
+        // 使用 Win32 EM_SETSEL 設定選取範圍。
+        // wParam 為錨點，lParam 為活動邊緣。這能確保視覺上的游標（Caret）正確跟隨活動邊緣，並支援反向縮減。
+        User32.SendMessage(TBInput.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
+
+        // A11y：報讀目前選取的文字內容。
+        if (TBInput.SelectionLength > 0)
+        {
+            AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), interrupt: true);
+        }
+
+        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
     }
 }

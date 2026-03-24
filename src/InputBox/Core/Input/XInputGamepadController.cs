@@ -419,6 +419,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 斷線狀態：執行降頻重連邏輯。
             _repeatCounter = 0;
             _repeatDirection = null;
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
 
             // 降頻重連掃描（約每 500ms 一次）。
             _reconnectCounter++;
@@ -493,6 +495,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             _repeatCounter = 0;
             _repeatDirection = null;
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
             _hasPreviousState = true;
 
             return;
@@ -530,23 +534,43 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
 
-            // 處理右搖桿虛擬按鍵偵測。
-            int currentRsDir = currentState.Gamepad.ThumbRightX < -config.ThumbDeadzoneEnter ? -1 :
-                    currentState.Gamepad.ThumbRightX > config.ThumbDeadzoneEnter ? 1 : 0,
-                prevRsDir = _previousState.Gamepad.ThumbRightX < -config.ThumbDeadzoneExit ? -1 :
-                    _previousState.Gamepad.ThumbRightX > config.ThumbDeadzoneExit ? 1 : 0;
+            // 處理右搖桿虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
+            int currentRsDir = _rsRepeatDirection;
 
-            if (currentRsDir == -1 && prevRsDir != -1)
+            if (currentState.Gamepad.ThumbRightX < -config.ThumbDeadzoneEnter)
+            {
+                currentRsDir = -1;
+            }
+            else if (currentState.Gamepad.ThumbRightX > config.ThumbDeadzoneEnter)
+            {
+                currentRsDir = 1;
+            }
+            else if (Math.Abs((int)currentState.Gamepad.ThumbRightX) < config.ThumbDeadzoneExit)
+            {
+                currentRsDir = 0;
+            }
+
+            // 偵測正緣觸發（使用「進入本區塊前」的舊方向進行比對）。
+            if (currentRsDir == -1 &&
+                _rsRepeatDirection != -1)
             {
                 RSLeftPressed?.Invoke();
             }
 
-            if (currentRsDir == 1 && prevRsDir != 1)
+            if (currentRsDir == 1 &&
+                _rsRepeatDirection != 1)
             {
                 RSRightPressed?.Invoke();
             }
 
-            // 偵測事件觸發（Rising Edge：原本沒按 -> 現在按了）。
+            // 偵測到方向變化時，重置連發計數器。
+            if (currentRsDir != _rsRepeatDirection)
+            {
+                _rsRepeatCounter = 0;
+                _rsRepeatDirection = currentRsDir;
+            }
+
+            // 偵測一般按鈕事件觸發（Rising Edge：原本沒按 -> 現在按了）。
             // 處理 LT。
             bool wasLtDownBefore = _hasPreviousState &&
                 _previousState.Gamepad.LeftTrigger > AppSettings.XInputTriggerThreshold;
@@ -671,18 +695,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
 
         // 處理右搖桿（RS）重複輸入。
-        int rsDir = state.Gamepad.ThumbRightX < -config.ThumbDeadzoneExit ? -1 :
-            state.Gamepad.ThumbRightX > config.ThumbDeadzoneExit ? 1 : 0;
+        // 已在 Poll 中使用 Hysteresis 邏輯更新了 _rsRepeatDirection。
+        int rsDir = _rsRepeatDirection;
 
         if (rsDir == 0)
         {
             _rsRepeatCounter = 0;
-            _rsRepeatDirection = 0;
-        }
-        else if (_rsRepeatDirection != rsDir)
-        {
-            _rsRepeatCounter = 0;
-            _rsRepeatDirection = rsDir;
         }
         else
         {

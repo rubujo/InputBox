@@ -227,6 +227,12 @@ public partial class MainForm : Form
     /// </summary>
     private ToolStripItem? _lastFocusedMenuItem = null;
 
+    /// <summary>
+    /// 右搖桿虛擬選取的起點錨點。
+    /// 當目前沒有選取範圍時，此值為 null。
+    /// </summary>
+    private int? _rsSelectionAnchor = null;
+
     public MainForm()
     {
         InitializeComponent();
