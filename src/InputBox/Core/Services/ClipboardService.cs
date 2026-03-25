@@ -68,7 +68,7 @@ internal class ClipboardService
                     if (syncForm != null &&
                         syncForm.InvokeRequired)
                     {
-                        syncForm.Invoke(new Action(() => Clipboard.SetText(normalizedSource)));
+                        await syncForm.InvokeAsync(() => Clipboard.SetText(normalizedSource));
                     }
                     else
                     {
@@ -84,7 +84,7 @@ internal class ClipboardService
                     if (syncForm != null &&
                         syncForm.InvokeRequired)
                     {
-                        syncForm.Invoke(new Action(() => clipboardText = Clipboard.GetText()));
+                        await syncForm.InvokeAsync(() => clipboardText = Clipboard.GetText());
                     }
                     else
                     {
