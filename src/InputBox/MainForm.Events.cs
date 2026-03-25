@@ -1313,14 +1313,15 @@ public partial class MainForm
     /// </summary>
     private void ShowTouchKeyboard()
     {
-        if ((DateTime.UtcNow - _lastTouchKeyboardOpened).TotalMilliseconds < 500)
+        if ((DateTime.UtcNow - _lastTouchKeyboardOpened).TotalMilliseconds < 800)
         {
             return;
         }
 
         _lastTouchKeyboardOpened = DateTime.UtcNow;
 
-        // 確保文字方塊取得焦點。
+        // 若 TBInput 尚未取得焦點，則先聚焦。
+        // 在 Windows 10／11 中，Focus 動作本身通常就會觸發系統自動開啟觸控鍵盤。
         if (TBInput.CanFocus &&
             !TBInput.Focused)
         {
@@ -1330,48 +1331,64 @@ public partial class MainForm
         // A11y 廣播。
         AnnounceA11y(Strings.A11y_Opening_Keyboard);
 
-        try
+        // 使用非同步延遲，避免與系統原生的 Focus 彈出行為發生競態。
+        Task.Run(async () =>
         {
-            if (Interlocked.CompareExchange(ref _isShowingTouchKeyboard, 1, 0) != 0)
+            // 給予 Windows 系統 150ms 的緩衝時間來啟動其原生的鍵盤彈出邏輯。
+            await Task.Delay(150);
+
+            // 如果 150ms 後鍵盤已經顯示（由系統自動開啟），則我們不需要再介入 Toggle。
+            if (TouchKeyboardService.IsVisible())
             {
+                Debug.WriteLine("觸控鍵盤已由系統自動開啟，略過手動 Toggle。");
+
                 return;
             }
 
-            bool isTouchKeyboardOpened = TouchKeyboardService.TryOpen();
-
-            if (isTouchKeyboardOpened)
+            // 若系統沒開，我們才手動嘗試透過 COM 介面啟動。
+            this.SafeInvoke(() =>
             {
-                FeedbackService.PlaySound(SystemSounds.Asterisk);
-            }
-            else
-            {
-                // 找不到檔案時的處理。
-                FeedbackService.PlaySound(SystemSounds.Hand);
+                try
+                {
+                    if (Interlocked.CompareExchange(ref _isShowingTouchKeyboard, 1, 0) != 0)
+                    {
+                        return;
+                    }
 
-                VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+                    bool isTouchKeyboardOpened = TouchKeyboardService.TryOpen();
 
-                // 錯誤時觸發視覺閃爍。
-                FlashAlertAsync().SafeFireAndForget();
+                    if (isTouchKeyboardOpened)
+                    {
+                        FeedbackService.PlaySound(SystemSounds.Asterisk);
+                    }
+                    else
+                    {
+                        // 失敗時的處理。
+                        FeedbackService.PlaySound(SystemSounds.Hand);
 
-                AnnounceA11y(Strings.Err_TouchKeyboardNotFound);
-            }
-        }
-        catch
-        {
-            FeedbackService.PlaySound(SystemSounds.Hand);
+                        VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
 
-            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+                        FlashAlertAsync().SafeFireAndForget();
 
-            // 錯誤時觸發視覺閃爍。
-            FlashAlertAsync().SafeFireAndForget();
+                        AnnounceA11y(Strings.Err_TouchKeyboardNotFound);
+                    }
+                }
+                catch
+                {
+                    FeedbackService.PlaySound(SystemSounds.Hand);
 
-            AnnounceA11y(Strings.Err_TouchKeyboardNotFound);
-        }
-        finally
-        {
-            // 改為呼叫獨立的非同步方法，並加上 _ = 捨棄回傳值以防堵編譯警告。
-            _ = ResetTouchKeyboardFlagAsync();
-        }
+                    VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+                    FlashAlertAsync().SafeFireAndForget();
+
+                    AnnounceA11y(Strings.Err_TouchKeyboardNotFound);
+                }
+                finally
+                {
+                    _ = ResetTouchKeyboardFlagAsync();
+                }
+            });
+        });
     }
 
     /// <summary>
@@ -1455,7 +1472,7 @@ public partial class MainForm
     private async Task ReturnToPreviousWindowAsync(bool announce = true)
     {
         // 前置檢查：如果目標視窗已經消失，直接進入導航流程（它會發送正確的失敗廣播）。
-        // 這能防止先播報「正在返回...」隨後立刻接「錯誤/視窗已關閉」的語音衝突。
+        // 這能防止先播報「正在返回...」隨後立刻接「錯誤／視窗已關閉」的語音衝突。
         if (!_navigationService.CanNavigateBack)
         {
             await _navigationService.NavigateBackAsync(

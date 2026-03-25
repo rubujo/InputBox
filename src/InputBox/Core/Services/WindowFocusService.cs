@@ -137,17 +137,34 @@ public class WindowFocusService
             return;
         }
 
+        // 確保目標不是目前正在互動的前景視窗，否則閃爍不會顯示。
+        if (User32.ForegroundWindow == hwnd)
+        {
+            return;
+        }
+
+        // 先執行一次簡單版本的 FlashWindow 作為觸發引導。
+        User32.FlashWindow(hwnd, true);
+
+        // 使用更詳盡的 FlashWindowEx 進行持續閃爍。
         User32.FlashWindowInfo flashInfo = new()
         {
             Hwnd = hwnd,
             Flags = User32.FlashWindowFlags.All |
-                User32.FlashWindowFlags.TimerNoForeground,
+                    User32.FlashWindowFlags.TimerNoForeground,
             Count = uint.MaxValue,
-            Timeout = 0
+            Timeout = 0,
+            // 核心修正：手動計算結構大小。
+            // 在 64 位元環境下，uint(4) + nint(8) + uint(4) + uint(4) + uint(4) = 24，
+            // 但由於對齊（Alignment），結構大小實際為 32 位元組。
+            // Marshal.SizeOf 會根據 Runtime 環境動態決定，
+            // 在此明確賦值給 Size 欄位後再傳入。
+            Size = (uint)Marshal.SizeOf<User32.FlashWindowInfo>()
         };
 
-        flashInfo.Size = (uint)Marshal.SizeOf(flashInfo);
-
-        User32.FlashWindowEx(in flashInfo);
+        if (!User32.FlashWindowEx(in flashInfo))
+        {
+            Debug.WriteLine("FlashWindowEx 呼叫失敗。");
+        }
     }
 }

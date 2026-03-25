@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace InputBox.Core.Interop;
 
@@ -7,13 +8,11 @@ namespace InputBox.Core.Interop;
 /// </summary>
 public static partial class User32
 {
-    /// <summary>
-    /// 取得目前前景視窗的控制代碼
-    /// </summary>
-    public static nint ForegroundWindow => GetForegroundWindow();
+    [LibraryImport("user32.dll")]
+    internal static partial nint GetForegroundWindow();
 
     [LibraryImport("user32.dll")]
-    private static partial nint GetForegroundWindow();
+    internal static partial nint GetDesktopWindow();
 
     [LibraryImport("user32.dll")]
     internal static partial uint GetWindowThreadProcessId(nint handle, out uint processId);
@@ -52,22 +51,30 @@ public static partial class User32
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool FlashWindow(nint hWnd, [MarshalAs(UnmanagedType.Bool)] bool bInvert);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool FlashWindowEx(in FlashWindowInfo flashInfo);
+
+    [LibraryImport("user32.dll", EntryPoint = "FindWindowW", StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial nint FindWindow(string? lpClassName, string? lpWindowName);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool IsWindowVisible(nint hWnd);
 
     [LibraryImport("user32.dll", EntryPoint = "SendMessageW")]
     internal static partial nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
 
-    /// <summary>
-    /// FlashWindowEx 結構
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct FlashWindowInfo
+    [LibraryImport("ole32.dll")]
+    internal static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
+
+    [GeneratedComInterface, Guid("37c994e7-432b-4834-a2f7-dce1f13b834b")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal partial interface ITipInvocation
     {
-        public uint Size;
-        public nint Hwnd;
-        public FlashWindowFlags Flags;
-        public uint Count;
-        public uint Timeout;
+        void Toggle(nint hwnd);
     }
 
     /// <summary>
@@ -100,7 +107,7 @@ public static partial class User32
     /// <summary>
     /// 視窗訊息列舉（Window Messages）
     /// </summary>
-    public enum WindowMessage : int
+    public enum WindowMessage : uint
     {
         /// <summary>
         /// 全域快速鍵訊息
@@ -145,5 +152,42 @@ public static partial class User32
         /// 禁止重複觸發（僅在按鍵首次按下時觸發）
         /// </summary>
         NoRepeat = 0x4000
+    }
+
+    /// <summary>
+    /// 取得目前前景視窗的控制代碼
+    /// </summary>
+    public static nint ForegroundWindow => GetForegroundWindow();
+
+    /// <summary>
+    /// FlashWindowEx 結構
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FlashWindowInfo
+    {
+        /// <summary>
+        /// 結構大小（以位元組為單位）
+        /// </summary>
+        public uint Size;
+
+        /// <summary>
+        /// 視窗句柄
+        /// </summary>
+        public nint Hwnd;
+
+        /// <summary>
+        /// 閃爍旗標
+        /// </summary>
+        public FlashWindowFlags Flags;
+
+        /// <summary>
+        /// 閃爍次數
+        /// </summary>
+        public uint Count;
+
+        /// <summary>
+        /// 超時時間（以毫秒為單位）
+        /// </summary>
+        public uint Timeout;
     }
 }
