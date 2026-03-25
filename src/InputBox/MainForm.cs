@@ -400,13 +400,14 @@ public partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // 立即發出全域取消訊號，中止所有 UI 相關的非同步任務。
-        _formCts?.Cancel();
+        // 立即發出全域取消訊號，中止所有 UI 相關的非同步任務，並處置控制代碼。
+        Interlocked.Exchange(ref _formCts, null)?.CancelAndDispose();
 
         // 停止 A11y 背景工作者。
         // 先標記 Writer 完成，並取消對應的 CTS 以強行中斷 Delay。
         _a11yChannel?.Writer.TryComplete();
-        _a11yCts?.Cancel();
+
+        Interlocked.Exchange(ref _a11yCts, null)?.CancelAndDispose();
 
         // 非同步硬體緊急清理。
         // 將同步的硬體 I/O 操作（如 XInput 設定）移至背景執行，防止阻塞 UI 執行緒導致關閉停頓。
@@ -435,13 +436,7 @@ public partial class MainForm : Form
         }
 
         // 原子性清理其餘權杖資源。
-        CancellationTokenSource? alertCts = Interlocked.Exchange(ref _alertCts, null);
-
-        alertCts?.Dispose();
-
-        CancellationTokenSource? a11yCts = Interlocked.Exchange(ref _a11yCts, null);
-
-        a11yCts?.Dispose();
+        Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
         // 處置 UI 相關 Label 以防 GDI 洩漏。
         Label? lblInput = Interlocked.Exchange(ref _lblInput, null);
@@ -474,11 +469,6 @@ public partial class MainForm : Form
         Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
 
         ClipboardService.OnRetry = null;
-
-        // 最後處置主權杖。
-        CancellationTokenSource? formCts = Interlocked.Exchange(ref _formCts, null);
-
-        formCts?.Dispose();
 
         base.OnFormClosing(e);
     }

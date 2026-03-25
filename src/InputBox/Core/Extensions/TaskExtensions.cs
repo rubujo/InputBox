@@ -74,9 +74,11 @@ public static class TaskExtensions
         }
         catch (ObjectDisposedException)
         {
+
         }
         catch (AggregateException)
         {
+
         }
         finally
         {

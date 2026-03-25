@@ -1583,7 +1583,7 @@ public partial class MainForm
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
-            Interlocked.Exchange(ref _alertCts, null)?.Dispose();
+            Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
             if (!IsDisposed &&
                 IsHandleCreated)

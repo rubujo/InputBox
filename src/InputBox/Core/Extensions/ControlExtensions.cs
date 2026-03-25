@@ -359,12 +359,12 @@ public static class ControlExtensions
     /// 杜絕 A11y 閃爍時產生的視覺殘留（Ghosting）。
     /// </remarks>
     /// <param name="parent">要開始更新的父控制項。</param>
-    /// <param name="bg">新的背景顏色。</param>
-    /// <param name="fg">新的前景顏色。</param>
+    /// <param name="backColor">新的背景顏色。</param>
+    /// <param name="foreColor">新的前景顏色。</param>
     public static void UpdateRecursive(
         this Control parent,
-        Color bg,
-        Color fg)
+        Color backColor,
+        Color foreColor)
     {
         if (parent == null ||
             parent.IsDisposed)
@@ -373,8 +373,8 @@ public static class ControlExtensions
         }
 
         // 更新本體。
-        parent.BackColor = bg;
-        parent.ForeColor = fg;
+        parent.BackColor = backColor;
+        parent.ForeColor = foreColor;
 
         // 針對複合控制項（如 NumericUpDown）的特殊強化：
         // NUD 內部的 TextBox 對於 BackColor 的變更可能存在渲染延遲，
@@ -388,7 +388,7 @@ public static class ControlExtensions
         // 對於 NumericUpDown 等複合控制項，其 Controls 集合包含了內部的 TextBox 與按鈕。
         foreach (Control child in parent.Controls)
         {
-            UpdateRecursive(child, bg, fg);
+            UpdateRecursive(child, backColor, foreColor);
         }
     }
 

@@ -772,7 +772,7 @@ internal sealed class NumericInputDialog : Form
         _alertCts = CancellationTokenSource
             .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
 
-        CancellationToken token = _alertCts.Token;
+        CancellationToken token = _alertCts?.Token ?? CancellationToken.None;
 
         try
         {
@@ -863,7 +863,7 @@ internal sealed class NumericInputDialog : Form
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
-            Interlocked.Exchange(ref _alertCts, null)?.Dispose();
+            Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
             // 確保 UI 狀態還原。
             this.SafeInvoke(() =>

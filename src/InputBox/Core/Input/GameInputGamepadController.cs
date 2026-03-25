@@ -370,7 +370,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         StopPolling();
 
         _ctsPolling = new CancellationTokenSource();
-        CancellationToken token = _ctsPolling.Token;
+
+        CancellationToken token = _ctsPolling?.Token ?? CancellationToken.None;
 
         TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -399,7 +400,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void StopPolling()
     {
-        CancelAndDisposeCts(ref _ctsPolling);
+        Interlocked.Exchange(ref _ctsPolling, null)?.CancelAndDispose();
     }
 
     /// <summary>
@@ -1363,7 +1364,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 // 原子化遞增 Token 並更換 CTS，確保配對絕對正確。
                 token = Interlocked.Increment(ref _vibrationToken);
 
-                CancelAndDisposeCts(ref _vibrationCts);
+                Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
                 _vibrationCts = newInternalCts;
             }
@@ -1482,7 +1483,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         FeedbackService.UnregisterController(this);
 
         // 取消震動任務。
-        CancelAndDisposeCts(ref _vibrationCts);
+        Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
         await StopPollingAsync().ConfigureAwait(false);
 
@@ -1545,7 +1546,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             // 立即遞增 Token 並取消現有任務的延遲，確保進行中的 VibrateAsync 任務失效。
             Interlocked.Increment(ref _vibrationToken);
 
-            CancelAndDisposeCts(ref _vibrationCts);
+            Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
         }
 
         GameInputDevice? dev = _device;
@@ -1692,33 +1693,5 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         ConnectionChanged = null;
-    }
-
-    /// <summary>
-    /// 取消並處置 CancellationTokenSource
-    /// </summary>
-    /// <param name="source">CancellationTokenSource 來源</param>
-    private static void CancelAndDisposeCts(ref CancellationTokenSource? source)
-    {
-        // 使用 Interlocked.Exchange 確保執行緒安全，並將原參考設為 null。
-        CancellationTokenSource? cts = Interlocked.Exchange(ref source, null);
-
-        if (cts != null)
-        {
-            try
-            {
-                // 直接呼叫 Cancel，若已取消則內部會自動忽略。
-                cts.Cancel();
-            }
-            catch
-            {
-                // 忽略因 Cancel 觸發回呼（Callbacks）時所引發的任何例外。
-            }
-            finally
-            {
-                // 確保 Dispose 一定會被執行，徹底釋放底層資源。
-                cts.Dispose();
-            }
-        }
     }
 }

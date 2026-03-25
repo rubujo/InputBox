@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Configuration;
+using InputBox.Core.Extensions;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
@@ -327,7 +328,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private void StopPolling()
     {
-        CancelAndDisposeCts(ref _ctsPolling);
+        Interlocked.Exchange(ref _ctsPolling, null)?.CancelAndDispose();
     }
 
     /// <summary>
@@ -843,7 +844,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 立即遞增 Token 並取消現有任務的延遲，確保進行中的 VibrateAsync 任務失效。
             Interlocked.Increment(ref _vibrationToken);
 
-            CancelAndDisposeCts(ref _vibrationCts);
+            Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
         }
 
         try
@@ -906,7 +907,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
                 currentToken = Interlocked.Increment(ref _vibrationToken);
 
                 // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
-                CancelAndDisposeCts(ref _vibrationCts);
+                Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
                 _vibrationCts = newCts;
             }
@@ -1009,7 +1010,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         FeedbackService.UnregisterController(this);
 
         // 取消震動任務。
-        CancelAndDisposeCts(ref _vibrationCts);
+        Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
         // 發出取消訊號。
         Task pollingTask = StopPollingAsync();
@@ -1049,7 +1050,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         FeedbackService.UnregisterController(this);
 
         // 取消震動任務。
-        CancelAndDisposeCts(ref _vibrationCts);
+        Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
         // 發出取消訊號。
         StopPolling();
@@ -1065,34 +1066,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
         DisposeResources();
 
         GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// 取消並處置 CancellationTokenSource
-    /// </summary>
-    /// <param name="source">CancellationTokenSource 來源</param>
-    private static void CancelAndDisposeCts(ref CancellationTokenSource? source)
-    {
-        // 使用 Interlocked.Exchange 確保執行緒安全，並將原參考設為 null。
-        CancellationTokenSource? cts = Interlocked.Exchange(ref source, null);
-
-        if (cts != null)
-        {
-            try
-            {
-                // 直接呼叫 Cancel，若已取消則內部會自動忽略。
-                cts.Cancel();
-            }
-            catch
-            {
-                // 忽略因 Cancel 觸發回呼（Callbacks）時所引發的任何例外。
-            }
-            finally
-            {
-                // 確保 Dispose 一定會被執行，徹底釋放底層資源。
-                cts.Dispose();
-            }
-        }
     }
 
     /// <summary>
