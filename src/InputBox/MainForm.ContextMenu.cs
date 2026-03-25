@@ -4,6 +4,7 @@ using InputBox.Core.Feedback;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
+using System.Diagnostics;
 using System.Media;
 
 namespace InputBox;
@@ -41,7 +42,17 @@ public partial class MainForm
                 Text = $"{Strings.App_ThemePending_Suffix} {Strings.Menu_ApplyThemeRestart}",
                 AccessibleName = Strings.Menu_ApplyThemeRestart
             };
-            tsmiRestart.Click += (s, e) => AskForRestart();
+            tsmiRestart.Click += (s, e) =>
+            {
+                try
+                {
+                    AskForRestart();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[選單] tsmiRestart.Click 失敗：{ex.Message}");
+                }
+            };
 
             _cmsInput.Items.Add(tsmiRestart);
             _cmsInput.Items.Add(new ToolStripSeparator());
@@ -58,28 +69,35 @@ public partial class MainForm
 
         _tsmiPrivacyMode.CheckedChanged += (s, e) =>
         {
-            AppSettings.Current.IsPrivacyMode = _tsmiPrivacyMode.Checked;
-            AppSettings.Save();
-
-            _historyService.IsPrivacyMode = _tsmiPrivacyMode.Checked;
-
-            // 一旦開啟隱私模式，立刻清空先前的歷程記錄，防止誤觸洩漏。
-            if (_historyService.IsPrivacyMode)
+            try
             {
-                _historyService.Clear();
+                AppSettings.Current.IsPrivacyMode = _tsmiPrivacyMode.Checked;
+                AppSettings.Save();
 
-                // 清空目前的輸入框。
-                TBInput.Clear();
+                _historyService.IsPrivacyMode = _tsmiPrivacyMode.Checked;
+
+                // 一旦開啟隱私模式，立刻清空先前的歷程記錄，防止誤觸洩漏。
+                if (_historyService.IsPrivacyMode)
+                {
+                    _historyService.Clear();
+
+                    // 清空目前的輸入框。
+                    TBInput.Clear();
+                }
+
+                // 更新標題快取。
+                UpdateTitlePrefix();
+                UpdateTitle();
+
+                // 隱私模式狀態變更。
+                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                    Strings.A11y_PrivacyMode_On :
+                    Strings.A11y_PrivacyMode_Off);
             }
-
-            // 更新標題快取。
-            UpdateTitlePrefix();
-            UpdateTitle();
-
-            // 隱私模式狀態變更。
-            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
-                Strings.A11y_PrivacyMode_On :
-                Strings.A11y_PrivacyMode_Off);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _tsmiPrivacyMode.CheckedChanged 失敗：{ex.Message}");
+            }
         };
 
         // 快速鍵設定子選單。
@@ -96,7 +114,7 @@ public partial class MainForm
             ToolStripMenuItem item = new(label)
             {
                 CheckOnClick = true,
-                // 使用 HasFlag 讓語意更清晰。
+                // 使用 HasFlag讓語意更清晰。
                 Checked = AppSettings.Current.HotKeyModifiers.HasFlag(modValue),
                 AccessibleName = label,
                 // A11y 描述：說明此勾選框的用途。
@@ -105,48 +123,55 @@ public partial class MainForm
 
             item.CheckedChanged += (s, e) =>
             {
-                User32.KeyModifiers oldMods = AppSettings.Current.HotKeyModifiers;
-
-                if (item.Checked)
+                try
                 {
-                    // 將該修飾鍵加入組合（位元 OR）。
-                    AppSettings.Current.HotKeyModifiers |= modValue;
+                    User32.KeyModifiers oldMods = AppSettings.Current.HotKeyModifiers;
+
+                    if (item.Checked)
+                    {
+                        // 將該修飾鍵加入組合（位元 OR）。
+                        AppSettings.Current.HotKeyModifiers |= modValue;
+                    }
+                    else
+                    {
+                        // 將該修飾鍵從組合中移除（位元 AND NOT）。
+                        AppSettings.Current.HotKeyModifiers &= ~modValue;
+                    }
+
+                    if (!RegisterHotKeyInternal())
+                    {
+                        // 若註冊失敗，回退設定。
+                        AppSettings.Current.HotKeyModifiers = oldMods;
+
+                        item.Checked = oldMods.HasFlag(modValue);
+
+                        // 重新註冊舊的。
+                        RegisterHotKeyInternal();
+                    }
+
+                    AppSettings.Save();
+
+                    // 更新標題快取。
+                    UpdateTitlePrefix();
+                    UpdateTitle();
+
+                    // 告知修飾鍵狀態變更。
+                    string statusMsg = item.Checked ?
+                        string.Format(Strings.A11y_Mod_On, label) :
+                        string.Format(Strings.A11y_Mod_Off, label);
+
+                    // 如果目前沒有設定主按鍵，這組快速鍵是不會生效的，需主動提醒。
+                    if (AppSettings.Current.HotKeyKey == "None")
+                    {
+                        statusMsg += $" {Strings.A11y_Mod_Key_Missing}";
+                    }
+
+                    AnnounceA11y(statusMsg);
                 }
-                else
+                catch (Exception ex)
                 {
-                    // 將該修飾鍵從組合中移除（位元 AND NOT）。
-                    AppSettings.Current.HotKeyModifiers &= ~modValue;
+                    Debug.WriteLine($"[選單] 修飾鍵變更失敗：{ex.Message}");
                 }
-
-                if (!RegisterHotKeyInternal())
-                {
-                    // 若註冊失敗，回退設定。
-                    AppSettings.Current.HotKeyModifiers = oldMods;
-
-                    item.Checked = oldMods.HasFlag(modValue);
-
-                    // 重新註冊舊的。
-                    RegisterHotKeyInternal();
-                }
-
-                AppSettings.Save();
-
-                // 更新標題快取。
-                UpdateTitlePrefix();
-                UpdateTitle();
-
-                // 告知修飾鍵狀態變更。
-                string statusMsg = item.Checked ?
-                    string.Format(Strings.A11y_Mod_On, label) :
-                    string.Format(Strings.A11y_Mod_Off, label);
-
-                // 如果目前沒有設定主按鍵，這組快速鍵是不會生效的，需主動提醒。
-                if (AppSettings.Current.HotKeyKey == "None")
-                {
-                    statusMsg += $" {Strings.A11y_Mod_Key_Missing}";
-                }
-
-                AnnounceA11y(statusMsg);
             };
 
             tsmiHotkeySettings.DropDownItems.Add(item);
@@ -167,49 +192,56 @@ public partial class MainForm
         };
         tsmiCaptureKey.Click += (s, e) =>
         {
-            Interlocked.Exchange(ref _isCapturingHotkey, 1);
+            try
+            {
+                Interlocked.Exchange(ref _isCapturingHotkey, 1);
 
-            // 標題列提示（統一由 UpdateTitle 處理，確保包含快速鍵資訊）。
-            UpdateTitle();
+                // 標題列提示（統一由 UpdateTitle 處理，確保包含快速鍵資訊）。
+                UpdateTitle();
 
-            // 告知進入擷取模式、操作方式及如何取消。
-            AnnounceA11y($"{Strings.Msg_PressAnyKey} {Strings.A11y_Capture_Esc_Cancel}");
+                // 告知進入擷取模式、操作方式及如何取消。
+                AnnounceA11y($"{Strings.Msg_PressAnyKey} {Strings.A11y_Capture_Esc_Cancel}");
 
-            // 輸入框視覺強化。
-            TBInput.Text = string.Empty;
-            TBInput.PlaceholderText = Strings.Msg_PressAnyKey;
-            // 暫時唯讀，防止輸入字元。
-            TBInput.ReadOnly = true;
+                // 輸入框視覺強化。
+                TBInput.Text = string.Empty;
+                TBInput.PlaceholderText = Strings.Msg_PressAnyKey;
+                // 暫時唯讀，防止輸入字元。
+                TBInput.ReadOnly = true;
 
-            // 更新無障礙名稱與描述。
-            TBInput.AccessibleName = Strings.Msg_PressAnyKey;
-            TBInput.AccessibleDescription = Strings.A11y_Capture_Esc_Cancel;
+                // 更新無障礙名稱與描述。
+                TBInput.AccessibleName = Strings.Msg_PressAnyKey;
+                TBInput.AccessibleDescription = Strings.A11y_Capture_Esc_Cancel;
 
-            // 形狀變化。加粗邊框 4 像素（非顏色提示）。
-            PInputHost.Padding = new Padding(7);
+                // 形狀變化。加粗邊框 4 像素（非顏色提示）。
+                PInputHost.Padding = new Padding(7);
 
-            // 按鈕文字提示與狀態變更。
-            BtnCopy.Enabled = false;
-            BtnCopy.Text = "...";
+                // 按鈕文字提示與狀態變更。
+                BtnCopy.Enabled = false;
+                BtnCopy.Text = "...";
 
-            // 3. 邊框顏色變化（兼顧高對比）。
-            PInputHost.BackColor = SystemInformation.HighContrast ?
-                SystemColors.HighlightText :
-                Color.Orange;
+                // 3. 邊框顏色變化（兼顧高對比）。
+                PInputHost.BackColor = SystemInformation.HighContrast ?
+                    SystemColors.HighlightText :
+                    Color.Orange;
 
-            // 關閉輸入法。
-            TBInput.ImeMode = ImeMode.Disable;
+                // 關閉輸入法。
+                TBInput.ImeMode = ImeMode.Disable;
 
-            // 暫時移除選單，防止在擷取模式下開啟選單導致衝突。
-            TBInput.ContextMenuStrip = null;
+                // 暫時移除選單，防止在擷取模式下開啟選單導致衝突。
+                TBInput.ContextMenuStrip = null;
 
-            _cmsInput?.Close();
+                _cmsInput?.Close();
 
-            // 焦點救援。
-            TBInput.Focus();
+                // 焦點救援。
+                TBInput.Focus();
 
-            // 觸發一次視覺閃爍動畫。
-            FlashAlertAsync().SafeFireAndForget();
+                // 觸發一次視覺閃爍動畫。
+                FlashAlertAsync().SafeFireAndForget();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiCaptureKey.Click 失敗：{ex.Message}");
+            }
         };
         tsmiHotkeySettings.DropDownItems.Add(tsmiCaptureKey);
 
@@ -234,10 +266,17 @@ public partial class MainForm
         };
         tsmiOpacity.DropDownOpening += (s, e) =>
         {
-            tsmiOpacity.AccessibleDescription = string.Format(
-                Strings.A11y_Menu_OpacityDesc,
-                Strings.Settings_WindowOpacity,
-                AppSettings.Current.WindowOpacity);
+            try
+            {
+                tsmiOpacity.AccessibleDescription = string.Format(
+                    Strings.A11y_Menu_OpacityDesc,
+                    Strings.Settings_WindowOpacity,
+                    AppSettings.Current.WindowOpacity);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiOpacity 開啟失敗：{ex.Message}");
+            }
         };
         tsmiWinOps.DropDownItems.Add(tsmiOpacity);
 
@@ -249,26 +288,33 @@ public partial class MainForm
         };
         tsmiSetOpacity.Click += (s, e) =>
         {
-            float? result = AskForFloat(
-                Strings.Settings_WindowOpacity,
-                AppSettings.Current.WindowOpacity * 100,
-                100.0f,
-                50.0f,
-                100.0f,
-                1.0m,
-                0);
-
-            if (result.HasValue)
+            try
             {
-                AppSettings.Current.WindowOpacity = result.Value / 100.0f;
+                float? result = AskForFloat(
+                    Strings.Settings_WindowOpacity,
+                    AppSettings.Current.WindowOpacity * 100,
+                    100.0f,
+                    50.0f,
+                    100.0f,
+                    1.0m,
+                    0);
 
-                UpdateOpacity();
+                if (result.HasValue)
+                {
+                    AppSettings.Current.WindowOpacity = result.Value / 100.0f;
 
-                AppSettings.Save();
+                    UpdateOpacity();
 
-                RefreshMenu();
+                    AppSettings.Save();
 
-                AnnounceA11y(string.Format(Strings.A11y_Opacity_Changed, AppSettings.Current.WindowOpacity));
+                    RefreshMenu();
+
+                    AnnounceA11y(string.Format(Strings.A11y_Opacity_Changed, AppSettings.Current.WindowOpacity));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiSetOpacity.Click 失敗：{ex.Message}");
             }
         };
         tsmiOpacity.DropDownItems.Add(tsmiSetOpacity);
@@ -280,7 +326,14 @@ public partial class MainForm
         };
         tsmiResetOpacity.Click += (s, e) =>
         {
-            ResetOpacity();
+            try
+            {
+                ResetOpacity();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiResetOpacity.Click 失敗：{ex.Message}");
+            }
         };
         tsmiOpacity.DropDownItems.Add(tsmiResetOpacity);
 
@@ -316,20 +369,27 @@ public partial class MainForm
 
             item.Click += (s, e) =>
             {
-                int? val = AskForValue(label, getter(), defValue, min, max);
-
-                if (val.HasValue)
+                try
                 {
-                    setter(val.Value);
+                    int? val = AskForValue(label, getter(), defValue, min, max);
 
-                    AppSettings.Save();
+                    if (val.HasValue)
+                    {
+                        setter(val.Value);
 
-                    RefreshMenu();
+                        AppSettings.Save();
+
+                        RefreshMenu();
+                    }
+
+                    // 焦點還原。
+                    // 當數值輸入對話框關閉後，將焦點精確還原至原選單項，最佳化螢幕閱讀器導覽流暢度。
+                    _lastFocusedMenuItem?.Select();
                 }
-
-                // 焦點還原。
-                // 當數值輸入對話框關閉後，將焦點精確還原至原選單項，優化螢幕閱讀器導覽流暢度。
-                _lastFocusedMenuItem?.Select();
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[選單] {label} 設定失敗：{ex.Message}");
+                }
             };
 
             parent.DropDownItems.Add(item);
@@ -378,19 +438,26 @@ public partial class MainForm
         };
         tsmiResetWinOps.Click += (s, e) =>
         {
-            AppSettings.Current.WindowRestoreDelay = 50;
-            AppSettings.Current.ClipboardRetryDelay = 20;
-            AppSettings.Current.TouchKeyboardDismissDelay = 300;
-            AppSettings.Current.WindowSwitchBufferBase = 150;
-            AppSettings.Current.InputJitterRange = 50;
-            AppSettings.Save();
+            try
+            {
+                AppSettings.Current.WindowRestoreDelay = 50;
+                AppSettings.Current.ClipboardRetryDelay = 20;
+                AppSettings.Current.TouchKeyboardDismissDelay = 300;
+                AppSettings.Current.WindowSwitchBufferBase = 150;
+                AppSettings.Current.InputJitterRange = 50;
+                AppSettings.Save();
 
-            RefreshMenu();
+                RefreshMenu();
 
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            // 告知視窗設定已重置。
-            AnnounceA11y(Strings.Msg_InputCleared);
+                // 告知視窗設定已重置。
+                AnnounceA11y(Strings.Msg_InputCleared);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiResetWinOps.Click 失敗：{ex.Message}");
+            }
         };
         tsmiWinOps.DropDownItems.Add(tsmiResetWinOps);
 
@@ -411,8 +478,15 @@ public partial class MainForm
         };
         tsmiVibEnable.CheckedChanged += (s, e) =>
         {
-            AppSettings.Current.EnableVibration = tsmiVibEnable.Checked;
-            AppSettings.Save();
+            try
+            {
+                AppSettings.Current.EnableVibration = tsmiVibEnable.Checked;
+                AppSettings.Save();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiVibEnable.CheckedChanged 失敗：{ex.Message}");
+            }
         };
         tsmiFeedback.DropDownItems.Add(tsmiVibEnable);
 
@@ -423,28 +497,35 @@ public partial class MainForm
         };
         tsmiIntensity.Click += (s, e) =>
         {
-            float? val = AskForFloat(
-                Strings.Settings_VibrationIntensity,
-                AppSettings.Current.VibrationIntensity,
-                1.0f,
-                0.0f,
-                1.0f,
-                0.1m,
-                1);
-
-            if (val.HasValue)
+            try
             {
-                AppSettings.Current.VibrationIntensity = val.Value;
+                float? val = AskForFloat(
+                    Strings.Settings_VibrationIntensity,
+                    AppSettings.Current.VibrationIntensity,
+                    1.0f,
+                    0.0f,
+                    1.0f,
+                    0.1m,
+                    1);
 
-                // 即時更新靜態震動強度倍率，不需重啟。
-                VibrationPatterns.GlobalIntensityMultiplier = val.Value;
+                if (val.HasValue)
+                {
+                    AppSettings.Current.VibrationIntensity = val.Value;
 
-                AppSettings.Save();
+                    // 即時更新靜態震動強度倍率，不需重啟。
+                    VibrationPatterns.GlobalIntensityMultiplier = val.Value;
 
-                RefreshMenu();
+                    AppSettings.Save();
 
-                // 告知強度已更新。
-                AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {val.Value}");
+                    RefreshMenu();
+
+                    // 告知強度已更新。
+                    AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {val.Value}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiIntensity.Click 失敗：{ex.Message}");
             }
         };
         tsmiFeedback.DropDownItems.Add(tsmiIntensity);
@@ -456,21 +537,28 @@ public partial class MainForm
         };
         tsmiResetFeedback.Click += (s, e) =>
         {
-            AppSettings.Current.EnableVibration = true;
-            AppSettings.Current.VibrationIntensity = 1.0f;
+            try
+            {
+                AppSettings.Current.EnableVibration = true;
+                AppSettings.Current.VibrationIntensity = 1.0f;
 
-            VibrationPatterns.GlobalIntensityMultiplier = 1.0f;
+                VibrationPatterns.GlobalIntensityMultiplier = 1.0f;
 
-            AppSettings.Save();
+                AppSettings.Save();
 
-            tsmiVibEnable.Checked = true;
+                tsmiVibEnable.Checked = true;
 
-            RefreshMenu();
+                RefreshMenu();
 
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            // 告知回饋設定已重置。
-            AnnounceA11y(Strings.Msg_InputCleared);
+                // 告知回饋設定已重置。
+                AnnounceA11y(Strings.Msg_InputCleared);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiResetFeedback.Click 失敗：{ex.Message}");
+            }
         };
         tsmiFeedback.DropDownItems.Add(tsmiResetFeedback);
 
@@ -504,14 +592,21 @@ public partial class MainForm
 
             item.Click += (s, e) =>
             {
-                if (AppSettings.Current.GamepadProviderType != provider)
+                try
                 {
-                    AppSettings.Current.GamepadProviderType = provider;
-                    AppSettings.Save();
+                    if (AppSettings.Current.GamepadProviderType != provider)
+                    {
+                        AppSettings.Current.GamepadProviderType = provider;
+                        AppSettings.Save();
 
-                    AnnounceA11y(Strings.Msg_RestartRequired);
+                        AnnounceA11y(Strings.Msg_RestartRequired);
 
-                    AskForRestart();
+                        AskForRestart();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[選單] {provider} 選取失敗：{ex.Message}");
                 }
             };
 
@@ -528,14 +623,21 @@ public partial class MainForm
         };
         tsmiResetProvider.Click += (s, e) =>
         {
-            if (AppSettings.Current.GamepadProviderType != AppSettings.GamepadProvider.XInput)
+            try
             {
-                AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
-                AppSettings.Save();
+                if (AppSettings.Current.GamepadProviderType != AppSettings.GamepadProvider.XInput)
+                {
+                    AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
+                    AppSettings.Save();
 
-                AnnounceA11y(Strings.Msg_RestartRequired);
+                    AnnounceA11y(Strings.Msg_RestartRequired);
 
-                AskForRestart();
+                    AskForRestart();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiResetProvider.Click 失敗：{ex.Message}");
             }
         };
         tsmiProvider.DropDownItems.Add(tsmiResetProvider);
@@ -600,18 +702,25 @@ public partial class MainForm
         };
         tsmiResetGamepad.Click += (s, e) =>
         {
-            AppSettings.Current.ThumbDeadzoneEnter = 7849;
-            AppSettings.Current.ThumbDeadzoneExit = 2500;
-            AppSettings.Current.RepeatInitialDelayFrames = 30;
-            AppSettings.Current.RepeatIntervalFrames = 5;
-            AppSettings.Save();
+            try
+            {
+                AppSettings.Current.ThumbDeadzoneEnter = 7849;
+                AppSettings.Current.ThumbDeadzoneExit = 2500;
+                AppSettings.Current.RepeatInitialDelayFrames = 30;
+                AppSettings.Current.RepeatIntervalFrames = 5;
+                AppSettings.Save();
 
-            RefreshMenu();
+                RefreshMenu();
 
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            // 告知手把設定已重置。
-            AnnounceA11y(Strings.Msg_InputCleared);
+                // 告知手把設定已重置。
+                AnnounceA11y(Strings.Msg_InputCleared);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiResetGamepad.Click 失敗：{ex.Message}");
+            }
         };
         tsmiGamepad.DropDownItems.Add(tsmiResetGamepad);
 
@@ -626,17 +735,24 @@ public partial class MainForm
         };
         tsmiCap.Click += (s, e) =>
         {
-            int? val = AskForValue(Strings.Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity, 100, 1, 1000);
-
-            if (val.HasValue &&
-                val != AppSettings.Current.HistoryCapacity)
+            try
             {
-                AppSettings.Current.HistoryCapacity = val.Value;
-                AppSettings.Save();
+                int? val = AskForValue(Strings.Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity, 100, 1, 1000);
 
-                RefreshMenu();
+                if (val.HasValue &&
+                    val != AppSettings.Current.HistoryCapacity)
+                {
+                    AppSettings.Current.HistoryCapacity = val.Value;
+                    AppSettings.Save();
 
-                AskForRestart();
+                    RefreshMenu();
+
+                    AskForRestart();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiCap.Click 失敗：{ex.Message}");
             }
         };
         tsmiSettings.DropDownItems.Add(tsmiCap);
@@ -649,14 +765,21 @@ public partial class MainForm
         };
         tsmiClearHistory.Click += (s, e) =>
         {
-            _historyService?.Clear();
+            try
+            {
+                _historyService?.Clear();
 
-            // 清除後主動將焦點拉回輸入框，確保使用者能直接開始輸入。
-            TBInput.Focus();
+                // 清除後主動將焦點拉回輸入框，確保使用者能直接開始輸入。
+                TBInput.Focus();
 
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-            AnnounceA11y(Strings.Msg_InputCleared);
+                AnnounceA11y(Strings.Msg_InputCleared);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiClearHistory.Click 失敗：{ex.Message}");
+            }
         };
 
         // 離開。
@@ -665,7 +788,17 @@ public partial class MainForm
             AccessibleName = Strings.Menu_Exit,
             AccessibleDescription = Strings.A11y_Menu_Exit_Desc
         };
-        tsmiExit.Click += (s, e) => Close();
+        tsmiExit.Click += (s, e) =>
+        {
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiExit.Click 失敗：{ex.Message}");
+            }
+        };
 
         // 使用共享快取取得選單字型。
         _cmsInput.Font = GetSharedA11yFont(DeviceDpi);

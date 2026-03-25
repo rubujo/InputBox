@@ -65,7 +65,7 @@ public partial class MainForm : Form
     private AnnouncerLabel? _lblA11yAnnouncer;
 
     /// <summary>
-    /// 快取的原始邊距（用於懸停零邊距策略）
+    /// 記錄上一次開啟觸控式鍵盤的時間點，用於防抖
     /// </summary>
     private DateTime _lastTouchKeyboardOpened = DateTime.MinValue;
 
@@ -337,8 +337,8 @@ public partial class MainForm : Form
             return;
         }
 
-        // 使用 SafeInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期，並確保在 UI 執行緒操作。
-        this.SafeInvoke(() =>
+        // 使用 SafeBeginInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期，並確保在 UI 執行緒操作。
+        this.SafeBeginInvoke(() =>
         {
             try
             {
@@ -1029,7 +1029,7 @@ public partial class MainForm : Form
             }
 
             // 啟動延遲清理任務，避免字體堆積引發 GDI 資源洩漏。
-            // 等待足勝長的時間（例如 2 秒），確保所有進行中的重繪事件都已結束，不再使用該字體。
+            // 等待足夠長的時間（例如 2 秒），確保所有進行中的重繪事件都已結束，不再使用該字體。
             Task.Run(async () =>
             {
                 try

@@ -55,15 +55,17 @@ internal class FeedbackService
     /// <param name="profile">震動設定檔</param>
     /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
-    public static Task VibrateAsync(IGamepadController? controller, VibrationProfile profile, CancellationToken ct = default)
+    public static Task VibrateAsync(
+        IGamepadController? controller,
+        VibrationProfile profile,
+        CancellationToken ct = default)
     {
-        return VibrateAsync(controller, profile.Strength, profile.Duration, ct);
+        return VibrateAsync(
+            controller,
+            profile.Strength,
+            profile.Duration,
+            ct);
     }
-
-    /// <summary>
-    /// 震動世代計數器，用於防止過時的震動停止指令覆蓋新的震動請求。
-    /// </summary>
-    private static long _vibrationGeneration = 0;
 
     /// <summary>
     /// 讓控制器震動
@@ -112,21 +114,12 @@ internal class FeedbackService
             return;
         }
 
-        // 世代檢查點：獲取目前的震動世代。
-        long currentGeneration = Interlocked.Increment(ref _vibrationGeneration);
-
         try
         {
             // 傳送震動指令。
+            // 由於控制器實作（如 XInputGamepadController）內部已經具備完備的世代管理（Token）與自動停止邏輯，
+            // Service 層級不應再介入細節控制，以免在多控制器環境下產生競態干擾。
             await controller.VibrateAsync(finalStrength, milliseconds, ct);
-
-            // 震動結束後的清理（停止馬達）。
-            // 只有在世代 ID 依然吻合時，才發送停止指令。
-            // 如果 ID 已變動，代表有更新的震動請求已發出，我們不應介入。
-            if (Interlocked.Read(ref _vibrationGeneration) == currentGeneration)
-            {
-                await controller.VibrateAsync(0, 0, ct);
-            }
         }
         catch (OperationCanceledException)
         {
@@ -150,11 +143,8 @@ internal class FeedbackService
             return Task.CompletedTask;
         }
 
-        // 遞增世代以中止所有背景運行的 VibrateAsync 邏輯。
-        Interlocked.Increment(ref _vibrationGeneration);
-
-        // 強制傳送強度為 0 且持續時間極短的指令。
-        return controller.VibrateAsync(0, 10);
+        // 直接發送停止指令。
+        return controller.VibrateAsync(0, 0);
     }
 
     /// <summary>

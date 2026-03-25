@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using InputBox.Core.Configuration;
+using InputBox.Core.Extensions;
 
 namespace InputBox.Core.Services;
 
@@ -62,18 +63,19 @@ internal class ClipboardService
                 try
                 {
                     // WinForms 剪貼簿 API 嚴格要求在 STA 執行緒執行。
-                    // 我們嘗試取得目前活動視窗來進行 Invoke，確保執行緒安全性。
+                    // 我們嘗試取得目前活動視窗來進行 SafeInvokeAsync，確保執行緒安全性。
                     Form? syncForm = Application.OpenForms.Cast<Form>().FirstOrDefault();
 
-                    if (syncForm != null &&
-                        syncForm.InvokeRequired)
+                    if (syncForm == null ||
+                        syncForm.IsDisposed)
                     {
-                        await syncForm.InvokeAsync(() => Clipboard.SetText(normalizedSource));
+                        // 若無活動視窗可用於同步 STA 環境，則放棄此次嘗試以防崩潰。
+                        Debug.WriteLine("[剪貼簿] 找不到活動視窗或視窗已處置，放棄寫入。");
+
+                        return false;
                     }
-                    else
-                    {
-                        Clipboard.SetText(normalizedSource);
-                    }
+
+                    await syncForm.SafeInvokeAsync(() => Clipboard.SetText(normalizedSource));
 
                     // 寫入後稍微等待，確保作業系統已完成通知廣播。
                     await Task.Delay(AppSettings.ClipboardBufferDelayMs, cts.Token);
@@ -81,15 +83,7 @@ internal class ClipboardService
                     // 驗證寫入結果。
                     string clipboardText = string.Empty;
 
-                    if (syncForm != null &&
-                        syncForm.InvokeRequired)
-                    {
-                        await syncForm.InvokeAsync(() => clipboardText = Clipboard.GetText());
-                    }
-                    else
-                    {
-                        clipboardText = Clipboard.GetText();
-                    }
+                    await syncForm.SafeInvokeAsync(() => clipboardText = Clipboard.GetText());
 
                     if (!string.IsNullOrEmpty(clipboardText))
                     {

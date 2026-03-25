@@ -35,25 +35,39 @@ internal sealed class NumericInputDialog : Form
 
         public override void UpButton()
         {
-            decimal oldValue = Value;
-
-            base.UpButton();
-
-            if (Value == oldValue)
+            try
             {
-                _parent.HandleBoundaryHit(true);
+                decimal oldValue = Value;
+
+                base.UpButton();
+
+                if (Value == oldValue)
+                {
+                    _parent.HandleBoundaryHit(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericUpDown] UpButton 失敗：{ex.Message}");
             }
         }
 
         public override void DownButton()
         {
-            decimal oldValue = Value;
-
-            base.DownButton();
-
-            if (Value == oldValue)
+            try
             {
-                _parent.HandleBoundaryHit(false);
+                decimal oldValue = Value;
+
+                base.DownButton();
+
+                if (Value == oldValue)
+                {
+                    _parent.HandleBoundaryHit(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericUpDown] DownButton 失敗：{ex.Message}");
             }
         }
 
@@ -62,8 +76,15 @@ internal sealed class NumericInputDialog : Form
         /// </summary>
         public void NotifyAccessibilityChange()
         {
-            // 主動通知輔助科技（AT）數值已變更。
-            AccessibilityNotifyClients(AccessibleEvents.ValueChange, -1);
+            try
+            {
+                // 主動通知輔助科技（AT）數值已變更。
+                AccessibilityNotifyClients(AccessibleEvents.ValueChange, -1);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericUpDown] NotifyAccessibilityChange 失敗：{ex.Message}");
+            }
         }
 
         /// <summary>
@@ -71,7 +92,14 @@ internal sealed class NumericInputDialog : Form
         /// </summary>
         public void ValidateValue()
         {
-            ValidateEditText();
+            try
+            {
+                ValidateEditText();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericUpDown] ValidateValue 失敗：{ex.Message}");
+            }
         }
 
         /// <summary>
@@ -80,20 +108,27 @@ internal sealed class NumericInputDialog : Form
         /// <param name="e">MouseEventArgs</param>
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            // 強制攔截並阻斷 Windows 系統的「一次捲動多行」設定（預設為 3）。
-            if (e is HandledMouseEventArgs hme)
+            try
             {
-                hme.Handled = true;
-            }
+                // 強制攔截並阻斷 Windows 系統的「一次捲動多行」設定（預設為 3）。
+                if (e is HandledMouseEventArgs hme)
+                {
+                    hme.Handled = true;
+                }
 
-            // 手動精確執行單次增減，不調用 base.OnMouseWheel(e)。
-            if (e.Delta > 0)
-            {
-                UpButton();
+                // 手動精確執行單次增減，不調用 base.OnMouseWheel(e)。
+                if (e.Delta > 0)
+                {
+                    UpButton();
+                }
+                else if (e.Delta < 0)
+                {
+                    DownButton();
+                }
             }
-            else if (e.Delta < 0)
+            catch (Exception ex)
             {
-                DownButton();
+                Debug.WriteLine($"[NumericUpDown] OnMouseWheel 失敗：{ex.Message}");
             }
         }
     }
@@ -149,7 +184,7 @@ internal sealed class NumericInputDialog : Form
     private Font? _a11yFont;
 
     /// <summary>
-    /// NUD 專屬放大字型，需手動 Dispose
+    /// NUD 專屬放大字型（來自共享快取，絕對禁止在此處手動處置）
     /// </summary>
     private Font? _nudFont;
 
@@ -245,85 +280,134 @@ internal sealed class NumericInputDialog : Form
 
     protected override void OnResizeEnd(EventArgs e)
     {
-        base.OnResizeEnd(e);
+        try
+        {
+            base.OnResizeEnd(e);
 
-        // 拖曳結束時執行智慧定位修正。
-        ApplySmartPosition();
+            // 拖曳結束時執行智慧定位修正。
+            ApplySmartPosition();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] OnResizeEnd 失敗：{ex.Message}");
+        }
     }
 
     protected override void OnHandleCreated(EventArgs e)
     {
-        base.OnHandleCreated(e);
-
-        UpdateMinimumSize();
-
-        // 使用 SafeBeginInvoke 讓字型替換邏輯排在 Handle 建立完成「之後」才執行。
-        this.SafeBeginInvoke(() =>
+        try
         {
-            // 套用透明度。
-            UpdateOpacity();
+            base.OnHandleCreated(e);
 
-            // 執行初始位置檢查。
-            ApplySmartPosition();
-        });
+            UpdateMinimumSize();
 
-        // 先解除再訂閱靜態事件，防止 Handle 重建時產生重複訂閱。
-        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
-        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+            // 使用 SafeBeginInvoke 讓字型替換邏輯排在 Handle 建立完成「之後」才執行。
+            this.SafeBeginInvoke(() =>
+            {
+                try
+                {
+                    // 套用透明度。
+                    UpdateOpacity();
+
+                    // 執行初始位置檢查。
+                    ApplySmartPosition();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NumericInputDialog] OnHandleCreated 延遲邏輯失敗：{ex.Message}");
+                }
+            });
+
+            // 先解除再訂閱靜態事件，防止 Handle 重建時產生重複訂閱。
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+            SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] OnHandleCreated 失敗：{ex.Message}");
+        }
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
-        base.OnDpiChanged(e);
-
-        // 當 DPI 變更時，強制全視窗重新讀取全域共享字體。
-        this.SafeInvoke(() =>
+        try
         {
-            // 重新取得 A11y 字型實例（從快取池取得）。
-            _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
+            base.OnDpiChanged(e);
 
-            // 同步更新所有按鈕的基礎字體。
-            if (_a11yFont != null)
+            // 當 DPI 變更時，強制全視窗重新讀取全域共享字體。
+            this.SafeInvoke(() =>
             {
-                _btnOk!.Font = _a11yFont;
-                _btnCancel!.Font = _a11yFont;
-                _btnPlus!.Font = _a11yFont;
-                _btnMinus!.Font = _a11yFont;
-                _btnReset!.Font = _a11yFont;
-            }
+                try
+                {
+                    // 重新取得 A11y 字型實例（從快取池取得）。
+                    _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
 
-            // 數值顯示區字體需重新依據新縮放比例建立。
-            if (_a11yFont != null &&
-                _nud != null)
-            {
-                // 2.0x 放大字體（來自共享快取，不需手動回收）。
-                _nudFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily, 2.0f);
+                    // 同步更新所有按鈕的基礎字體。
+                    if (_a11yFont != null)
+                    {
+                        _btnOk!.Font = _a11yFont;
+                        _btnCancel!.Font = _a11yFont;
+                        _btnPlus!.Font = _a11yFont;
+                        _btnMinus!.Font = _a11yFont;
+                        _btnReset!.Font = _a11yFont;
+                    }
 
-                _nud.Font = _nudFont;
-            }
+                    // 數值顯示區字體需重新依據新縮放比例建立。
+                    if (_a11yFont != null &&
+                        _nud != null)
+                    {
+                        // 2.0x 放大字體（來自共享快取，不需手動回收）。
+                        _nudFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily, 2.0f);
 
-            // 更新佈局約束。
-            UpdateMinimumSize();
+                        _nud.Font = _nudFont;
+                    }
 
-            // 強制所有控制項重新套用最新主題與字體。
-            UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
+                    // 更新佈局約束。
+                    UpdateMinimumSize();
 
-            ApplySmartPosition();
-        });
+                    // 強制所有控制項重新套用最新主題與字體。
+                    UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
+
+                    ApplySmartPosition();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NumericInputDialog] OnDpiChanged 延遲邏輯失敗：{ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] OnDpiChanged 失敗：{ex.Message}");
+        }
     }
 
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
-        if (e.Category == UserPreferenceCategory.Accessibility ||
-            e.Category == UserPreferenceCategory.Color ||
-            e.Category == UserPreferenceCategory.General)
+        try
         {
-            this.SafeInvoke(() =>
+            if (e.Category == UserPreferenceCategory.Accessibility ||
+                e.Category == UserPreferenceCategory.Color ||
+                e.Category == UserPreferenceCategory.General)
             {
-                UpdateMinimumSize();
+                this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        UpdateMinimumSize();
 
-                UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
-            });
+                        UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[NumericInputDialog] SystemEvents 更新失敗：{ex.Message}");
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] SystemEvents 處理失敗：{ex.Message}");
         }
     }
 
@@ -342,28 +426,36 @@ internal sealed class NumericInputDialog : Form
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
+        try
         {
-            // 處置取消權杖來源。
-            Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
+            if (disposing)
+            {
+                // 處置取消權杖來源。
+                Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
 
-            // 原子化處置 UI 控制項與資源。
-            Interlocked.Exchange(ref _nud, null)?.Dispose();
-            Interlocked.Exchange(ref _tlpGrid, null)?.Dispose();
-            Interlocked.Exchange(ref _btnOk, null)?.Dispose();
-            Interlocked.Exchange(ref _btnCancel, null)?.Dispose();
-            Interlocked.Exchange(ref _btnPlus, null)?.Dispose();
-            Interlocked.Exchange(ref _btnMinus, null)?.Dispose();
-            Interlocked.Exchange(ref _btnReset, null)?.Dispose();
+                // 原子化處置 UI 控制項與資源。
+                Interlocked.Exchange(ref _nud, null)?.Dispose();
+                Interlocked.Exchange(ref _tlpGrid, null)?.Dispose();
+                Interlocked.Exchange(ref _btnOk, null)?.Dispose();
+                Interlocked.Exchange(ref _btnCancel, null)?.Dispose();
+                Interlocked.Exchange(ref _btnPlus, null)?.Dispose();
+                Interlocked.Exchange(ref _btnMinus, null)?.Dispose();
+                Interlocked.Exchange(ref _btnReset, null)?.Dispose();
 
-            // 共享資源僅歸零，由 Program.cs 統一釋放。
-            Interlocked.Exchange(ref _nudFont, null);
-            Interlocked.Exchange(ref _a11yFont, null);
+                // 共享資源僅歸零，由 Program.cs 統一釋放。
+                Interlocked.Exchange(ref _nudFont, null);
+                Interlocked.Exchange(ref _a11yFont, null);
 
-            Interlocked.Exchange(ref _announcer, null)?.Dispose();
+                Interlocked.Exchange(ref _announcer, null)?.Dispose();
+
+                // 確保靜態事件在視窗處置時被絕對釋放，防止 Handle 未建立時的洩漏。
+                SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+            }
         }
-
-        base.Dispose(disposing);
+        finally
+        {
+            base.Dispose(disposing);
+        }
     }
 
     /// <summary>
@@ -371,25 +463,32 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void UnsubscribeGamepadEvents()
     {
-        if (_gamepadController != null)
+        try
         {
-            _gamepadController.UpPressed -= HandlePlus;
-            _gamepadController.UpRepeat -= HandlePlus;
-            _gamepadController.DownPressed -= HandleMinus;
-            _gamepadController.DownRepeat -= HandleMinus;
-            _gamepadController.LeftPressed -= HandleLeft;
-            _gamepadController.LeftRepeat -= HandleLeft;
-            _gamepadController.RightPressed -= HandleRight;
-            _gamepadController.RightRepeat -= HandleRight;
-            _gamepadController.RSLeftPressed -= HandleRSLeft;
-            _gamepadController.RSLeftRepeat -= HandleRSLeft;
-            _gamepadController.RSRightPressed -= HandleRSRight;
-            _gamepadController.RSRightRepeat -= HandleRSRight;
-            _gamepadController.APressed -= HandleConfirm;
-            _gamepadController.StartPressed -= HandleConfirm;
-            _gamepadController.BPressed -= HandleCancel;
-            _gamepadController.XPressed -= HandleReset;
-            _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
+            if (_gamepadController != null)
+            {
+                _gamepadController.UpPressed -= HandlePlus;
+                _gamepadController.UpRepeat -= HandlePlus;
+                _gamepadController.DownPressed -= HandleMinus;
+                _gamepadController.DownRepeat -= HandleMinus;
+                _gamepadController.LeftPressed -= HandleLeft;
+                _gamepadController.LeftRepeat -= HandleLeft;
+                _gamepadController.RightPressed -= HandleRight;
+                _gamepadController.RightRepeat -= HandleRight;
+                _gamepadController.RSLeftPressed -= HandleRSLeft;
+                _gamepadController.RSLeftRepeat -= HandleRSLeft;
+                _gamepadController.RSRightPressed -= HandleRSRight;
+                _gamepadController.RSRightRepeat -= HandleRSRight;
+                _gamepadController.APressed -= HandleConfirm;
+                _gamepadController.StartPressed -= HandleConfirm;
+                _gamepadController.BPressed -= HandleCancel;
+                _gamepadController.XPressed -= HandleReset;
+                _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] 取消訂閱手把事件失敗：{ex.Message}");
         }
     }
 
@@ -399,15 +498,22 @@ internal sealed class NumericInputDialog : Form
     /// <param name="connected">是否已連線</param>
     private void HandleGamepadConnectionChanged(bool connected)
     {
-        if (connected)
+        try
         {
-            _gamepadController?.Resume();
-        }
+            if (connected)
+            {
+                _gamepadController?.Resume();
+            }
 
-        // 告知使用者手把連線狀態變更。
-        AnnounceA11y(connected ?
-            Strings.A11y_Gamepad_Connected :
-            Strings.A11y_Gamepad_Disconnected);
+            // 告知使用者手把連線狀態變更。
+            AnnounceA11y(connected ?
+                Strings.A11y_Gamepad_Connected :
+                Strings.A11y_Gamepad_Disconnected);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] 手把連線變更處理失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -418,22 +524,29 @@ internal sealed class NumericInputDialog : Form
     {
         this.SafeInvoke(() =>
         {
-            // 利用 _isFlashing 作為防呆機制，避免手把長按連發時造成音效與語音播報卡頓。
-            if (_isFlashing == 0)
+            try
             {
-                FeedbackService.PlaySound(SystemSounds.Beep);
+                // 利用 _isFlashing 作為防呆機制，避免手把長按連發時造成音效與語音播報卡頓。
+                if (_isFlashing == 0)
+                {
+                    FeedbackService.PlaySound(SystemSounds.Beep);
 
-                FeedbackService.VibrateAsync(
-                        _gamepadController,
-                        VibrationPatterns.ActionFail,
-                        _cts?.Token ?? CancellationToken.None)
-                    .SafeFireAndForget();
+                    FeedbackService.VibrateAsync(
+                            _gamepadController,
+                            VibrationPatterns.ActionFail,
+                            _cts?.Token ?? CancellationToken.None)
+                        .SafeFireAndForget();
 
-                AnnounceA11y(isUpperLimit ?
-                    Strings.A11y_Value_Max :
-                    Strings.A11y_Value_Min, true);
+                    AnnounceA11y(isUpperLimit ?
+                        Strings.A11y_Value_Max :
+                        Strings.A11y_Value_Min, true);
 
-                FlashAlertAsync().SafeFireAndForget();
+                    FlashAlertAsync().SafeFireAndForget();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericInputDialog] HandleBoundaryHit 失敗：{ex.Message}");
             }
         });
     }
@@ -441,12 +554,32 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 處理數值增加，並保留焦點以支援眼動儀連發與鍵盤連點
     /// </summary>
-    private void HandlePlus() => this.SafeInvoke(() => _nud?.UpButton());
+    private void HandlePlus() => this.SafeInvoke(() =>
+    {
+        try
+        {
+            _nud?.UpButton();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandlePlus 失敗：{ex.Message}");
+        }
+    });
 
     /// <summary>
     /// 處理數值減少，並保留焦點以支援眼動儀連發與鍵盤連點
     /// </summary>
-    private void HandleMinus() => this.SafeInvoke(() => _nud?.DownButton());
+    private void HandleMinus() => this.SafeInvoke(() =>
+    {
+        try
+        {
+            _nud?.DownButton();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleMinus 失敗：{ex.Message}");
+        }
+    });
 
     /// <summary>
     /// 處理游標移動
@@ -454,73 +587,80 @@ internal sealed class NumericInputDialog : Form
     /// <param name="forward">是否向右（前進）移動</param>
     private void MoveCaret(bool forward) => this.SafeInvoke(() =>
     {
-        if (_nud == null)
+        try
         {
-            return;
-        }
-
-        TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
-
-        if (textBox == null ||
-            textBox.IsDisposed)
-        {
-            return;
-        }
-
-        bool hasSelection = textBox.SelectionLength > 0;
-
-        bool canMove = forward ?
-            (hasSelection || textBox.SelectionStart < textBox.TextLength) :
-            (hasSelection || textBox.SelectionStart > 0);
-
-        if (canMove)
-        {
-            if (hasSelection)
+            if (_nud == null)
             {
-                if (forward)
+                return;
+            }
+
+            TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+
+            if (textBox == null ||
+                textBox.IsDisposed)
+            {
+                return;
+            }
+
+            bool hasSelection = textBox.SelectionLength > 0;
+
+            bool canMove = forward ?
+                (hasSelection || textBox.SelectionStart < textBox.TextLength) :
+                (hasSelection || textBox.SelectionStart > 0);
+
+            if (canMove)
+            {
+                if (hasSelection)
                 {
-                    textBox.SelectionStart += textBox.SelectionLength;
+                    if (forward)
+                    {
+                        textBox.SelectionStart += textBox.SelectionLength;
+                    }
+
+                    textBox.SelectionLength = 0;
                 }
-
-                textBox.SelectionLength = 0;
-            }
-            // 組合鍵：LB + 方向鍵 執行單字跳轉。
-            else if (_gamepadController?.IsLeftShoulderHeld == true)
-            {
-                textBox.WordJump(forward);
-            }
-            else
-            {
-                if (forward)
+                // 組合鍵：LB + 方向鍵 執行單字跳轉。
+                else if (_gamepadController?.IsLeftShoulderHeld == true)
                 {
-                    textBox.SelectionStart++;
+                    textBox.WordJump(forward);
                 }
                 else
                 {
-                    textBox.SelectionStart--;
+                    if (forward)
+                    {
+                        textBox.SelectionStart++;
+                    }
+                    else
+                    {
+                        textBox.SelectionStart--;
+                    }
                 }
+
+                textBox.ScrollToCaret();
+
+                // 取得目前游標位置（1-based 報讀）。
+                int pos = textBox.SelectionStart;
+
+                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
+
+                FeedbackService.VibrateAsync(
+                        _gamepadController,
+                        VibrationPatterns.CursorMove,
+                        _cts?.Token ?? CancellationToken.None)
+                    .SafeFireAndForget();
             }
-
-            textBox.ScrollToCaret();
-
-            // 取得目前游標位置（1-based 報讀）。
-            int pos = textBox.SelectionStart;
-
-            AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
-
-            FeedbackService.VibrateAsync(
-                    _gamepadController,
-                    VibrationPatterns.CursorMove,
-                    _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
+            else
+            {
+                FeedbackService.VibrateAsync(
+                        _gamepadController,
+                        VibrationPatterns.ActionFail,
+                        _cts?.Token ?? CancellationToken.None)
+                    .SafeFireAndForget();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            FeedbackService.VibrateAsync(
-                    _gamepadController,
-                    VibrationPatterns.ActionFail,
-                    _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
+            Debug.WriteLine($"[NumericInputDialog] MoveCaret 失敗：{ex.Message}");
         }
     });
 
@@ -540,63 +680,72 @@ internal sealed class NumericInputDialog : Form
     /// <param name="forward">是否向右擴張</param>
     private void ExpandSelection(bool forward) => this.SafeInvoke(() =>
     {
-        if (_nud == null)
+        try
         {
-            return;
-        }
+            if (_nud == null)
+            {
+                return;
+            }
 
-        TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+            TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
 
-        if (textBox == null ||
-            textBox.IsDisposed)
-        {
-            return;
-        }
+            if (textBox == null ||
+                textBox.IsDisposed)
+            {
+                return;
+            }
 
-        // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點。
-        if (textBox.SelectionLength == 0 ||
-            _rsSelectionAnchor == null ||
-            (textBox.SelectionStart != _rsSelectionAnchor.Value &&
-             textBox.SelectionStart + textBox.SelectionLength != _rsSelectionAnchor.Value))
-        {
-            _rsSelectionAnchor = textBox.SelectionStart;
-        }
+            // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點。
+            if (textBox.SelectionLength == 0 ||
+                _rsSelectionAnchor == null ||
+                (textBox.SelectionStart != _rsSelectionAnchor.Value &&
+                 textBox.SelectionStart + textBox.SelectionLength != _rsSelectionAnchor.Value))
+            {
+                _rsSelectionAnchor = textBox.SelectionStart;
+            }
 
-        nint anchor = _rsSelectionAnchor.Value;
+            nint anchor = _rsSelectionAnchor.Value;
 
-        // 推算活動邊緣。
-        nint caret = (textBox.SelectionStart == anchor) ?
-            (anchor + textBox.SelectionLength) :
-            textBox.SelectionStart;
+            // 推算活動邊緣。
+            nint caret = (textBox.SelectionStart == anchor) ?
+                (anchor + textBox.SelectionLength) :
+                textBox.SelectionStart;
 
-        int direction = forward ? 1 : -1;
+            int direction = forward ? 1 : -1;
 
-        nint newCaret = Math.Clamp(caret + direction, 0, textBox.TextLength);
+            nint newCaret = Math.Clamp(caret + direction, 0, textBox.TextLength);
 
-        if (newCaret == caret)
-        {
+            if (newCaret == caret)
+            {
+                FeedbackService.VibrateAsync(
+                        _gamepadController,
+                        VibrationPatterns.ActionFail,
+                        _cts?.Token ?? CancellationToken.None)
+                    .SafeFireAndForget();
+
+                return;
+            }
+
+            // 使用 Win32 EM_SETSEL 設定選取範圍。
+            User32.SendMessage(textBox.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
+
+            if (textBox.SelectionLength > 0)
+            {
+                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                    Strings.A11y_Selected_Text_PrivacySafe :
+                    string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
+            }
+
             FeedbackService.VibrateAsync(
                     _gamepadController,
-                    VibrationPatterns.ActionFail,
+                    VibrationPatterns.CursorMove,
                     _cts?.Token ?? CancellationToken.None)
                 .SafeFireAndForget();
-
-            return;
         }
-
-        // 使用 Win32 EM_SETSEL 設定選取範圍。
-        User32.SendMessage(textBox.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
-
-        if (textBox.SelectionLength > 0)
+        catch (Exception ex)
         {
-            AnnounceA11y(string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
+            Debug.WriteLine($"[NumericInputDialog] ExpandSelection 失敗：{ex.Message}");
         }
-
-        FeedbackService.VibrateAsync(
-                _gamepadController,
-                VibrationPatterns.CursorMove,
-                _cts?.Token ?? CancellationToken.None)
-            .SafeFireAndForget();
     });
 
     /// <summary>
@@ -616,63 +765,77 @@ internal sealed class NumericInputDialog : Form
     /// <param name="isBackspace">是否為 Backspace 鍵</param>
     private void HandleDeleteKey(TextBox textBox, bool isBackspace)
     {
-        // 擷取刪除前的狀態。
-        string oldText = textBox.Text;
-
-        int oldStart = textBox.SelectionStart,
-            oldLen = textBox.SelectionLength;
-
-        // 檢查是否可以刪除。
-        bool cannotDelete = isBackspace ?
-            (oldLen == 0 && oldStart == 0) :
-            (oldLen == 0 && oldStart == oldText.Length);
-
-        if (cannotDelete)
+        try
         {
-            FeedbackService.VibrateAsync(
-                    _gamepadController,
-                    VibrationPatterns.ActionFail,
-                    _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
+            // 擷取刪除前的狀態。
+            string oldText = textBox.Text;
 
-            if (isBackspace)
+            int oldStart = textBox.SelectionStart,
+                oldLen = textBox.SelectionLength;
+
+            // 檢查是否可以刪除。
+            bool cannotDelete = isBackspace ?
+                (oldLen == 0 && oldStart == 0) :
+                (oldLen == 0 && oldStart == oldText.Length);
+
+            if (cannotDelete)
             {
-                AnnounceA11y(Strings.A11y_Cannot_Delete, true);
-            }
+                FeedbackService.VibrateAsync(
+                        _gamepadController,
+                        VibrationPatterns.ActionFail,
+                        _cts?.Token ?? CancellationToken.None)
+                    .SafeFireAndForget();
 
-            return;
-        }
+                if (isBackspace)
+                {
+                    AnnounceA11y(Strings.A11y_Cannot_Delete, true);
+                }
 
-        this.SafeBeginInvoke(() =>
-        {
-            if (textBox.IsDisposed)
-            {
                 return;
             }
 
-            // 比對內容是否真的減少。
-            if (textBox.TextLength < oldText.Length)
+            this.SafeBeginInvoke(() =>
             {
-                if (oldLen > 0)
+                try
                 {
-                    AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, oldLen), true);
-                }
-                else
-                {
-                    int deleteIndex = isBackspace ?
-                        oldStart - 1 :
-                        oldStart;
-
-                    if (deleteIndex >= 0 &&
-                        deleteIndex < oldText.Length)
+                    if (textBox.IsDisposed)
                     {
-                        char deletedChar = oldText[deleteIndex];
+                        return;
+                    }
 
-                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                    // 比對內容是否真的減少。
+                    if (textBox.TextLength < oldText.Length)
+                    {
+                        if (oldLen > 0)
+                        {
+                            AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, oldLen), true);
+                        }
+                        else
+                        {
+                            int deleteIndex = isBackspace ?
+                                oldStart - 1 :
+                                oldStart;
+
+                            if (deleteIndex >= 0 &&
+                                deleteIndex < oldText.Length)
+                            {
+                                char deletedChar = oldText[deleteIndex];
+
+                                AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                            }
+                        }
                     }
                 }
-            }
-        });
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NumericInputDialog] HandleDeleteKey 延遲邏輯失敗：{ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleDeleteKey 失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -680,28 +843,35 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleConfirm() => this.SafeInvoke(() =>
     {
-        if (IsDisposed ||
-            !IsHandleCreated)
+        try
         {
-            return;
+            if (IsDisposed ||
+                !IsHandleCreated)
+            {
+                return;
+            }
+
+            _nud?.ValidateValue();
+
+            // 發送與手把對等的震動與 A11y 播報。
+            FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+            FeedbackService.VibrateAsync(
+                    _gamepadController,
+                    VibrationPatterns.CopySuccess,
+                    _cts?.Token ?? CancellationToken.None)
+                .SafeFireAndForget();
+
+            AnnounceA11y(Strings.A11y_Returning);
+
+            DialogResult = DialogResult.OK;
+
+            Close();
         }
-
-        _nud?.ValidateValue();
-
-        // 發送與手把對等的震動與 A11y 播報。
-        FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-        FeedbackService.VibrateAsync(
-                _gamepadController,
-                VibrationPatterns.CopySuccess,
-                _cts?.Token ?? CancellationToken.None)
-            .SafeFireAndForget();
-
-        AnnounceA11y(Strings.A11y_Returning);
-
-        DialogResult = DialogResult.OK;
-
-        Close();
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleConfirm 失敗：{ex.Message}");
+        }
     });
 
     /// <summary>
@@ -709,26 +879,33 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleCancel() => this.SafeInvoke(() =>
     {
-        if (IsDisposed ||
-            !IsHandleCreated)
+        try
         {
-            return;
+            if (IsDisposed ||
+                !IsHandleCreated)
+            {
+                return;
+            }
+
+            // 發送與手把對等的震動（比照返回動作）。
+            FeedbackService.PlaySound(SystemSounds.Exclamation);
+
+            FeedbackService.VibrateAsync(
+                    _gamepadController,
+                    VibrationPatterns.ReturnStart,
+                    _cts?.Token ?? CancellationToken.None)
+                .SafeFireAndForget();
+
+            // A11y 播報在 FormClosing 中已處理。
+
+            DialogResult = DialogResult.Cancel;
+
+            Close();
         }
-
-        // 發送與手把對等的震動（比照返回動作）。
-        FeedbackService.PlaySound(SystemSounds.Exclamation);
-
-        FeedbackService.VibrateAsync(
-                _gamepadController,
-                VibrationPatterns.ReturnStart,
-                _cts?.Token ?? CancellationToken.None)
-            .SafeFireAndForget();
-
-        // A11y 播報在 FormClosing 中已處理。
-
-        DialogResult = DialogResult.Cancel;
-
-        Close();
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleCancel 失敗：{ex.Message}");
+        }
     });
 
     /// <summary>
@@ -736,22 +913,29 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void HandleReset() => this.SafeInvoke(() =>
     {
-        if (IsDisposed ||
-            !IsHandleCreated ||
-            _nud == null)
+        try
         {
-            return;
+            if (IsDisposed ||
+                !IsHandleCreated ||
+                _nud == null)
+            {
+                return;
+            }
+
+            _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
+            _nud.Focus();
+
+            FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+            FeedbackService.VibrateAsync(
+                    _gamepadController,
+                    VibrationPatterns.CursorMove)
+                .SafeFireAndForget();
         }
-
-        _nud.Value = Math.Clamp(_defaultValue, _nud.Minimum, _nud.Maximum);
-        _nud.Focus();
-
-        FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-        FeedbackService.VibrateAsync(
-                _gamepadController,
-                VibrationPatterns.CursorMove)
-            .SafeFireAndForget();
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleReset 失敗：{ex.Message}");
+        }
     });
 
     /// <summary>
@@ -860,6 +1044,10 @@ internal sealed class NumericInputDialog : Form
         {
             // 正常取消。
         }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] FlashAlertAsync 失敗：{ex.Message}");
+        }
         finally
         {
             Interlocked.Exchange(ref _isFlashing, 0);
@@ -868,10 +1056,17 @@ internal sealed class NumericInputDialog : Form
             // 確保 UI 狀態還原。
             this.SafeInvoke(() =>
             {
-                if (!IsDisposed &&
-                    IsHandleCreated)
+                try
                 {
-                    UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
+                    if (!IsDisposed &&
+                        IsHandleCreated)
+                    {
+                        UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NumericInputDialog] FlashAlertAsync 還原失敗：{ex.Message}");
                 }
             });
         }
@@ -934,42 +1129,49 @@ internal sealed class NumericInputDialog : Form
     /// <param name="isFocused">指示控制項是否具有焦點</param>
     private void UpdateFocusVisuals(bool isFocused)
     {
-        if (_nud == null ||
-            _nud.IsDisposed)
+        try
         {
-            return;
-        }
-
-        // 綜合判斷：只要數值框本身有焦點，或是旁邊的加減按鈕有焦點，數值框都應該保持高亮。
-        bool shouldHighlight = isFocused ||
-            (_btnPlus != null && _btnPlus.Focused) ||
-            (_btnMinus != null && _btnMinus.Focused);
-
-        if (shouldHighlight)
-        {
-            if (SystemInformation.HighContrast)
+            if (_nud == null ||
+                _nud.IsDisposed)
             {
-                _nud.UpdateRecursive(SystemColors.Highlight, SystemColors.HighlightText);
+                return;
+            }
+
+            // 綜合判斷：只要數值框本身有焦點，或是旁邊的加減按鈕有焦點，數值框都應該保持高亮。
+            bool shouldHighlight = isFocused ||
+                (_btnPlus != null && _btnPlus.Focused) ||
+                (_btnMinus != null && _btnMinus.Focused);
+
+            if (shouldHighlight)
+            {
+                if (SystemInformation.HighContrast)
+                {
+                    _nud.UpdateRecursive(SystemColors.Highlight, SystemColors.HighlightText);
+                }
+                else
+                {
+                    bool isDark = this.IsDarkModeActive();
+
+                    // 淺色模式：黑底白字、深色模式：白底黑字。
+                    _nud.UpdateRecursive(
+                        isDark ? Color.White : Color.Black,
+                        isDark ? Color.Black : Color.White);
+                }
             }
             else
             {
-                bool isDark = this.IsDarkModeActive();
+                _nud.ResetThemeRecursive();
+            }
 
-                // 淺色模式：黑底白字、深色模式：白底黑字。
-                _nud.UpdateRecursive(
-                    isDark ? Color.White : Color.Black,
-                    isDark ? Color.Black : Color.White);
+            // 當具有焦點時，強化游標。
+            if (isFocused)
+            {
+                UpdateCaretWidth();
             }
         }
-        else
+        catch (Exception ex)
         {
-            _nud.ResetThemeRecursive();
-        }
-
-        // 當具有焦點時，強化游標。
-        if (isFocused)
-        {
-            UpdateCaretWidth();
+            Debug.WriteLine($"[NumericInputDialog] UpdateFocusVisuals 失敗：{ex.Message}");
         }
     }
 
@@ -978,49 +1180,56 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void UpdateCaretWidth()
     {
-        if (_nud == null ||
-            _nud.IsDisposed ||
-            !_nud.IsHandleCreated)
+        try
         {
-            return;
+            if (_nud == null ||
+                _nud.IsDisposed ||
+                !_nud.IsHandleCreated)
+            {
+                return;
+            }
+
+            // 尋找 NUD 內部的 TextBox 子控制項。
+            TextBox? innerTextBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+
+            if (innerTextBox == null ||
+                !innerTextBox.IsHandleCreated)
+            {
+                return;
+            }
+
+            // 基礎寬度 3px，隨 DPI 縮放。
+            float scale = DeviceDpi / AppSettings.BaseDpi;
+
+            int caretWidth = (int)Math.Max(3, 3 * scale);
+
+            // 高對比模式下額外加粗。
+            if (SystemInformation.HighContrast)
+            {
+                caretWidth += (int)(2 * scale);
+            }
+
+            int caretHeight = innerTextBox.Height;
+
+            // 若寬高與上次一致，則略過 Win32 API 調用，減少 UI 閃爍感。
+            if (caretWidth == _lastCaretWidth &&
+                caretHeight == _lastCaretHeight)
+            {
+                return;
+            }
+
+            _lastCaretWidth = caretWidth;
+            _lastCaretHeight = caretHeight;
+
+            // 使用 Win32 API 重新建立游標。
+            if (User32.CreateCaret(innerTextBox.Handle, IntPtr.Zero, caretWidth, caretHeight))
+            {
+                User32.ShowCaret(innerTextBox.Handle);
+            }
         }
-
-        // 尋找 NUD 內部的 TextBox 子控制項。
-        TextBox? innerTextBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
-
-        if (innerTextBox == null ||
-            !innerTextBox.IsHandleCreated)
+        catch (Exception ex)
         {
-            return;
-        }
-
-        // 基礎寬度 3px，隨 DPI 縮放。
-        float scale = DeviceDpi / AppSettings.BaseDpi;
-
-        int caretWidth = (int)Math.Max(3, 3 * scale);
-
-        // 高對比模式下額外加粗。
-        if (SystemInformation.HighContrast)
-        {
-            caretWidth += (int)(2 * scale);
-        }
-
-        int caretHeight = innerTextBox.Height;
-
-        // 若寬高與上次一致，則略過 Win32 API 調用，減少 UI 閃爍感。
-        if (caretWidth == _lastCaretWidth &&
-            caretHeight == _lastCaretHeight)
-        {
-            return;
-        }
-
-        _lastCaretWidth = caretWidth;
-        _lastCaretHeight = caretHeight;
-
-        // 使用 Win32 API 重新建立游標。
-        if (User32.CreateCaret(innerTextBox.Handle, IntPtr.Zero, caretWidth, caretHeight))
-        {
-            User32.ShowCaret(innerTextBox.Handle);
+            Debug.WriteLine($"[NumericInputDialog] UpdateCaretWidth 失敗：{ex.Message}");
         }
     }
 
@@ -1029,16 +1238,23 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void UpdateOpacity()
     {
-        // 根據規範，若系統開啟高對比模式，則強制為 1.0 以確保絕對可讀性。
-        if (SystemInformation.HighContrast)
+        try
         {
+            // 根據規範，若系統開啟高對比模式，則強制為 1.0 以確保絕對可讀性。
+            if (SystemInformation.HighContrast)
+            {
+                Opacity = 1.0;
+
+                return;
+            }
+
+            // 數值輸入框鎖定 1.0 不透明度以確保輸入清晰度。
             Opacity = 1.0;
-
-            return;
         }
-
-        // 數值輸入框鎖定 1.0 不透明度以確保輸入清晰度。
-        Opacity = 1.0;
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] UpdateOpacity 失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -1046,36 +1262,43 @@ internal sealed class NumericInputDialog : Form
     /// </summary>
     private void UpdateMinimumSize()
     {
-        float scale = DeviceDpi / AppSettings.BaseDpi;
-
-        // 內容感知：更新所有按鈕的佈局約束（Bold 預測）。
-        // 確保按鈕在獲得焦點變為粗體時，物理邊界保持絕對靜止，達成 Zero-Jitter。
-        UpdateButtonConstraints(_btnOk, scale);
-        UpdateButtonConstraints(_btnCancel, scale);
-        UpdateButtonConstraints(_btnPlus, scale);
-        UpdateButtonConstraints(_btnMinus, scale);
-        UpdateButtonConstraints(_btnReset, scale);
-
-        // 使用 SizeFromClientSize 進行精確測量。
-        // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
-        Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
-
-        MinimumSize = SizeFromClientSize(minClientSize);
-
-        // 如果目前尺寸低於測量出的地板，則強制擴張。
-        if (Width < MinimumSize.Width ||
-            Height < MinimumSize.Height)
+        try
         {
-            Size = MinimumSize;
+            float scale = DeviceDpi / AppSettings.BaseDpi;
 
-            // 佈局擴張後，執行智慧定位檢查。
-            ApplySmartPosition();
+            // 內容感知：更新所有按鈕的佈局約束（Bold 預測）。
+            // 確保按鈕在獲得焦點變為粗體時，物理邊界保持絕對靜止，達成 Zero-Jitter。
+            UpdateButtonConstraints(_btnOk, scale);
+            UpdateButtonConstraints(_btnCancel, scale);
+            UpdateButtonConstraints(_btnPlus, scale);
+            UpdateButtonConstraints(_btnMinus, scale);
+            UpdateButtonConstraints(_btnReset, scale);
+
+            // 使用 SizeFromClientSize 進行精確測量。
+            // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
+            Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
+
+            MinimumSize = SizeFromClientSize(minClientSize);
+
+            // 如果目前尺寸低於測量出的地板，則強制擴張。
+            if (Width < MinimumSize.Width ||
+                Height < MinimumSize.Height)
+            {
+                Size = MinimumSize;
+
+                // 佈局擴張後，執行智慧定位檢查。
+                ApplySmartPosition();
+            }
+
+            // 高對比模式下強制 100% 不透明度。
+            if (SystemInformation.HighContrast)
+            {
+                UpdateOpacity();
+            }
         }
-
-        // 高對比模式下強制 100% 不透明度。
-        if (SystemInformation.HighContrast)
+        catch (Exception ex)
         {
-            UpdateOpacity();
+            Debug.WriteLine($"[NumericInputDialog] UpdateMinimumSize 失敗：{ex.Message}");
         }
     }
 
@@ -1086,26 +1309,33 @@ internal sealed class NumericInputDialog : Form
     /// <param name="scale">目前 DPI 縮放比例</param>
     private void UpdateButtonConstraints(Button? btn, float scale)
     {
-        if (btn == null ||
-            btn.IsDisposed)
+        try
         {
-            return;
+            if (btn == null ||
+                btn.IsDisposed)
+            {
+                return;
+            }
+
+            // 重置 MinimumSize 以便重新測量。
+            btn.MinimumSize = Size.Empty;
+
+            // 取得專屬於此視窗 DPI 的 Bold 字體實例。
+            Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, btn.Font.FontFamily);
+
+            // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock）。
+            // 使用 TextRenderer 預先測量 Bold 狀態下的文字寬度，並將其鎖定為 MinimumSize。
+            Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
+
+            int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),
+                baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
+
+            btn.MinimumSize = new Size(baseMinWidth, baseMinHeight);
         }
-
-        // 重置 MinimumSize 以便重新測量。
-        btn.MinimumSize = Size.Empty;
-
-        // 取得專屬於此視窗 DPI 的 Bold 字體實例。
-        Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, btn.Font.FontFamily);
-
-        // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock）。
-        // 使用 TextRenderer 預先測量 Bold 狀態下的文字寬度，並將其鎖定為 MinimumSize。
-        Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
-
-        int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),
-            baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
-
-        btn.MinimumSize = new Size(baseMinWidth, baseMinHeight);
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] UpdateButtonConstraints 失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -1116,63 +1346,70 @@ internal sealed class NumericInputDialog : Form
         // 脫離目前的佈局計算循環，確保所有 StartPosition 與 AutoSize 已處理完畢。
         this.SafeBeginInvoke(() =>
         {
-            if (IsDisposed ||
-                !IsHandleCreated)
+            try
             {
-                return;
+                if (IsDisposed ||
+                    !IsHandleCreated)
+                {
+                    return;
+                }
+
+                // 強制同步最新的實體佈局尺寸（關鍵：確保 Width／Height 是縮放後的真實值）。
+                PerformLayout();
+
+                // 以對話框中心點所在的螢幕為準。
+                Screen screen = Screen.FromControl(this);
+
+                Rectangle workArea = screen.WorkingArea;
+
+                int newX = Location.X,
+                    newY = Location.Y;
+
+                bool adjusted = false;
+
+                // 檢查右邊界。
+                if (newX + Width > workArea.Right)
+                {
+                    newX = workArea.Right - Width;
+
+                    adjusted = true;
+                }
+
+                // 檢查左邊界。
+                if (newX < workArea.Left)
+                {
+                    newX = workArea.Left;
+
+                    adjusted = true;
+                }
+
+                // 檢查下邊界。
+                if (newY + Height > workArea.Bottom)
+                {
+                    newY = workArea.Bottom - Height;
+
+                    adjusted = true;
+                }
+
+                // 檢查上邊界。
+                if (newY < workArea.Top)
+                {
+                    newY = workArea.Top;
+
+                    adjusted = true;
+                }
+
+                if (adjusted)
+                {
+                    Location = new Point(newX, newY);
+
+                    // 告知使用者視窗已修正位置。
+                    (Owner as MainForm)?.AnnounceA11y(Strings.A11y_SnapBack);
+                }
             }
-
-            // 強制同步最新的實體佈局尺寸（關鍵：確保 Width／Height 是縮放後的真實值）。
-            PerformLayout();
-
-            // 以對話框中心點所在的螢幕為準。
-            Screen screen = Screen.FromControl(this);
-
-            Rectangle workArea = screen.WorkingArea;
-
-            int newX = Location.X,
-                newY = Location.Y;
-
-            bool adjusted = false;
-
-            // 檢查右邊界。
-            if (newX + Width > workArea.Right)
+            catch (Exception ex)
             {
-                newX = workArea.Right - Width;
-
-                adjusted = true;
-            }
-
-            // 檢查左邊界。
-            if (newX < workArea.Left)
-            {
-                newX = workArea.Left;
-
-                adjusted = true;
-            }
-
-            // 檢查下邊界。
-            if (newY + Height > workArea.Bottom)
-            {
-                newY = workArea.Bottom - Height;
-
-                adjusted = true;
-            }
-
-            // 檢查上邊界。
-            if (newY < workArea.Top)
-            {
-                newY = workArea.Top;
-
-                adjusted = true;
-            }
-
-            if (adjusted)
-            {
-                Location = new Point(newX, newY);
-
-                // 告知使用者視窗已修正位置。
-                (Owner as MainForm)?.AnnounceA11y(Strings.A11y_SnapBack);
+                Debug.WriteLine($"[NumericInputDialog] ApplySmartPosition 失敗：{ex.Message}");
             }
         });
     }
@@ -1296,31 +1533,119 @@ internal sealed class NumericInputDialog : Form
 
         _nud.Enter += (s, e) =>
         {
-            UpdateFocusVisuals(true);
+            try
+            {
+                UpdateFocusVisuals(true);
 
-            UpdateCaretWidth();
+                UpdateCaretWidth();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericInputDialog] _nud.Enter 失敗：{ex.Message}");
+            }
         };
         _nud.Leave += (s, e) =>
         {
-            _alertCts?.CancelAndDispose();
+            try
+            {
+                _alertCts?.CancelAndDispose();
 
-            User32.DestroyCaret();
+                User32.DestroyCaret();
 
-            // 重置游標快取，確保下次焦點進入時能正確重建游標
-            _lastCaretWidth = -1;
-            _lastCaretHeight = -1;
+                // 重置游標快取，確保下次焦點進入時能正確重建游標
+                _lastCaretWidth = -1;
+                _lastCaretHeight = -1;
 
-            UpdateFocusVisuals(false);
+                UpdateFocusVisuals(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericInputDialog] _nud.Leave 失敗：{ex.Message}");
+            }
         };
 
         _nud.KeyDown += (s, e) =>
         {
-            // 處理鍵盤左右鍵位移／選取 A11y 同步。
-            if (e.KeyCode == Keys.Left ||
-                e.KeyCode == Keys.Right)
+            try
             {
-                // 使用 SafeBeginInvoke 確保在 Windows 原生位移處理完成後，才擷取最新的游標位置。
-                this.SafeBeginInvoke(() =>
+                // 處理鍵盤左右鍵位移／選取 A11y 同步。
+                if (e.KeyCode == Keys.Left ||
+                    e.KeyCode == Keys.Right)
+                {
+                    // 使用 SafeBeginInvoke 確保在 Windows 原生位移處理完成後，才擷取最新的游標位置。
+                    this.SafeBeginInvoke(() =>
+                    {
+                        try
+                        {
+                            if (_nud == null ||
+                                _nud.IsDisposed)
+                            {
+                                return;
+                            }
+
+                            TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+
+                            if (textBox == null ||
+                                textBox.IsDisposed)
+                            {
+                                return;
+                            }
+
+                            if (e.Shift)
+                            {
+                                if (textBox.SelectionLength > 0)
+                                {
+                                    AnnounceA11y(string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
+                                }
+                            }
+                            else
+                            {
+                                // 取得目前游標所在的絕對索引（1-based 報讀）。
+                                int pos = textBox.SelectionStart;
+
+                                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[NumericInputDialog] KeyDown 位移同步失敗：{ex.Message}");
+                        }
+                    });
+                }
+
+                // Home、End、Ctrl + Left／Right：跳轉游標。
+                if (e.KeyCode == Keys.Home ||
+                    e.KeyCode == Keys.End ||
+                    (e.Control && (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)))
+                {
+                    this.SafeBeginInvoke(() =>
+                    {
+                        try
+                        {
+                            if (_nud == null ||
+                                _nud.IsDisposed)
+                            {
+                                return;
+                            }
+
+                            TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+
+                            if (textBox != null &&
+                                !textBox.IsDisposed)
+                            {
+                                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, textBox.SelectionStart + 1), true);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[NumericInputDialog] KeyDown 跳轉同步失敗：{ex.Message}");
+                        }
+                    });
+                }
+
+                // Backspace 或 Delete：刪除文字。
+                if (e.KeyCode == Keys.Back ||
+                    e.KeyCode == Keys.Delete)
                 {
                     if (_nud == null ||
                         _nud.IsDisposed)
@@ -1336,119 +1661,80 @@ internal sealed class NumericInputDialog : Form
                         return;
                     }
 
-                    if (e.Shift)
+                    HandleDeleteKey(textBox, e.KeyCode == Keys.Back);
+                }
+
+                // 確保Home／End 在改變數值時（WinForms 原生行為）也能透過 SafeBeginInvoke 觸發數值變更廣播。
+                if (e.KeyCode == Keys.Home ||
+                    e.KeyCode == Keys.End)
+                {
+                    this.SafeBeginInvoke(() =>
                     {
-                        if (textBox.SelectionLength > 0)
+                        try
                         {
-                            AnnounceA11y(string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
+                            if (_nud == null ||
+                                _nud.IsDisposed)
+                            {
+                                return;
+                            }
+
+                            // 主動通知數值變更，這會協助螢幕閱讀器抓取最新狀態。
+                            _nud.NotifyAccessibilityChange();
                         }
-                    }
-                    else
-                    {
-                        // 取得目前游標所在的絕對索引（1-based 報讀）。
-                        int pos = textBox.SelectionStart;
-
-                        AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
-                    }
-                });
-            }
-
-            // Home、End、Ctrl + Left／Right：跳轉游標。
-            if (e.KeyCode == Keys.Home ||
-                e.KeyCode == Keys.End ||
-                (e.Control && (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)))
-            {
-                this.SafeBeginInvoke(() =>
-                {
-                    if (_nud == null ||
-                        _nud.IsDisposed)
-                    {
-                        return;
-                    }
-
-                    TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
-
-                    if (textBox != null &&
-                        !textBox.IsDisposed)
-                    {
-                        AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, textBox.SelectionStart + 1), true);
-                    }
-                });
-            }
-
-            // Backspace 或 Delete：刪除文字。
-            if (e.KeyCode == Keys.Back ||
-                e.KeyCode == Keys.Delete)
-            {
-                if (_nud == null ||
-                    _nud.IsDisposed)
-                {
-                    return;
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[NumericInputDialog] KeyDown 邊界通知失敗：{ex.Message}");
+                        }
+                    });
                 }
-
-                TextBox? textBox = _nud.Controls.OfType<TextBox>().FirstOrDefault();
-
-                if (textBox == null ||
-                    textBox.IsDisposed)
-                {
-                    return;
-                }
-
-                HandleDeleteKey(textBox, e.KeyCode == Keys.Back);
             }
-
-            // 確保Home／End 在改變數值時（WinForms 原生行為）也能透過 SafeBeginInvoke 觸發數值變更廣播。
-            if (e.KeyCode == Keys.Home ||
-                e.KeyCode == Keys.End)
+            catch (Exception ex)
             {
-                this.SafeBeginInvoke(() =>
-                {
-                    if (_nud == null ||
-                        _nud.IsDisposed)
-                    {
-                        return;
-                    }
-
-                    // 主動通知數值變更，這會協助螢幕閱讀器抓取最新狀態。
-                    _nud.NotifyAccessibilityChange();
-                });
+                Debug.WriteLine($"[NumericInputDialog] KeyDown 處理失敗：{ex.Message}");
             }
         };
 
         // 當數值改變時，同步更新無障礙描述，並主動廣播最新數值。
         _nud.ValueChanged += (s, e) =>
         {
-            if (_nud == null)
+            try
             {
-                return;
+                if (_nud == null)
+                {
+                    return;
+                }
+
+                _nud.AccessibleDescription = string.Format(
+                    Strings.A11y_Value_Range_Desc,
+                    _nud.Value,
+                    _nud.Minimum,
+                    _nud.Maximum);
+
+                // 廣播包含項目名稱的完整訊息（例如：「不透明度：50%」）。
+                string valStr = _nud.DecimalPlaces > 0 ?
+                    _nud.Value.ToString($"F{_nud.DecimalPlaces}") :
+                    _nud.Value.ToString("F0");
+
+                // 如果是對話框標題（如「不透明度」），則組合起來播報。
+                string announcement = $"{title}：{valStr}";
+
+                // 如果有小數位數（如 0.1），檢查是否需要格式化為百分比。
+                if (title == Strings.Settings_WindowOpacity)
+                {
+                    announcement = string.Format(Strings.A11y_Opacity_Changed, _nud.Value / 100);
+                }
+
+                AnnounceA11y(announcement, interrupt: true);
+
+                FeedbackService.VibrateAsync(
+                        _gamepadController,
+                        VibrationPatterns.CursorMove)
+                    .SafeFireAndForget();
             }
-
-            _nud.AccessibleDescription = string.Format(
-                Strings.A11y_Value_Range_Desc,
-                _nud.Value,
-                _nud.Minimum,
-                _nud.Maximum);
-
-            // 廣播包含項目名稱的完整訊息（例如：「不透明度：50%」）。
-            string valStr = _nud.DecimalPlaces > 0 ?
-                _nud.Value.ToString($"F{_nud.DecimalPlaces}") :
-                _nud.Value.ToString("F0");
-
-            // 如果是對話框標題（如「不透明度」），則組合起來播報。
-            string announcement = $"{title}：{valStr}";
-
-            // 如果有小數位數（如 0.1），檢查是否需要格式化為百分比。
-            if (title == Strings.Settings_WindowOpacity)
+            catch (Exception ex)
             {
-                announcement = string.Format(Strings.A11y_Opacity_Changed, _nud.Value / 100);
+                Debug.WriteLine($"[NumericInputDialog] ValueChanged 失敗：{ex.Message}");
             }
-
-            AnnounceA11y(announcement, interrupt: true);
-
-            FeedbackService.VibrateAsync(
-                    _gamepadController,
-                    VibrationPatterns.CursorMove)
-                .SafeFireAndForget();
         };
 
         // 按鈕連動 NUD 高亮邏輯。
@@ -1459,10 +1745,20 @@ internal sealed class NumericInputDialog : Form
             Strings.A11y_Btn_Minus_Desc,
             scale,
             _a11yFont,
-            (active) => UpdateFocusVisuals(
-                active ||
-                (_nud?.Focused == true) ||
-                (_nud?.ContainsFocus == true)));
+            (active) =>
+            {
+                try
+                {
+                    UpdateFocusVisuals(
+                        active ||
+                        (_nud?.Focused == true) ||
+                        (_nud?.ContainsFocus == true));
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NumericInputDialog] _btnMinus 焦點回呼失敗：{ex.Message}");
+                }
+            });
 
         AttachAutoRepeat(_btnMinus, HandleMinus);
 
@@ -1474,10 +1770,20 @@ internal sealed class NumericInputDialog : Form
             Strings.A11y_Btn_Plus_Desc,
             scale,
             _a11yFont,
-            (active) => UpdateFocusVisuals(
-                active ||
-                (_nud?.Focused == true) ||
-                (_nud?.ContainsFocus == true)));
+            (active) =>
+            {
+                try
+                {
+                    UpdateFocusVisuals(
+                        active ||
+                        (_nud?.Focused == true) ||
+                        (_nud?.ContainsFocus == true));
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NumericInputDialog] _btnPlus 焦點回呼失敗：{ex.Message}");
+                }
+            });
 
         AttachAutoRepeat(_btnPlus, HandlePlus);
 
@@ -1534,25 +1840,42 @@ internal sealed class NumericInputDialog : Form
 
         Shown += (s, e) =>
         {
-            // 協調 LiveRegion：當彈出對話框時，暫時停用主視窗的廣播器 LiveSetting，防止訊息干擾。
-            if (Owner is MainForm mainForm)
+            try
             {
-                mainForm.SetA11yLiveSetting(AutomationLiveSetting.Off);
+                // 協調 LiveRegion：當彈出對話框時，暫時停用主視窗的廣播器 LiveSetting，防止訊息干擾。
+                if (Owner is MainForm mainForm)
+                {
+                    mainForm.SetA11yLiveSetting(AutomationLiveSetting.Off);
+                }
+
+                // 強化 Context 播報：包含提示文字、目前值與有效範圍。
+                string contextMessage = $"{lblPrompt.Text} {string.Format(Strings.A11y_Value_Range_Desc, Value, minimum, maximum)}";
+
+                AnnounceA11y(contextMessage);
+
+                _nud?.Focus();
+
+                UpdateFocusVisuals(true);
+
+                // 執行智慧定位修正，確保視窗初次顯示時不會跑出螢幕邊界。
+                ApplySmartPosition();
+
+                this.SafeBeginInvoke(() =>
+                {
+                    try
+                    {
+                        _nud?.Select(0, _nud.Text.Length);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[NumericInputDialog] 選取文字失敗：{ex.Message}");
+                    }
+                });
             }
-
-            // 強化 Context 播報：包含提示文字、目前值與有效範圍。
-            string contextMessage = $"{lblPrompt.Text} {string.Format(Strings.A11y_Value_Range_Desc, Value, minimum, maximum)}";
-
-            AnnounceA11y(contextMessage);
-
-            _nud?.Focus();
-
-            UpdateFocusVisuals(true);
-
-            // 執行智慧定位修正，確保視窗初次顯示時不會跑出螢幕邊界。
-            ApplySmartPosition();
-
-            this.SafeBeginInvoke(() => _nud?.Select(0, _nud.Text.Length));
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericInputDialog] Shown 處理失敗：{ex.Message}");
+            }
         };
 
         Activated += (s, e) =>
@@ -1572,7 +1895,14 @@ internal sealed class NumericInputDialog : Form
                     // 內部已包含 IsDisposed 與 IsHandleCreated 檢查。
                     await this.SafeInvokeAsync(() =>
                     {
-                        _gamepadController?.Resume();
+                        try
+                        {
+                            _gamepadController?.Resume();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[NumericInputDialog] 恢復手把失敗：{ex.Message}");
+                        }
                     });
                 }
                 catch (OperationCanceledException)
@@ -1590,25 +1920,46 @@ internal sealed class NumericInputDialog : Form
 
         Deactivate += (s, e) =>
         {
-            // 根據規範：視窗失去焦點時必須立即暫停手把，防止背景誤觸。
-            this.SafeBeginInvoke(() =>
+            try
             {
-                _gamepadController?.Pause();
-            });
+                // 根據規範：視窗失去焦點時必須立即暫停手把，防止背景誤觸。
+                this.SafeBeginInvoke(() =>
+                {
+                    try
+                    {
+                        _gamepadController?.Pause();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[NumericInputDialog] 暫停手把失敗：{ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericInputDialog] Deactivate 處理失敗：{ex.Message}");
+            }
         };
 
         FormClosing += (s, e) =>
         {
-            if (Owner is MainForm mainForm)
+            try
             {
-                mainForm.SetA11yLiveSetting(AutomationLiveSetting.Polite);
+                if (Owner is MainForm mainForm)
+                {
+                    mainForm.SetA11yLiveSetting(AutomationLiveSetting.Polite);
+                }
+
+                UnsubscribeGamepadEvents();
+
+                if (DialogResult == DialogResult.Cancel)
+                {
+                    (Owner as MainForm)?.AnnounceA11y(Strings.A11y_Cancelled);
+                }
             }
-
-            UnsubscribeGamepadEvents();
-
-            if (DialogResult == DialogResult.Cancel)
+            catch (Exception ex)
             {
-                (Owner as MainForm)?.AnnounceA11y(Strings.A11y_Cancelled);
+                Debug.WriteLine($"[NumericInputDialog] FormClosing 處理失敗：{ex.Message}");
             }
         };
     }

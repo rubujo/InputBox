@@ -43,7 +43,7 @@
 - **資源管理**：確保所有實作 `IDisposable` 的物件（如 `CancellationTokenSource`、`IGamepadController`、動態快取字型）在類別釋放（特別是 `OnFormClosing`）時被原子化處置並歸零，杜絕 GDI Handle 洩漏與多執行緒競態。
   - **原子化處置模式（Atomic Dispose Pattern）**：必須使用 `Interlocked.Exchange(ref _resource, null)?.Dispose()` 模式，確保「先交換歸零、後執行處置」，防止多執行緒下的重複釋放或空引用異常。
   - **權杖處置絕對紅線**：終止非同步任務時，嚴禁單獨呼叫 `?.Cancel()` 然後遺棄。必須使用擴充方法 `Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();` 以徹底清理底層控制代碼。
-  - **共享資源歸零規範（Shared Resource Nullification）**：對於從全域快取池（如 `GetSharedA11yFont`）取得或由多個組件共享且「禁止由個別視窗手動處置」的資源，在類別釋放（`Dispose` 或 `OnFormClosing`）時，必須將其欄位設為 `null`（建議使用 `Interlocked.Exchange(ref _field, null)`）。這能防止已釋放的視窗繼續持有快取資源的引用，優化 GC 回收效率，並杜絕因誤用已失效引用而產生的邏輯錯誤。
+  - **共享資源歸零規範（Shared Resource Nullification）**：對於從全域快取池（如 `GetSharedA11yFont`）取得或由多個組件共享且「禁止由個別視窗手動處置」的資源，在類別釋放（`Dispose` 或 `OnFormClosing`）時，必須將其欄位設為 `null`（建議使用 `Interlocked.Exchange(ref _field, null)`）。這能防止已釋放的視窗繼續持有快取資源的引用，最佳化 GC 回收效率，並杜絕因誤用已失效引用而產生的邏輯錯誤。
   - **字體快取池（Font Pool）**：`A11yFont` 必須透過基於 DPI 的快取池（`MainForm.GetSharedA11yFont`）取得，禁止在未受管理下直接建立 `Font` 實例。快取池支援自定義倍率（Multiplier）參數以適應特殊 UI 組件。
   - **資源回收桶（Trash Can）與共享安全**：
     - **非共享實例**：更換視窗私有的字體實例（非來自快取池者）時，舊字體必須進入 `AddFontToTrashCan` 回收桶並延遲釋放。
@@ -63,9 +63,9 @@
 
 - **廣播機制**：
   - 動態通知**優先**透過 `MainForm.AnnounceA11y` 發送，該機制內部使用 `Channel` 進行排隊。
-  - **標準化路徑**：開發者**禁止**繞過標準廣播器直接調用 UIA API，以確保 ZWSP/ZWNJ 交替補償與 Audio Ducking 延遲始終生效。
+  - **標準化路徑**：開發者**禁止**繞過標準廣播器直接調用 UIA API，以確保 ZWSP／ZWNJ 交替補償與 Audio Ducking 延遲始終生效。
   - **本地備援機制**：自定義對話框在無法訪問主廣播器時，允許實作基於 `Interlocked` 序號檢查的「防抖（Debounce）」廣播，以確保即時性。
-  - 廣播前保留 200ms 延遲以避開系統音效干擾與 Audio Ducking。
+  - **避讓延遲規範**：廣播前保留 200ms 延遲以避開系統音效干擾與 Audio Ducking。**此延遲必須在非 UI 執行緒執行**，禁止阻塞 UI 訊息迴圈以維持介面流暢度。
   - **重複訊息處理**：廣播重複訊息時，結尾應交替附加 `\u200B`（ZWSP）或 `\u200C`（ZWNJ）強迫 UIA 識別內容變動，確保連續觸發時螢幕閱讀器能正確重讀。
 - **視覺穩定性與防閃爍**：
   - **雙重緩衝（Double Buffered）**：`MainForm` 與所有自定義對話框必須啟用 `DoubleBuffered = true`。
@@ -116,7 +116,7 @@
     - **頻率控制**：視覺律動頻率必須嚴格鎖定在 **1Hz**（1000ms 週期），遠低於 3Hz 的風險閾值。
     - **平滑漸變**：亮度與色彩變化必須使用**正弦波（Sine Wave）**過渡，確保在波峰與波底的變化率平滑流暢，減少對大腦視覺皮層的突發性刺激。
     - **系統動畫服從性**：必須主動感測 `SystemInformation.UIEffectsEnabled`。若動畫被關閉，則禁止執行循環閃爍或 Dwell 動畫，必須改為「靜態顯著提醒」。
-    - **視覺凍結與抗抖動原則（Visual Freezing / Zero-Jitter）**：
+    - **視覺凍結與抗抖動原則（Visual Freezing／Zero-Jitter）**：
       - **規範**：為了保護眼動儀使用者，所有動態視覺狀態變更（包含 **Flash Alert** 視覺警示與 **Focus State** 焦點切換）必須**嚴格禁止變動控制項的物理尺寸、Margin 或 Padding**。
       - **實作原則**：焦點高亮應透過「背景與前景色彩反轉」與「固定厚度（建議為 3px）的背景色區域」實現，確保文字內容與游標在狀態變更期間保持絕對位移靜止（Zero-Jitter）。
     - **高對比支援（High Contrast）**：變更顏色前必須檢查 `SystemInformation.HighContrast`。若開啟，則禁止使用自訂染色（如黑色背景），必須採用系統預設的高亮顏色（如 `SystemColors.Highlight`）。
@@ -138,7 +138,7 @@
   - 在處理任何搖桿（包含虛擬方向鍵映射或連續邊界判定）時，**必須**實作雙閾值遲滯機制。
   - **動態閾值**：必須根據當前方向的啟動狀態，動態切換 `Enter`（觸發）與 `Exit`（重置）閾值，確保搖桿在磨損或輕微回彈時不會發生抖動、重複觸發或卡鍵。
 - **震動安全性**：
-  - **震動令牌檢查（Vibration Token）**：必須實作 `_vibrationToken`（Interlocked 遞增長整數）機制，解決非同步停止震動時的競態條件，確保僅有最新的震動請求能控制馬達。
+  - **震動令牌檢查（Vibration Token）**：**各遊戲控制器實作類別（如 XInput／GameInput）內部**必須獨立實作 `_vibrationToken`（Interlocked 遞增長整數）機制，解決非同步停止震動時的競態條件，確保僅有最新的震動請求能控制馬達。**禁止在全域或服務層級共享此令牌**，以支援多控制器獨立運行的隔離性。
   - **同步停止能力**：控制器實作必須具備同步的 `StopVibration()` 方法，以支援應用程式關閉或崩潰時的緊急清理。
   - **連結權杖（Linked Token）**：震動延遲必須結合外部取消權杖與內部覆蓋權杖，確保在視窗關閉時馬達能立即停止。
   - 程式崩潰或結束前必須執行 `EmergencyStopAllActiveControllers()` 強制停止所有馬達。
@@ -182,7 +182,7 @@
 | Settings | **設定** | 設置 |
 | Screen | **螢幕** | 屏幕 |
 | Optimization | **最佳化** | 優化 |
-| Async / Thread | **非同步／執行緒** | 異步／線程 |
+| Async／Thread | **非同步／執行緒** | 異步／線程 |
 
 ### 5.2 簡體中文（zh-Hans）術語表
 
@@ -195,7 +195,7 @@
 | History | **历史记录** | 历程记录 |
 | Settings | **设置** | 设定 |
 | Optimization | **优化** | 最佳化 |
-| Async / Thread | **异步／线程** | 非同步／执行绪 |
+| Async／Thread | **异步／线程** | 非同步／执行绪 |
 
 ### 5.3 日文（ja）術語表
 

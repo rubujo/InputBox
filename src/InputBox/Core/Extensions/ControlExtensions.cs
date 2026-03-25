@@ -32,7 +32,14 @@ public static class ControlExtensions
             {
                 if (SynchronizationContext.Current is WindowsFormsSynchronizationContext)
                 {
-                    action();
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[SafeInvoke] 同步執行動作失敗：{ex.Message}");
+                    }
                 }
 
                 return;
@@ -53,12 +60,23 @@ public static class ControlExtensions
                         {
 
                         }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[SafeInvoke] 跨執行緒執行動作失敗：{ex.Message}");
+                        }
                     }
                 }));
             }
             else
             {
-                action();
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SafeInvoke] 執行動作失敗：{ex.Message}");
+                }
             }
         }
         catch (ObjectDisposedException)
@@ -68,6 +86,10 @@ public static class ControlExtensions
         catch (InvalidOperationException)
         {
 
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SafeInvoke] 未預期錯誤：{ex.Message}");
         }
     }
 
@@ -90,7 +112,15 @@ public static class ControlExtensions
         {
             if (SynchronizationContext.Current is WindowsFormsSynchronizationContext)
             {
-                action();
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SafeInvokeAsync] 同步執行動作失敗：{ex.Message}");
+                    throw;
+                }
             }
 
             return;
@@ -103,7 +133,20 @@ public static class ControlExtensions
             {
                 if (!control.IsDisposed && control.IsHandleCreated)
                 {
-                    action();
+                    try
+                    {
+                        action();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[SafeInvokeAsync] 跨執行緒執行動作失敗：{ex.Message}");
+
+                        throw;
+                    }
                 }
             });
         }
@@ -115,8 +158,11 @@ public static class ControlExtensions
         {
 
         }
-
-        // 其餘業務邏輯例外應讓它向上拋出，以便被全域例外處理器攔截。
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SafeInvokeAsync] 未預期錯誤：{ex.Message}");
+            throw;
+        }
     }
 
     /// <summary>
@@ -152,8 +198,10 @@ public static class ControlExtensions
             {
                 // 忽略執行過程中的釋放錯誤。
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[SafeInvokeAsync] 同步執行非同步動作失敗：{ex.Message}");
+
                 // 重新拋出業務邏輯例外。
                 throw;
             }
@@ -170,7 +218,18 @@ public static class ControlExtensions
                 if (!control.IsDisposed &&
                     control.IsHandleCreated)
                 {
-                    await action();
+                    try
+                    {
+                        await action();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[SafeInvokeAsync] 跨執行緒執行非同步動作失敗：{ex.Message}");
+                    }
                 }
             });
         }
@@ -181,6 +240,10 @@ public static class ControlExtensions
         catch (InvalidOperationException)
         {
 
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SafeInvokeAsync] 未預期錯誤：{ex.Message}");
         }
     }
 
@@ -227,6 +290,10 @@ public static class ControlExtensions
                 {
                     // 忽略執行過程中的釋放錯誤。
                 }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SafeBeginInvoke] 執行排程動作失敗：{ex.Message}");
+                }
             }));
         }
         catch (ObjectDisposedException)
@@ -236,6 +303,10 @@ public static class ControlExtensions
         catch (InvalidOperationException)
         {
             // 捕捉：Handle 尚未建立或已失效。
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SafeBeginInvoke] 未預期錯誤：{ex.Message}");
         }
     }
 
@@ -525,7 +596,7 @@ public static class ControlExtensions
     }
 
     /// <summary>
-    /// 取得字元的精確類別，特別針對全形與 CJK 環境優化
+    /// 取得字元的精確類別，特別針對全形與 CJK 環境最佳化
     /// </summary>
     private static CharType GetCharType(char c)
     {

@@ -158,12 +158,8 @@
     <comment>无障碍消息，当用户取消快捷键捕获流程时播放。</comment>
   </data>
   <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
-    <value>按 ESC 键即可取消。</value>
-    <comment>无障碍消息，提示用户可以按下 ESC 键来取消捕获。</comment>
-  </data>
-  <data name="A11y_Delete_Char" xml:space="preserve">
-    <value>删除 {0}。</value>
-    <comment>无障碍消息，当删除单个字符时播放。{0} 是被删除的字符。</comment>
+    <value>按 ESC 鍵即可取消。</value>
+    <comment>无障碍消息，提示用户可以按下 ESC 鍵来取消捕获。</comment>
   </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>当前数值：{0}。</value>
@@ -201,13 +197,29 @@
     <value>已到顶端。</value>
     <comment>无障碍消息，当光标移动到文本开头时播放。</comment>
   </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>已删除 {0}。</value>
+    <comment>无障碍消息，当删除单一字符时播放。{0} 是被删除的字符。</comment>
+  </data>
+  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
+    <value>已删除字符。</value>
+    <comment>删除字符的隐私安全版本无障碍广播消息。</comment>
+  </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
     <value>已选取：{0}</value>
     <comment>播报目前选取的文字内容</comment>
   </data>
+  <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
+    <value>已选取文本。</value>
+    <comment>选取文本的隐私安全版本无障碍广播消息。</comment>
+  </data>
   <data name="A11y_Cursor_Move" xml:space="preserve">
     <value>光标位于第 {0} 个字符</value>
-    <comment>播报目前游标的绝对位置</comment>
+    <comment>播报目前游标的絕對位置</comment>
+  </data>
+  <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
+    <value>光标已移动。</value>
+    <comment>光标移动的隐私安全版本无障碍广播消息。</comment>
   </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>没有可复制的文字。</value>

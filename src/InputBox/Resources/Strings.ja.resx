@@ -161,10 +161,6 @@
     <value>ESC キーを押すとキャンセルされます。</value>
     <comment>アクセシビリティメッセージ。ESC キーを押してキャプチャをキャンセルできることをユーザーに通知します。</comment>
   </data>
-  <data name="A11y_Delete_Char" xml:space="preserve">
-    <value>{0} を削除しました。</value>
-    <comment>1文字削除されたときに再生されるアクセシビリティメッセージ。{0} は削除された文字です。</comment>
-  </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>現在の数値：{0}。</value>
     <comment>アクセシビリティメッセージ。設定ダイアログでの現在の数値を表示します。{0} は現在の値です。</comment>
@@ -201,13 +197,29 @@
     <value>先頭に到達しました。</value>
     <comment>アクセシビリティメッセージ。カーソルがテキストの先頭に到達したときに再生されます。</comment>
   </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>{0} を削除しました。</value>
+    <comment>アクセシビリティメッセージ。1文字削除されたときに再生されます。{0} は削除された文字です。</comment>
+  </data>
+  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
+    <value>文字を削除しました。</value>
+    <comment>文字削除のプライバシーセーフ版アクセシビリティメッセージです。</comment>
+  </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
     <value>選択済み：{0}</value>
     <comment>選択されたテキストの内容を報知</comment>
   </data>
+  <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
+    <value>テキストを選択しました。</value>
+    <comment>テキスト選択のプライバシーセーフ版アクセシビリティメッセージです。</comment>
+  </data>
   <data name="A11y_Cursor_Move" xml:space="preserve">
     <value>カーソル位置：{0} 文字目</value>
     <comment>現在のカーソルの絶対位置を報知</comment>
+  </data>
+  <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
+    <value>カーソルを移動しました。</value>
+    <comment>カーソル移動のプライバシーセーフ版アクセシビリティメッセージです。</comment>
   </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>コピーするテキストがありません。</value>

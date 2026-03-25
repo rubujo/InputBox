@@ -235,7 +235,7 @@ public partial class MainForm
         _a11yCts = new CancellationTokenSource();
 
         // 啟動背景工作者。
-        _ = ProcessA11yAnnouncementsAsync(_a11yCts?.Token ?? CancellationToken.None);
+        Task.Run(() => ProcessA11yAnnouncementsAsync(_a11yCts?.Token ?? CancellationToken.None)).SafeFireAndForget();
     }
 
     /// <summary>
@@ -280,8 +280,12 @@ public partial class MainForm
 
                     try
                     {
+                        // 在進入 UI 執行緒前先執行 Audio Ducking 避讓延遲，防止阻塞 UI 執行緒。
+                        // 根據規範，統一使用 AudioDuckingDelayMs。
+                        await Task.Delay(AppSettings.AudioDuckingDelayMs, cancellationToken);
+
                         // 進入 UI 執行緒進行正式廣播。
-                        await this.SafeInvokeAsync(async () =>
+                        await this.SafeInvokeAsync(() =>
                         {
                             try
                             {
@@ -295,23 +299,7 @@ public partial class MainForm
 
                                 // 第二重檢查（最終防護）：
                                 // 檢查此訊息的 ID 是否小於等於 UI 執行緒最後一次「處理完成」的 ID。
-                                // 這能防止多個非同步排程在 UI 執行緒中競爭時，舊訊息因 Task.Delay 結束而覆蓋新訊息。
-                                if (request.Id <= _lastProcessedAnnouncementId)
-                                {
-                                    return;
-                                }
-
-                                // 增加延遲以避開系統音效（如 Asterisk）的音訊高峰。
-                                // 根據規範，統一使用 AudioDuckingDelayMs。
-                                await Task.Delay(AppSettings.AudioDuckingDelayMs, cancellationToken);
-
-                                if (cancellationToken.IsCancellationRequested ||
-                                    IsDisposed)
-                                {
-                                    return;
-                                }
-
-                                // 再次檢查 ID，確保在 Delay 期間沒有更新的訊息已先發布。
+                                // 這能防止多個非同步排程在 UI 執行緒中競爭時，舊訊息覆蓋新訊息。
                                 if (request.Id <= _lastProcessedAnnouncementId)
                                 {
                                     return;
@@ -324,10 +312,6 @@ public partial class MainForm
                                 _lastProcessedAnnouncementId = request.Id;
                             }
                             catch (ObjectDisposedException)
-                            {
-
-                            }
-                            catch (OperationCanceledException)
                             {
 
                             }

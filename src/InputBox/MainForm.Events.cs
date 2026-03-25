@@ -852,7 +852,7 @@ public partial class MainForm
 
                 AnnounceA11y(Strings.A11y_No_Text_To_Copy);
 
-                // 異步等待 1 秒冷卻，涵蓋閃爍動畫週期。
+                // 非同步等待 1 秒冷卻，涵蓋閃爍動畫週期。
                 // 期間所有的點擊都會被 BtnCopy_Click 攔截，但不會破壞 UI 狀態。
                 await Task.Delay(1000, _formCts?.Token ?? CancellationToken.None);
 
@@ -1015,12 +1015,16 @@ public partial class MainForm
                 {
                     if (TBInput.SelectionLength > 0)
                     {
-                        AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), true);
+                        AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                            Strings.A11y_Selected_Text_PrivacySafe :
+                            string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), true);
                     }
                 }
                 else
                 {
-                    AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+                    AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                        Strings.A11y_Cursor_Move_PrivacySafe :
+                        string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
                 }
             });
 
@@ -1036,26 +1040,32 @@ public partial class MainForm
                 {
                     if (TBInput.SelectionLength > 0)
                     {
-                        AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), true);
+                        AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                            Strings.A11y_Selected_Text_PrivacySafe :
+                            string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), true);
                     }
                 }
                 else
                 {
-                    AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+                    AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                        Strings.A11y_Cursor_Move_PrivacySafe :
+                        string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
                 }
             });
 
             return;
         }
 
-        // Home, End, Ctrl + Left/Right：跳轉游標。
+        // Home、End、Ctrl + Left／Right：跳轉游標。
         if (e.KeyCode == Keys.Home ||
             e.KeyCode == Keys.End ||
             (e.Control && (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)))
         {
             this.SafeBeginInvoke(() =>
             {
-                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                    Strings.A11y_Cursor_Move_PrivacySafe :
+                    string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
             });
 
             return;
@@ -1066,6 +1076,7 @@ public partial class MainForm
         {
             // 擷取刪除前的狀態。
             string oldText = TBInput.Text;
+
             int oldStart = TBInput.SelectionStart,
                 oldLen = TBInput.SelectionLength;
 
@@ -1091,9 +1102,16 @@ public partial class MainForm
                     }
                     else
                     {
-                        char deletedChar = oldText[oldStart - 1];
+                        if (AppSettings.Current.IsPrivacyMode)
+                        {
+                            AnnounceA11y(Strings.A11y_Delete_Char_PrivacySafe, true);
+                        }
+                        else
+                        {
+                            char deletedChar = oldText[oldStart - 1];
 
-                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                            AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                        }
                     }
                 }
             });
@@ -1130,9 +1148,16 @@ public partial class MainForm
                     }
                     else
                     {
-                        char deletedChar = oldText[oldStart];
+                        if (AppSettings.Current.IsPrivacyMode)
+                        {
+                            AnnounceA11y(Strings.A11y_Delete_Char_PrivacySafe, true);
+                        }
+                        else
+                        {
+                            char deletedChar = oldText[oldStart];
 
-                        AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                            AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                        }
                     }
                 }
             });

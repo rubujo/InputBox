@@ -465,6 +465,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                             if (state != null)
                             {
+                                // 防護機制：避免在背景暫停輪詢時，佇列因玩家在其他遊戲中的操作而無限增長。
+                                if (_readingQueue.Count > 100)
+                                {
+                                    _readingQueue.TryDequeue(out _);
+                                }
+
                                 _readingQueue.Enqueue(state);
                             }
                         }

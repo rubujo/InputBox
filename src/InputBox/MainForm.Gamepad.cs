@@ -99,229 +99,58 @@ public partial class MainForm
                 {
                     this.SafeInvoke(() =>
                     {
-                        UpdateTitle();
-
-                        // 防止重複廣播相同的連線狀態。
-                        if (_lastGamepadConnectedState == isConnected)
+                        try
                         {
-                            return;
+                            UpdateTitle();
+
+                            // 防止重複廣播相同的連線狀態。
+                            if (_lastGamepadConnectedState == isConnected)
+                            {
+                                return;
+                            }
+
+                            _lastGamepadConnectedState = isConnected;
+
+                            // 取得目前控制器的索引。
+                            uint index = 0;
+
+                            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.XInput)
+                            {
+                                index = XInputGamepadController.GetFirstConnectedUserIndex();
+                            }
+
+                            string msg = isConnected ?
+                                string.Format(Strings.A11y_Gamepad_Connected, index) :
+                                string.Format(Strings.A11y_Gamepad_Disconnected, index);
+
+                            AnnounceA11y(msg);
                         }
-
-                        _lastGamepadConnectedState = isConnected;
-
-                        // 取得目前控制器的索引。
-                        uint index = 0;
-
-                        if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.XInput)
+                        catch (Exception ex)
                         {
-                            index = XInputGamepadController.GetFirstConnectedUserIndex();
+                            Debug.WriteLine($"[手把] ConnectionChanged 處理失敗：{ex.Message}");
                         }
-
-                        string msg = isConnected ?
-                            string.Format(Strings.A11y_Gamepad_Connected, index) :
-                            string.Format(Strings.A11y_Gamepad_Disconnected, index);
-
-                        AnnounceA11y(msg);
                     });
                 };
 
                 // 控制器事件綁定。
                 controller.BackPressed += () => this.SafeInvoke(() =>
                 {
-                    // 按下時重置旗標。
-                    _isBackUsedAsModifier = false;
+                    try
+                    {
+                        // 按下時重置旗標。
+                        _isBackUsedAsModifier = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] BackPressed 處理失敗：{ex.Message}");
+                    }
                 });
 
                 controller.BackReleased += () => this.SafeInvoke(() =>
                 {
-                    if (HandleContextMenuGamepadInput("Cancel"))
+                    try
                     {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
-                    if (_isBackUsedAsModifier)
-                    {
-                        _isBackUsedAsModifier = false;
-
-                        return;
-                    }
-
-                    HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-                });
-
-                controller.UpPressed += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Up"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    // 組合鍵：Back + Up 增加不透明度（5%）。
-                    if (controller.IsBackHeld)
-                    {
-                        _isBackUsedAsModifier = true;
-
-                        AdjustOpacity(0.05f);
-
-                        return;
-                    }
-
-                    NavigateHistory(-1);
-                });
-                controller.DownPressed += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Down"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    // 組合鍵：Back + Down 減少不透明度（5%）。
-                    if (controller.IsBackHeld)
-                    {
-                        _isBackUsedAsModifier = true;
-
-                        AdjustOpacity(-0.05f);
-
-                        return;
-                    }
-
-                    NavigateHistory(+1);
-                });
-                controller.UpRepeat += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Up"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    // 組合鍵連發。
-                    if (controller.IsBackHeld)
-                    {
-                        _isBackUsedAsModifier = true;
-
-                        AdjustOpacity(0.05f);
-
-                        return;
-                    }
-
-                    NavigateHistory(-1);
-                });
-                controller.DownRepeat += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Down"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    // 組合鍵連發。
-                    if (controller.IsBackHeld)
-                    {
-                        _isBackUsedAsModifier = true;
-
-                        AdjustOpacity(-0.05f);
-
-                        return;
-                    }
-
-                    NavigateHistory(+1);
-                });
-                controller.LeftPressed += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Left"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    MoveCursorLeft();
-                });
-                controller.LeftRepeat += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Left"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    MoveCursorLeft();
-                });
-                controller.RightPressed += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Right"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    MoveCursorRight();
-                });
-                controller.RightRepeat += () => this.SafeInvoke(() =>
-                {
-                    if (HandleContextMenuGamepadInput("Right"))
-                    {
-                        return;
-                    }
-
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    MoveCursorRight();
-                });
-
-                controller.StartPressed += () =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        if (HandleContextMenuGamepadInput("Confirm"))
+                        if (HandleContextMenuGamepadInput("Cancel"))
                         {
                             return;
                         }
@@ -332,73 +161,511 @@ public partial class MainForm
                             return;
                         }
 
-                        if (TBInput.CanFocus &&
-                            !TBInput.Focused)
+                        // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
+                        if (_isBackUsedAsModifier)
                         {
-                            TBInput.Focus();
+                            _isBackUsedAsModifier = false;
+
+                            return;
                         }
-                        else
+
+                        HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] BackReleased 處理失敗：{ex.Message}");
+                    }
+                });
+
+                controller.UpPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Up"))
                         {
-                            ExecuteConfirmAction();
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        // 組合鍵：Back + Up 增加不透明度（5%）。
+                        if (controller.IsBackHeld)
+                        {
+                            _isBackUsedAsModifier = true;
+
+                            AdjustOpacity(0.05f);
+
+                            return;
+                        }
+
+                        NavigateHistory(-1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] UpPressed 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.DownPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Down"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        // 組合鍵：Back + Down 減少不透明度（5%）。
+                        if (controller.IsBackHeld)
+                        {
+                            _isBackUsedAsModifier = true;
+
+                            AdjustOpacity(-0.05f);
+
+                            return;
+                        }
+
+                        NavigateHistory(+1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] DownPressed 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.UpRepeat += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Up"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        // 組合鍵連發。
+                        if (controller.IsBackHeld)
+                        {
+                            _isBackUsedAsModifier = true;
+
+                            AdjustOpacity(0.05f);
+
+                            return;
+                        }
+
+                        NavigateHistory(-1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] UpRepeat 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.DownRepeat += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Down"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        // 組合鍵連發。
+                        if (controller.IsBackHeld)
+                        {
+                            _isBackUsedAsModifier = true;
+
+                            AdjustOpacity(-0.05f);
+
+                            return;
+                        }
+
+                        NavigateHistory(+1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] DownRepeat 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.LeftPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Left"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        MoveCursorLeft();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] LeftPressed 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.LeftRepeat += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Left"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        MoveCursorLeft();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] LeftRepeat 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.RightPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Right"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        MoveCursorRight();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] RightPressed 處理失敗：{ex.Message}");
+                    }
+                });
+                controller.RightRepeat += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (HandleContextMenuGamepadInput("Right"))
+                        {
+                            return;
+                        }
+
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        MoveCursorRight();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] RightRepeat 處理失敗：{ex.Message}");
+                    }
+                });
+
+                controller.StartPressed += () =>
+                {
+                    this.SafeInvoke(() =>
+                    {
+                        try
+                        {
+                            if (HandleContextMenuGamepadInput("Confirm"))
+                            {
+                                return;
+                            }
+
+                            if (ActiveForm != this ||
+                                _isCapturingHotkey != 0)
+                            {
+                                return;
+                            }
+
+                            if (TBInput.CanFocus &&
+                                !TBInput.Focused)
+                            {
+                                TBInput.Focus();
+                            }
+                            else
+                            {
+                                ExecuteConfirmAction();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[手把] StartPressed 處理失敗：{ex.Message}");
                         }
                     });
                 };
 
                 controller.APressed += () => this.SafeInvoke(() =>
                 {
-                    if (HandleContextMenuGamepadInput("Confirm"))
+                    try
                     {
-                        return;
-                    }
+                        if (HandleContextMenuGamepadInput("Confirm"))
+                        {
+                            return;
+                        }
 
-                    // 檢查是否在擷取快速鍵模式或非作用中視窗。
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
+                        // 檢查是否在擷取快速鍵模式或非作用中視窗。
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
+                        {
+                            return;
+                        }
+
+                        ExecuteConfirmAction();
+                    }
+                    catch (Exception ex)
                     {
-                        return;
+                        Debug.WriteLine($"[手把] APressed 處理失敗：{ex.Message}");
                     }
-
-                    ExecuteConfirmAction();
                 });
 
                 controller.BPressed += () =>
                 {
                     this.SafeInvoke(() =>
                     {
-                        if (HandleContextMenuGamepadInput("Cancel"))
+                        try
+                        {
+                            if (HandleContextMenuGamepadInput("Cancel"))
+                            {
+                                return;
+                            }
+
+                            // 按鍵擷取模式下的取消處理。
+                            if (_isCapturingHotkey != 0)
+                            {
+                                RestoreUIFromCaptureMode();
+
+                                // 告知擷取已取消。
+                                AnnounceA11y(Strings.A11y_Capture_Cancelled);
+
+                                // 播放警告音。
+                                FeedbackService.PlaySound(SystemSounds.Beep);
+
+                                return;
+                            }
+
+                            if (ActiveForm != this)
+                            {
+                                return;
+                            }
+
+                            if (controller.IsLeftShoulderHeld &&
+                                controller.IsRightShoulderHeld)
+                            {
+                                HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
+                            }
+                            else
+                            {
+                                // B 鍵僅負責「清空文字」。
+                                // 若已是空的，則僅發送錯誤震動提示，不執行返回，以防連點誤觸導致視窗意外關閉。
+                                if (string.IsNullOrEmpty(TBInput.Text))
+                                {
+                                    FeedbackService.PlaySound(SystemSounds.Beep);
+
+                                    VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+                                    return;
+                                }
+
+                                ClearInput();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[手把] BPressed 處理失敗：{ex.Message}");
+                        }
+                    });
+                };
+
+                controller.YPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        if (ActiveForm != this ||
+                            _isCapturingHotkey != 0)
                         {
                             return;
                         }
 
-                        // 按鍵擷取模式下的取消處理。
-                        if (_isCapturingHotkey != 0)
+                        if (_cmsInput != null &&
+                            !_cmsInput.Visible)
                         {
-                            RestoreUIFromCaptureMode();
+                            // 在文字方塊下方開啟選單。
+                            _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
 
-                            // 告知擷取已取消。
-                            AnnounceA11y(Strings.A11y_Capture_Cancelled);
+                            // 選取第一個有效的項目。
+                            foreach (ToolStripItem item in _cmsInput.Items)
+                            {
+                                if (item.Enabled &&
+                                    item.Visible &&
+                                    item is not ToolStripSeparator)
+                                {
+                                    item.Select();
 
-                            // 播放警告音。
-                            FeedbackService.PlaySound(SystemSounds.Beep);
+                                    // 開啟選單時立即報讀首個項目的名稱與描述。
+                                    string? name = item.AccessibleName ?? item.Text,
+                                        desc = item.AccessibleDescription;
 
-                            return;
+                                    if (item is ToolStripMenuItem mi &&
+                                        mi.CheckOnClick)
+                                    {
+                                        string status = mi.Checked ?
+                                            Strings.A11y_Checked :
+                                            Strings.A11y_Unchecked;
+
+                                        name = $"{name}, {status}";
+                                    }
+
+                                    string announcement = string.IsNullOrEmpty(desc) ?
+                                        (name ?? string.Empty) :
+                                        $"{name}. {desc}";
+
+                                    if (!string.IsNullOrEmpty(announcement))
+                                    {
+                                        AnnounceA11y(announcement, interrupt: true);
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] YPressed 處理失敗：{ex.Message}");
+                    }
+                });
 
-                        if (ActiveForm != this)
-                        {
-                            return;
-                        }
+                // 右搖桿文字選取實作。
+                controller.RSLeftPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        ExpandSelection(-1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] RSLeftPressed 失敗：{ex.Message}");
+                    }
+                });
+                controller.RSLeftRepeat += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        ExpandSelection(-1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] RSLeftRepeat 失敗：{ex.Message}");
+                    }
+                });
+                controller.RSRightPressed += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        ExpandSelection(1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] RSRightPressed 失敗：{ex.Message}");
+                    }
+                });
+                controller.RSRightRepeat += () => this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        ExpandSelection(1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[手把] RSRightRepeat 失敗：{ex.Message}");
+                    }
+                });
 
-                        if (controller.IsLeftShoulderHeld &&
-                            controller.IsRightShoulderHeld)
+                controller.XPressed += () =>
+                {
+                    this.SafeInvoke(() =>
+                    {
+                        try
                         {
-                            HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-                        }
-                        else
-                        {
-                            // B 鍵僅負責「清空文字」。
-                            // 若已是空的，則僅發送錯誤震動提示，不執行返回，以防連點誤觸導致視窗意外關閉。
-                            if (string.IsNullOrEmpty(TBInput.Text))
+                            // 選單開啟時 X 鍵不執行刪除，除非有特殊需求。
+                            if (_cmsInput != null &&
+                                _cmsInput.Visible)
+                            {
+                                return;
+                            }
+
+                            if (ActiveForm != this ||
+                                _isCapturingHotkey != 0)
+                            {
+                                return;
+                            }
+
+                            // 組合鍵：LB + RB + X 直接結束應用程式。
+                            if (controller.IsLeftShoulderHeld &&
+                                controller.IsRightShoulderHeld)
+                            {
+                                // 告知使用者正在關閉程式。
+                                AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
+
+                                this.SafeInvoke(Close);
+
+                                return;
+                            }
+
+                            // 組合鍵：Back + X 重設透明度（100%）。
+                            if (controller.IsBackHeld)
+                            {
+                                _isBackUsedAsModifier = true;
+
+                                ResetOpacity();
+
+                                return;
+                            }
+
+                            // 增加唯讀檢查，防止在擷取模式或其他唯讀狀態下修改文字。
+                            if (TBInput == null ||
+                                TBInput.IsDisposed)
+                            {
+                                return;
+                            }
+
+                            if (TBInput.ReadOnly)
                             {
                                 FeedbackService.PlaySound(SystemSounds.Beep);
 
@@ -407,165 +674,50 @@ public partial class MainForm
                                 return;
                             }
 
-                            ClearInput();
-                        }
-                    });
-                };
-
-                controller.YPressed += () => this.SafeInvoke(() =>
-                {
-                    if (ActiveForm != this ||
-                        _isCapturingHotkey != 0)
-                    {
-                        return;
-                    }
-
-                    if (_cmsInput != null &&
-                        !_cmsInput.Visible)
-                    {
-                        // 在文字方塊下方開啟選單。
-                        _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
-
-                        // 選取第一個有效的項目。
-                        foreach (ToolStripItem item in _cmsInput.Items)
-                        {
-                            if (item.Enabled &&
-                                item.Visible &&
-                                item is not ToolStripSeparator)
+                            if (TBInput.SelectionLength > 0)
                             {
-                                item.Select();
+                                // 如果有選取範圍，直接刪除選取的文字。
+                                int len = TBInput.SelectionLength;
 
-                                // 開啟選單時立即報讀首個項目的名稱與描述。
-                                string? name = item.AccessibleName ?? item.Text,
-                                    desc = item.AccessibleDescription;
+                                string deletedSelection = TBInput.SelectedText;
 
-                                if (item is ToolStripMenuItem mi &&
-                                    mi.CheckOnClick)
+                                TBInput.SelectedText = string.Empty;
+
+                                // 如果刪除內容太長，報讀字數而非內容。
+                                if (len > 10)
                                 {
-                                    string status = mi.Checked ?
-                                        Strings.A11y_Checked :
-                                        Strings.A11y_Unchecked;
-
-                                    name = $"{name}, {status}";
+                                    AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, len));
                                 }
-
-                                string announcement = string.IsNullOrEmpty(desc) ?
-                                    (name ?? string.Empty) :
-                                    $"{name}. {desc}";
-
-                                if (!string.IsNullOrEmpty(announcement))
+                                else
                                 {
-                                    AnnounceA11y(announcement, interrupt: true);
+                                    AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedSelection));
                                 }
-
-                                break;
                             }
-                        }
-
-                        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-                    }
-                });
-
-                // 右搖桿文字選取實作。
-                controller.RSLeftPressed += () => this.SafeInvoke(() => ExpandSelection(-1));
-                controller.RSLeftRepeat += () => this.SafeInvoke(() => ExpandSelection(-1));
-                controller.RSRightPressed += () => this.SafeInvoke(() => ExpandSelection(1));
-                controller.RSRightRepeat += () => this.SafeInvoke(() => ExpandSelection(1));
-
-                controller.XPressed += () =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        // 選單開啟時 X 鍵不執行刪除，除非有特殊需求。
-                        if (_cmsInput != null &&
-                            _cmsInput.Visible)
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        // 組合鍵：LB + RB + X 直接結束應用程式。
-                        if (controller.IsLeftShoulderHeld &&
-                            controller.IsRightShoulderHeld)
-                        {
-                            // 告知使用者正在關閉程式。
-                            AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
-
-                            this.SafeInvoke(Close);
-
-                            return;
-                        }
-
-                        // 組合鍵：Back + X 重設透明度（100%）。
-                        if (controller.IsBackHeld)
-                        {
-                            _isBackUsedAsModifier = true;
-
-                            ResetOpacity();
-
-                            return;
-                        }
-
-                        // 增加唯讀檢查，防止在擷取模式或其他唯讀狀態下修改文字。
-                        if (TBInput == null ||
-                            TBInput.IsDisposed)
-                        {
-                            return;
-                        }
-
-                        if (TBInput.ReadOnly)
-                        {
-                            FeedbackService.PlaySound(SystemSounds.Beep);
-
-                            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-
-                            return;
-                        }
-
-                        if (TBInput.SelectionLength > 0)
-                        {
-                            // 如果有選取範圍，直接刪除選取的文字。
-                            int len = TBInput.SelectionLength;
-
-                            string deletedSelection = TBInput.SelectedText;
-
-                            TBInput.SelectedText = string.Empty;
-
-                            // 如果刪除內容太長，報讀字數而非內容。
-                            if (len > 10)
+                            else if (TBInput.SelectionStart > 0)
                             {
-                                AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, len));
+                                // 如果沒有選取且游標不在最前面，刪除前一個字元。
+                                int position = TBInput.SelectionStart;
+
+                                char deletedChar = TBInput.Text[position - 1];
+
+                                TBInput.Select(position - 1, 1);
+                                TBInput.SelectedText = string.Empty;
+
+                                AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar));
                             }
                             else
                             {
-                                AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedSelection));
+                                // 撞牆（游標在最前面且沒選取文字）。
+                                FeedbackService.PlaySound(SystemSounds.Beep);
+
+                                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+                                AnnounceA11y(Strings.A11y_Cannot_Delete);
                             }
                         }
-                        else if (TBInput.SelectionStart > 0)
+                        catch (Exception ex)
                         {
-                            // 如果沒有選取且游標不在最前面，刪除前一個字元。
-                            int position = TBInput.SelectionStart;
-
-                            char deletedChar = TBInput.Text[position - 1];
-
-                            TBInput.Select(position - 1, 1);
-                            TBInput.SelectedText = string.Empty;
-
-                            AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar));
-                        }
-                        else
-                        {
-                            // 撞牆（游標在最前面且沒選取文字）。
-                            FeedbackService.PlaySound(SystemSounds.Beep);
-
-                            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-                            AnnounceA11y(Strings.A11y_Cannot_Delete);
+                            Debug.WriteLine($"[手把] XPressed 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -659,7 +811,7 @@ public partial class MainForm
                 {
                     if (item.Selected)
                     {
-                        // 邏輯優化：若點擊的是含有子選單的項目（如語系切換或進階設定），
+                        // 邏輯最佳化：若點擊的是含有子選單的項目（如語系切換或進階設定），
                         // A 鍵（Confirm）的行為應改為「展開並自動進入子選單」以提升操作流暢度。
                         if (item is ToolStripMenuItem tsmi &&
                             tsmi.HasDropDownItems)

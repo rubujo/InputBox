@@ -145,6 +145,9 @@ internal static class Program
         // 強化 A11y 安全：緊急解除靜態系統事件訂閱，防止進程結束前發生記憶體洩漏。
         MainForm.EmergencyCleanupSystemEvents();
 
+        // 處置全域字體快取，杜絕崩潰後的 GDI Handle 洩漏。
+        MainForm.DisposeCaches();
+
         MessageBox.Show(
             ex.Message,
             Strings.Err_Title,
