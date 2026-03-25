@@ -111,17 +111,9 @@ public partial class MainForm
 
                             _lastGamepadConnectedState = isConnected;
 
-                            // 取得目前控制器的索引。
-                            uint index = 0;
-
-                            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.XInput)
-                            {
-                                index = XInputGamepadController.GetFirstConnectedUserIndex();
-                            }
-
                             string msg = isConnected ?
-                                string.Format(Strings.A11y_Gamepad_Connected, index) :
-                                string.Format(Strings.A11y_Gamepad_Disconnected, index);
+                                string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName) :
+                                string.Format(Strings.A11y_Gamepad_Disconnected, controller.DeviceName);
 
                             AnnounceA11y(msg);
                         }

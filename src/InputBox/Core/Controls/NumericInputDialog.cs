@@ -507,8 +507,8 @@ internal sealed class NumericInputDialog : Form
 
             // 告知使用者手把連線狀態變更。
             AnnounceA11y(connected ?
-                Strings.A11y_Gamepad_Connected :
-                Strings.A11y_Gamepad_Disconnected);
+                string.Format(Strings.A11y_Gamepad_Connected, _gamepadController?.DeviceName) :
+                string.Format(Strings.A11y_Gamepad_Disconnected, _gamepadController?.DeviceName));
         }
         catch (Exception ex)
         {
