@@ -1058,11 +1058,18 @@ internal sealed class NumericInputDialog : Form
             {
                 try
                 {
-                    if (!IsDisposed &&
-                        IsHandleCreated)
+                    if (IsDisposed ||
+                        !IsHandleCreated ||
+                        _nud == null)
                     {
-                        UpdateFocusVisuals(_nud?.Focused == true || (_nud?.ContainsFocus == true));
+                        return;
                     }
+
+                    // 關鍵修正：遞歸重設顏色，觸發 .NET 10 原生主題引擎還原正確配色，防止閃爍殘留。
+                    _nud.ResetThemeRecursive();
+
+                    // 恢復焦點視覺狀態。
+                    UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
                 }
                 catch (Exception ex)
                 {

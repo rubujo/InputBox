@@ -390,35 +390,54 @@ public static class ControlExtensions
         // 系統動畫服從性：若使用者關閉了 UI 特效，直接跳至完成狀態。
         if (!SystemInformation.UIEffectsEnabled)
         {
-            progressSetter(1.0f);
+            // 確保在 UI 執行緒執行。
+            control.SafeInvoke(() =>
+            {
+                progressSetter(1.0f);
 
-            control.Invalidate();
+                control.Invalidate();
+            });
 
             return;
         }
+
+        // 防禦性寫法：避免除以零。
+        int safeDuration = Math.Max(1, durationMs);
 
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         // 根據規範：統一使用 60 FPS（16.6ms）物理頻率。
         using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
 
-        while (await timer.WaitForNextTickAsync(ct) &&
-            animationIdGetter() == id &&
-            !control.IsDisposed &&
-            control.IsHandleCreated)
+        try
         {
-            double elapsed = stopwatch.Elapsed.TotalMilliseconds;
-
-            float progress = (float)Math.Min(1.0, elapsed / durationMs);
-
-            progressSetter(progress);
-
-            control.Invalidate();
-
-            if (progress >= 1.0f)
+            while (await timer.WaitForNextTickAsync(ct) &&
+                animationIdGetter() == id &&
+                !control.IsDisposed &&
+                control.IsHandleCreated)
             {
-                break;
+                double elapsed = stopwatch.Elapsed.TotalMilliseconds;
+
+                float progress = (float)Math.Min(1.0, elapsed / safeDuration);
+
+                // 由於 PeriodicTimer 可能在 ThreadPool 執行緒恢復，
+                // 雖然 WinForms 有 SynchronizationContext，但此處顯式使用 SafeInvokeAsync 以策萬全。
+                await control.SafeInvokeAsync(() =>
+                {
+                    progressSetter(progress);
+
+                    control.Invalidate();
+                });
+
+                if (progress >= 1.0f)
+                {
+                    break;
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // 正常取消。
         }
     }
 

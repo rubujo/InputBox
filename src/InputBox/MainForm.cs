@@ -594,10 +594,11 @@ public partial class MainForm : Form
                 return true;
             }
 
-            // 當使用者只按住修飾鍵（尚未按下主要按鍵）時，重新廣播提示語並給予輕微震動回饋。
+            // 當使用者只按住修飾鍵（尚未按下主要按鍵）時，執行防抖播報。
             string strA11yMsg = $"{Strings.Msg_PressAnyKey} ({Strings.A11y_Capture_Esc_Cancel})";
 
-            AnnounceA11y(strA11yMsg);
+            // 避免在按住修飾鍵期間重複播報相同內容。
+            AnnounceA11y(strA11yMsg, interrupt: true);
 
             VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
 
@@ -1074,6 +1075,39 @@ public partial class MainForm : Form
         {
             // 緊急清理路徑，忽略所有錯誤。
         }
+    }
+
+    /// <summary>
+    /// 判斷目前字體是否為全域共享快取字體（絕對禁止在此視窗中手動處置）
+    /// </summary>
+    /// <param name="font">要檢查的字體實例</param>
+    /// <returns>若為共享字體則傳回 true</returns>
+    private static bool IsSharedFont(Font font)
+    {
+        if (font == null)
+        {
+            return false;
+        }
+
+        // 檢查一般字型快取。
+        lock (_regularFontCacheLock)
+        {
+            if (_regularFontCache.ContainsValue(font))
+            {
+                return true;
+            }
+        }
+
+        // 檢查加粗字型快取。
+        lock (_boldFontCacheLock)
+        {
+            if (_boldFontCache.ContainsValue(font))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

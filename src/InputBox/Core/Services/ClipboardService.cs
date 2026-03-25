@@ -48,10 +48,7 @@ internal class ClipboardService
         try
         {
             // 標準化換行符。
-            string normalizedSource = text
-                .Replace("\r\n", "\n")
-                .Replace("\r", "\n")
-                .Replace("\n", "\r\n");
+            string normalizedSource = NormalizeNewLine(text);
 
             using CancellationTokenSource cts = new(timeoutMs);
 
@@ -83,16 +80,17 @@ internal class ClipboardService
                     // 驗證寫入結果。
                     string clipboardText = string.Empty;
 
-                    await syncForm.SafeInvokeAsync(() => clipboardText = Clipboard.GetText());
+                    await syncForm.SafeInvokeAsync(() =>
+                    {
+                        if (Clipboard.ContainsText())
+                        {
+                            clipboardText = Clipboard.GetText();
+                        }
+                    });
 
                     if (!string.IsNullOrEmpty(clipboardText))
                     {
-                        string normalizedClipboard = clipboardText
-                            .Replace("\r\n", "\n")
-                            .Replace("\r", "\n")
-                            .Replace("\n", "\r\n");
-
-                        if (string.Equals(normalizedSource, normalizedClipboard, StringComparison.Ordinal))
+                        if (string.Equals(normalizedSource, NormalizeNewLine(clipboardText), StringComparison.Ordinal))
                         {
                             return true;
                         }
@@ -104,16 +102,24 @@ internal class ClipboardService
 
                     break;
                 }
-                catch (ExternalException)
+                catch (ExternalException ex)
                 {
-                    // 剪貼簿被佔用（CLIPBRD_E_CANT_OPEN），進行指數退避。
-                    // 使用局部變數捕捉快照，確保執行緒安全性。
-                    Action? retryAction = OnRetry;
+                    // 剪貼簿被佔用（CLIPBRD_E_CANT_OPEN: 0x800401D0），進行指數退避。
+                    const int CLIPBRD_E_CANT_OPEN = unchecked((int)0x800401D0);
 
-                    if (retryCount == 3 &&
-                        retryAction != null)
+                    if (ex.ErrorCode == CLIPBRD_E_CANT_OPEN)
                     {
-                        retryAction.Invoke();
+                        Debug.WriteLine($"[剪貼簿] 存取被拒絕（忙碌中），正在進行第 {retryCount + 1} 次重試……");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"[剪貼簿] 外部異常 (0x{ex.ErrorCode:X8})：{ex.Message}");
+                    }
+
+                    // 觸發 A11y 廣播回呼。
+                    if (retryCount == 3)
+                    {
+                        OnRetry?.Invoke();
                     }
                 }
                 catch (Exception ex)
@@ -150,5 +156,23 @@ internal class ClipboardService
         {
             ClipboardSemaphore.Release();
         }
+    }
+
+    /// <summary>
+    /// 標準化換行符號為 Windows 格式（\r\n）
+    /// </summary>
+    /// <param name="text">原始文字</param>
+    /// <returns>標準化後的文字</returns>
+    private static string NormalizeNewLine(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return string.Empty;
+        }
+
+        return text
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n")
+            .Replace("\n", "\r\n");
     }
 }

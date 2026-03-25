@@ -86,6 +86,13 @@ public partial class MainForm
             2.0f);
 
         // 立即同步主視窗控制項字體。
+        // 安全防護：若目前的字體不是共享字體（例如由 Designer 建立的初始字體），
+        // 則必須將其放入回收桶延遲處置，防止 GDI Handle 洩漏。
+        if (!IsSharedFont(TBInput.Font))
+        {
+            AddFontToTrashCan(TBInput.Font);
+        }
+
         TBInput.Font = _inputFont;
 
         // 更新按鈕字體。
@@ -93,10 +100,20 @@ public partial class MainForm
         if (!BtnCopy.Focused &&
             !_isBtnHovered)
         {
+            if (!IsSharedFont(BtnCopy.Font))
+            {
+                AddFontToTrashCan(BtnCopy.Font);
+            }
+
             BtnCopy.Font = A11yFont;
         }
         else if (BtnCopy.Focused)
         {
+            if (!IsSharedFont(BtnCopy.Font))
+            {
+                AddFontToTrashCan(BtnCopy.Font);
+            }
+
             BtnCopy.Font = BoldBtnFont;
         }
 

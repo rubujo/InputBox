@@ -37,10 +37,10 @@ public partial class MainForm
         try
         {
             // 安全清理舊的控制器與輸入上下文實例。
-            _gamepadController?.Dispose();
-            _gamepadController = null;
+            Interlocked.Exchange(ref _gamepadController, null)?.Dispose();
 
-            _inputContext?.Dispose();
+            Interlocked.Exchange(ref _inputContext, null)?.Dispose();
+
             _inputContext = new FormInputContext(this);
 
             // 快取目前的設定快照，確保初始化過程中的參數一致性。
