@@ -329,12 +329,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 私有建構子，透過 CreateAsync 建立實體。
     /// </summary>
     /// <param name="context">IInputContext</param>
+    /// <param name="gameInput">已初始化的 GameInput 實體</param>
     /// <param name="repeatSettings">重複設定</param>
     private GameInputGamepadController(
         IInputContext context,
+        GameInput gameInput,
         GamepadRepeatSettings? repeatSettings = null)
     {
         _context = context;
+        _gameInput = gameInput;
         _repeatSettings = repeatSettings ?? new();
         _repeatSettings.Validate();
 
@@ -354,14 +357,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         IInputContext context,
         GamepadRepeatSettings? repeatSettings = null)
     {
+        GameInput? gameInput = null;
+
         // 探測支援性：在臨時背景執行緒（MTA）嘗試建立實體。
         // 這能確保若系統不支援 GameInput，方法會拋出例外以觸發退避邏輯。
+        // 將探測成功的實例保留，避免在輪詢迴圈中重複建立，大幅加速設備取得時間。
         await Task.Run(() =>
         {
-            using GameInput probe = GameInput.Create();
+            gameInput = GameInput.Create();
         }).ConfigureAwait(false);
 
-        return new GameInputGamepadController(context, repeatSettings);
+        return new GameInputGamepadController(context, gameInput!, repeatSettings);
     }
 
     /// <summary>
@@ -472,13 +478,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <returns>Task</returns>
     private async Task PollingLoopAsync(CancellationToken cancellationToken)
     {
-        // 在背景執行緒（MTA）建立正式使用的 GameInput 實體。
-        // 這樣 COM 物件的單元模型就會與輪詢執行緒一致，解決 InvalidCastException。
+        // 確保 GameInput 實體與回呼已初始化。
+        // 由於 GameInput COM 物件與 Task.Run 皆屬於 MTA 單元模型，因此可以直接跨執行緒使用。
         try
         {
-            if (_gameInput == null)
+            if (_gameInput != null && _deviceCallbackReg == null)
             {
-                _gameInput = GameInput.Create();
                 _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
 
                 // 註冊裝置連線／斷線事件。
