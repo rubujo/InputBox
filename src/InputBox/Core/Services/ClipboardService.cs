@@ -113,7 +113,7 @@ internal class ClipboardService
                     }
                     else
                     {
-                        Debug.WriteLine($"[剪貼簿] 外部異常 (0x{ex.ErrorCode:X8})：{ex.Message}");
+                        Debug.WriteLine($"[剪貼簿] 外部異常（0x{ex.ErrorCode:X8}）：{ex.Message}");
                     }
 
                     // 觸發 A11y 廣播回呼。
@@ -124,6 +124,8 @@ internal class ClipboardService
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "剪貼簿寫入異常");
+
                     Debug.WriteLine($"[剪貼簿] 寫入異常：{ex.Message}");
 
                     // 對於非 ExternalException 的錯誤，重試可能無效（如記憶體不足）。

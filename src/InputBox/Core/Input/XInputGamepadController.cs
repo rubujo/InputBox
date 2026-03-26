@@ -371,6 +371,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
                 }
                 catch (Exception ex)
                 {
+                    // 僅記錄 Debug 資訊，避免輪詢期間頻繁寫入日誌。
                     Debug.WriteLine($"XInput Poll 發生未預期錯誤：{ex.Message}");
                 }
             }
@@ -385,6 +386,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "XInput 輪詢迴圈發生致命錯誤");
+
             Debug.WriteLine($"輪詢迴圈發生致命錯誤：{ex.Message}");
         }
         finally
@@ -1056,7 +1059,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         StopPolling();
 
         // 移除 GetAwaiter().GetResult() 避免在 UI 執行緒上發生死結。
-        // 背景輪詢任務會在收到取消訊號後自然結束，且接下來的 ClearAllEvents() 
+        // 背景輪詢任務會在收到取消訊號後自然結束，且接下來的 ClearAllEvents()
         // 能確保即使任務多執行一次，也不會觸發任何 UI 更新。
 
         // 清除所有事件訂閱。

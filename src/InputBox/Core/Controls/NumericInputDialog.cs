@@ -400,6 +400,8 @@ internal sealed class NumericInputDialog : Form
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "[NumericInputDialog] SystemEvents 更新失敗");
+
                         Debug.WriteLine($"[NumericInputDialog] SystemEvents 更新失敗：{ex.Message}");
                     }
                 });
@@ -407,6 +409,8 @@ internal sealed class NumericInputDialog : Form
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "[NumericInputDialog] SystemEvents 處理失敗");
+
             Debug.WriteLine($"[NumericInputDialog] SystemEvents 處理失敗：{ex.Message}");
         }
     }

@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Interop;
+using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Text.Json;
@@ -608,10 +609,14 @@ public class AppSettings
 
                         Debug.WriteLine($"設定檔損壞，已備份至：{strBackupPath}。錯誤：{ex.Message}");
                     }
-                    catch
+                    catch (Exception backupEx)
                     {
-                        // 忽略備份失敗。
+                        // 忽略備份失敗，但記錄原因。
+                        LoggerService.LogException(backupEx, "設定檔備份失敗");
                     }
+
+                    // 記錄原始損壞原因。
+                    LoggerService.LogException(ex, "設定檔讀取或反序列化失敗，將重設為預設值並嘗試修復。");
 
                     Current = new();
 
@@ -692,6 +697,9 @@ public class AppSettings
         }
         catch (Exception ex)
         {
+            // 記錄儲存失敗原因。
+            LoggerService.LogException(ex, "設定檔儲存失敗（SaveInternal）");
+
             Debug.WriteLine($"無法儲存設定檔：{ex.Message}");
 
             // 嘗試清理殘留的臨時檔。

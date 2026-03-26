@@ -64,6 +64,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "MainForm_Activated 處理失敗");
+
             Debug.WriteLine($"[事件] MainForm_Activated 處理失敗：{ex.Message}");
 
             AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
@@ -164,6 +166,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "MainForm_Shown 處理失敗");
+
             Debug.WriteLine($"[事件] MainForm_Shown 處理失敗：{ex.Message}");
 
             AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
@@ -243,6 +247,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "SystemEvents_UserPreferenceChanged 處理失敗");
+
             Debug.WriteLine($"[事件] SystemEvents_UserPreferenceChanged 處理失敗：{ex.Message}");
         }
     }
@@ -293,6 +299,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "TBInput_Enter 處理失敗");
+
             Debug.WriteLine($"[事件] TBInput_Enter 處理失敗：{ex.Message}");
         }
     }
@@ -383,6 +391,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "TBInput_Leave 處理失敗");
+
             Debug.WriteLine($"[事件] TBInput_Leave 處理失敗：{ex.Message}");
         }
     }
@@ -395,6 +405,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "TBInput_KeyDown 處理失敗");
+
             Debug.WriteLine($"[事件] TBInput_KeyDown 處理失敗：{ex.Message}");
         }
     }
@@ -418,6 +430,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "BtnCopy_MouseEnter 處理失敗");
+
             Debug.WriteLine($"[事件] BtnCopy_MouseEnter 處理失敗：{ex.Message}");
         }
     }
@@ -432,6 +446,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "BtnCopy_MouseLeave 處理失敗");
+
             Debug.WriteLine($"[事件] BtnCopy_MouseLeave 處理失敗：{ex.Message}");
         }
     }
@@ -445,6 +461,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "BtnCopy_Enter 處理失敗");
+
             Debug.WriteLine($"[事件] BtnCopy_Enter 處理失敗：{ex.Message}");
         }
     }
@@ -479,6 +497,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "BtnCopy_Leave 處理失敗");
+
             Debug.WriteLine($"[事件] BtnCopy_Leave 處理失敗：{ex.Message}");
         }
     }
@@ -647,6 +667,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "複製按鈕點擊處理失敗");
+
             Debug.WriteLine($"[事件] 複製按鈕點擊處理失敗：{ex.Message}");
 
             AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));

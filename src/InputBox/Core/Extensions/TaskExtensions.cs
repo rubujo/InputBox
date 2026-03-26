@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using InputBox.Core.Services;
+using System.Diagnostics;
 
 namespace InputBox.Core.Extensions;
 
@@ -108,6 +109,9 @@ public static class TaskExtensions
         }
         catch (Exception ex)
         {
+            // 記錄至檔案系統。
+            LoggerService.LogException(ex, "背景任務 SafeFireAndForget 發生未捕捉例外");
+
             // 記錄至 Debug 視窗。
             Debug.WriteLine($"[背景任務例外] {ex.Message}");
 

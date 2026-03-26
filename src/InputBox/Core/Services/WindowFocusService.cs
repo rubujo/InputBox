@@ -119,6 +119,8 @@ public class WindowFocusService
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "還原視窗失敗");
+
             Debug.WriteLine($"還原視窗時發生錯誤：{ex.Message}");
         }
 

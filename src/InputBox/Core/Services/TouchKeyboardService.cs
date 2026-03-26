@@ -103,6 +103,8 @@ internal static partial class TouchKeyboardService
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "啟動觸控式鍵盤程序失敗");
+
             Debug.WriteLine($"無法啟動觸控式鍵盤程序：{ex.Message}");
 
             return false;

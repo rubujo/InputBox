@@ -568,6 +568,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch (Exception ex)
                 {
+                    // 僅記錄 Debug 資訊，避免輪詢期間頻繁寫入日誌。
                     Debug.WriteLine($"GameInput Poll 發生未預期錯誤：{ex.Message}");
                 }
             }
@@ -582,6 +583,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "GameInput 輪詢迴圈發生致命錯誤");
+
             Debug.WriteLine($"GameInput 輪詢迴圈錯誤：{ex.Message}");
         }
     }

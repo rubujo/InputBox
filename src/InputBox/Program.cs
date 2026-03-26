@@ -280,7 +280,10 @@ internal static class Program
             return;
         }
 
-        // 記錄錯誤。
+        // 記錄錯誤到檔案系統。
+        LoggerService.LogException(ex, "全域未捕捉例外（Unhandled Exception）");
+
+        // 記錄錯誤到 Debug 控制台。
         Debug.WriteLine($"[嚴重] 未捕捉例外：{ex}");
 
         // 緊急停止所有控制器震動，防止崩潰後手把持續震動。

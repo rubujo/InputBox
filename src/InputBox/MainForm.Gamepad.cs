@@ -74,6 +74,8 @@ public partial class MainForm
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "GameInput 初始化失敗，嘗試退避至 XInput");
+
                     Debug.WriteLine($"[控制器] GameInput 初始化失敗，嘗試退避至 XInput：{ex.Message}");
 
                     // 告知使用者已切換至相容模式。
@@ -134,7 +136,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] BackPressed 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -198,7 +202,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] UpPressed 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.DownPressed += () => this.SafeInvoke(() =>
@@ -230,7 +236,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] DownPressed 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.UpRepeat += () => this.SafeInvoke(() =>
@@ -262,7 +270,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] UpRepeat 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.DownRepeat += () => this.SafeInvoke(() =>
@@ -294,7 +304,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] DownRepeat 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.LeftPressed += () => this.SafeInvoke(() =>
@@ -316,7 +328,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] LeftPressed 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.LeftRepeat += () => this.SafeInvoke(() =>
@@ -338,7 +352,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] LeftRepeat 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.RightPressed += () => this.SafeInvoke(() =>
@@ -382,7 +398,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] RightRepeat 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -415,7 +433,9 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"[手把] StartPressed 處理失敗：{ex.Message}");
+                            LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                            Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -440,7 +460,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] APressed 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -497,7 +519,9 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"[手把] BPressed 處理失敗：{ex.Message}");
+                            LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                            Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -559,7 +583,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] YPressed 處理失敗：{ex.Message}");
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -709,7 +735,9 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"[手把] XPressed 處理失敗：{ex.Message}");
+                            LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
+                            Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -1003,7 +1031,8 @@ public partial class MainForm
 
         bool hasSelection = TBInput.SelectionLength > 0;
 
-        if (hasSelection || TBInput.SelectionStart > 0)
+        if (hasSelection ||
+            TBInput.SelectionStart > 0)
         {
             if (hasSelection)
             {

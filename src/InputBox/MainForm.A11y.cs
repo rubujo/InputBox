@@ -1,6 +1,7 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
+using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Threading.Channels;
@@ -334,6 +335,8 @@ public partial class MainForm
                             }
                             catch (Exception ex)
                             {
+                                LoggerService.LogException(ex, "[A11y] UI 執行緒廣播失敗");
+
                                 Debug.WriteLine($"[A11y] UI 執行緒廣播失敗：{ex.Message}");
                             }
                         });
@@ -354,6 +357,8 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "[A11y] 廣播處理發生異常");
+
                         Debug.WriteLine($"[A11y] 廣播處理發生異常：{ex.Message}");
                     }
                 }
@@ -367,6 +372,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "[A11y] 廣播工作者發生致命錯誤");
+
                 Debug.WriteLine($"[A11y] 廣播工作者發生致命錯誤，嘗試重啟：{ex.Message}");
 
                 try

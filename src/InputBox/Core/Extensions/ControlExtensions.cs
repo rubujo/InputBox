@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using InputBox.Core.Configuration;
+using InputBox.Core.Services;
 
 namespace InputBox.Core.Extensions;
 
@@ -38,6 +39,8 @@ public static class ControlExtensions
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "SafeInvoke 同步執行動作失敗");
+
                         Debug.WriteLine($"[SafeInvoke] 同步執行動作失敗：{ex.Message}");
                     }
                 }
@@ -62,6 +65,8 @@ public static class ControlExtensions
                         }
                         catch (Exception ex)
                         {
+                            LoggerService.LogException(ex, "[SafeInvoke] 跨執行緒執行動作失敗");
+
                             Debug.WriteLine($"[SafeInvoke] 跨執行緒執行動作失敗：{ex.Message}");
                         }
                     }
@@ -75,6 +80,8 @@ public static class ControlExtensions
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "[SafeInvoke] 執行動作失敗");
+
                     Debug.WriteLine($"[SafeInvoke] 執行動作失敗：{ex.Message}");
                 }
             }
@@ -89,6 +96,7 @@ public static class ControlExtensions
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "[SafeInvoke] 未預期錯誤");
             Debug.WriteLine($"[SafeInvoke] 未預期錯誤：{ex.Message}");
         }
     }
@@ -118,7 +126,10 @@ public static class ControlExtensions
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "[SafeInvokeAsync] 同步執行動作失敗");
+
                     Debug.WriteLine($"[SafeInvokeAsync] 同步執行動作失敗：{ex.Message}");
+
                     throw;
                 }
             }
@@ -143,6 +154,8 @@ public static class ControlExtensions
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "[SafeInvokeAsync] 跨執行緒執行動作失敗");
+
                         Debug.WriteLine($"[SafeInvokeAsync] 跨執行緒執行動作失敗：{ex.Message}");
 
                         throw;
@@ -160,7 +173,10 @@ public static class ControlExtensions
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "[SafeInvokeAsync] 未預期錯誤");
+
             Debug.WriteLine($"[SafeInvokeAsync] 未預期錯誤：{ex.Message}");
+
             throw;
         }
     }
@@ -200,6 +216,8 @@ public static class ControlExtensions
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "[SafeInvokeAsync] 同步執行非同步動作失敗");
+
                 Debug.WriteLine($"[SafeInvokeAsync] 同步執行非同步動作失敗：{ex.Message}");
 
                 // 重新拋出業務邏輯例外。
@@ -228,6 +246,8 @@ public static class ControlExtensions
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "[SafeInvokeAsync] 跨執行緒執行非同步動作失敗");
+
                         Debug.WriteLine($"[SafeInvokeAsync] 跨執行緒執行非同步動作失敗：{ex.Message}");
                     }
                 }
@@ -243,6 +263,8 @@ public static class ControlExtensions
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "[SafeInvokeAsync] 未預期錯誤");
+
             Debug.WriteLine($"[SafeInvokeAsync] 未預期錯誤：{ex.Message}");
         }
     }
@@ -292,6 +314,8 @@ public static class ControlExtensions
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "[SafeBeginInvoke] 執行排程動作失敗");
+
                     Debug.WriteLine($"[SafeBeginInvoke] 執行排程動作失敗：{ex.Message}");
                 }
             }));
@@ -306,6 +330,8 @@ public static class ControlExtensions
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "[SafeBeginInvoke] 未預期錯誤");
+
             Debug.WriteLine($"[SafeBeginInvoke] 未預期錯誤：{ex.Message}");
         }
     }

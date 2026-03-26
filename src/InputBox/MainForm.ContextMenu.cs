@@ -170,7 +170,9 @@ public partial class MainForm
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[選單] 修飾鍵變更失敗：{ex.Message}");
+                    LoggerService.LogException(ex, "右鍵選單處理失敗");
+
+                    Debug.WriteLine($"[選單] 處理失敗：{ex.Message}");
                 }
             };
 
