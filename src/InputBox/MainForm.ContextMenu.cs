@@ -1027,21 +1027,15 @@ public partial class MainForm
                     item.Select();
 
                     // 播報首個項目的名稱與描述。
-                    string? name = item.AccessibleName ?? item.Text,
-                        desc = item.AccessibleDescription;
-
-                    if (item is ToolStripMenuItem mi &&
-                        mi.CheckOnClick)
-                    {
-                        string status = mi.Checked ?
-                            Strings.A11y_Checked :
-                            Strings.A11y_Unchecked;
-
-                        name = $"{name}, {status}";
-                    }
+                    // 優先使用 AccessibleName 以獲得包含狀態的完整標籤。
+                    string name = item.AccessibleName ??
+                            item.Text ??
+                            string.Empty,
+                        desc = item.AccessibleDescription ??
+                        string.Empty;
 
                     string announcement = string.IsNullOrEmpty(desc) ?
-                        (name ?? string.Empty) :
+                        name :
                         $"{name}. {desc}";
 
                     if (!string.IsNullOrEmpty(announcement))

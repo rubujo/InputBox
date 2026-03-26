@@ -473,6 +473,14 @@ public partial class MainForm : Form
         base.OnFormClosing(e);
     }
 
+    /// <summary>
+    /// 處理系統層級的命令鍵（快速鍵）
+    /// </summary>
+    /// <remarks>
+    /// 覆寫此方法能確保 Alt 組合鍵在事件到達控制項（如 TextBox）前被攔截。
+    /// 這解決了 WinForms 在按下 Alt 鍵時會將焦點移向選單列（Menu Bar）導致 KeyDown 事件遺失的問題，
+    /// 同時也能在全視窗範圍內提供穩定、且不干擾按鈕助記鍵（如 Alt + A）的操作體驗。
+    /// </remarks>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
         if (_isCapturingHotkey != 0)
@@ -605,6 +613,49 @@ public partial class MainForm : Form
             return true;
         }
 
+        // 僅精確攔截我們自定義的視窗級快速鍵，其餘按鍵（如 Alt + A 助記鍵）放行回基底類別處理。
+        switch (keyData)
+        {
+            // Alt + B：不複製直接返回前一個視窗（與遊戲控制器 LB + RB + B 對等）。
+            case Keys.Alt | Keys.B:
+                HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
+
+                // 攔截，不向下傳遞。
+                return true;
+
+            // Alt + Up：增加不透明度（與遊戲控制器 Back + Up 對等）。
+            case Keys.Alt | Keys.Up:
+                AdjustOpacity(0.05f);
+
+                return true;
+
+            // Alt + Down：減少不透明度（與遊戲控制器 Back + Down 對等）。
+            case Keys.Alt | Keys.Down:
+                AdjustOpacity(-0.05f);
+
+                return true;
+
+            // Alt + 0：將不透明度重設為 100%（與遊戲控制器 Back + X 對等）。
+            // 使用數字 0 是為了避開 Alt + R 常見的助記鍵衝突，且符合重設縮放比例的語意慣例。
+            case Keys.Alt | Keys.D0:
+                ResetOpacity();
+                return true;
+
+            // Alt + P：切換隱私模式（與遊戲控制器暫無直接對等，用於快速切換）。
+            case Keys.Alt | Keys.P:
+                TogglePrivacyMode();
+
+                return true;
+
+            // F10：Windows 標準選單鍵（攔截以對應自定義播報選單）。
+            case Keys.F10:
+            // Alt + M：助記符選單鍵（Menu），對標 Alt + B（Back）。
+            case Keys.Alt | Keys.M:
+                this.SafeInvoke(ShowContextMenuAtInput);
+
+                return true;
+        }
+
         if (ActiveControl == TBInput)
         {
             if (keyData == Keys.Enter)
@@ -631,47 +682,6 @@ public partial class MainForm : Form
 
                 return base.ProcessCmdKey(ref msg, keyData);
             }
-        }
-
-        // F10：Windows 標準選單鍵。
-        // Alt + M：助記符選單鍵（Menu），對標 Alt + B（Back）。
-        if (keyData == Keys.F10 ||
-            keyData == (Keys.Alt | Keys.M))
-        {
-            this.SafeInvoke(ShowContextMenuAtInput);
-
-            return true;
-        }
-
-        // Alt + Up／Down：調整不透明度。
-        if (keyData == (Keys.Alt | Keys.Up))
-        {
-            AdjustOpacity(0.05f);
-
-            return true;
-        }
-
-        if (keyData == (Keys.Alt | Keys.Down))
-        {
-            AdjustOpacity(-0.05f);
-
-            return true;
-        }
-
-        // Alt + R：重設不透明度。
-        if (keyData == (Keys.Alt | Keys.R))
-        {
-            ResetOpacity();
-
-            return true;
-        }
-
-        // Alt + P：切換隱私模式。
-        if (keyData == (Keys.Alt | Keys.P))
-        {
-            TogglePrivacyMode();
-
-            return true;
         }
 
         return base.ProcessCmdKey(ref msg, keyData);

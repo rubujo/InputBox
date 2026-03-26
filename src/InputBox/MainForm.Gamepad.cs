@@ -783,6 +783,9 @@ public partial class MainForm
                         item is ToolStripMenuItem tsmi &&
                         tsmi.HasDropDownItems)
                     {
+                        // A11y：在進入子選單前，先告知目前的選單層級。
+                        AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, tsmi.AccessibleName ?? tsmi.Text), interrupt: true);
+
                         // 展開子選單。
                         tsmi.ShowDropDown();
 
@@ -808,6 +811,9 @@ public partial class MainForm
                         if (item is ToolStripMenuItem tsmi &&
                             tsmi.HasDropDownItems)
                         {
+                            // A11y：在進入子選單前，先告知目前的選單層級。
+                            AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, tsmi.AccessibleName ?? tsmi.Text), interrupt: true);
+
                             // 展開子選單。
                             tsmi.ShowDropDown();
 
@@ -835,6 +841,9 @@ public partial class MainForm
                     if (activeTs is ToolStripDropDown dropDown &&
                         dropDown.OwnerItem != null)
                     {
+                        // A11y：告知已關閉子選單並退回上一層。
+                        AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Exit, dropDown.OwnerItem.AccessibleName ?? dropDown.OwnerItem.Text), interrupt: true);
+
                         dropDown.Close();
                     }
                     else
@@ -931,22 +940,12 @@ public partial class MainForm
                 _lastFocusedMenuItem = nextItem;
 
                 // 顯式播報選單項目名稱與描述（包含目前設定值）。
-                string? name = nextItem.AccessibleName ?? nextItem.Text,
-                    desc = nextItem.AccessibleDescription;
-
-                // 如果是可勾選的項目，播報其狀態。
-                if (nextItem is ToolStripMenuItem mi &&
-                    mi.CheckOnClick)
-                {
-                    string status = mi.Checked ?
-                        Strings.A11y_Checked :
-                        Strings.A11y_Unchecked;
-
-                    name = $"{name}, {status}";
-                }
+                // 優先使用已在 RefreshMenuText 中格式化過的 AccessibleName（包含目前值與勾選狀態）。
+                string name = nextItem.AccessibleName ?? nextItem.Text ?? string.Empty,
+                    desc = nextItem.AccessibleDescription ?? string.Empty;
 
                 string announcement = string.IsNullOrEmpty(desc) ?
-                    (name ?? string.Empty) :
+                    name :
                     $"{name}. {desc}";
 
                 if (!string.IsNullOrEmpty(announcement))

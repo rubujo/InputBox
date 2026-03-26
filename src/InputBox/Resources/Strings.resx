@@ -655,4 +655,12 @@ Make sure that multiple instances of this application are not running at the sam
     <value>🔄</value>
     <comment>Icon marker displayed in the title bar when a system theme change is detected but the application hasn't been restarted yet.</comment>
   </data>
+  <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
+    <value>Entering {0} submenu</value>
+    <comment>Announce when entering a submenu using gamepad</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
+    <value>Exiting {0} submenu</value>
+    <comment>Announce when exiting a submenu using gamepad</comment>
+  </data>
 </root>

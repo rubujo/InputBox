@@ -655,4 +655,12 @@
     <value>🔄</value>
     <comment>システムテーマの変更が検出されましたが、まだ再起動されていない場合に、タイトルバーのアプリ名の後ろに表示されるアイコンマーカーです。</comment>
   </data>
+  <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
+    <value>{0} サブメニューに入ります</value>
+    <comment>Announce when entering a submenu using gamepad</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
+    <value>{0} サブメニューを閉じます</value>
+    <comment>Announce when exiting a submenu using gamepad</comment>
+  </data>
 </root>

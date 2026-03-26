@@ -1267,5 +1267,22 @@ namespace InputBox.Resources {
                 return ResourceManager.GetString("Wrn_Title", resourceCulture);
             }
         }
+        /// <summary>
+        ///   查詢類似 Entering {0} submenu 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Submenu_Enter {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Submenu_Enter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Exiting {0} submenu 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Submenu_Exit {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Submenu_Exit", resourceCulture);
+            }
+        }
     }
 }

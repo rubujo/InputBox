@@ -655,4 +655,12 @@
     <value>🔄</value>
     <comment>侦测到系统主题变更但尚未重启时，显示于标题列应用程序名称后方的图标标记。</comment>
   </data>
+  <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
+    <value>进入 {0} 子菜单</value>
+    <comment>Announce when entering a submenu using gamepad</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
+    <value>退出 {0} 子菜单</value>
+    <comment>Announce when exiting a submenu using gamepad</comment>
+  </data>
 </root>
