@@ -423,6 +423,14 @@
     <value>履歴の保持数: {0}</value>
     <comment>右クリックメニュー項目。履歴の保持数を表示および設定します。{0} は現在の保持数値です。</comment>
   </data>
+  <data name="Menu_OpenDataFolder" xml:space="preserve">
+    <value>フォルダを開く</value>
+    <comment>右クリックメニュー項目。AppData Roaming 内のアプリケーションフォルダを開くために使用します。</comment>
+  </data>
+  <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
+    <value>AppData にあるアプリケーション フォルダを開きます。</value>
+    <comment>フォルダを開くメニュー項目のアクセシビリティの説明。</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>ウィンドウ復元遅延</value>
     <comment>設定項目の名称。ウィンドウが復元される際の遅延時間を指します。</comment>

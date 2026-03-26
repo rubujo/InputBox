@@ -423,6 +423,14 @@
     <value>歷程記錄容量: {0}</value>
     <comment>右鍵選單項目，顯示並設定歷程記錄容量。{0} 是目前的容量數值。</comment>
   </data>
+  <data name="Menu_OpenDataFolder" xml:space="preserve">
+    <value>開啟資料夾</value>
+    <comment>右鍵選單項目，用於開啟應用程式在 AppData Roaming 中的資料夾。</comment>
+  </data>
+  <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
+    <value>開啟位於 AppData 的應用程式資料夾。</value>
+    <comment>開啟資料夾選單項目的無障礙描述。</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>視窗還原延遲</value>
     <comment>設定項目名稱，指視窗還原時的延遲時間。</comment>

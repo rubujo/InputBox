@@ -114,6 +114,8 @@
 - **快速鍵設定** ⚙️：
   - **修飾鍵組合**：可直接勾選 **Alt**、**Ctrl**、**Shift** 或 **Win** 鍵作為快速鍵的修飾部分。
   - **擷取主要按鍵**：點選後，應用程式會進入擷取狀態，此時按下鍵盤上的任一按鍵即可將其設定為喚出快速鍵的主要按鍵（按下鍵盤 **ESC 鍵** 或控制器 **B 鍵** 可取消擷取）。
+- **設定** ⚙️：包含視窗不透明度、回饋強度、控制器死區與歷程容量等進階設定。
+  - **開啟資料夾** 📂：快速開啟位於 `%AppData%\InputBox` 的應用程式資料儲存路徑，方便手動備份或修改設定檔。
 - **清除歷程** 🗑️：手動清空目前儲存在記憶體中的所有輸入歷程記錄。
 
 ### 5. 設定 ⚙️
@@ -125,8 +127,8 @@
 設定檔位於使用者的應用程式資料夾中：
 - **路徑**：`%AppData%\InputBox\appsettings.json`
 - **快速存取方式**：
-  1. 按下 `Win + R` 開啟執行視窗。
-  2. 輸入 `%AppData%\InputBox` 並按下 Enter。
+  1. 按下 `Win + R` 開啟執行視窗，輸入 `%AppData%\InputBox` 並按下 Enter。
+  2. **捷徑** 🚀：您可以透過**右鍵選單**中的 **「設定」→「開啟資料夾」** 快速跳轉至此路徑。
   3. 將會看到 `appsettings.json` 檔案。
 
 > **故障排除 🔧**：若因手動修改格式錯誤導致程式崩潰或無法啟動，請直接**刪除此 `appsettings.json` 檔案**。程式將於下次啟動時自動還原為預設設定。
@@ -280,5 +282,6 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 - [Windows Forms（WinForms）](https://github.com/dotnet/winforms)：由 Microsoft 及其[貢獻者](https://github.com/dotnet/winforms/graphs/contributors)開發並採用 [**MIT License**](https://github.com/dotnet/winforms/blob/main/LICENSE.TXT) 授權，提供桌面視窗圖形介面基礎架構，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/winforms/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [GameInput.Net](https://github.com/Cephy314/GameInputNet)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/GameInputNet/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/GameInputNet/blob/main/LICENSE) 授權，用於存取 GameInput API。
 - [UsbVendorsLibrary](https://github.com/Cephy314/UsbVendorsLibrary)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/UsbVendorsLibrary/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/UsbVendorsLibrary/blob/main/LICENSE) 授權，用於存取裝置資訊。
+- [USB ID Database（usb.ids）](http://www.linux-usb.org/usb-ids.html)：由 Stephen J. Gowdy 等人維護的公開 USB 裝置識別碼資料庫。該資料庫採雙重授權（[GNU General Public License（第 2 版或是更新的版本）](https://opensource.org/license/GPL-2.0)／[**3-clause BSD License**](https://opensource.org/license/bsd-3-clause)），本專案選擇依循 [**3-clause BSD License**](https://opensource.org/license/bsd-3-clause) 條款隨附發佈，其完整版權與免責聲明請參閱發佈檔內的 **usb_ids_LICENSE.txt**。
 
 本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；關於第三方套件之完整版權宣告與授權文字，請參閱隨附於發佈壓縮檔內之 **ThirdPartyNotices.txt** 文件以及各框架專屬授權文件。

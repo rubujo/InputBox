@@ -132,9 +132,65 @@ jobs:
         } else {
             Write-Warning "❌ 無法解析 .NET Runtime 的版本號，請確認安裝步驟。"
         }
+
+        # 4. 動態解析 csproj，抓取套件授權與產生 usb.ids 授權檔案。
+        Write-Host "=== 開始解析 csproj 抓取第三方套件版本並處理授權 ==="
+
+        $csprojPath = "./src/InputBox/InputBox.csproj"
+        if (Test-Path $csprojPath) {
+            # 將 csproj 轉為 XML 物件以便解析。
+            [xml]$csproj = Get-Content $csprojPath
+
+            # 尋找特定的 PackageReference 節點。
+            $gameInputRef = $csproj.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'GameInput.Net' }
+            $usbVendorsRef = $csproj.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'UsbVendorsLibrary' }
+
+            # 如果有找到版本號，前面補上 v；如果沒找到（理論上不會發生），退回抓 main。
+            $gameInputVer = if ($gameInputRef.Version) { "v" + $gameInputRef.Version } else { "main" }
+            $usbVendorsVer = if ($usbVendorsRef.Version) { "v" + $usbVendorsRef.Version } else { "main" }
+
+            Write-Host "解析到 GameInput.Net 版本標籤: $gameInputVer"
+            Write-Host "解析到 UsbVendorsLibrary 版本標籤: $usbVendorsVer"
+
+            $extraFiles = @(
+                @{ Url = "https://raw.githubusercontent.com/Cephy314/GameInputNet/$gameInputVer/LICENSE"; Out = "GameInputNet_LICENSE.txt" },
+                @{ Url = "https://raw.githubusercontent.com/Cephy314/UsbVendorsLibrary/$usbVendorsVer/LICENSE"; Out = "UsbVendorsLibrary_LICENSE.txt" }
+            )
+
+            foreach ($item in $extraFiles) {
+                $outPath = Join-Path $packDir $item.Out
+                Write-Host "嘗試下載: $($item.Url)"
+                try {
+                    Invoke-WebRequest -Uri $item.Url -OutFile $outPath -ErrorAction Stop
+                    Write-Host "✅ 成功儲存為 $($item.Out)"
+                } catch {
+                    Write-Warning "⚠️ 無法下載 $($item.Url)，請確認該套件的 GitHub 庫是否有此版本標籤！"
+                }
+            }
+        } else {
+            Write-Warning "找不到 csproj 檔案 ($csprojPath)，無法動態抓取套件版本。"
+        }
+
+        Write-Host "產生 usb.ids 的 3-clause BSD 完整授權檔……"
+        # 使用 @' '@ 單引號 Here-String 來避免 PowerShell 把引號內的內容當作變數解析。
+        $bsdLicenseText = @'
+        Copyright (c) Stephen J. Gowdy <linux.usb.ids@gmail.com>
+
+        Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+        1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+        2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+        3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        '@
+        $bsdLicenseText | Out-File -FilePath (Join-Path $packDir "usb_ids_LICENSE.txt") -Encoding utf8
+        Write-Host "✅ 成功建立 usb_ids_LICENSE.txt"
         Write-Host "======================================="
 
-        # 4. 執行壓縮
+        # 5. 執行壓縮。
         Compress-Archive -Path $packDir -DestinationPath $zipName -CompressionLevel Optimal
 
     - name: 建立 GitHub Release

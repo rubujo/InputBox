@@ -759,6 +759,33 @@ public partial class MainForm
         };
         tsmiSettings.DropDownItems.Add(tsmiCap);
 
+        tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
+
+        // 開啟資料夾。
+        ToolStripMenuItem tsmiOpenDataFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenDataFolder, 'O'))
+        {
+            AccessibleName = Strings.Menu_OpenDataFolder,
+            AccessibleDescription = Strings.Menu_OpenDataFolder_Desc
+        };
+        tsmiOpenDataFolder.Click += (s, e) =>
+        {
+            try
+            {
+                if (Directory.Exists(AppSettings.ConfigDirectory))
+                {
+                    Process.Start(new ProcessStartInfo(AppSettings.ConfigDirectory)
+                    { 
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiOpenDataFolder.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiSettings.DropDownItems.Add(tsmiOpenDataFolder);
+
         // 清除歷程。
         ToolStripMenuItem tsmiClearHistory = new(ControlExtensions.GetMnemonicText(Strings.Menu_ClearHistory, 'C'))
         {

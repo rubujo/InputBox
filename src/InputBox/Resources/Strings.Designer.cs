@@ -954,6 +954,24 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Open Folder 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_OpenDataFolder {
+            get {
+                return ResourceManager.GetString("Menu_OpenDataFolder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Open the application data folder in AppData. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_OpenDataFolder_Desc {
+            get {
+                return ResourceManager.GetString("Menu_OpenDataFolder_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Privacy Mode 的當地語系化字串。
         /// </summary>
         internal static string Menu_PrivacyMode {

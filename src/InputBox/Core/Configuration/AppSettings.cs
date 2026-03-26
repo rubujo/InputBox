@@ -32,9 +32,9 @@ public class AppSettings
     };
 
     /// <summary>
-    /// 定義儲存路徑：%AppData%\InputBox\appsettings.json
+    /// 定義儲存路徑：%AppData%\InputBox
     /// </summary>
-    private static readonly string ConfigDirectory = Path.Combine(
+    public static readonly string ConfigDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "InputBox");
 

@@ -423,6 +423,14 @@ Make sure that multiple instances of this application are not running at the sam
     <value>History Capacity: {0}</value>
     <comment>Context menu item showing and setting history capacity. {0} is current capacity.</comment>
   </data>
+  <data name="Menu_OpenDataFolder" xml:space="preserve">
+    <value>Open Folder</value>
+    <comment>Context menu item for opening the application folder in AppData Roaming.</comment>
+  </data>
+  <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
+    <value>Open the application data folder in AppData.</value>
+    <comment>Accessibility description for the Open Folder menu item.</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>Window Restore Delay</value>
     <comment>Setting name for delay when window is restored.</comment>
