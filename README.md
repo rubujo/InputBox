@@ -114,9 +114,9 @@
 - **快速鍵設定** ⚙️：
   - **修飾鍵組合**：可直接勾選 **Alt**、**Ctrl**、**Shift** 或 **Win** 鍵作為快速鍵的修飾部分。
   - **擷取主要按鍵**：點選後，應用程式會進入擷取狀態，此時按下鍵盤上的任一按鍵即可將其設定為喚出快速鍵的主要按鍵（按下鍵盤 **ESC 鍵** 或控制器 **B 鍵** 可取消擷取）。
-- **設定** ⚙️：包含視窗不透明度、回饋強度、控制器死區與歷程容量等進階設定。
+- **設定** ⚙️：包含視窗不透明度、回饋強度、控制器死區與歷程記錄容量等進階設定。
   - **開啟資料夾** 📂：快速開啟位於 `%AppData%\InputBox` 的應用程式資料儲存路徑，方便手動備份或修改設定檔。
-- **清除歷程** 🗑️：手動清空目前儲存在記憶體中的所有輸入歷程記錄。
+- **清除歷程記錄** 🗑️：手動清空目前儲存在記憶體中的所有輸入歷程記錄。
 
 ### 5. 設定 ⚙️
 
@@ -163,7 +163,7 @@
 >
 > **注意 2**：本應用程式具備「自動數值保護機制」。若手動在 `appsettings.json` 中設定了超出「有效範圍」的數值，程式會在啟動或讀取時，自動將該數值修正回最接近的合理界限內，以確保系統穩定性。🛡️
 >
-> **注意 3**：程式具備「搖桿死區遲滯（Hysteresis）機制」，會自動確保重置閾值與觸發閾值間有足夠緩衝，避免搖桿老化導致的輸入抖動。🎮
+> **注意 3**：本應用程式具備「搖桿死區遲滯（Hysteresis）機制」，會自動確保重置閾值與觸發閾值間有足夠緩衝，避免搖桿老化導致的輸入抖動。🎮
 
 ## 四、震動回饋說明 📳
 
@@ -270,18 +270,22 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 
 ## 十、授權條款 📜
 
-本專案本體採用 **CC0 1.0 Universal** 宣告釋出至公眾領域。
+本專案本體採用 [**CC0 1.0 Universal**](https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hant) 宣告釋出至公眾領域，並於適用法律允許之最大範圍內不主張任何著作權或相關權利。
 
 > 您可以自由地複製、修改、發佈或執行本應用程式（含原始碼），**完全無需取得授權**。🕊️
 
 ### 第三方函式庫授權聲明 ⚖️
 
-本應用程式使用了以下第三方函式庫，其權利歸原作者所有並遵循各自之授權條款：
+本應用程式以 **自包含部署（self‑contained）** 形式發佈，內含執行時所需之第三方函式庫。
+
+以下第三方元件之權利歸原作者所有，並遵循其各自之授權條款，**不屬於 [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hant) 授權範圍**。
 
 - [.NET Runtime](https://github.com/dotnet/runtime)：由 Microsoft 及其[貢獻者](https://github.com/dotnet/runtime/graphs/contributors)開發並採用 [**MIT License**](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT) 授權，作為本應用程式之底層執行環境，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [Windows Forms（WinForms）](https://github.com/dotnet/winforms)：由 Microsoft 及其[貢獻者](https://github.com/dotnet/winforms/graphs/contributors)開發並採用 [**MIT License**](https://github.com/dotnet/winforms/blob/main/LICENSE.TXT) 授權，提供桌面視窗圖形介面基礎架構，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/winforms/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [GameInput.Net](https://github.com/Cephy314/GameInputNet)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/GameInputNet/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/GameInputNet/blob/main/LICENSE) 授權，用於存取 GameInput API。
 - [UsbVendorsLibrary](https://github.com/Cephy314/UsbVendorsLibrary)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/UsbVendorsLibrary/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/UsbVendorsLibrary/blob/main/LICENSE) 授權，用於存取裝置資訊。
-- [USB ID Database（usb.ids）](http://www.linux-usb.org/usb-ids.html)：由 Stephen J. Gowdy 等人維護的公開 USB 裝置識別碼資料庫。該資料庫採雙重授權（[GNU General Public License（第 2 版或是更新的版本）](https://opensource.org/license/GPL-2.0)／[**3-clause BSD License**](https://opensource.org/license/bsd-3-clause)），本專案選擇依循 [**3-clause BSD License**](https://opensource.org/license/bsd-3-clause) 條款隨附發佈，其完整版權與免責聲明請參閱發佈檔內的 **usb_ids_LICENSE.txt**。
+- [USB ID Database（usb.ids）](http://www.linux-usb.org/usb-ids.html)：由 Stephen J. Gowdy 等人維護的公開 USB 裝置識別碼資料庫。該資料庫採雙重授權（[GNU General Public License（第 2 版或是更新的版本）](https://opensource.org/license/GPL-2.0)／[**3-clause BSD License**](https://opensource.org/license/bsd-3-clause)）。
+  - 本應用程式透過第三方函式庫 [**UsbVendorsLibrary**](https://github.com/Cephy314/UsbVendorsLibrary) 使用該資料庫，並於 **自包含部署（self‑contained）** 發佈之執行檔中以嵌入資源形式包含其內容。
+  - 本專案選擇依循 [**3-clause BSD License**](https://opensource.org/license/bsd-3-clause) 條款隨附發佈，其完整版權與免責聲明請參閱發佈檔內的 **usb_ids_LICENSE.txt**。
 
-本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；關於第三方套件之完整版權宣告與授權文字，請參閱隨附於發佈壓縮檔內之 **ThirdPartyNotices.txt** 文件以及各框架專屬授權文件。
+本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；關於第三方套件之完整版權宣告與授權文字，請參閱隨附於發佈檔內之 **ThirdPartyNotices.txt** 文件以及各框架專屬授權文件。
