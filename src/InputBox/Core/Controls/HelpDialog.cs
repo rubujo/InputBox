@@ -344,7 +344,43 @@ internal sealed class HelpDialog : Form
         {
             e.SuppressKeyPress = true;
             Close();
+            return;
         }
+
+        // 方向鍵 / PageUp / PageDown / Home / End 捲動內容面板。
+        // 焦點常駐於 _btnClose（Panel 不響應方向鍵），故在表單層攔截。
+        float scale = DeviceDpi / AppSettings.BaseDpi;
+        int step = (int)Math.Max(20, 40 * scale);
+        int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
+
+        int delta = e.KeyCode switch
+        {
+            Keys.Up   => -step,
+            Keys.Down =>  step,
+            Keys.PageUp   => -pageStep,
+            Keys.PageDown =>  pageStep,
+            Keys.Home => int.MinValue,  // clamp 至 0
+            Keys.End  => int.MaxValue,  // clamp 至 maxY
+            _ => 0,
+        };
+
+        if (delta == 0)
+        {
+            return;
+        }
+
+        e.SuppressKeyPress = true;
+
+        int maxY = Math.Max(0,
+            _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
+        int current = -_pnlScroll.AutoScrollPosition.Y;
+        int newY = Math.Clamp(
+            delta == int.MinValue ? 0 :
+            delta == int.MaxValue ? maxY :
+            current + delta,
+            0, maxY);
+
+        _pnlScroll.AutoScrollPosition = new Point(0, newY);
     }
 
     /// <summary>
