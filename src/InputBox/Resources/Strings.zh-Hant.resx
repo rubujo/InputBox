@@ -696,7 +696,7 @@
     <comment>關閉「允許中斷廣播」設定時播放的無障礙播報訊息。</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
-    <value>說明 (&amp;?)</value>
+    <value>說明</value>
     <comment>開啟說明對話框的右鍵選單項目（WCAG 3.3.5）。</comment>
   </data>
   <data name="Menu_Help_Desc" xml:space="preserve">

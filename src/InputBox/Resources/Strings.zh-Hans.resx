@@ -696,7 +696,7 @@
     <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
-    <value>帮助 (&amp;?)</value>
+    <value>帮助</value>
     <comment>打开帮助对话框的右键菜单项（WCAG 3.3.5）。</comment>
   </data>
   <data name="Menu_Help_Desc" xml:space="preserve">

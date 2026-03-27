@@ -861,7 +861,7 @@ public partial class MainForm
         };
 
         // 說明（WCAG 3.3.5）。
-        ToolStripMenuItem tsmiHelp = new(ControlExtensions.GetMnemonicText(Strings.Menu_Help, '?'))
+        ToolStripMenuItem tsmiHelp = new(ControlExtensions.GetMnemonicText(Strings.Menu_Help, 'H'))
         {
             AccessibleName = Strings.Menu_Help,
             AccessibleDescription = Strings.Menu_Help_Desc
