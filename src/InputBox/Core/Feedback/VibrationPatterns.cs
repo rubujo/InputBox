@@ -6,9 +6,9 @@
 public static class VibrationPatterns
 {
     /// <summary>
-    /// 全域強度倍率（1.0 = 預設、0.5 = 弱、0.0 = 關閉）
+    /// 全域強度倍率（0.7 = 預設、0.5 = 弱、0.0 = 關閉）
     /// </summary>
-    public static float GlobalIntensityMultiplier { get; set; } = 1.0f;
+    public static float GlobalIntensityMultiplier { get; set; } = 0.7f;
 
     /// <summary>
     /// 游標移動（輕微短促的點擊感）
@@ -29,10 +29,11 @@ public static class VibrationPatterns
     public static readonly VibrationProfile ClearInput = new(25000, 100);
 
     /// <summary>
-    /// 邊界撞擊、錯誤操作（極強烈且較長的警告）
-    /// 說明：接近 100% 滿載強度與 200ms 長時間，打破原本的節奏，確保操作錯誤不被忽視。
+    /// 邊界撞擊、錯誤操作（強烈且較長的警告）
+    /// 說明：約 68% 強度與 200ms 長時間，打破原本的節奏確保操作錯誤不被忽視，
+    /// 同時避免對感覺敏感或有關節疾患的使用者造成不適。
     /// </summary>
-    public static readonly VibrationProfile ActionFail = new(65000, 200);
+    public static readonly VibrationProfile ActionFail = new(45000, 200);
 
     /// <summary>
     /// 顯示輸入視窗（明確的喚醒感）

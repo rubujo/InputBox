@@ -588,11 +588,11 @@ public partial class MainForm
                 float? val = AskForFloat(
                     Strings.Settings_VibrationIntensity,
                     AppSettings.Current.VibrationIntensity,
-                    1.0f,
+                    0.7f,
                     0.0f,
                     1.0f,
-                    0.1m,
-                    1);
+                    0.05m,
+                    2);
 
                 if (val.HasValue)
                 {
@@ -627,9 +627,9 @@ public partial class MainForm
             try
             {
                 AppSettings.Current.EnableVibration = true;
-                AppSettings.Current.VibrationIntensity = 1.0f;
+                AppSettings.Current.VibrationIntensity = 0.7f;
 
-                VibrationPatterns.GlobalIntensityMultiplier = 1.0f;
+                VibrationPatterns.GlobalIntensityMultiplier = 0.7f;
 
                 AppSettings.Save();
 
@@ -887,7 +887,7 @@ public partial class MainForm
                 if (Directory.Exists(AppSettings.ConfigDirectory))
                 {
                     Process.Start(new ProcessStartInfo(AppSettings.ConfigDirectory)
-                    { 
+                    {
                         UseShellExecute = true
                     });
                 }
@@ -1103,7 +1103,7 @@ public partial class MainForm
                 else if (label == Strings.Settings_VibrationIntensity)
                 {
                     // 格式化為小數點後一位（如 1.0），增進視覺一致性。
-                    fullText = $"{label}: {AppSettings.Current.VibrationIntensity:F1}";
+                    fullText = $"{label}: {AppSettings.Current.VibrationIntensity:F2}";
                 }
                 else if (label == Strings.Settings_WindowOpacity)
                 {
@@ -1135,7 +1135,7 @@ public partial class MainForm
                     if (mi.Tag is MenuMetadata { Min: not null, Max: not null } rangeMeta)
                     {
                         string currentStr = label == Strings.Settings_VibrationIntensity ?
-                            AppSettings.Current.VibrationIntensity.ToString("F1") :
+                            AppSettings.Current.VibrationIntensity.ToString("F2") :
                             (label == Strings.Settings_WindowOpacity ?
                                 AppSettings.Current.WindowOpacity.ToString("P0") :
                                 fullText.Split(':').Last().Trim());

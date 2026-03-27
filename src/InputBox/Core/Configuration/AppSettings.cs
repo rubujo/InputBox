@@ -362,7 +362,7 @@ public class AppSettings
     /// <summary>
     /// 全域震動強度倍率
     /// </summary>
-    private volatile float _vibrationIntensity = 1.0f;
+    private volatile float _vibrationIntensity = 0.7f;
 
     /// <summary>
     /// 全域震動強度倍率（0.0 ~ 1.0）
