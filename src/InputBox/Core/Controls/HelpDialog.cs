@@ -2,6 +2,7 @@ using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Input;
 using InputBox.Resources;
+using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -224,14 +225,38 @@ internal sealed class HelpDialog : Form
     /// </summary>
     protected override void OnHandleCreated(EventArgs e)
     {
-        base.OnHandleCreated(e);
+        try
+        {
+            base.OnHandleCreated(e);
 
-        ApplyFont();
-        PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, Strings.Help_Keyboard_Rows);
-        PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
-        BindGamepadEvents();
-        UpdateButtonMinimumSize();
-        UpdateFormSize();
+            ApplyFont();
+            PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, Strings.Help_Keyboard_Rows);
+            PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
+            BindGamepadEvents();
+            UpdateButtonMinimumSize();
+            UpdateFormSize();
+
+            // 延遲位置修正，確保 Handle 完全建立後再執行。
+            this.SafeBeginInvoke(() =>
+            {
+                try
+                {
+                    ApplySmartPosition();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[說明] OnHandleCreated 延遲邏輯失敗：{ex.Message}");
+                }
+            });
+
+            // 先解除再訂閱靜態事件，防止 Handle 重建時產生重複訂閱。
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+            SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[說明] OnHandleCreated 失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -239,12 +264,30 @@ internal sealed class HelpDialog : Form
     /// </summary>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
-        base.OnDpiChanged(e);
+        try
+        {
+            base.OnDpiChanged(e);
 
-        ApplyFont();
-        UpdateButtonMinimumSize();
-        UpdateFormSize();
-        ApplySmartPosition();
+            this.SafeInvoke(() =>
+            {
+                try
+                {
+                    ApplyFont();
+                    UpdateButtonMinimumSize();
+                    UpdateFormSize();
+                    ApplySmartPosition();
+                    _btnClose.Invalidate();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[說明] OnDpiChanged 延遲邏輯失敗：{ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[說明] OnDpiChanged 失敗：{ex.Message}");
+        }
     }
 
     /// <summary>
@@ -294,8 +337,22 @@ internal sealed class HelpDialog : Form
         Font? f = Interlocked.Exchange(ref _currentFont, null);
         // f 來自快取池，不處置，僅歸零欄位。
         _ = f;
-        // 關閉按鈕基礎字型（非快取池，需處置）。
+        // 關閉按鈕字型（非快取池，需處置）。
         Interlocked.Exchange(ref _closeRegularFont, null)?.Dispose();
+        Interlocked.Exchange(ref _closeBoldFont, null)?.Dispose();
+    }
+
+    protected override void OnHandleDestroyed(EventArgs e)
+    {
+        try
+        {
+            // 確保靜態事件在視窗控制項控制代碼銷毀時被絕對釋放。
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        }
+        finally
+        {
+            base.OnHandleDestroyed(e);
+        }
     }
 
     /// <summary>
@@ -313,6 +370,11 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private Font? _closeRegularFont;
 
+    /// <summary>
+    /// 關閉按鈕 Bold 狀態字型（焦點/按壓時使用，需獨立管理生命週期）
+    /// </summary>
+    private Font? _closeBoldFont;
+
     // ──── 關閉按鈕視覺狀態 ────
     private float _closeDwellProgress;
     private long _closeAnimId;
@@ -320,17 +382,23 @@ internal sealed class HelpDialog : Form
     private bool _closeIsPressed;
 
     /// <summary>
-    /// 套用共享 A11y 字型到所有控制項。
+    /// 套用共享 A11y 字型到所有控制項，並同步建立按鈕用 Regular / Bold 字型副本。
     /// </summary>
     private void ApplyFont()
     {
         Font shared = MainForm.GetSharedA11yFont(DeviceDpi);
 
         Interlocked.Exchange(ref _currentFont, shared);
-        // 建立非 Bold 的按鈕基礎字型（供 Bold 寬度計算與正常狀態使用）。
+
+        // Regular 字型（供懸停與一般狀態使用）。
         Font? oldRegular = Interlocked.Exchange(ref _closeRegularFont,
             new Font(shared, FontStyle.Regular));
         oldRegular?.Dispose();
+
+        // Bold 字型（供焦點/按壓強烈視覺使用）。
+        Font? oldBold = Interlocked.Exchange(ref _closeBoldFont,
+            new Font(shared, FontStyle.Bold));
+        oldBold?.Dispose();
 
         Font = shared;
     }
@@ -466,6 +534,11 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private void ApplySmartPosition()
     {
+        if (!IsHandleCreated || IsDisposed)
+        {
+            return;
+        }
+
         Rectangle workArea = Screen.GetWorkingArea(this);
 
         int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width));
@@ -474,6 +547,36 @@ internal sealed class HelpDialog : Form
         if (x != Left || y != Top)
         {
             Location = new Point(x, y);
+        }
+    }
+
+    private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        try
+        {
+            if (e.Category == UserPreferenceCategory.Accessibility ||
+                e.Category == UserPreferenceCategory.Color ||
+                e.Category == UserPreferenceCategory.General)
+            {
+                this.SafeInvoke(() =>
+                {
+                    try
+                    {
+                        UpdateButtonMinimumSize();
+                        UpdateFormSize();
+                        ApplySmartPosition();
+                        _btnClose.Invalidate();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[說明] SystemEvents 更新失敗：{ex.Message}");
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[說明] SystemEvents 處理失敗：{ex.Message}");
         }
     }
 
@@ -549,12 +652,13 @@ internal sealed class HelpDialog : Form
     private void UpdateButtonMinimumSize()
     {
         Font? regularFont = _closeRegularFont;
-        if (regularFont == null)
+        Font? boldFont = _closeBoldFont;
+
+        if (regularFont == null || boldFont == null)
         {
             return;
         }
 
-        using Font boldFont = new(regularFont, FontStyle.Bold);
         using Graphics g = _btnClose.CreateGraphics();
 
         SizeF regularSize = g.MeasureString(_btnClose.Text, regularFont);
@@ -581,12 +685,25 @@ internal sealed class HelpDialog : Form
         Interlocked.Increment(ref _closeAnimId);
         _closeDwellProgress = 0f;
 
-        bool isDark = _btnClose.IsDarkModeActive();
-        _btnClose.BackColor = isDark ? Color.White : Color.Black;
-        _btnClose.ForeColor = isDark ? Color.Black : Color.White;
-        _btnClose.Font = _closeRegularFont != null
-            ? new Font(_closeRegularFont, FontStyle.Bold)
-            : _btnClose.Font;
+        if (SystemInformation.HighContrast)
+        {
+            _btnClose.BackColor = SystemColors.Highlight;
+            _btnClose.ForeColor = SystemColors.HighlightText;
+        }
+        else
+        {
+            bool isDark = _btnClose.IsDarkModeActive();
+            _btnClose.BackColor = isDark ? Color.White : Color.Black;
+            _btnClose.ForeColor = isDark ? Color.Black : Color.White;
+        }
+
+        // 使用預建 Bold 字型，避免每次呼叫建立新物件洩漏 GDI 資源。
+        Font? boldFont = _closeBoldFont;
+        if (boldFont != null)
+        {
+            _btnClose.Font = boldFont;
+        }
+
         _btnClose.Invalidate();
     }
 
@@ -606,10 +723,23 @@ internal sealed class HelpDialog : Form
             return;
         }
 
-        bool isDark = _btnClose.IsDarkModeActive();
-        _btnClose.BackColor = isDark ? Color.FromArgb(60, 60, 60) : Color.Gainsboro;
-        _btnClose.ForeColor = Color.Empty;
-        _btnClose.Font = _closeRegularFont ?? _btnClose.Font;
+        if (SystemInformation.HighContrast)
+        {
+            _btnClose.BackColor = SystemColors.HotTrack;
+            _btnClose.ForeColor = SystemColors.HighlightText;
+        }
+        else
+        {
+            bool isDark = _btnClose.IsDarkModeActive();
+            _btnClose.BackColor = isDark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220);
+            _btnClose.ForeColor = isDark ? Color.White : Color.Black;
+        }
+
+        Font? regularFont = _closeRegularFont;
+        if (regularFont != null)
+        {
+            _btnClose.Font = regularFont;
+        }
 
         long currentId = Interlocked.Increment(ref _closeAnimId);
         _closeDwellProgress = 0f;
@@ -639,14 +769,12 @@ internal sealed class HelpDialog : Form
 
         if (_btnClose.Focused)
         {
-            // 焦點留存，維持強烈視覺。
             ApplyStrongCloseVisual();
             return;
         }
 
         if (_closeIsHovered)
         {
-            // 懸停留存，維持懸停背景。
             StartCloseAnimationFeedback();
             return;
         }
@@ -654,7 +782,13 @@ internal sealed class HelpDialog : Form
         // 恢復預設（由主題引擎決定）。
         _btnClose.BackColor = Color.Empty;
         _btnClose.ForeColor = Color.Empty;
-        _btnClose.Font = _closeRegularFont ?? _btnClose.Font;
+
+        Font? regularFont = _closeRegularFont;
+        if (regularFont != null)
+        {
+            _btnClose.Font = regularFont;
+        }
+
         _btnClose.Invalidate();
     }
 
@@ -665,57 +799,81 @@ internal sealed class HelpDialog : Form
     {
         Button btn = _btnClose;
         Graphics g = e.Graphics;
-        Rectangle rc = btn.ClientRectangle;
 
+        // 動態存取最新 DPI，避免靜態捕獲舊 DPI 導致跨螢幕拖曳時繪圖偏移。
+        float scale = btn.DeviceDpi / AppSettings.BaseDpi;
         bool isDark = btn.IsDarkModeActive();
-        float scale = DeviceDpi / 96.0f;
-
-        // ── 基礎邊框（1px，確保無邊框時仍可辨識）──
-        int baseBorderPx = Math.Max(1, (int)scale);
-        Color baseBorderColor = isDark ? Color.DarkGray : Color.DimGray;
-        using (Pen basePen = new(baseBorderColor, baseBorderPx))
-        {
-            g.DrawRectangle(basePen,
-                baseBorderPx / 2f, baseBorderPx / 2f,
-                rc.Width - baseBorderPx, rc.Height - baseBorderPx);
-        }
-
         bool isFocused = btn.Focused;
         bool isHoveredOrDwell = _closeIsHovered || (_closeDwellProgress > 0f);
 
-        // ── 焦點 / 懸停邊框（3px）──
-        if (isFocused || isHoveredOrDwell)
+        // ── 基礎邊框（只在非焦點、非懸停時繪製，與焦點邊框互斥）──
+        // 確保按鈕在靜態狀態下仍具備物理辨識度，不融入背景。
+        if (!isFocused && !isHoveredOrDwell)
         {
-            int focusBorderPx = Math.Max(2, (int)(3 * scale));
-            Color focusColor = isFocused
-                ? (isDark ? Color.Cyan : Color.RoyalBlue)
-                : (isDark ? Color.RoyalBlue : Color.RoyalBlue);
-            using Pen focusPen = new(focusColor, focusBorderPx);
-            g.DrawRectangle(focusPen,
-                focusBorderPx / 2f, focusBorderPx / 2f,
-                rc.Width - focusBorderPx, rc.Height - focusBorderPx);
+            int thickness = (int)Math.Max(1, scale);
+
+            using Pen basePen = new(
+                SystemInformation.HighContrast ?
+                    SystemColors.WindowFrame :
+                    (isDark ? Color.DimGray : Color.DarkGray),
+                thickness);
+
+            g.DrawRectangle(basePen, 0, 0, btn.Width - 1, btn.Height - 1);
         }
 
-        // ── Dwell 進度條（Hover 時，繪於底部）──
+        // ── 焦點 / 懸停邊框（3px，與 BtnCopy 完全對齊）──
+        // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
+        if (isFocused || isHoveredOrDwell)
+        {
+            int borderThickness = (int)Math.Max(3, 3 * scale);
+            int inset = (int)Math.Max(2, 2 * scale);
+
+            using Pen focusPen = new(
+                SystemInformation.HighContrast ?
+                    SystemColors.HighlightText :
+                    (isDark ? Color.RoyalBlue : Color.Cyan),
+                borderThickness);
+
+            g.DrawRectangle(focusPen,
+                inset,
+                inset,
+                btn.Width - (inset * 2) - 1,
+                btn.Height - (inset * 2) - 1);
+        }
+
+        // ── Dwell 進度條（懸停中且非焦點/按壓狀態）──
+        // 雙重編碼（CVD 補償）：實心背景 + BackwardDiagonal 條紋紋理。
         float progress = _closeDwellProgress;
         if (progress > 0f && !isFocused && !_closeIsPressed)
         {
-            int barH = Math.Max(3, (int)(4 * scale));
-            int barW = (int)(rc.Width * progress);
-
-            // 進度條繪製於懸停灰底之上。
-            // 淺色懸停（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停（#3C3C3C）→ DarkOrange 4.73:1。
-            Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown;
-            Color hatchColor = isDark ? Color.OrangeRed : Color.DarkOrange;
+            int barH = (int)(6 * scale);
+            int barW = (int)(btn.Width * progress);
 
             if (barW > 0)
             {
-                Rectangle barRect = new(0, rc.Bottom - barH, barW, barH);
-                using SolidBrush baseBrush = new(baseColor);
-                g.FillRectangle(baseBrush, barRect);
+                Rectangle barRect = new(0, btn.Height - barH, barW, barH);
 
-                using HatchBrush hatch = new(HatchStyle.ForwardDiagonal, hatchColor, baseColor);
-                g.FillRectangle(hatch, barRect);
+                if (SystemInformation.HighContrast)
+                {
+                    using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
+                    g.FillRectangle(barBrush, barRect);
+                }
+                else
+                {
+                    // 懸停灰底對比：淺色懸停（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停（#3C3C3C）→ DarkOrange 4.73:1。
+                    // 均符合 WCAG 1.4.11 非文字 UI 組件最低 3:1 需求。
+                    Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown;
+                    Color hatchColor = isDark ? Color.OrangeRed : Color.DarkOrange;
+
+                    using Brush bgBrush = new SolidBrush(baseColor);
+                    using Brush hatchBrush = new HatchBrush(
+                        HatchStyle.BackwardDiagonal,
+                        hatchColor,
+                        Color.Transparent);
+
+                    g.FillRectangle(bgBrush, barRect);
+                    g.FillRectangle(hatchBrush, barRect);
+                }
             }
         }
     }
