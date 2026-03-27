@@ -38,14 +38,23 @@ internal sealed class HelpDialog : Form
     private readonly TableLayoutPanel _tlpGamepad;
 
     /// <summary>
+    /// 可捲動內容區域（用於動態計算視窗高度）
+    /// </summary>
+    private readonly Panel _pnlScroll;
+
+    /// <summary>
+    /// 內容主版面（用於計算偏好尺寸）
+    /// </summary>
+    private readonly TableLayoutPanel _tlpContent;
+
+    /// <summary>
     /// 初始化說明對話框
     /// </summary>
     public HelpDialog()
     {
         DoubleBuffered = true;
         KeyPreview = true;
-        AutoSize = true;
-        AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        AutoSize = false;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -57,25 +66,26 @@ internal sealed class HelpDialog : Form
         AccessibleName = Strings.Help_Title;
         AccessibleRole = AccessibleRole.Dialog;
 
-        // 主版面：垂直堆疊（鍵盤表、手把表、關閉按鈕）。
-        TableLayoutPanel tlpMain = new()
+        // 內容版面：垂直堆疊（鍵盤表頭、鍵盤表、手把表頭、手把表）。
+        // 使用 Anchor=Top|Left 而非 Dock=Fill，讓捲動面板可正確計算捲動範圍。
+        _tlpContent = new TableLayoutPanel()
         {
-            Dock = DockStyle.Fill,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Anchor = AnchorStyles.Left | AnchorStyles.Top,
+            Location = new Point(0, 0),
             ColumnCount = 1,
-            RowCount = 5
+            RowCount = 4
         };
-        tlpMain.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        tlpMain.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // keyboard heading
-        tlpMain.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // keyboard table
-        tlpMain.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad heading
-        tlpMain.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad table
-        tlpMain.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // close button row
+        _tlpContent.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // keyboard heading
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // keyboard table
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad heading
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad table
 
         // === 鍵盤快速鍵區段 ===
         Label lblKeyboardHeading = CreateSectionHeading(Strings.Help_Section_Keyboard);
-        tlpMain.Controls.Add(lblKeyboardHeading, 0, 0);
+        _tlpContent.Controls.Add(lblKeyboardHeading, 0, 0);
 
         Panel pnlKeyboard = new()
         {
@@ -87,11 +97,11 @@ internal sealed class HelpDialog : Form
 
         _tlpKeyboard = CreateTablePanel();
         pnlKeyboard.Controls.Add(_tlpKeyboard);
-        tlpMain.Controls.Add(pnlKeyboard, 0, 1);
+        _tlpContent.Controls.Add(pnlKeyboard, 0, 1);
 
         // === 手把按鍵對應區段 ===
         Label lblGamepadHeading = CreateSectionHeading(Strings.Help_Section_Gamepad);
-        tlpMain.Controls.Add(lblGamepadHeading, 0, 2);
+        _tlpContent.Controls.Add(lblGamepadHeading, 0, 2);
 
         Panel pnlGamepad = new()
         {
@@ -103,14 +113,22 @@ internal sealed class HelpDialog : Form
 
         _tlpGamepad = CreateTablePanel();
         pnlGamepad.Controls.Add(_tlpGamepad);
-        tlpMain.Controls.Add(pnlGamepad, 0, 3);
+        _tlpContent.Controls.Add(pnlGamepad, 0, 3);
 
-        // === 關閉按鈕 ===
+        // === 可捲動內容面板 ===
+        _pnlScroll = new Panel()
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true,
+        };
+        _pnlScroll.Controls.Add(_tlpContent);
+
+        // === 關閉按鈕（底部固定，不隨內容捲動）===
         _btnClose = new Button()
         {
             Text = Strings.Help_Btn_Close,
             AutoSize = true,
-            Anchor = AnchorStyles.Right,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
             FlatStyle = FlatStyle.Flat,
             AccessibleName = Strings.Help_Btn_Close,
             DialogResult = DialogResult.Cancel
@@ -128,16 +146,20 @@ internal sealed class HelpDialog : Form
             }
         };
 
-        FlowLayoutPanel flpButtons = new()
+        Panel pnlFooter = new()
         {
-            AutoSize = true,
-            Dock = DockStyle.Right
+            Dock = DockStyle.Bottom,
+            Height = 44,
+            Padding = new Padding(0, 8, 0, 0),
         };
-        flpButtons.Controls.Add(_btnClose);
-        tlpMain.Controls.Add(flpButtons, 0, 4);
+        pnlFooter.Controls.Add(_btnClose);
 
         CancelButton = _btnClose;
-        Controls.Add(tlpMain);
+
+        // Dock=Bottom 必須比 Dock=Fill 先加入 Controls，
+        // 才能正確佔據底部空間，讓 Fill 面板填滿剩餘區域。
+        Controls.Add(_pnlScroll);
+        Controls.Add(pnlFooter);
     }
 
     /// <summary>
@@ -151,6 +173,7 @@ internal sealed class HelpDialog : Form
         PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, Strings.Help_Keyboard_Rows);
         PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
         BindGamepadEvents();
+        UpdateFormSize();
     }
 
     /// <summary>
@@ -161,6 +184,7 @@ internal sealed class HelpDialog : Form
         base.OnDpiChanged(e);
 
         ApplyFont();
+        UpdateFormSize();
         ApplySmartPosition();
     }
 
@@ -319,6 +343,40 @@ internal sealed class HelpDialog : Form
             AccessibleName = text,
             Font = isHeader ? null : null // 繼承表格字型，表頭由 Paint 事件加粗
         };
+    }
+
+    /// <summary>
+    /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸。
+    /// 確保捲動條只在真正需要時出現，且關閉按鈕永遠可見。
+    /// </summary>
+    private void UpdateFormSize()
+    {
+        Rectangle workArea = Screen.GetWorkingArea(this);
+
+        // 強制完成一次版面計算，以取得正確的偏好尺寸。
+        _pnlScroll.SuspendLayout();
+        _tlpContent.PerformLayout();
+        _pnlScroll.ResumeLayout(false);
+
+        Size contentPref = _tlpContent.GetPreferredSize(new Size(workArea.Width, 0));
+
+        // 計算邊框與裝飾所需的額外空間。
+        int frameW = SystemInformation.FrameBorderSize.Width * 2;
+        int captionH = SystemInformation.CaptionHeight;
+        int scrollBarW = SystemInformation.VerticalScrollBarWidth;
+        const int FooterHeight = 44;
+
+        // 視窗寬度：內容寬度 + 表單 Padding + 捲動條預留空間 + 框架。
+        int formW = contentPref.Width + Padding.Horizontal + scrollBarW + frameW + 8;
+        formW = Math.Max(formW, 360);
+        formW = Math.Min(formW, workArea.Width - 40);
+
+        // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
+        int naturalH = contentPref.Height + FooterHeight + Padding.Vertical + captionH + frameW + 8;
+        int maxH = (int)(workArea.Height * 0.85f);
+        int formH = Math.Clamp(naturalH, 200, maxH);
+
+        Size = new Size(formW, formH);
     }
 
     /// <summary>
