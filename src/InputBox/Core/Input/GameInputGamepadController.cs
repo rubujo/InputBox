@@ -369,9 +369,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         StopPolling();
 
-        _ctsPolling = new CancellationTokenSource();
+        // 先以區域變數持有新的 CancellationTokenSource，再寫入欄位，
+        // 避免 StopPolling()（Interlocked.Exchange）在欄位寫入與 Token 讀取之間介入，
+        // 導致取得已釋放 Token 的 TOCTOU 競態。
+        CancellationTokenSource cts = new();
 
-        CancellationToken token = _ctsPolling.Token;
+        _ctsPolling = cts;
+
+        CancellationToken token = cts.Token;
 
         TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -388,9 +393,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 確保先停止舊的。
         StopPolling();
 
-        _ctsPolling = new CancellationTokenSource();
+        // 先以區域變數持有新的 CancellationTokenSource，再寫入欄位，
+        // 避免 StopPolling()（Interlocked.Exchange）在欄位寫入與 Token 讀取之間介入，
+        // 導致取得已釋放 Token 的 TOCTOU 競態。
+        CancellationTokenSource cts = new();
 
-        CancellationToken token = _ctsPolling.Token;
+        _ctsPolling = cts;
+
+        CancellationToken token = cts.Token;
 
         _taskPolling = Task.Run(() => PollingLoopAsync(token, null), token);
     }
