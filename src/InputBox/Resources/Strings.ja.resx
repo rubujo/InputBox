@@ -746,6 +746,8 @@
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	文字をクリア（空の場合はゲームに戻る）
 Enter	クリップボードにコピーしてゲームに戻る
+Alt+A	Enterと同じ機能
+Shift+Enter	改行を挿入
 F1	このヘルプを開く
 ↑	前の履歴
 ↓	次の履歴
@@ -776,6 +778,7 @@ LB+RB+X	アプリを終了
 Back+X	ウィンドウの透明度をリセット
 ↑ / ↓	履歴を移動
 ← / →	カーソルを移動
+LB+← / →	単語単位でジャンプ
 RS ← / →	選択範囲を拡大または縮小
 Back+↑ / ↓	透明度を調整（+5% / −5%）</value>
     <comment>ヘルプダイアログ内のゲームパッド操作表のデータ行。タブ区切り形式：ボタン{tab}操作、1行1項目。</comment>

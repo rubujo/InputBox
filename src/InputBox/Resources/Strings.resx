@@ -746,6 +746,8 @@ Make sure that multiple instances of this application are not running at the sam
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	Clear input / Return to game (if empty)
 Enter	Copy to clipboard and return to game
+Alt+A	Same as Enter
+Shift+Enter	Insert a new line
 F1	Open this Help dialog
 ↑	Previous history entry
 ↓	Next history entry
@@ -776,6 +778,7 @@ LB+RB+X	Exit application
 Back+X	Reset window opacity
 ↑ / ↓	Navigate history
 ← / →	Move cursor
+LB+← / →	Jump cursor by word
 RS ← / →	Expand or shrink selection
 Back+↑ / ↓	Adjust window opacity (+5% / −5%)</value>
     <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>

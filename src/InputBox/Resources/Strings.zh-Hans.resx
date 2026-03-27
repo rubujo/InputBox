@@ -746,6 +746,8 @@
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字 / 返回游戏（已空时）
 Enter	复制到剪贴板并返回游戏
+Alt+A	功能等同 Enter
+Shift+Enter	换行
 F1	打开帮助对话框
 ↑	上一条历史记录
 ↓	下一条历史记录
@@ -776,6 +778,7 @@ LB+RB+X	退出程序
 Back+X	重置窗口透明度
 ↑ / ↓	浏览历史记录
 ← / →	光标左移 / 右移
+LB+← / →	单词跳转
 RS ← / →	扩大或缩小选取范围
 Back+↑ / ↓	调整窗口透明度（+5% / −5%）</value>
     <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
