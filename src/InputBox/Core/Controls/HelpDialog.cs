@@ -50,6 +50,11 @@ internal sealed class HelpDialog : Form
     private readonly TableLayoutPanel _tlpContent;
 
     /// <summary>
+    /// 底部按鈕列（Dock=Bottom，高度隨 DPI 動態調整）
+    /// </summary>
+    private readonly Panel _pnlFooter;
+
+    /// <summary>
     /// 初始化說明對話框
     /// </summary>
     public HelpDialog()
@@ -204,20 +209,20 @@ internal sealed class HelpDialog : Form
         // Paint：自訂邊框與注視進度條。
         _btnClose.Paint += BtnClose_Paint;
 
-        Panel pnlFooter = new()
+        _pnlFooter = new Panel()
         {
             Dock = DockStyle.Bottom,
             Height = 44,
             Padding = new Padding(0, 8, 0, 0),
         };
-        pnlFooter.Controls.Add(_btnClose);
+        _pnlFooter.Controls.Add(_btnClose);
 
         CancelButton = _btnClose;
 
         // Dock=Bottom 必須比 Dock=Fill 先加入 Controls，
         // 才能正確佔據底部空間，讓 Fill 面板填滿剩餘區域。
         Controls.Add(_pnlScroll);
-        Controls.Add(pnlFooter);
+        Controls.Add(_pnlFooter);
     }
 
     /// <summary>
@@ -234,6 +239,7 @@ internal sealed class HelpDialog : Form
             PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
             BindGamepadEvents();
             UpdateButtonMinimumSize();
+            UpdateFooterHeight();
             UpdateFormSize();
 
             // 延遲位置修正，確保 Handle 完全建立後再執行。
@@ -274,6 +280,7 @@ internal sealed class HelpDialog : Form
                 {
                     ApplyFont();
                     UpdateButtonMinimumSize();
+                    UpdateFooterHeight();
                     UpdateFormSize();
                     ApplySmartPosition();
                     _btnClose.Invalidate();
@@ -514,7 +521,7 @@ internal sealed class HelpDialog : Form
         int frameW = SystemInformation.FrameBorderSize.Width * 2;
         int captionH = SystemInformation.CaptionHeight;
         int scrollBarW = SystemInformation.VerticalScrollBarWidth;
-        const int FooterHeight = 44;
+        int footerH = _pnlFooter.Height; // 已由 UpdateFooterHeight() 動態計算。
 
         // 視窗寬度：內容寬度 + 表單 Padding + 捲動條預留空間 + 框架。
         int formW = contentPref.Width + Padding.Horizontal + scrollBarW + frameW + 8;
@@ -522,11 +529,30 @@ internal sealed class HelpDialog : Form
         formW = Math.Min(formW, workArea.Width - 40);
 
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
-        int naturalH = contentPref.Height + FooterHeight + Padding.Vertical + captionH + frameW + 8;
-        int maxH = (int)(workArea.Height * 0.85f);
+        // 上限設為可用高度的 70%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）上仍能舒適使用。
+        int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8;
+        int maxH = (int)(workArea.Height * 0.70f);
         int formH = Math.Clamp(naturalH, 200, maxH);
 
         Size = new Size(formW, formH);
+    }
+
+    /// <summary>
+    /// 依據目前 DPI 與按鈕偏好高度，動態更新底部列高度，
+    /// 確保關閉按鈕在任何 DPI 縮放等級下都不會被裁切。
+    /// </summary>
+    private void UpdateFooterHeight()
+    {
+        float scale = DeviceDpi / AppSettings.BaseDpi;
+
+        // 取得按鈕在目前字型下的偏好高度，加上上方 Padding（8px × scale）與邊距（4px × scale）。
+        int btnPrefH = _btnClose.GetPreferredSize(Size.Empty).Height;
+        int needed = btnPrefH + (int)(12 * scale);
+
+        // 基準高度同樣隨 DPI 縮放，確保在高解析度下不顯得過於緊縮。
+        int baseline = (int)(44 * scale);
+
+        _pnlFooter.Height = Math.Max(baseline, needed);
     }
 
     /// <summary>
@@ -563,6 +589,7 @@ internal sealed class HelpDialog : Form
                     try
                     {
                         UpdateButtonMinimumSize();
+                        UpdateFooterHeight();
                         UpdateFormSize();
                         ApplySmartPosition();
                         _btnClose.Invalidate();
