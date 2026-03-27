@@ -1019,6 +1019,16 @@ public partial class MainForm
             return;
         }
 
+        // F1：開啟說明對話框（WCAG 3.3.5）。
+        if (e.KeyCode == Keys.F1)
+        {
+            e.SuppressKeyPress = true;
+
+            ShowHelpDialog();
+
+            return;
+        }
+
         // ←：游標左移／選取。
         if (e.KeyCode == Keys.Left)
         {
@@ -1916,5 +1926,33 @@ public partial class MainForm
         return dialog.ShowDialog(this) == DialogResult.OK ?
             (float)dialog.Value :
             null;
+    }
+
+    /// <summary>
+    /// 顯示說明對話框（WCAG 3.3.5 Help Mechanism）
+    /// </summary>
+    private void ShowHelpDialog()
+    {
+        try
+        {
+            using HelpDialog dialog = new()
+            {
+                GamepadController = _gamepadController
+            };
+
+            // 置於主視窗右側或上方（SmartPosition 會進行邊界修正）。
+            dialog.StartPosition = FormStartPosition.Manual;
+            dialog.Location = new Point(
+                Left + Width + 8,
+                Top);
+
+            dialog.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "[說明] ShowHelpDialog 失敗");
+
+            Debug.WriteLine($"[說明] ShowHelpDialog 失敗：{ex.Message}");
+        }
     }
 }

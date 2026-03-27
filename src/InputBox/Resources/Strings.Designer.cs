@@ -1319,6 +1319,125 @@ namespace InputBox.Resources {
             get {
                 return ResourceManager.GetString("A11y_Menu_Submenu_Exit", resourceCulture);
             }
+        }        /// <summary>
+        ///   查詢 Menu_A11yInterrupt 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_A11yInterrupt {
+            get {
+                return ResourceManager.GetString("Menu_A11yInterrupt", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Menu_A11yInterrupt_Desc 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_A11yInterrupt_Desc {
+            get {
+                return ResourceManager.GetString("Menu_A11yInterrupt_Desc", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 A11y_A11yInterrupt_On 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_A11yInterrupt_On {
+            get {
+                return ResourceManager.GetString("A11y_A11yInterrupt_On", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 A11y_A11yInterrupt_Off 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_A11yInterrupt_Off {
+            get {
+                return ResourceManager.GetString("A11y_A11yInterrupt_Off", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Menu_Help 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Help {
+            get {
+                return ResourceManager.GetString("Menu_Help", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Menu_Help_Desc 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Help_Desc {
+            get {
+                return ResourceManager.GetString("Menu_Help_Desc", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Title 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Title {
+            get {
+                return ResourceManager.GetString("Help_Title", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Section_Keyboard 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Section_Keyboard {
+            get {
+                return ResourceManager.GetString("Help_Section_Keyboard", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Section_Gamepad 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Section_Gamepad {
+            get {
+                return ResourceManager.GetString("Help_Section_Gamepad", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Col_Key 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Col_Key {
+            get {
+                return ResourceManager.GetString("Help_Col_Key", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Col_Button 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Col_Button {
+            get {
+                return ResourceManager.GetString("Help_Col_Button", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Col_Action 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Col_Action {
+            get {
+                return ResourceManager.GetString("Help_Col_Action", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Btn_Close 的當地語系化字串。
+        /// </summary>
+        internal static string Help_Btn_Close {
+            get {
+                return ResourceManager.GetString("Help_Btn_Close", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_A11y_Keyboard_Group 的當地語系化字串。
+        /// </summary>
+        internal static string Help_A11y_Keyboard_Group {
+            get {
+                return ResourceManager.GetString("Help_A11y_Keyboard_Group", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_A11y_Gamepad_Group 的當地語系化字串。
+        /// </summary>
+        internal static string Help_A11y_Gamepad_Group {
+            get {
+                return ResourceManager.GetString("Help_A11y_Gamepad_Group", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Keyboard_Rows 的當地語系化字串（以 Tab 分隔欄位，換行分隔列）。
+        /// </summary>
+        internal static string Help_Keyboard_Rows {
+            get {
+                return ResourceManager.GetString("Help_Keyboard_Rows", resourceCulture);
+            }
+        }        /// <summary>
+        ///   查詢 Help_Gamepad_Rows 的當地語系化字串（以 Tab 分隔欄位，換行分隔列）。
+        /// </summary>
+        internal static string Help_Gamepad_Rows {
+            get {
+                return ResourceManager.GetString("Help_Gamepad_Rows", resourceCulture);
+            }
         }
     }
 }

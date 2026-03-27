@@ -679,4 +679,91 @@
     <value>退出 {0} 子選單</value>
     <comment>Announce when exiting a submenu using gamepad</comment>
   </data>
+  <data name="Menu_A11yInterrupt" xml:space="preserve">
+    <value>允許中斷廣播 (&amp;I)</value>
+    <comment>右鍵選單項目，切換是否允許無障礙廣播中斷前一則訊息（WCAG 2.2.4）。</comment>
+  </data>
+  <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
+    <value>允許新廣播中斷前一則訊息。停用後，每則訊息都將完整播報。</value>
+    <comment>「允許中斷廣播」切換選單項目的無障礙描述。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_On" xml:space="preserve">
+    <value>已啟用廣播中斷。</value>
+    <comment>開啟「允許中斷廣播」設定時播放的無障礙播報訊息。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
+    <value>已停用廣播中斷，所有訊息將完整依序播報。</value>
+    <comment>關閉「允許中斷廣播」設定時播放的無障礙播報訊息。</comment>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>說明 (&amp;?)</value>
+    <comment>開啟說明對話框的右鍵選單項目（WCAG 3.3.5）。</comment>
+  </data>
+  <data name="Menu_Help_Desc" xml:space="preserve">
+    <value>顯示鍵盤快速鍵與手把按鍵對應表（F1）</value>
+    <comment>「說明」選單項目的無障礙描述。</comment>
+  </data>
+  <data name="Help_Title" xml:space="preserve">
+    <value>說明 — 鍵盤快速鍵與手把按鍵對應</value>
+    <comment>說明對話框的標題列文字。</comment>
+  </data>
+  <data name="Help_Section_Keyboard" xml:space="preserve">
+    <value>鍵盤快速鍵</value>
+    <comment>說明對話框中鍵盤快速鍵表格的區段標題。</comment>
+  </data>
+  <data name="Help_Section_Gamepad" xml:space="preserve">
+    <value>手把按鍵對應</value>
+    <comment>說明對話框中手把按鍵對應表格的區段標題。</comment>
+  </data>
+  <data name="Help_Col_Key" xml:space="preserve">
+    <value>按鍵</value>
+    <comment>說明對話框中鍵盤快速鍵表格的「按鍵」欄標題。</comment>
+  </data>
+  <data name="Help_Col_Button" xml:space="preserve">
+    <value>按鈕</value>
+    <comment>說明對話框中手把按鍵對應表格的「按鈕」欄標題。</comment>
+  </data>
+  <data name="Help_Col_Action" xml:space="preserve">
+    <value>功能</value>
+    <comment>說明對話框中兩個表格的「功能」欄標題。</comment>
+  </data>
+  <data name="Help_Btn_Close" xml:space="preserve">
+    <value>關閉 (&amp;C)</value>
+    <comment>說明對話框中「關閉」按鈕的標籤文字。</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
+    <value>鍵盤快速鍵表格</value>
+    <comment>說明對話框中鍵盤快速鍵區段容器的無障礙名稱。</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
+    <value>手把按鍵對應表格</value>
+    <comment>說明對話框中手把按鍵對應區段容器的無障礙名稱。</comment>
+  </data>
+  <data name="Help_Keyboard_Rows" xml:space="preserve">
+    <value>Esc	清除文字 / 返回遊戲（已空時）
+Enter	複製到剪貼簿並返回遊戲
+F1	開啟說明對話框
+↑	上一筆歷程記錄
+↓	下一筆歷程記錄
+←	游標左移
+→	游標右移
+Shift+←	向左選取文字
+Shift+→	向右選取文字</value>
+    <comment>說明對話框中鍵盤快速鍵表格的資料列，以 Tab 分隔欄位：按鍵{tab}功能，每行一列。</comment>
+  </data>
+  <data name="Help_Gamepad_Rows" xml:space="preserve">
+    <value>A / Start	複製到剪貼簿並返回遊戲
+B	清除文字
+LB+RB+B	返回遊戲（文字框已空時）
+Back（放開）	返回遊戲
+Y	開啟右鍵選單
+X	刪除前一字元或選取範圍
+LB+RB+X	結束程式
+Back+X	重設視窗透明度
+↑ / ↓	導覽歷程記錄
+← / →	游標左移 / 右移
+RS ← / →	擴大或縮小選取範圍
+Back+↑ / ↓	調整視窗透明度（+5% / −5%）</value>
+    <comment>說明對話框中手把按鍵對應表格的資料列，以 Tab 分隔欄位：按鈕{tab}功能，每行一列。</comment>
+  </data>
 </root>

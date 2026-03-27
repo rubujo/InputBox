@@ -110,6 +110,11 @@ public partial class MainForm : Form
     private ToolStripMenuItem? _tsmiPrivacyMode;
 
     /// <summary>
+    /// 允許中斷廣播選單項
+    /// </summary>
+    private ToolStripMenuItem? _tsmiA11yInterrupt;
+
+    /// <summary>
     /// 上一次的遊戲控制器連線狀態（用於防止重複廣播）
     /// </summary>
     private bool? _lastGamepadConnectedState;

@@ -679,4 +679,91 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Exiting {0} submenu</value>
     <comment>Announce when exiting a submenu using gamepad</comment>
   </data>
+  <data name="Menu_A11yInterrupt" xml:space="preserve">
+    <value>Interrupt Announcements (&amp;I)</value>
+    <comment>Context menu item that toggles whether screen reader announcements can interrupt the previous one (WCAG 2.2.4).</comment>
+  </data>
+  <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
+    <value>Allow announcements to interrupt the previous one. Disable to hear every message in full.</value>
+    <comment>Accessible description for the interrupt announcements toggle menu item.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_On" xml:space="preserve">
+    <value>Interrupt announcements enabled.</value>
+    <comment>Screen reader announcement played when the interrupt-announcements setting is turned on.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
+    <value>Interrupt announcements disabled. All messages will be announced in full.</value>
+    <comment>Screen reader announcement played when the interrupt-announcements setting is turned off.</comment>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>Help (&amp;?)</value>
+    <comment>Context menu item that opens the help dialog (WCAG 3.3.5).</comment>
+  </data>
+  <data name="Menu_Help_Desc" xml:space="preserve">
+    <value>Show keyboard shortcuts and gamepad controls (F1)</value>
+    <comment>Accessible description for the Help menu item.</comment>
+  </data>
+  <data name="Help_Title" xml:space="preserve">
+    <value>Help — Keyboard Shortcuts &amp; Gamepad Controls</value>
+    <comment>Title bar text of the Help dialog.</comment>
+  </data>
+  <data name="Help_Section_Keyboard" xml:space="preserve">
+    <value>Keyboard Shortcuts</value>
+    <comment>Section heading inside the Help dialog for the keyboard shortcut table.</comment>
+  </data>
+  <data name="Help_Section_Gamepad" xml:space="preserve">
+    <value>Gamepad Controls</value>
+    <comment>Section heading inside the Help dialog for the gamepad controls table.</comment>
+  </data>
+  <data name="Help_Col_Key" xml:space="preserve">
+    <value>Key</value>
+    <comment>Column header for the key/button column in the keyboard shortcut table inside the Help dialog.</comment>
+  </data>
+  <data name="Help_Col_Button" xml:space="preserve">
+    <value>Button</value>
+    <comment>Column header for the button column in the gamepad controls table inside the Help dialog.</comment>
+  </data>
+  <data name="Help_Col_Action" xml:space="preserve">
+    <value>Action</value>
+    <comment>Column header for the action description column in both tables inside the Help dialog.</comment>
+  </data>
+  <data name="Help_Btn_Close" xml:space="preserve">
+    <value>Close (&amp;C)</value>
+    <comment>Label for the Close button in the Help dialog.</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
+    <value>Keyboard shortcuts table</value>
+    <comment>Accessible name for the keyboard shortcuts section container in the Help dialog.</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
+    <value>Gamepad controls table</value>
+    <comment>Accessible name for the gamepad controls section container in the Help dialog.</comment>
+  </data>
+  <data name="Help_Keyboard_Rows" xml:space="preserve">
+    <value>Esc	Clear input / Return to game (if empty)
+Enter	Copy to clipboard and return to game
+F1	Open this Help dialog
+↑	Previous history entry
+↓	Next history entry
+←	Move cursor left
+→	Move cursor right
+Shift+←	Select text leftward
+Shift+→	Select text rightward</value>
+    <comment>Tab-separated rows for the keyboard shortcut table in the Help dialog. Format: Key{tab}Action. One row per line.</comment>
+  </data>
+  <data name="Help_Gamepad_Rows" xml:space="preserve">
+    <value>A / Start	Copy to clipboard and return to game
+B	Clear input text
+LB+RB+B	Return to game (when input is empty)
+Back (release)	Return to game
+Y	Open context menu
+X	Delete previous character or selection
+LB+RB+X	Exit application
+Back+X	Reset window opacity
+↑ / ↓	Navigate history
+← / →	Move cursor
+RS ← / →	Expand or shrink selection
+Back+↑ / ↓	Adjust window opacity (+5% / −5%)</value>
+    <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>
+  </data>
 </root>

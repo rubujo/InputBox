@@ -100,6 +100,32 @@ public partial class MainForm
             }
         };
 
+        // 允許中斷廣播（WCAG 2.2.4）。
+        _tsmiA11yInterrupt = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_A11yInterrupt, 'I'))
+        {
+            CheckOnClick = true,
+            Checked = AppSettings.Current.A11yInterruptEnabled,
+            AccessibleName = Strings.Menu_A11yInterrupt,
+            AccessibleDescription = Strings.Menu_A11yInterrupt_Desc
+        };
+
+        _tsmiA11yInterrupt.CheckedChanged += (s, e) =>
+        {
+            try
+            {
+                AppSettings.Current.A11yInterruptEnabled = _tsmiA11yInterrupt.Checked;
+                AppSettings.Save();
+
+                AnnounceA11y(AppSettings.Current.A11yInterruptEnabled ?
+                    Strings.A11y_A11yInterrupt_On :
+                    Strings.A11y_A11yInterrupt_Off);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _tsmiA11yInterrupt.CheckedChanged 失敗：{ex.Message}");
+            }
+        };
+
         // 快速鍵設定子選單。
         ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'H'))
         {
@@ -834,14 +860,35 @@ public partial class MainForm
             }
         };
 
+        // 說明（WCAG 3.3.5）。
+        ToolStripMenuItem tsmiHelp = new(ControlExtensions.GetMnemonicText(Strings.Menu_Help, '?'))
+        {
+            AccessibleName = Strings.Menu_Help,
+            AccessibleDescription = Strings.Menu_Help_Desc
+        };
+        tsmiHelp.Click += (s, e) =>
+        {
+            try
+            {
+                ShowHelpDialog();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiHelp.Click 失敗：{ex.Message}");
+            }
+        };
+
         // 使用共享快取取得選單字型。
         _cmsInput.Font = GetSharedA11yFont(DeviceDpi);
 
         _cmsInput.Items.Add(_tsmiPrivacyMode);
+        _cmsInput.Items.Add(_tsmiA11yInterrupt);
         _cmsInput.Items.Add(tsmiHotkeySettings);
         _cmsInput.Items.Add(tsmiSettings);
         _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(tsmiClearHistory);
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(tsmiHelp);
         _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(tsmiExit);
 

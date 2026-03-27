@@ -679,4 +679,91 @@
     <value>退出 {0} 子菜单</value>
     <comment>Announce when exiting a submenu using gamepad</comment>
   </data>
+  <data name="Menu_A11yInterrupt" xml:space="preserve">
+    <value>允许中断播报 (&amp;I)</value>
+    <comment>右键菜单项，切换是否允许无障碍播报中断上一条消息（WCAG 2.2.4）。</comment>
+  </data>
+  <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
+    <value>允许新播报中断上一条消息。停用后，每条消息都将完整播报。</value>
+    <comment>「允许中断播报」切换菜单项的无障碍描述。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_On" xml:space="preserve">
+    <value>已启用播报中断。</value>
+    <comment>开启「允许中断播报」设置时播放的无障碍播报消息。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
+    <value>已停用播报中断，所有消息将完整依序播报。</value>
+    <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>帮助 (&amp;?)</value>
+    <comment>打开帮助对话框的右键菜单项（WCAG 3.3.5）。</comment>
+  </data>
+  <data name="Menu_Help_Desc" xml:space="preserve">
+    <value>显示键盘快捷键和手柄按键对照表（F1）</value>
+    <comment>「帮助」菜单项的无障碍描述。</comment>
+  </data>
+  <data name="Help_Title" xml:space="preserve">
+    <value>帮助 — 键盘快捷键与手柄按键对照</value>
+    <comment>帮助对话框的标题栏文字。</comment>
+  </data>
+  <data name="Help_Section_Keyboard" xml:space="preserve">
+    <value>键盘快捷键</value>
+    <comment>帮助对话框中键盘快捷键表格的区段标题。</comment>
+  </data>
+  <data name="Help_Section_Gamepad" xml:space="preserve">
+    <value>手柄按键对照</value>
+    <comment>帮助对话框中手柄按键对照表格的区段标题。</comment>
+  </data>
+  <data name="Help_Col_Key" xml:space="preserve">
+    <value>按键</value>
+    <comment>帮助对话框中键盘快捷键表格的「按键」列标题。</comment>
+  </data>
+  <data name="Help_Col_Button" xml:space="preserve">
+    <value>按钮</value>
+    <comment>帮助对话框中手柄按键对照表格的「按钮」列标题。</comment>
+  </data>
+  <data name="Help_Col_Action" xml:space="preserve">
+    <value>功能</value>
+    <comment>帮助对话框中两个表格的「功能」列标题。</comment>
+  </data>
+  <data name="Help_Btn_Close" xml:space="preserve">
+    <value>关闭 (&amp;C)</value>
+    <comment>帮助对话框中「关闭」按钮的标签文字。</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
+    <value>键盘快捷键表格</value>
+    <comment>帮助对话框中键盘快捷键区段容器的无障碍名称。</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
+    <value>手柄按键对照表格</value>
+    <comment>帮助对话框中手柄按键对照区段容器的无障碍名称。</comment>
+  </data>
+  <data name="Help_Keyboard_Rows" xml:space="preserve">
+    <value>Esc	清除文字 / 返回游戏（已空时）
+Enter	复制到剪贴板并返回游戏
+F1	打开帮助对话框
+↑	上一条历史记录
+↓	下一条历史记录
+←	光标左移
+→	光标右移
+Shift+←	向左选取文字
+Shift+→	向右选取文字</value>
+    <comment>帮助对话框中键盘快捷键表格的数据行，以 Tab 分隔列：按键{tab}功能，每行一条。</comment>
+  </data>
+  <data name="Help_Gamepad_Rows" xml:space="preserve">
+    <value>A / Start	复制到剪贴板并返回游戏
+B	清除文字
+LB+RB+B	返回游戏（输入框已空时）
+Back（松开）	返回游戏
+Y	打开右键菜单
+X	删除前一字符或选中内容
+LB+RB+X	退出程序
+Back+X	重置窗口透明度
+↑ / ↓	浏览历史记录
+← / →	光标左移 / 右移
+RS ← / →	扩大或缩小选取范围
+Back+↑ / ↓	调整窗口透明度（+5% / −5%）</value>
+    <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
+  </data>
 </root>

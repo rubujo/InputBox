@@ -275,6 +275,21 @@ public class AppSettings
     }
 
     /// <summary>
+    /// 是否允許無障礙廣播中斷前一則訊息（WCAG 2.2.4）
+    /// <para>停用後，廣播佇列將以完整排隊模式播報，適合需要完整聆聽所有訊息的使用者。</para>
+    /// </summary>
+    private volatile bool _a11yInterruptEnabled = true;
+
+    /// <summary>
+    /// 是否允許無障礙廣播中斷前一則訊息（WCAG 2.2.4）
+    /// </summary>
+    public bool A11yInterruptEnabled
+    {
+        get => _a11yInterruptEnabled;
+        set => _a11yInterruptEnabled = value;
+    }
+
+    /// <summary>
     /// 視窗不透明度（0.5 ~ 1.0）
     /// </summary>
     private volatile float _windowOpacity = 1.0f;

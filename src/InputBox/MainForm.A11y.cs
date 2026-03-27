@@ -327,7 +327,8 @@ public partial class MainForm
 
                                 // 填入正式訊息並更新最後處理 ID，
                                 // 將 interrupt 屬性正確傳遞給 AnnouncerLabel。
-                                _lblA11yAnnouncer.Announce(request.Message, request.Interrupt);
+                                // 若使用者停用廣播中斷（WCAG 2.2.4），則強制以排隊模式播報。
+                                _lblA11yAnnouncer.Announce(request.Message, request.Interrupt && AppSettings.Current.A11yInterruptEnabled);
 
                                 _lastProcessedAnnouncementId = request.Id;
                             }

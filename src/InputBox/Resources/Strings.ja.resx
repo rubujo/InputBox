@@ -679,4 +679,91 @@
     <value>{0} サブメニューを閉じます</value>
     <comment>Announce when exiting a submenu using gamepad</comment>
   </data>
+  <data name="Menu_A11yInterrupt" xml:space="preserve">
+    <value>読み上げ中断を許可 (&amp;I)</value>
+    <comment>読み上げ中断のオン/オフを切り替えるコンテキストメニュー項目（WCAG 2.2.4）。</comment>
+  </data>
+  <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
+    <value>新しい通知が前の読み上げを中断することを許可します。無効にすると、すべてのメッセージが完全に読み上げられます。</value>
+    <comment>読み上げ中断トグルメニュー項目のアクセシブルな説明。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_On" xml:space="preserve">
+    <value>読み上げ中断を有効にしました。</value>
+    <comment>読み上げ中断設定をオンにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
+    <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
+    <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>ヘルプ (&amp;?)</value>
+    <comment>ヘルプダイアログを開くコンテキストメニュー項目（WCAG 3.3.5）。</comment>
+  </data>
+  <data name="Menu_Help_Desc" xml:space="preserve">
+    <value>キーボードショートカットとゲームパッド操作を表示（F1）</value>
+    <comment>ヘルプメニュー項目のアクセシブルな説明。</comment>
+  </data>
+  <data name="Help_Title" xml:space="preserve">
+    <value>ヘルプ — キーボードショートカットとゲームパッド操作</value>
+    <comment>ヘルプダイアログのタイトルバーテキスト。</comment>
+  </data>
+  <data name="Help_Section_Keyboard" xml:space="preserve">
+    <value>キーボードショートカット</value>
+    <comment>ヘルプダイアログ内のキーボードショートカット表のセクション見出し。</comment>
+  </data>
+  <data name="Help_Section_Gamepad" xml:space="preserve">
+    <value>ゲームパッド操作</value>
+    <comment>ヘルプダイアログ内のゲームパッド操作表のセクション見出し。</comment>
+  </data>
+  <data name="Help_Col_Key" xml:space="preserve">
+    <value>キー</value>
+    <comment>ヘルプダイアログ内のキーボードショートカット表の「キー」列ヘッダー。</comment>
+  </data>
+  <data name="Help_Col_Button" xml:space="preserve">
+    <value>ボタン</value>
+    <comment>ヘルプダイアログ内のゲームパッド操作表の「ボタン」列ヘッダー。</comment>
+  </data>
+  <data name="Help_Col_Action" xml:space="preserve">
+    <value>操作</value>
+    <comment>ヘルプダイアログ内の両方の表の「操作」列ヘッダー。</comment>
+  </data>
+  <data name="Help_Btn_Close" xml:space="preserve">
+    <value>閉じる (&amp;C)</value>
+    <comment>ヘルプダイアログ内の「閉じる」ボタンのラベルテキスト。</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
+    <value>キーボードショートカット表</value>
+    <comment>ヘルプダイアログ内のキーボードショートカットセクションコンテナのアクセシブル名。</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
+    <value>ゲームパッド操作表</value>
+    <comment>ヘルプダイアログ内のゲームパッド操作セクションコンテナのアクセシブル名。</comment>
+  </data>
+  <data name="Help_Keyboard_Rows" xml:space="preserve">
+    <value>Esc	文字をクリア（空の場合はゲームに戻る）
+Enter	クリップボードにコピーしてゲームに戻る
+F1	このヘルプを開く
+↑	前の履歴
+↓	次の履歴
+←	カーソルを左に移動
+→	カーソルを右に移動
+Shift+←	左に選択を拡大
+Shift+→	右に選択を拡大</value>
+    <comment>ヘルプダイアログ内のキーボードショートカット表のデータ行。タブ区切り形式：キー{tab}操作、1行1項目。</comment>
+  </data>
+  <data name="Help_Gamepad_Rows" xml:space="preserve">
+    <value>A / Start	クリップボードにコピーしてゲームに戻る
+B	文字をクリア
+LB+RB+B	ゲームに戻る（入力欄が空の場合）
+Back（離す）	ゲームに戻る
+Y	右クリックメニューを開く
+X	直前の文字または選択範囲を削除
+LB+RB+X	アプリを終了
+Back+X	ウィンドウの透明度をリセット
+↑ / ↓	履歴を移動
+← / →	カーソルを移動
+RS ← / →	選択範囲を拡大または縮小
+Back+↑ / ↓	透明度を調整（+5% / −5%）</value>
+    <comment>ヘルプダイアログ内のゲームパッド操作表のデータ行。タブ区切り形式：ボタン{tab}操作、1行1項目。</comment>
+  </data>
 </root>
