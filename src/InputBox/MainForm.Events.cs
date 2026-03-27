@@ -1738,11 +1738,39 @@ public partial class MainForm
 
         if (isFocused)
         {
-            // 獲得焦點：僅變更背景色以提供視覺暗示。
-            // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
-            PInputHost.BackColor = SystemInformation.HighContrast ?
-                SystemColors.Highlight :
-                (TBInput.IsDarkModeActive() ? Color.RoyalBlue : Color.Cyan);
+            // 情境感知焦點邊框色（Context-Aware Focus Border Color）：
+            // 依據 TBInput.BackColor 實際值動態選取，確保在強視覺（反轉底色）
+            // 與中性（懸停灰）兩種狀態下皆達 WCAG AA（≥ 4.5:1）以上。
+            Color borderColor;
+
+            if (SystemInformation.HighContrast)
+            {
+                borderColor = SystemColors.Highlight;
+            }
+            else if (TBInput.BackColor == Color.Black)
+            {
+                // 淺色強視覺（黑底）16.75:1 AAA。
+                borderColor = Color.Cyan;
+            }
+            else if (TBInput.BackColor == Color.White)
+            {
+                // 深色強視覺（白底）11.16:1 AAA。
+                borderColor = Color.MediumBlue;
+            }
+            else if (TBInput.IsDarkModeActive())
+            {
+                // TBInput 尚未反轉（即將設為 White），使用深色模式預期色。
+                // 深色中性 11.16:1 AAA。
+                borderColor = Color.MediumBlue;
+            }
+            else
+            {
+                // TBInput 尚未反轉（即將設為 Black），使用淺色模式預期色。
+                // 淺色中性 16.75:1 AAA。
+                borderColor = Color.Cyan;
+            }
+
+            PInputHost.BackColor = borderColor;
         }
         else
         {

@@ -21,7 +21,7 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     /// <summary>
     /// 是否已處置
     /// </summary>
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// FormInputContext
@@ -149,11 +149,19 @@ internal sealed class FormInputContext : IInputContext, IDisposable
         _disposed = true;
 
         // 解除訂閱，防止記憶體洩漏。
-        _form.VisibleChanged -= OnFormStateChanged;
-        _form.Activated -= OnFormStateChanged;
-        _form.Deactivate -= OnFormStateChanged;
-        _form.SizeChanged -= OnFormStateChanged;
-        _form.FormClosed -= OnFormClosed;
+        // 統一包裹在 try-catch 中，防止視窗已處置或關閉時序導致的例外。
+        try
+        {
+            _form.VisibleChanged -= OnFormStateChanged;
+            _form.Activated -= OnFormStateChanged;
+            _form.Deactivate -= OnFormStateChanged;
+            _form.SizeChanged -= OnFormStateChanged;
+            _form.FormClosed -= OnFormClosed;
+        }
+        catch
+        {
+            // 忽略解除訂閱時的任何異常（通常發生在 Form 已處置時）。
+        }
 
         // 解除閒置訂閱。
         // 注意：Application.Idle 與 UI 訊息迴圈掛鉤，

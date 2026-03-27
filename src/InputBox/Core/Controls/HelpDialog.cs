@@ -71,6 +71,10 @@ internal sealed class HelpDialog : Form
         Text = Strings.Help_Title;
         Padding = new Padding(12);
         AccessibleName = Strings.Help_Title;
+
+        // 繼承圖示：優先從主視窗繼承，保持應用程式視覺識別的一致性。
+        Icon = Application.OpenForms.OfType<MainForm>().FirstOrDefault()?.Icon ??
+            ActiveForm?.Icon;
         AccessibleRole = AccessibleRole.Dialog;
 
         // 內容版面：垂直堆疊（鍵盤表頭、鍵盤表、控制器表頭、控制器表）。
@@ -1008,8 +1012,8 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private void UpdateButtonMinimumSize()
     {
-        Font? regularFont = _closeRegularFont;
-        Font? boldFont = _closeBoldFont;
+        Font? regularFont = _closeRegularFont,
+            boldFont = _closeBoldFont;
 
         if (regularFont == null ||
             boldFont == null)
@@ -1029,6 +1033,7 @@ internal sealed class HelpDialog : Form
 
         // 強制套用 WCAG 2.5.5 AAA 觸控目標尺寸下限（44×44 邏輯像素，隨 DPI 等比縮放）。
         int a11yMin = (int)Math.Ceiling(44.0 * DeviceDpi / AppSettings.BaseDpi);
+
         maxW = Math.Max(maxW, a11yMin);
         maxH = Math.Max(maxH, a11yMin);
 
@@ -1206,10 +1211,10 @@ internal sealed class HelpDialog : Form
 
         // 焦點／懸停邊框（3px，與 BtnCopy 完全對齊）。
         // 邊框色依當前 BackColor 實際值選取，確保在四種情境下皆達 WCAG AAA（≥7:1）：
-        // Black bg（淺色強視覺）→ Cyan      21:1 AAA
+        // Black bg（淺色強視覺）→ Cyan 21:1 AAA
         // White bg（深色強視覺）→ MediumBlue 16:1 AAA
-        // 深色中性／懸停灰    → DeepSkyBlue  7.9:1 AAA
-        // 淺色中性／懸停灰    → MediumBlue  　4.2:1 AAA
+        // 深色中性／懸停灰 → DeepSkyBlue 7.9:1 AAA
+        // 淺色中性／懸停灰 → MediumBlue 4.2:1 AAA
         if (isFocused ||
             isHoveredOrDwell)
         {
@@ -1276,9 +1281,13 @@ internal sealed class HelpDialog : Form
                 {
                     // 懸停灰底對比：淺色懸停（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停（#3C3C3C）→ DarkOrange 4.73:1。
                     // 均符合 WCAG 1.4.11 非文字 UI 組件最低 3:1 需求。
-                    Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown,
+                    Color baseColor = isDark ?
+                            Color.DarkOrange :
+                            Color.SaddleBrown,
                         // Maroon on DarkOrange = 4.69:1 UI-AA（OrangeRed = 1.48:1 ❌）
-                        hatchColor = isDark ? Color.Maroon : Color.DarkOrange;
+                        hatchColor = isDark ?
+                            Color.Maroon :
+                            Color.DarkOrange;
 
                     using Brush bgBrush = new SolidBrush(baseColor);
                     using Brush hatchBrush = new HatchBrush(

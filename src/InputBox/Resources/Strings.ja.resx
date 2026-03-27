@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -677,11 +677,11 @@
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>{0} サブメニューに入ります</value>
-    <comment>Announce when entering a submenu using gamepad</comment>
+    <comment>コントローラーでサブメニューに入る際のアクセシビリティ読み上げメッセージ。</comment>
   </data>
   <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
     <value>{0} サブメニューを閉じます</value>
-    <comment>Announce when exiting a submenu using gamepad</comment>
+    <comment>コントローラーでサブメニューを閉じる際のアクセシビリティ読み上げメッセージ。</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
     <value>読み上げ中断を許可 (&amp;I)</value>
@@ -746,41 +746,41 @@
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	文字をクリア（空の場合はゲームに戻る）
 Enter	クリップボードにコピーしてゲームに戻る
-Alt+A	Enterと同じ機能
-Shift+Enter	改行を挿入
+Alt + A	Enterと同じ機能
+Shift + Enter	改行を挿入
 F1	このヘルプを開く
 ↑	前の履歴
 ↓	次の履歴
 ←	カーソルを左に移動
 →	カーソルを右に移動
-Shift+←	左に選択を拡大
-Shift+→	右に選択を拡大
+Shift + ←	左に選択を拡大
+Shift + →	右に選択を拡大
 Home / End	カーソルを行頭 / 行末に移動
-Ctrl+← / →	単語単位でカーソルを移動
+Ctrl + ← / →	単語単位でカーソルを移動
 Backspace	直前の文字または選択範囲を削除
 Delete	直後の文字を削除
-Alt+B	コピーせずにゲームに戻る
-Alt+↑ / ↓	ウィンドウの透明度を増減（+5% / −5%）
-Alt+0	ウィンドウの透明度をリセット（100%）
-Alt+P	プライバシーモードを切り替え
-F10 / Alt+M	右クリックメニューを開く
-Ctrl+M	テキスト入力欄にジャンプ</value>
+Alt + B	コピーせずにゲームに戻る
+Alt + ↑ / ↓	ウィンドウの透明度を増減（+5% / −5%）
+Alt + 0	ウィンドウの透明度をリセット（100%）
+Alt + P	プライバシーモードを切り替え
+F10 / Alt + M	右クリックメニューを開く
+Ctrl + M	テキスト入力欄にジャンプ</value>
     <comment>ヘルプダイアログ内のキーボードショートカット表のデータ行。タブ区切り形式：キー{tab}操作、1行1項目。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
     <value>A / Start	クリップボードにコピーしてゲームに戻る
 B	文字をクリア
-LB+RB+B	ゲームに戻る（入力欄が空の場合）
-Back （離す）	ゲームに戻る
+LB + RB + B	ゲームに戻る（入力欄が空の場合）
+Back（離す）	ゲームに戻る
 Y	右クリックメニューを開く
 X	直前の文字または選択範囲を削除
-LB+RB+X	アプリを終了
-Back+X	ウィンドウの透明度をリセット
+LB + RB + X	アプリを終了
+Back + X	ウィンドウの透明度をリセット
 ↑ / ↓	履歴を移動
 ← / →	カーソルを移動
-LB+← / →	単語単位でジャンプ
+LB + ← / →	単語単位でジャンプ
 RS ← / →	選択範囲を拡大または縮小
-Back+↑ / ↓	透明度を調整（+5% / −5%）</value>
+Back + ↑ / ↓	透明度を調整（+5% / −5%）</value>
     <comment>ヘルプダイアログ内のゲームパッド操作表のデータ行。タブ区切り形式：ボタン{tab}操作、1行1項目。</comment>
   </data>
 </root>

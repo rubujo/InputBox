@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -215,7 +215,7 @@
   </data>
   <data name="A11y_Cursor_Move" xml:space="preserve">
     <value>光标位于第 {0} 个字符</value>
-    <comment>播报目前游标的絕對位置</comment>
+    <comment>播报目前游标的绝对位置</comment>
   </data>
   <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
     <value>光标已移动。</value>
@@ -677,11 +677,11 @@
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>进入 {0} 子菜单</value>
-    <comment>Announce when entering a submenu using gamepad</comment>
+    <comment>使用控制器进入子菜单时的无障碍广播消息。</comment>
   </data>
   <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
     <value>退出 {0} 子菜单</value>
-    <comment>Announce when exiting a submenu using gamepad</comment>
+    <comment>使用控制器退出子菜单时的无障碍广播消息。</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
     <value>允许中断播报 (&amp;I)</value>
@@ -746,41 +746,41 @@
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字 / 返回游戏（已空时）
 Enter	复制到剪贴板并返回游戏
-Alt+A	功能等同 Enter
-Shift+Enter	换行
+Alt + A	功能等同 Enter
+Shift + Enter	换行
 F1	打开帮助对话框
 ↑	上一条历史记录
 ↓	下一条历史记录
 ←	光标左移
 →	光标右移
-Shift+←	向左选取文字
-Shift+→	向右选取文字
+Shift + ←	向左选取文字
+Shift + →	向右选取文字
 Home / End	光标跳至行首 / 行尾
-Ctrl+← / →	前一个 / 后一个单词
+Ctrl + ← / →	前一个 / 后一个单词
 Backspace	删除前一字符或选中内容
 Delete	删除后一字符
-Alt+B	返回游戏（不复制）
-Alt+↑ / ↓	增加 / 减少窗口透明度（+5% / −5%）
-Alt+0	重置窗口透明度（100%）
-Alt+P	切换隐私模式
-F10 / Alt+M	打开右键菜单
-Ctrl+M	跳至文本输入框</value>
+Alt + B	返回游戏（不复制）
+Alt + ↑ / ↓	增加 / 减少窗口透明度（+5% / −5%）
+Alt + 0	重置窗口透明度（100%）
+Alt + P	切换隐私模式
+F10 / Alt + M	打开右键菜单
+Ctrl + M	跳至文本输入框</value>
     <comment>帮助对话框中键盘快捷键表格的数据行，以 Tab 分隔列：按键{tab}功能，每行一条。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
     <value>A / Start	复制到剪贴板并返回游戏
 B	清除文字
-LB+RB+B	返回游戏（输入框已空时）
-Back （松开）	返回游戏
+LB + RB + B	返回游戏（输入框已空时）
+Back（松开）	返回游戏
 Y	打开右键菜单
 X	删除前一字符或选中内容
-LB+RB+X	退出程序
-Back+X	重置窗口透明度
+LB + RB + X	退出程序
+Back + X	重置窗口透明度
 ↑ / ↓	浏览历史记录
 ← / →	光标左移 / 右移
-LB+← / →	单词跳转
+LB + ← / →	单词跳转
 RS ← / →	扩大或缩小选取范围
-Back+↑ / ↓	调整窗口透明度（+5% / −5%）</value>
+Back + ↑ / ↓	调整窗口透明度（+5% / −5%）</value>
     <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
   </data>
 </root>
