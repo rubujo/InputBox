@@ -1056,7 +1056,7 @@ internal sealed class HelpDialog : Form
                     // 懸停灰底對比：淺色懸停（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停（#3C3C3C）→ DarkOrange 4.73:1。
                     // 均符合 WCAG 1.4.11 非文字 UI 組件最低 3:1 需求。
                     Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown;
-                    Color hatchColor = isDark ? Color.OrangeRed : Color.DarkOrange;
+                    Color hatchColor = isDark ? Color.Maroon : Color.DarkOrange; // Maroon on DarkOrange = 4.69:1 UI-AA（OrangeRed = 1.48:1 ❌）
 
                     using Brush bgBrush = new SolidBrush(baseColor);
                     using Brush hatchBrush = new HatchBrush(

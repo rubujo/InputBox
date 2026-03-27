@@ -1003,11 +1003,14 @@ internal sealed class NumericInputDialog : Form
                         gN = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
                         bN = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                    Color flashColor = Color.FromArgb(255, rN, gN, bN),
-                        // 根據背景亮度的知覺亮度（Perceptual Luminance）決定前景文字色，確保對比度符合規範。
-                        flashFore = (flashColor.R * 0.299 + flashColor.G * 0.587 + flashColor.B * 0.114) > 128 ?
-                            Color.Black :
-                            Color.White;
+                    Color flashColor = Color.FromArgb(255, rN, gN, bN);
+                    // WCAG 相對亮度精確切換閾值（crossover L≈0.1791），修復 YUV≈128 近似在切換帶（intensity≈0.75）
+                    // 導致文字對比跌破 AA（3.5~4.2:1）的問題。修復後全程 ≥4.64:1 AA；
+                    // 14f bold 大型文字全程 ≥4.5:1 AAA。
+                    static float FLin(int c) { float f = c / 255f; return f <= 0.04045f ? f / 12.92f : MathF.Pow((f + 0.055f) / 1.055f, 2.4f); }
+                    Color flashFore = (0.2126f * FLin(flashColor.R) + 0.7152f * FLin(flashColor.G) + 0.0722f * FLin(flashColor.B)) > 0.1791f
+                        ? Color.Black
+                        : Color.White;
 
                     _nud.UpdateRecursive(flashColor, flashFore);
                 }
@@ -2379,7 +2382,7 @@ internal sealed class NumericInputDialog : Form
                             Color.DarkOrange :
                             Color.SaddleBrown,
                         hatchColor = isDark ?
-                            Color.OrangeRed :
+                            Color.Maroon :          // Maroon on DarkOrange = 4.69:1 UI-AA（OrangeRed = 1.48:1 ❌ CVD 紋理不可見）
                             Color.DarkOrange;
 
                     // 雙重編碼：實心背景 + 斜向條紋紋理。
