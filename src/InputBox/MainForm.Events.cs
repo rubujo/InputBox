@@ -58,7 +58,7 @@ public partial class MainForm
                 }
                 finally
                 {
-                    _isProcessingActivated = 0;
+                    Interlocked.Exchange(ref _isProcessingActivated, 0);
                 }
             }
         }
@@ -806,7 +806,7 @@ public partial class MainForm
             return;
         }
 
-        // 若滑鼠已移出但仍具備鍵盤焦點，則由 Hover 樣式跳回強烈靜態高亮。
+        // 若滑鼠已移出但仍具備鍵盤焦點，則由 Hover 樣式跳回強烈靜态高亮。
         if (!force && !_isBtnHovered && BtnCopy.Focused)
         {
             ApplyButtonHoverStyle(isKeyboardFocus: true);
@@ -1202,7 +1202,7 @@ public partial class MainForm
                 // 取得文字方塊總共的行數（最後一行的 Index）。
                 totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
 
-            // 只有在最後一行時，按「下」才觸發歷程記錄。
+            // 只有在最後一行時，按「下」才觸發歷史記錄。
             if (currentLine == totalLines)
             {
                 NavigateHistory(+1);
@@ -1529,12 +1529,13 @@ public partial class MainForm
         }
 
         // 建立本次動畫專用的中斷權杖。
-        Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
-
-        _alertCts = CancellationTokenSource
+        // 先建立新實例並持有本地引用，再原子交換出舊 CTS，確保 token 的取得不依賴欄位讀取。
+        CancellationTokenSource newAlertCts = CancellationTokenSource
             .CreateLinkedTokenSource(_formCts?.Token ?? CancellationToken.None);
 
-        CancellationToken token = _alertCts?.Token ?? CancellationToken.None;
+        Interlocked.Exchange(ref _alertCts, newAlertCts)?.CancelAndDispose();
+
+        CancellationToken token = newAlertCts.Token;
 
         try
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Media;
 using InputBox.Core.Configuration;
 using InputBox.Core.Feedback;
@@ -125,9 +126,10 @@ internal class FeedbackService
         {
             // 正常取消。
         }
-        catch
+        catch (Exception ex)
         {
             // 忽略個別控制器的震動失敗。
+            Debug.WriteLine($"[震動] 控制器震動失敗（已忽略）：{ex.Message}");
         }
     }
 
@@ -164,7 +166,7 @@ internal class FeedbackService
         try
         {
             // 1. 嘗試清理 XInput（最常見的震動殘留來源）。
-            for (uint i = 0; i < 4; i++)
+            for (uint i = 0; i < AppSettings.XInputMaxControllers; i++)
             {
                 XInput.XInputVibration stopVibration = default;
 

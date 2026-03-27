@@ -55,7 +55,7 @@ internal static class LoggerService
         StringBuilder sb = new();
 
         sb.AppendLine("================================================================");
-        sb.AppendLine($"[EXCEPTION] {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+        sb.AppendLine($"[EXCEPTION] {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz}");
 
         if (!string.IsNullOrWhiteSpace(context))
         {
@@ -97,7 +97,7 @@ internal static class LoggerService
             return;
         }
 
-        string logEntry = $"[INFO] {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} - {message}{Environment.NewLine}";
+        string logEntry = $"[INFO] {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} - {message}{Environment.NewLine}";
 
         WriteToFile(logEntry);
     }

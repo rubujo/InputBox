@@ -24,6 +24,7 @@ public class AppSettings
     static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
+        MaxDepth = 32,
         Converters =
         {
             new JsonStringEnumConverter(),
@@ -82,6 +83,11 @@ public class AppSettings
     /// 單筆歷程記錄與輸入框的最大字數限制
     /// </summary>
     public const int MaxHistoryEntryLength = 10000;
+
+    /// <summary>
+    /// 設定檔允許讀取的最大位元組數（1 MB）
+    /// </summary>
+    public const long MaxConfigFileSizeBytes = 1 * 1024 * 1024;
 
     #endregion
 
@@ -417,9 +423,12 @@ public class AppSettings
         get => _thumbDeadzoneEnter;
         set
         {
-            _thumbDeadzoneEnter = Math.Clamp(value, 0, 30000);
+            lock (ConfigLock)
+            {
+                _thumbDeadzoneEnter = Math.Clamp(value, 0, 30000);
 
-            UpdateGamepadSnapshot();
+                UpdateGamepadSnapshot();
+            }
         }
     }
 
@@ -436,9 +445,12 @@ public class AppSettings
         get => _thumbDeadzoneExit;
         set
         {
-            _thumbDeadzoneExit = Math.Clamp(value, 0, 30000);
+            lock (ConfigLock)
+            {
+                _thumbDeadzoneExit = Math.Clamp(value, 0, 30000);
 
-            UpdateGamepadSnapshot();
+                UpdateGamepadSnapshot();
+            }
         }
     }
 
@@ -494,6 +506,9 @@ public class AppSettings
         _thumbDeadzoneExit = CalculateValidDeadzoneExit(
             _thumbDeadzoneEnter,
             _thumbDeadzoneExit);
+
+        // 確保 Load() 校驗後快照與欄位值保持一致。
+        UpdateGamepadSnapshot();
     }
 
     /// <summary>
@@ -502,16 +517,19 @@ public class AppSettings
     private volatile int _repeatInitialDelayFrames = 30;
 
     /// <summary>
-    /// 長按重複的初始延遲（幀）- 預設 30（約 500ms）
+    /// 長按重複的初始延遲（幁）- 預設 30（約 500ms）
     /// </summary>
     public int RepeatInitialDelayFrames
     {
         get => _repeatInitialDelayFrames;
         set
         {
-            _repeatInitialDelayFrames = Math.Clamp(value, 1, 300);
+            lock (ConfigLock)
+            {
+                _repeatInitialDelayFrames = Math.Clamp(value, 1, 300);
 
-            UpdateGamepadSnapshot();
+                UpdateGamepadSnapshot();
+            }
         }
     }
 
@@ -528,9 +546,12 @@ public class AppSettings
         get => _repeatIntervalFrames;
         set
         {
-            _repeatIntervalFrames = Math.Clamp(value, 1, 100);
+            lock (ConfigLock)
+            {
+                _repeatIntervalFrames = Math.Clamp(value, 1, 100);
 
-            UpdateGamepadSnapshot();
+                UpdateGamepadSnapshot();
+            }
         }
     }
 
@@ -547,6 +568,8 @@ public class AppSettings
     public static void Load()
     {
         bool isInvalid = false;
+        string? jsonToSave = null;
+        Exception? loadException = null;
 
         lock (ConfigLock)
         {
@@ -560,6 +583,12 @@ public class AppSettings
             {
                 try
                 {
+                    // 拒絕讀取超過大小限制的設定檔，防止畸形 JSON 佔用過多記憶體。
+                    if (new FileInfo(ConfigPath).Length > MaxConfigFileSizeBytes)
+                    {
+                        throw new InvalidDataException($"設定檔超過允許的最大大小（{MaxConfigFileSizeBytes / 1024} KB），拒絕讀取。");
+                    }
+
                     string strJsonContent;
 
                     using (FileStream fileStream = new(
@@ -574,63 +603,82 @@ public class AppSettings
 
                     Current = JsonSerializer.Deserialize<AppSettings>(strJsonContent, Options) ?? new();
 
+                    // 強制校驗死區設定，確保 Exit 與 Enter 之間有足夠的遲滯緩衝區（Hysteresis）。
+                    Current.ValidateDeadzone();
+
                     // 檢查重新序列化後的字串是否與讀取到的不同，不同才存檔。
                     string updatedJsonContent = JsonSerializer.Serialize(Current, Options);
 
                     if (strJsonContent != updatedJsonContent)
                     {
-                        SaveInternal();
+                        // 標記需要在鎖外存檔，避免在 ConfigLock 內進行 I/O。
+                        jsonToSave = updatedJsonContent;
                     }
                 }
                 catch (Exception ex)
                 {
-                    // 讀取失敗時備份損壞檔案，加入退避重試機制以應對檔案鎖定。
-                    try
-                    {
-                        string strBackupPath = ConfigPath + ".bak";
-
-                        int backupRetries = 3;
-
-                        while (backupRetries > 0)
-                        {
-                            try
-                            {
-                                File.Move(ConfigPath, strBackupPath, true);
-
-                                break;
-                            }
-                            catch (IOException) when (backupRetries > 1)
-                            {
-                                backupRetries--;
-
-                                Thread.Sleep(100);
-                            }
-                        }
-
-                        Debug.WriteLine($"設定檔損壞，已備份至：{strBackupPath}。錯誤：{ex.Message}");
-                    }
-                    catch (Exception backupEx)
-                    {
-                        // 忽略備份失敗，但記錄原因。
-                        LoggerService.LogException(backupEx, "設定檔備份失敗");
-                    }
-
-                    // 記錄原始損壞原因。
-                    LoggerService.LogException(ex, "設定檔讀取或反序列化失敗，將重設為預設值並嘗試修復。");
+                    // 捕捉例外，延後至鎖外執行備份與記錄，以免 Thread.Sleep 阻塞 ConfigLock。
+                    loadException = ex;
 
                     Current = new();
+
+                    Current.ValidateDeadzone();
 
                     isInvalid = true;
                 }
             }
             else
             {
-                // 檔案不存在時，建立預設設定檔。
-                SaveInternal();
+                // 檔案不存在時，序列化預設值以供鎖外建立。
+                Current.ValidateDeadzone();
+
+                jsonToSave = JsonSerializer.Serialize(Current, Options);
+            }
+        }
+
+        // 以下操作皆在 ConfigLock 之外進行，Thread.Sleep 不再阻塞鎖。
+
+        // 讀取失敗時備份損壞檔案，加入退避重試機制以應對檔案鎖定。
+        if (loadException != null)
+        {
+            try
+            {
+                string strBackupPath = ConfigPath + ".bak";
+
+                int backupRetries = 3;
+
+                while (backupRetries > 0)
+                {
+                    try
+                    {
+                        File.Move(ConfigPath, strBackupPath, true);
+
+                        break;
+                    }
+                    catch (IOException) when (backupRetries > 1)
+                    {
+                        backupRetries--;
+
+                        Thread.Sleep(100);
+                    }
+                }
+
+                Debug.WriteLine($"設定檔損壞，已備份至：{strBackupPath}。錯誤：{loadException.Message}");
+            }
+            catch (Exception backupEx)
+            {
+                // 忽略備份失敗，但記錄原因。
+                LoggerService.LogException(backupEx, "設定檔備份失敗");
             }
 
-            // 強制校驗死區設定，確保 Exit 與 Enter 之間有足夠的遲滯緩衝區（Hysteresis）。
-            Current.ValidateDeadzone();
+            // 記錄原始損壞原因。
+            LoggerService.LogException(loadException, "設定檔讀取或反序列化失敗，將重設為預設值並嘗試修復。");
+        }
+
+        // 儲存設定（新建或更新均在鎖外執行）。
+        if (jsonToSave != null)
+        {
+            WriteConfigToFile(jsonToSave);
         }
 
         // 警告視窗必須在 Lock 之外彈出，以免阻塞其他執行緒對設定檔的存取。
@@ -649,16 +697,22 @@ public class AppSettings
     /// </summary>
     public static void Save()
     {
+        // 只在鎖內進行序列化（讀取 Current），I/O 操作在鎖外執行。
+        string strJsonContent;
+
         lock (ConfigLock)
         {
-            SaveInternal();
+            strJsonContent = JsonSerializer.Serialize(Current, Options);
         }
+
+        WriteConfigToFile(strJsonContent);
     }
 
     /// <summary>
-    /// 內部的儲存實作（不含鎖，由呼叫端控制）
+    /// 將 JSON 字串安全地寫入設定檔（不含鎖，由呼叫端控制）
     /// </summary>
-    private static void SaveInternal()
+    /// <param name="strJsonContent">已序列化的 JSON 字串</param>
+    private static void WriteConfigToFile(string strJsonContent)
     {
         string strTempPath = ConfigPath + ".tmp";
 
@@ -669,8 +723,6 @@ public class AppSettings
             {
                 Directory.CreateDirectory(ConfigDirectory);
             }
-
-            string strJsonContent = JsonSerializer.Serialize(Current, Options);
 
             // 寫入臨時檔案。
             File.WriteAllText(strTempPath, strJsonContent);
@@ -691,14 +743,14 @@ public class AppSettings
                 {
                     retries--;
 
-                    Thread.Sleep(50);
+                    Thread.Sleep(1);
                 }
             }
         }
         catch (Exception ex)
         {
             // 記錄儲存失敗原因。
-            LoggerService.LogException(ex, "設定檔儲存失敗（SaveInternal）");
+            LoggerService.LogException(ex, "設定檔儲存失敗（WriteConfigToFile）");
 
             Debug.WriteLine($"無法儲存設定檔：{ex.Message}");
 

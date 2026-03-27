@@ -60,19 +60,30 @@ internal class ClipboardService
                 try
                 {
                     // WinForms 剪貼簿 API 嚴格要求在 STA 執行緒執行。
-                    // 我們嘗試取得目前活動視窗來進行 SafeInvokeAsync，確保執行緒安全性。
-                    Form? syncForm = Application.OpenForms.Cast<Form>().FirstOrDefault();
+                    // 篩選條件同時要求視窗未被處置且已建立控制代碼，縮短存取到使用的競態視窗。
+                    Form? syncForm = Application.OpenForms
+                        .Cast<Form>()
+                        .FirstOrDefault(f => !f.IsDisposed && f.IsHandleCreated);
 
-                    if (syncForm == null ||
-                        syncForm.IsDisposed)
+                    if (syncForm == null)
                     {
-                        // 若無活動視窗可用於同步 STA 環境，則放棄此次嘗試以防崩潰。
-                        Debug.WriteLine("[剪貼簿] 找不到活動視窗或視窗已處置，放棄寫入。");
+                        // 若無可用視窗，放棄此次嘗試以防崩潰。
+                        Debug.WriteLine("[剪貼簿] 找不到可用視窗，放棄寫入。");
 
                         return false;
                     }
 
-                    await syncForm.SafeInvokeAsync(() => Clipboard.SetText(normalizedSource));
+                    try
+                    {
+                        await syncForm.SafeInvokeAsync(() => Clipboard.SetText(normalizedSource));
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // 取得 form ref 後視窗被關閉屬正常情境，放棄此次重試。
+                        Debug.WriteLine("[剪貼簿] 視窗在取得後已關閉，放棄寫入。");
+
+                        return false;
+                    }
 
                     // 寫入後稍微等待，確保作業系統已完成通知廣播。
                     await Task.Delay(AppSettings.ClipboardBufferDelayMs, cts.Token);
