@@ -90,8 +90,9 @@ internal sealed class HelpDialog : Form
         _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad heading
         _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad table
 
-        // === 鍵盤快速鍵區段 ===
+        // 鍵盤快速鍵區段。
         Label lblKeyboardHeading = CreateSectionHeading(Strings.Help_Section_Keyboard);
+
         _tlpContent.Controls.Add(lblKeyboardHeading, 0, 0);
 
         Panel pnlKeyboard = new()
@@ -103,11 +104,14 @@ internal sealed class HelpDialog : Form
         };
 
         _tlpKeyboard = CreateTablePanel();
+
         pnlKeyboard.Controls.Add(_tlpKeyboard);
+
         _tlpContent.Controls.Add(pnlKeyboard, 0, 1);
 
-        // === 控制器按鍵對應區段 ===
+        // 控制器按鍵對應區段。
         Label lblGamepadHeading = CreateSectionHeading(Strings.Help_Section_Gamepad);
+
         _tlpContent.Controls.Add(lblGamepadHeading, 0, 2);
 
         Panel pnlGamepad = new()
@@ -122,7 +126,7 @@ internal sealed class HelpDialog : Form
         pnlGamepad.Controls.Add(_tlpGamepad);
         _tlpContent.Controls.Add(pnlGamepad, 0, 3);
 
-        // === 可捲動內容面板 ===
+        // 可捲動內容面板。
         _pnlScroll = new Panel()
         {
             Dock = DockStyle.Fill,
@@ -130,7 +134,7 @@ internal sealed class HelpDialog : Form
         };
         _pnlScroll.Controls.Add(_tlpContent);
 
-        // === 關閉按鈕（底部固定，不隨內容捲動）===
+        // 關閉按鈕（底部固定，不隨內容捲動）。
         _btnClose = new Button()
         {
             Text = Strings.Help_Btn_Close,
@@ -149,7 +153,9 @@ internal sealed class HelpDialog : Form
         _btnClose.Click += (s, e) =>
         {
             Interlocked.Increment(ref _closeAnimId);
+
             _closeDwellProgress = 0f;
+
             _btnClose.Invalidate();
 
             try
@@ -162,7 +168,7 @@ internal sealed class HelpDialog : Form
             }
         };
 
-        // MouseEnter / Leave：懸停視覺回饋。
+        // MouseEnter／Leave：懸停視覺回饋。
         _btnClose.MouseEnter += (s, e) =>
         {
             if (ActiveForm != this)
@@ -171,12 +177,14 @@ internal sealed class HelpDialog : Form
             }
 
             _closeIsHovered = true;
+
             StartCloseAnimationFeedback();
         };
         _btnClose.MouseLeave += (s, e) =>
         {
             _closeIsHovered = false;
             _closeIsPressed = false;
+
             StopCloseFeedback();
         };
 
@@ -186,6 +194,7 @@ internal sealed class HelpDialog : Form
             if (e.Button == MouseButtons.Left)
             {
                 _closeIsPressed = true;
+
                 StartCloseAnimationFeedback();
             }
         };
@@ -194,15 +203,17 @@ internal sealed class HelpDialog : Form
             if (e.Button == MouseButtons.Left)
             {
                 _closeIsPressed = false;
+
                 StartCloseAnimationFeedback();
             }
         };
 
-        // GotFocus / LostFocus：鍵盤焦點強烈視覺回饋。
+        // GotFocus／LostFocus：鍵盤焦點強烈視覺回饋。
         _btnClose.GotFocus += (s, e) => ApplyStrongCloseVisual();
         _btnClose.LostFocus += (s, e) =>
         {
             _closeIsPressed = false;
+
             StopCloseFeedback();
         };
 
@@ -244,8 +255,11 @@ internal sealed class HelpDialog : Form
                 try
                 {
                     CancellationToken token = _cts?.Token ?? CancellationToken.None;
+
                     token.ThrowIfCancellationRequested();
+
                     await Task.Delay(50, token);
+
                     await this.SafeInvokeAsync(() =>
                     {
                         try
@@ -353,6 +367,7 @@ internal sealed class HelpDialog : Form
                     UpdateFooterHeight();
                     UpdateFormSize();
                     ApplySmartPosition();
+
                     _btnClose.Invalidate();
                 }
                 catch (Exception ex)
@@ -380,7 +395,8 @@ internal sealed class HelpDialog : Form
         // WinForms 開啟對話框時雖會自動聚焦唯一可聚焦控制項，但不保證在所有
         // 主題引擎與協助技術環境下皆如此。顯式呼叫確保 UIA 焦點事件觸發，
         // 讓螢幕閱讀器能正確播報按鈕名稱與 AccessibleDescription。
-        if (_btnClose.CanFocus && !_btnClose.Focused)
+        if (_btnClose.CanFocus &&
+            !_btnClose.Focused)
         {
             _btnClose.Focus();
         }
@@ -390,11 +406,14 @@ internal sealed class HelpDialog : Form
         // 此時使用者尚未主動導航到按鈕，應呈現中性外觀，僅靠 Paint 繪製焦點邊框。
         // （邊框色已針對中性背景做高對比調整，確保 WCAG AAA 可見度。）
         Interlocked.Increment(ref _closeAnimId);
+
         _closeDwellProgress = 0f;
+
         _btnClose.BackColor = Color.Empty;
         _btnClose.ForeColor = Color.Empty;
 
         Font? regularFont = _closeRegularFont;
+
         if (regularFont != null)
         {
             _btnClose.Font = regularFont;
@@ -431,12 +450,16 @@ internal sealed class HelpDialog : Form
             if (key is Keys.Up or Keys.Down)
             {
                 float scale = DeviceDpi / AppSettings.BaseDpi;
-                int step = (int)Math.Max(20, 40 * scale);
-                int maxY = Math.Max(0,
-                    _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
-                int current = -_pnlScroll.AutoScrollPosition.Y;
-                int newY = Math.Clamp(current + (key == Keys.Up ? -step : step), 0, maxY);
+
+                int step = (int)Math.Max(20, 40 * scale),
+                    maxY = Math.Max(
+                        0,
+                        _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height),
+                    current = -_pnlScroll.AutoScrollPosition.Y,
+                    newY = Math.Clamp(current + (key == Keys.Up ? -step : step), 0, maxY);
+
                 _pnlScroll.AutoScrollPosition = new Point(0, newY);
+
                 return true;
             }
         }
@@ -451,22 +474,25 @@ internal sealed class HelpDialog : Form
         if (e.KeyCode is Keys.F1 or Keys.Escape)
         {
             e.SuppressKeyPress = true;
+
             Close();
+
             return;
         }
 
-        // PageUp / PageDown / Home / End 捲動內容面板。
+        // PageUp／PageDown／Home／End 捲動內容面板。
         // ↑↓ 已由 ProcessCmdKey 處理（避免被 ProcessDialogKey 焦點導航消耗）。
         float scale = DeviceDpi / AppSettings.BaseDpi;
-        int step = (int)Math.Max(20, 40 * scale);
-        int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
+
+        int step = (int)Math.Max(20, 40 * scale),
+            pageStep = Math.Max(100, _pnlScroll.ClientSize.Height - step);
 
         int delta = e.KeyCode switch
         {
-            Keys.PageUp   => -pageStep,
-            Keys.PageDown =>  pageStep,
+            Keys.PageUp => -pageStep,
+            Keys.PageDown => pageStep,
             Keys.Home => int.MinValue,
-            Keys.End  => int.MaxValue,
+            Keys.End => int.MaxValue,
             _ => 0,
         };
 
@@ -477,14 +503,16 @@ internal sealed class HelpDialog : Form
 
         e.SuppressKeyPress = true;
 
-        int maxY = Math.Max(0,
-            _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
-        int current = -_pnlScroll.AutoScrollPosition.Y;
-        int newY = Math.Clamp(
-            delta == int.MinValue ? 0 :
-            delta == int.MaxValue ? maxY :
-            current + delta,
-            0, maxY);
+        int maxY = Math.Max(
+                0,
+                _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height),
+            current = -_pnlScroll.AutoScrollPosition.Y,
+            newY = Math.Clamp(
+                delta == int.MinValue ? 0 :
+                delta == int.MaxValue ? maxY :
+                current + delta,
+                0,
+                maxY);
 
         _pnlScroll.AutoScrollPosition = new Point(0, newY);
     }
@@ -497,11 +525,15 @@ internal sealed class HelpDialog : Form
         base.OnFormClosing(e);
 
         UnbindGamepadEvents();
+
         Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
+
         // 共享字體不由此對話框處置。
         Font? f = Interlocked.Exchange(ref _currentFont, null);
+
         // f 來自快取池，不處置，僅歸零欄位。
         _ = f;
+
         // 關閉按鈕字型（非快取池，需處置）。
         Interlocked.Exchange(ref _closeRegularFont, null)?.Dispose();
         Interlocked.Exchange(ref _closeBoldFont, null)?.Dispose();
@@ -540,14 +572,30 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private Font? _closeBoldFont;
 
-    // ──── 關閉按鈕視覺狀態 ────
+    // 關閉按鈕視覺狀態。
+
+    /// <summary>
+    /// 關閉按鈕 Dwell 動畫進度（0.0 - 1.0），由動畫邏輯更新並觸發 Invalidate，Paint 事件根據此值繪製注視進度條
+    /// </summary>
     private float _closeDwellProgress;
+
+    /// <summary>
+    /// 關閉按鈕目前的動畫 ID（用於區分不同次的動畫，避免舊動畫影響新狀態）
+    /// </summary>
     private long _closeAnimId;
+
+    /// <summary>
+    /// 關閉按鈕目前是否處於懸停狀態（由 MouseEnter/Leave 事件更新，影響動畫邏輯與繪製）
+    /// </summary>
     private bool _closeIsHovered;
+
+    /// <summary>
+    /// 關閉按鈕目前是否處於按壓狀態（由 MouseDown/Up 事件更新，影響動畫邏輯與繪製）
+    /// </summary>
     private bool _closeIsPressed;
 
     /// <summary>
-    /// 套用共享 A11y 字型到所有控制項，並同步建立按鈕用 Regular / Bold 字型副本。
+    /// 套用共享 A11y 字型到所有控制項，並同步建立按鈕用 Regular／Bold 字型副本
     /// </summary>
     private void ApplyFont()
     {
@@ -556,20 +604,24 @@ internal sealed class HelpDialog : Form
         Interlocked.Exchange(ref _currentFont, shared);
 
         // Regular 字型（供懸停與一般狀態使用）。
-        Font? oldRegular = Interlocked.Exchange(ref _closeRegularFont,
+        Font? oldRegular = Interlocked.Exchange(
+            ref _closeRegularFont,
             new Font(shared, FontStyle.Regular));
+
         oldRegular?.Dispose();
 
-        // Bold 字型（供焦點/按壓強烈視覺使用）。
-        Font? oldBold = Interlocked.Exchange(ref _closeBoldFont,
+        // Bold 字型（供焦點／按壓強烈視覺使用）。
+        Font? oldBold = Interlocked.Exchange(
+            ref _closeBoldFont,
             new Font(shared, FontStyle.Bold));
+
         oldBold?.Dispose();
 
         Font = shared;
     }
 
     /// <summary>
-    /// 建立區段標題 Label。
+    /// 建立區段標題 Label
     /// </summary>
     private static Label CreateSectionHeading(string text)
     {
@@ -583,7 +635,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 建立表格面板（含表頭列）。
+    /// 建立表格面板（含表頭列）
     /// </summary>
     private static TableLayoutPanel CreateTablePanel()
     {
@@ -597,7 +649,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 填入表格的表頭與資料列。
+    /// 填入表格的表頭與資料列
     /// </summary>
     /// <param name="table">目標 TableLayoutPanel</param>
     /// <param name="colHeader">第一欄標題（按鍵／按鈕）</param>
@@ -619,11 +671,13 @@ internal sealed class HelpDialog : Form
 
         // 資料列。
         string[] rows = rowData.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
         int rowIndex = 1;
 
         foreach (string row in rows)
         {
             string trimmed = row.TrimEnd('\r');
+
             int tabPos = trimmed.IndexOf('\t');
 
             if (tabPos < 0)
@@ -631,8 +685,8 @@ internal sealed class HelpDialog : Form
                 continue;
             }
 
-            string keyPart = trimmed[..tabPos].Trim();
-            string actionPart = trimmed[(tabPos + 1)..].Trim();
+            string keyPart = trimmed[..tabPos].Trim(),
+                actionPart = trimmed[(tabPos + 1)..].Trim();
 
             table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             table.Controls.Add(CreateCell(keyPart), 0, rowIndex);
@@ -645,7 +699,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 建立單一表格儲存格 Label。
+    /// 建立單一表格儲存格 Label
     /// </summary>
     private static Label CreateCell(string text, bool isHeader = false)
     {
@@ -656,13 +710,14 @@ internal sealed class HelpDialog : Form
             Margin = new Padding(6, 4, 6, 4),
             AccessibleRole = AccessibleRole.Cell,
             AccessibleName = text,
-            Font = isHeader ? null : null // 繼承表格字型，表頭由 Paint 事件加粗
+            // 繼承表格字型，表頭由 Paint 事件加粗。
+            Font = isHeader ? null : null
         };
     }
 
     /// <summary>
-    /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸。
-    /// 確保捲動條只在真正需要時出現，且關閉按鈕永遠可見。
+    /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸
+    /// 確保捲動條只在真正需要時出現，且關閉按鈕永遠可見
     /// </summary>
     private void UpdateFormSize()
     {
@@ -676,59 +731,61 @@ internal sealed class HelpDialog : Form
         Size contentPref = _tlpContent.GetPreferredSize(new Size(workArea.Width, 0));
 
         // 計算邊框與裝飾所需的額外空間。
-        int frameW = SystemInformation.FrameBorderSize.Width * 2;
-        int captionH = SystemInformation.CaptionHeight;
-        int scrollBarW = SystemInformation.VerticalScrollBarWidth;
-        int footerH = _pnlFooter.Height; // 已由 UpdateFooterHeight() 動態計算。
+        int frameW = SystemInformation.FrameBorderSize.Width * 2,
+            captionH = SystemInformation.CaptionHeight,
+            scrollBarW = SystemInformation.VerticalScrollBarWidth,
+            // 已由 UpdateFooterHeight() 動態計算。
+            footerH = _pnlFooter.Height,
+            // 視窗寬度：內容寬度 + 表單 Padding + 捲動條預留空間 + 框架。
+            formW = contentPref.Width + Padding.Horizontal + scrollBarW + frameW + 8;
 
-        // 視窗寬度：內容寬度 + 表單 Padding + 捲動條預留空間 + 框架。
-        int formW = contentPref.Width + Padding.Horizontal + scrollBarW + frameW + 8;
         formW = Math.Max(formW, 360);
         formW = Math.Min(formW, workArea.Width - 40);
 
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
         // 上限設為可用高度的 70%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）上仍能舒適使用。
-        int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8;
-        int maxH = (int)(workArea.Height * 0.60f);
-        int formH = Math.Clamp(naturalH, 200, maxH);
+        int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8,
+            maxH = (int)(workArea.Height * 0.60f),
+            formH = Math.Clamp(naturalH, 200, maxH);
 
         Size = new Size(formW, formH);
     }
 
     /// <summary>
-    /// 依據目前 DPI 與按鈕偏好高度，動態更新底部列高度，
-    /// 確保關閉按鈕在任何 DPI 縮放等級下都不會被裁切。
+    /// 依據目前 DPI 與按鈕偏好高度，動態更新底部列高度
+    /// 確保關閉按鈕在任何 DPI 縮放等級下都不會被裁切
     /// </summary>
     private void UpdateFooterHeight()
     {
         float scale = DeviceDpi / AppSettings.BaseDpi;
 
         // 取得按鈕在目前字型下的偏好高度，加上上方 Padding（8px × scale）與邊距（4px × scale）。
-        int btnPrefH = _btnClose.GetPreferredSize(Size.Empty).Height;
-        int needed = btnPrefH + (int)(12 * scale);
-
-        // 基準高度同樣隨 DPI 縮放，確保在高解析度下不顯得過於緊縮。
-        int baseline = (int)(44 * scale);
+        int btnPrefH = _btnClose.GetPreferredSize(Size.Empty).Height,
+            needed = btnPrefH + (int)(12 * scale),
+            // 基準高度同樣隨 DPI 縮放，確保在高解析度下不顯得過於緊縮。
+            baseline = (int)(44 * scale);
 
         _pnlFooter.Height = Math.Max(baseline, needed);
     }
 
     /// <summary>
-    /// 縮放後確保視窗不超出螢幕可視區域。
+    /// 縮放後確保視窗不超出螢幕可視區域
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated || IsDisposed)
+        if (!IsHandleCreated ||
+            IsDisposed)
         {
             return;
         }
 
         Rectangle workArea = Screen.GetWorkingArea(this);
 
-        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width));
-        int y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
+        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width)),
+            y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
 
-        if (x != Left || y != Top)
+        if (x != Left ||
+            y != Top)
         {
             Location = new Point(x, y);
         }
@@ -750,6 +807,7 @@ internal sealed class HelpDialog : Form
                         UpdateFooterHeight();
                         UpdateFormSize();
                         ApplySmartPosition();
+
                         _btnClose.Invalidate();
                     }
                     catch (Exception ex)
@@ -768,7 +826,7 @@ internal sealed class HelpDialog : Form
     #region 控制器事件
 
     /// <summary>
-    /// 綁定控制器事件（B / Back 關閉；Start / A 確認關閉；LT / RT 翻頁捲動；↑↓ 行捲動）。
+    /// 綁定控制器事件（B／Back 關閉；Start／A 確認關閉；LT／RT 翻頁捲動；↑↓ 行捲動）
     /// </summary>
     private void BindGamepadEvents()
     {
@@ -790,7 +848,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 解除控制器事件。
+    /// 解除控制器事件
     /// </summary>
     private void UnbindGamepadEvents()
     {
@@ -812,59 +870,67 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 控制器 LS 上 / D-pad 上：向上捲動內容面板（行捲動）。
+    /// 控制器 LS 上／D-pad 上：向上捲動內容面板（行捲動）
     /// </summary>
     private void OnGamepadScrollUp()
     {
         this.SafeBeginInvoke(() =>
         {
-            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            if (IsDisposed ||
+                !_pnlScroll.IsHandleCreated)
             {
                 return;
             }
 
-            int step = (int)Math.Max(20, 40 * (DeviceDpi / AppSettings.BaseDpi));
-            int newY = Math.Max(0, -_pnlScroll.AutoScrollPosition.Y - step);
+            int step = (int)Math.Max(20, 40 * (DeviceDpi / AppSettings.BaseDpi)),
+                newY = Math.Max(0, -_pnlScroll.AutoScrollPosition.Y - step);
+
             _pnlScroll.AutoScrollPosition = new Point(0, newY);
         });
     }
 
     /// <summary>
-    /// 控制器 LS 下 / D-pad 下：向下捲動內容面板（行捲動）。
+    /// 控制器 LS 下／D-pad 下：向下捲動內容面板（行捲動）。
     /// </summary>
     private void OnGamepadScrollDown()
     {
         this.SafeBeginInvoke(() =>
         {
-            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            if (IsDisposed ||
+                !_pnlScroll.IsHandleCreated)
             {
                 return;
             }
 
-            int step = (int)Math.Max(20, 40 * (DeviceDpi / AppSettings.BaseDpi));
-            int maxY = Math.Max(0,
-                _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
-            int newY = Math.Min(maxY, -_pnlScroll.AutoScrollPosition.Y + step);
+            int step = (int)Math.Max(20, 40 * (DeviceDpi / AppSettings.BaseDpi)),
+                maxY = Math.Max(
+                    0,
+                    _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height),
+                newY = Math.Min(maxY, -_pnlScroll.AutoScrollPosition.Y + step);
+
             _pnlScroll.AutoScrollPosition = new Point(0, newY);
         });
     }
 
     /// <summary>
-    /// 控制器 LT：向上翻頁捲動（等同 PageUp）。
+    /// 控制器 LT：向上翻頁捲動（等同 PageUp）
     /// </summary>
     private void OnGamepadPageUp()
     {
         this.SafeBeginInvoke(() =>
         {
-            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            if (IsDisposed ||
+                !_pnlScroll.IsHandleCreated)
             {
                 return;
             }
 
             float scale = DeviceDpi / AppSettings.BaseDpi;
-            int step = (int)Math.Max(20, 40 * scale);
-            int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
-            int newY = Math.Max(0, -_pnlScroll.AutoScrollPosition.Y - pageStep);
+
+            int step = (int)Math.Max(20, 40 * scale),
+                pageStep = Math.Max(100, _pnlScroll.ClientSize.Height - step),
+                newY = Math.Max(0, -_pnlScroll.AutoScrollPosition.Y - pageStep);
+
             _pnlScroll.AutoScrollPosition = new Point(0, newY);
         });
     }
@@ -876,23 +942,27 @@ internal sealed class HelpDialog : Form
     {
         this.SafeBeginInvoke(() =>
         {
-            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            if (IsDisposed ||
+                !_pnlScroll.IsHandleCreated)
             {
                 return;
             }
 
             float scale = DeviceDpi / AppSettings.BaseDpi;
-            int step = (int)Math.Max(20, 40 * scale);
-            int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
-            int maxY = Math.Max(0,
-                _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
-            int newY = Math.Min(maxY, -_pnlScroll.AutoScrollPosition.Y + pageStep);
+
+            int step = (int)Math.Max(20, 40 * scale),
+                pageStep = Math.Max(100, _pnlScroll.ClientSize.Height - step),
+                maxY = Math.Max(
+                    0,
+                    _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height),
+                newY = Math.Min(maxY, -_pnlScroll.AutoScrollPosition.Y + pageStep);
+
             _pnlScroll.AutoScrollPosition = new Point(0, newY);
         });
     }
 
     /// <summary>
-    /// 控制器 B / Back / Start / A：關閉對話框。
+    /// 控制器 B／Back／Start／A：關閉對話框
     /// </summary>
     private void OnGamepadClose()
     {
@@ -906,7 +976,9 @@ internal sealed class HelpDialog : Form
                 }
 
                 ApplyStrongCloseVisual();
+
                 await Task.Delay(80, _cts?.Token ?? CancellationToken.None).ConfigureAwait(false);
+
                 await this.InvokeAsync(() =>
                 {
                     if (!IsDisposed)
@@ -915,7 +987,10 @@ internal sealed class HelpDialog : Form
                     }
                 });
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+
+            }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[說明] 控制器關閉失敗：{ex.Message}");
@@ -929,32 +1004,39 @@ internal sealed class HelpDialog : Form
 
     /// <summary>
     /// 預先計算按鈕 Bold 文字最大寬度，鎖定 MinimumSize 防止字型加粗時佈局抖動。
+    /// 同時強制套用 DPI 感知的 44px 下限，確保符合 WCAG 2.5.5 AAA 觸控目標尺寸。
     /// </summary>
     private void UpdateButtonMinimumSize()
     {
         Font? regularFont = _closeRegularFont;
         Font? boldFont = _closeBoldFont;
 
-        if (regularFont == null || boldFont == null)
+        if (regularFont == null ||
+            boldFont == null)
         {
             return;
         }
 
         using Graphics g = _btnClose.CreateGraphics();
 
-        SizeF regularSize = g.MeasureString(_btnClose.Text, regularFont);
-        SizeF boldSize = g.MeasureString(_btnClose.Text, boldFont);
+        SizeF regularSize = g.MeasureString(_btnClose.Text, regularFont),
+            boldSize = g.MeasureString(_btnClose.Text, boldFont);
 
         int maxW = (int)Math.Ceiling(Math.Max(regularSize.Width, boldSize.Width)) +
-                   _btnClose.Padding.Horizontal + 12;
-        int maxH = (int)Math.Ceiling(Math.Max(regularSize.Height, boldSize.Height)) +
-                   _btnClose.Padding.Vertical + 6;
+                _btnClose.Padding.Horizontal + 12,
+            maxH = (int)Math.Ceiling(Math.Max(regularSize.Height, boldSize.Height)) +
+                _btnClose.Padding.Vertical + 6;
+
+        // 強制套用 WCAG 2.5.5 AAA 觸控目標尺寸下限（44×44 邏輯像素，隨 DPI 等比縮放）。
+        int a11yMin = (int)Math.Ceiling(44.0 * DeviceDpi / AppSettings.BaseDpi);
+        maxW = Math.Max(maxW, a11yMin);
+        maxH = Math.Max(maxH, a11yMin);
 
         _btnClose.MinimumSize = new Size(maxW, maxH);
     }
 
     /// <summary>
-    /// 焦點或按壓時套用強烈靜態視覺（主題感知反轉 + Bold 字型）。
+    /// 焦點或按壓時套用強烈靜態視覺（主題感知反轉 + Bold 字型）
     /// </summary>
     private void ApplyStrongCloseVisual()
     {
@@ -964,6 +1046,7 @@ internal sealed class HelpDialog : Form
         }
 
         Interlocked.Increment(ref _closeAnimId);
+
         _closeDwellProgress = 0f;
 
         if (SystemInformation.HighContrast)
@@ -974,12 +1057,14 @@ internal sealed class HelpDialog : Form
         else
         {
             bool isDark = _btnClose.IsDarkModeActive();
+
             _btnClose.BackColor = isDark ? Color.White : Color.Black;
             _btnClose.ForeColor = isDark ? Color.Black : Color.White;
         }
 
         // 使用預建 Bold 字型，避免每次呼叫建立新物件洩漏 GDI 資源。
         Font? boldFont = _closeBoldFont;
+
         if (boldFont != null)
         {
             _btnClose.Font = boldFont;
@@ -989,7 +1074,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 懸停（Hover）或一般互動時啟動 Dwell 動畫。
+    /// 懸停（Hover）或一般互動時啟動 Dwell 動畫
     /// </summary>
     private void StartCloseAnimationFeedback()
     {
@@ -999,9 +1084,11 @@ internal sealed class HelpDialog : Form
         }
 
         // 按壓中（MouseDown）或純鍵盤焦點（未懸停）：套用強烈靜態視覺，不啟動 Dwell。
-        if (_closeIsPressed || (_btnClose.Focused && !_closeIsHovered))
+        if (_closeIsPressed ||
+            (_btnClose.Focused && !_closeIsHovered))
         {
             ApplyStrongCloseVisual();
+
             return;
         }
 
@@ -1013,21 +1100,30 @@ internal sealed class HelpDialog : Form
         else
         {
             bool isDark = _btnClose.IsDarkModeActive();
-            _btnClose.BackColor = isDark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220);
-            _btnClose.ForeColor = isDark ? Color.White : Color.Black;
+
+            _btnClose.BackColor = isDark ?
+                Color.FromArgb(60, 60, 60) :
+                Color.FromArgb(220, 220, 220);
+            _btnClose.ForeColor = isDark ?
+                Color.White :
+                Color.Black;
         }
 
         Font? regularFont = _closeRegularFont;
+
         if (regularFont != null)
         {
             _btnClose.Font = regularFont;
         }
 
         long currentId = Interlocked.Increment(ref _closeAnimId);
+
         _closeDwellProgress = 0f;
+
         _btnClose.Invalidate();
 
         CancellationToken ct = _cts?.Token ?? CancellationToken.None;
+
         _btnClose.RunDwellAnimationAsync(
             id: currentId,
             animationIdGetter: () => Interlocked.Read(ref _closeAnimId),
@@ -1038,11 +1134,12 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 停止回饋：恢復預設外觀或依焦點/懸停狀態調整。
+    /// 停止回饋：恢復預設外觀或依焦點／懸停狀態調整
     /// </summary>
     private void StopCloseFeedback()
     {
         Interlocked.Increment(ref _closeAnimId);
+
         _closeDwellProgress = 0f;
 
         // 與 BtnCopy 的 RestoreButtonDefaultStyle 邏輯一致：
@@ -1050,12 +1147,14 @@ internal sealed class HelpDialog : Form
         if (_btnClose.Focused)
         {
             ApplyStrongCloseVisual();
+
             return;
         }
 
         if (_closeIsHovered)
         {
             StartCloseAnimationFeedback();
+
             return;
         }
 
@@ -1064,6 +1163,7 @@ internal sealed class HelpDialog : Form
         _btnClose.ForeColor = Color.Empty;
 
         Font? regularFont = _closeRegularFont;
+
         if (regularFont != null)
         {
             _btnClose.Font = regularFont;
@@ -1073,22 +1173,25 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 自訂繪製：基礎邊框 → 焦點/懸停邊框 → Dwell 進度條。
+    /// 自訂繪製：基礎邊框 → 焦點／懸停邊框 → Dwell 進度條
     /// </summary>
     private void BtnClose_Paint(object? sender, PaintEventArgs e)
     {
         Button btn = _btnClose;
+
         Graphics g = e.Graphics;
 
         // 動態存取最新 DPI，避免靜態捕獲舊 DPI 導致跨螢幕拖曳時繪圖偏移。
         float scale = btn.DeviceDpi / AppSettings.BaseDpi;
-        bool isDark = btn.IsDarkModeActive();
-        bool isFocused = btn.Focused;
-        bool isHoveredOrDwell = _closeIsHovered || (_closeDwellProgress > 0f);
 
-        // ── 基礎邊框（只在非焦點、非懸停時繪製，與焦點邊框互斥）──
+        bool isDark = btn.IsDarkModeActive(),
+            isFocused = btn.Focused,
+            isHoveredOrDwell = _closeIsHovered || (_closeDwellProgress > 0f);
+
+        // 基礎邊框（只在非焦點、非懸停時繪製，與焦點邊框互斥）。
         // 確保按鈕在靜態狀態下仍具備物理辨識度，不融入背景。
-        if (!isFocused && !isHoveredOrDwell)
+        if (!isFocused &&
+            !isHoveredOrDwell)
         {
             int thickness = (int)Math.Max(1, scale);
 
@@ -1101,37 +1204,43 @@ internal sealed class HelpDialog : Form
             g.DrawRectangle(basePen, 0, 0, btn.Width - 1, btn.Height - 1);
         }
 
-        // ── 焦點 / 懸停邊框（3px，與 BtnCopy 完全對齊）──
+        // 焦點／懸停邊框（3px，與 BtnCopy 完全對齊）。
         // 邊框色依當前 BackColor 實際值選取，確保在四種情境下皆達 WCAG AAA（≥7:1）：
-        //   Black bg（淺色強視覺）→ Cyan      21:1 AAA
-        //   White bg（深色強視覺）→ MediumBlue 16:1 AAA
-        //   深色中性 / 懸停灰    → DeepSkyBlue  7.9:1 AAA
-        //   淺色中性 / 懸停灰    → MediumBlue  14.2:1 AAA
-        if (isFocused || isHoveredOrDwell)
+        // Black bg（淺色強視覺）→ Cyan      21:1 AAA
+        // White bg（深色強視覺）→ MediumBlue 16:1 AAA
+        // 深色中性／懸停灰    → DeepSkyBlue  7.9:1 AAA
+        // 淺色中性／懸停灰    → MediumBlue  　4.2:1 AAA
+        if (isFocused ||
+            isHoveredOrDwell)
         {
             int borderThickness = (int)Math.Max(3, 3 * scale);
             int inset = (int)Math.Max(2, 2 * scale);
 
             Color borderColor;
+
             if (SystemInformation.HighContrast)
             {
                 borderColor = SystemColors.HighlightText;
             }
             else if (btn.BackColor == Color.Black)
             {
-                borderColor = Color.Cyan;           // 淺色強視覺（黑底）21:1 AAA
+                // 淺色強視覺（黑底）21:1 AAA。
+                borderColor = Color.Cyan;
             }
             else if (btn.BackColor == Color.White)
             {
-                borderColor = Color.MediumBlue;     // 深色強視覺（白底）16:1 AAA
+                // 深色強視覺（白底）16:1 AAA。
+                borderColor = Color.MediumBlue;
             }
             else if (isDark)
             {
-                borderColor = Color.LightBlue;    // 深色中性 / 懸停 ≥7.2:1 AAA
+                // 深色中性／懸停 ≥7.2:1 AAA。
+                borderColor = Color.LightBlue;
             }
             else
             {
-                borderColor = Color.MediumBlue;     // 淺色中性 / 懸停 14.2:1 AAA
+                // 淺色中性／懸停 14.2:1 AAA。
+                borderColor = Color.MediumBlue;
             }
 
             using Pen focusPen = new(borderColor, borderThickness);
@@ -1143,13 +1252,15 @@ internal sealed class HelpDialog : Form
                 btn.Height - (inset * 2) - 1);
         }
 
-        // ── Dwell 進度條（懸停中且非按壓狀態）──
+        // Dwell 進度條（懸停中且非按壓狀態）。
         // 雙重編碼（CVD 補償）：實心背景 + BackwardDiagonal 條紋紋理。
         float progress = _closeDwellProgress;
-        if (progress > 0f && !_closeIsPressed)
+
+        if (progress > 0f &&
+            !_closeIsPressed)
         {
-            int barH = (int)(6 * scale);
-            int barW = (int)(btn.Width * progress);
+            int barH = (int)(6 * scale),
+                barW = (int)(btn.Width * progress);
 
             if (barW > 0)
             {
@@ -1158,14 +1269,16 @@ internal sealed class HelpDialog : Form
                 if (SystemInformation.HighContrast)
                 {
                     using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
+
                     g.FillRectangle(barBrush, barRect);
                 }
                 else
                 {
                     // 懸停灰底對比：淺色懸停（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停（#3C3C3C）→ DarkOrange 4.73:1。
                     // 均符合 WCAG 1.4.11 非文字 UI 組件最低 3:1 需求。
-                    Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown;
-                    Color hatchColor = isDark ? Color.Maroon : Color.DarkOrange; // Maroon on DarkOrange = 4.69:1 UI-AA（OrangeRed = 1.48:1 ❌）
+                    Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown,
+                        // Maroon on DarkOrange = 4.69:1 UI-AA（OrangeRed = 1.48:1 ❌）
+                        hatchColor = isDark ? Color.Maroon : Color.DarkOrange;
 
                     using Brush bgBrush = new SolidBrush(baseColor);
                     using Brush hatchBrush = new HatchBrush(
