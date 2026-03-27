@@ -637,6 +637,10 @@ internal sealed class HelpDialog : Form
 
         GamepadController.BPressed += OnGamepadClose;
         GamepadController.BackPressed += OnGamepadClose;
+        GamepadController.UpPressed += OnGamepadScrollUp;
+        GamepadController.UpRepeat += OnGamepadScrollUp;
+        GamepadController.DownPressed += OnGamepadScrollDown;
+        GamepadController.DownRepeat += OnGamepadScrollDown;
     }
 
     /// <summary>
@@ -651,6 +655,48 @@ internal sealed class HelpDialog : Form
 
         GamepadController.BPressed -= OnGamepadClose;
         GamepadController.BackPressed -= OnGamepadClose;
+        GamepadController.UpPressed -= OnGamepadScrollUp;
+        GamepadController.UpRepeat -= OnGamepadScrollUp;
+        GamepadController.DownPressed -= OnGamepadScrollDown;
+        GamepadController.DownRepeat -= OnGamepadScrollDown;
+    }
+
+    /// <summary>
+    /// 手把 LS 上 / D-pad 上：向上捲動內容面板。
+    /// </summary>
+    private void OnGamepadScrollUp()
+    {
+        this.SafeBeginInvoke(() =>
+        {
+            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            {
+                return;
+            }
+
+            int step = (int)Math.Max(20, 40 * (DeviceDpi / AppSettings.BaseDpi));
+            int newY = Math.Max(0, -_pnlScroll.AutoScrollPosition.Y - step);
+            _pnlScroll.AutoScrollPosition = new Point(0, newY);
+        });
+    }
+
+    /// <summary>
+    /// 手把 LS 下 / D-pad 下：向下捲動內容面板。
+    /// </summary>
+    private void OnGamepadScrollDown()
+    {
+        this.SafeBeginInvoke(() =>
+        {
+            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            {
+                return;
+            }
+
+            int step = (int)Math.Max(20, 40 * (DeviceDpi / AppSettings.BaseDpi));
+            int maxY = Math.Max(0,
+                _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
+            int newY = Math.Min(maxY, -_pnlScroll.AutoScrollPosition.Y + step);
+            _pnlScroll.AutoScrollPosition = new Point(0, newY);
+        });
     }
 
     /// <summary>
