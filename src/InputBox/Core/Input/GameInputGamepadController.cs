@@ -271,7 +271,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? RSRightRepeat;
 
     /// <summary>
-    /// 當左觸發鍵（LT 鍵）被按下時觸發
+    /// 當左觸發鍵（LT 鍵）被按下時觅发
     /// </summary>
     public event Action? LeftTriggerPressed;
 
@@ -371,7 +371,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         _ctsPolling = new CancellationTokenSource();
 
-        CancellationToken token = _ctsPolling?.Token ?? CancellationToken.None;
+        CancellationToken token = _ctsPolling.Token;
 
         TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -390,7 +390,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         _ctsPolling = new CancellationTokenSource();
 
-        CancellationToken token = _ctsPolling?.Token ?? CancellationToken.None;
+        CancellationToken token = _ctsPolling.Token;
 
         _taskPolling = Task.Run(() => PollingLoopAsync(token, null), token);
     }
@@ -474,9 +474,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                                 _readingQueue.Enqueue(state);
                             }
                         }
-                        catch
+                        catch (Exception cbEx)
                         {
-
+                            Debug.WriteLine($"GameInput 讀取回呼內部發生錯誤：{cbEx.Message}");
                         }
                     });
             }
@@ -517,7 +517,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         _needsRefresh = true;
 
                         // 記錄觸發當下的時間。
-                        _refreshRequestedTicks = Stopwatch.GetTimestamp();
+                        Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
                     });
             }
 
@@ -548,9 +548,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 {
                     Poll();
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    Debug.WriteLine($"GameInput 首幀 Poll 發生錯誤：{ex.Message}");
                 }
             }
 
@@ -607,7 +607,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 裝置清單防抖與掃描邏輯。
         if (_needsRefresh)
         {
-            long elapsedTicks = Stopwatch.GetTimestamp() - _refreshRequestedTicks,
+            long elapsedTicks = Stopwatch.GetTimestamp() - Interlocked.Read(ref _refreshRequestedTicks),
                 elapsedMs = elapsedTicks / (Stopwatch.Frequency / 1000);
 
             if (elapsedMs >= AppSettings.GamepadRefreshCooldownMs)
@@ -711,8 +711,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         GameInputGamepadButtons currentButtons = currentState.Buttons;
 
-        short thumbLX = (short)(currentState.LeftThumbstickX * 32768f),
-            thumbLY = (short)(currentState.LeftThumbstickY * 32768f);
+        short thumbLX = (short)Math.Clamp(currentState.LeftThumbstickX * 32767f, short.MinValue, short.MaxValue),
+            thumbLY = (short)Math.Clamp(currentState.LeftThumbstickY * 32767f, short.MinValue, short.MaxValue);
 
         ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY, config);
 
@@ -762,6 +762,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             return;
         }
+
+        bool needsDisconnect = false;
 
         lock (_deviceLock)
         {
@@ -880,8 +882,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 _device = null;
 
-                HandleDisconnect();
+                // 標記需要在鎖外呼叫 HandleDisconnect，避免持鎖期間觸發跨執行緒事件（ConnectionChanged）。
+                needsDisconnect = true;
             }
+        }
+
+        // 在鎖外執行，防止持鎖時觸發 ConnectionChanged 事件導致死鎖風險。
+        if (needsDisconnect)
+        {
+            HandleDisconnect();
         }
     }
 
@@ -1021,11 +1030,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 _previousState = state;
 
-                // 這裡直接使用 state.Buttons 等屬性即可。
                 GameInputGamepadButtons currentButtons = state.Buttons;
 
-                short thumbLX = (short)(state.LeftThumbstickX * 32768f),
-                    thumbLY = (short)(state.LeftThumbstickY * 32768f);
+                short thumbLX = (short)Math.Clamp(state.LeftThumbstickX * 32767f, short.MinValue, short.MaxValue),
+                    thumbLY = (short)Math.Clamp(state.LeftThumbstickY * 32767f, short.MinValue, short.MaxValue);
 
                 // 取得快照以確保初始化時死區校驗一致。
                 AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;

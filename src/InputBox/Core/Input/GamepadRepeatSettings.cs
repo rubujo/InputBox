@@ -27,6 +27,11 @@ internal sealed class GamepadRepeatSettings
     /// <exception cref="InvalidOperationException">發生例外時會拋出</exception>
     public void Validate()
     {
+        if (InitialDelayFrames <= 0)
+        {
+            throw new InvalidOperationException("GamepadRepeatSettings.InitialDelayFrames 的值必須大於 0。");
+        }
+
         if (IntervalFrames <= 0)
         {
             throw new InvalidOperationException("GamepadRepeatSettings.IntervalFrames 的值必須大於 0。");

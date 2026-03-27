@@ -141,9 +141,9 @@ internal static class Program
         {
             SystemEvents.SessionEnding -= SessionEndingHandler;
         }
-        catch
+        catch (Exception ex)
         {
-
+            Debug.WriteLine($"[清理] 退訂 SessionEnding 事件時發生例外：{ex.GetType().Name}: {ex.Message}");
         }
 
         //處置全域字體快取，杜絕 GDI Handle 洩漏。
@@ -151,9 +151,19 @@ internal static class Program
         {
             MainForm.DisposeCaches();
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"[清理] 處置字體快取時發生例外：{ex.GetType().Name}: {ex.Message}");
+        }
 
+        // 釋放觸控式鍵盤 COM 介面，防止靜態 COM 物件洩漏。
+        try
+        {
+            TouchKeyboardService.Cleanup();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[清理] 釋放觸控式鍵盤 COM 介面時發生例外：{ex.GetType().Name}: {ex.Message}");
         }
 
         //釋放單一執行個體 Mutex，以利立即重啟。
@@ -161,9 +171,9 @@ internal static class Program
         {
             ReleaseMutex();
         }
-        catch
+        catch (Exception ex)
         {
-
+            Debug.WriteLine($"[清理] 釋放 Mutex 時發生例外：{ex.GetType().Name}: {ex.Message}");
         }
 
         // 強化 A11y 安全：緊急解除靜態系統事件訂閱（確保視窗關閉時完全脫離 UIA 鏈結），防止進程結束前發生記憶體洩漏。
@@ -171,9 +181,9 @@ internal static class Program
         {
             MainForm.EmergencyCleanupSystemEvents();
         }
-        catch
+        catch (Exception ex)
         {
-
+            Debug.WriteLine($"[清理] A11y 系統事件清理時發生例外：{ex.GetType().Name}: {ex.Message}");
         }
     }
 

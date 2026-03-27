@@ -960,7 +960,7 @@ internal sealed class NumericInputDialog : Form
         _alertCts = CancellationTokenSource
             .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
 
-        CancellationToken token = _alertCts?.Token ?? CancellationToken.None;
+        CancellationToken token = _alertCts.Token;
 
         try
         {
@@ -1998,7 +1998,7 @@ internal sealed class NumericInputDialog : Form
 
         // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock）。
         // 使用 TextRenderer 預先測量 Bold 字型的最大寬度，並將其鎖定為按鈕的 MinimumSize，
-        // 確保按鈕在獲得焦點變為粗體時，物理邊界保持絕對靜止，防止眼動儀「視線追逐」。
+        // 確保按鈕在獲得焦點變為粗體時，物理邊界保持絕對靜止，達成 Zero-Jitter。
         Size boldTextSize = TextRenderer.MeasureText(text, boldFont);
 
         int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),

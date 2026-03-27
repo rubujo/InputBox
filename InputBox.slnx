@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Folder Name="/方案項目/">
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
@@ -7,7 +7,9 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/方案項目/.github/" />
+  <Folder Name="/方案項目/.github/">
+    <File Path="copilot-instructions.md" />
+  </Folder>
 
   <Folder Name="/方案項目/.github/workflows/">
     <File Path=".github/workflows/ci.yml" />

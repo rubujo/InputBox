@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using InputBox.Core.Extensions;
 using InputBox.Core.Interop;
 using InputBox.Core.Utilities;
 
@@ -111,8 +112,8 @@ internal static partial class TouchKeyboardService
         }
         finally
         {
-            // 500ms 後重置原子旗標。
-            _ = Task.Delay(500).ContinueWith(_ => Interlocked.Exchange(ref _isOpening, 0), TaskScheduler.Default);
+            // 500ms 後重置原子旗標，使用 SafeFireAndForget 確保例外不被靜默吞沒。
+            ResetIsOpeningAfterDelayAsync().SafeFireAndForget();
         }
     }
 
@@ -179,5 +180,24 @@ internal static partial class TouchKeyboardService
 
             return false;
         }
+    }
+
+    /// <summary>
+    /// 延遲 500ms 後重置「正在開啟中」的原子旗標
+    /// </summary>
+    /// <returns>Task</returns>
+    private static async Task ResetIsOpeningAfterDelayAsync()
+    {
+        await Task.Delay(500).ConfigureAwait(false);
+
+        Interlocked.Exchange(ref _isOpening, 0);
+    }
+
+    /// <summary>
+    /// 釋放靜態 COM 介面參考，防止應用程式關閉時發生 COM 物件洩漏
+    /// </summary>
+    internal static void Cleanup()
+    {
+        _tipInvocation = null;
     }
 }

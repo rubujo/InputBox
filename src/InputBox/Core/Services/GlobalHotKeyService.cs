@@ -43,7 +43,15 @@ internal class GlobalHotKeyService
             if (Enum.TryParse(typeof(Keys), keyStr, true, out object? parsedKey) &&
                 parsedKey != null)
             {
-                vkCode = (uint)(Keys)parsedKey;
+                // Keys 列舉高位元組含有修飾鍵旗標（如 Keys.Control = 0x20000），
+                // 必須以 Keys.KeyCode 遮罩，取得純虛擬鍵碼（VK code），避免傳入無效的高位數值。
+                vkCode = (uint)((Keys)parsedKey & Keys.KeyCode);
+
+                if (vkCode == 0)
+                {
+                    // 防呆機制：遮罩後若為 0，退回預設值 I。
+                    vkCode = (uint)Keys.I;
+                }
             }
             else
             {

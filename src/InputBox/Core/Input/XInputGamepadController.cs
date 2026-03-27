@@ -165,73 +165,37 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public bool IsConnected => _hasPreviousState;
 
     /// <summary>
-    /// 控制器 A 鍵
+    /// Controls for A, B, X, Y buttons
     /// </summary>
     public event Action? APressed;
-
-    /// <summary>
-    /// 控制器 B 鍵
-    /// </summary>
     public event Action? BPressed;
-
-    /// <summary>
-    /// 控制器 X 鍵
-    /// </summary>
     public event Action? XPressed;
-
-    /// <summary>
-    /// 控制器 Y 鍵
-    /// </summary>
     public event Action? YPressed;
 
     /// <summary>
-    /// 控制器上鍵重複
+    /// 控制器鍵重複事件
     /// </summary>
     public event Action? UpRepeat;
-
-    /// <summary>
-    /// 控制器下鍵重複
-    /// </summary>
     public event Action? DownRepeat;
-
-    /// <summary>
-    /// 控制器左鍵重複
-    /// </summary>
     public event Action? LeftRepeat;
-
-    /// <summary>
-    /// 控制器右鍵重複
-    /// </summary>
     public event Action? RightRepeat;
 
     /// <summary>
-    /// 右搖桿左推按下事件
+    /// 右搖桿按壓事件
     /// </summary>
     public event Action? RSLeftPressed;
-
-    /// <summary>
-    /// 右搖桿右推按下事件
-    /// </summary>
     public event Action? RSRightPressed;
 
     /// <summary>
-    /// 右搖桿左推重複事件
+    /// 右搖桿重複事件
     /// </summary>
     public event Action? RSLeftRepeat;
-
-    /// <summary>
-    /// 右搖桿右推重複事件
-    /// </summary>
     public event Action? RSRightRepeat;
 
     /// <summary>
-    /// 當左觸發鍵（LT 鍵）被按下時觸發
+    /// 左右觸發鍵按壓事件
     /// </summary>
     public event Action? LeftTriggerPressed;
-
-    /// <summary>
-    /// 當右觸發鍵（RT 鍵）被按下時觸發
-    /// </summary>
     public event Action? RightTriggerPressed;
 
     /// <summary>
@@ -316,11 +280,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 防止重複啟動。
         StopPolling();
 
-        _ctsPolling = new CancellationTokenSource();
+        // 先以區域變數持有新的 CancellationTokenSource，再寫入欄位，
+        // 避免 StopPolling()（Interlocked.Exchange）在欄位寫入與 Token 讀取之間介入，
+        // 導致取得 CancellationToken.None 的 TOCTOU 競態。
+        CancellationTokenSource cts = new();
 
-        CancellationToken token = _ctsPolling?.Token ?? CancellationToken.None;
+        _ctsPolling = cts;
 
-        _taskPolling = Task.Run(() => PollingLoopAsync(token), token);
+        _taskPolling = Task.Run(() => PollingLoopAsync(cts.Token), cts.Token);
     }
 
     /// <summary>
@@ -389,11 +356,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
             LoggerService.LogException(ex, "XInput 輪詢迴圈發生致命錯誤");
 
             Debug.WriteLine($"輪詢迴圈發生致命錯誤：{ex.Message}");
-        }
-        finally
-        {
-            // 確保 Timer 被處置（雖然 using 會處理，但這裡明確中斷掛起）。
-            periodicTimer.Dispose();
         }
     }
 
@@ -501,6 +463,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _repeatDirection = null;
             _rsRepeatCounter = 0;
             _rsRepeatDirection = 0;
+
+            // 非活躍期間仍需更新 _previousState，否則重新啟動後邊緣偵測會以舊狀態比較，
+            // 導致幻象按鍵事件（spurious press events）。
+            _previousState = currentState;
             _hasPreviousState = true;
 
             return;
@@ -538,7 +504,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
 
-            // 處理右搖桿虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
+            // 處理右搖桿虛擬按键偵測（使用 Hysteresis 邏輯以對抗漂移）。
             int thresholdLeft = _rsRepeatDirection == -1 ?
                     config.ThumbDeadzoneExit :
                     config.ThumbDeadzoneEnter,
@@ -773,7 +739,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <returns>回傳 0-3 代表找到的控制器，若都沒找到則回傳 0（預設）</returns>
     public static uint GetFirstConnectedUserIndex()
     {
-        for (uint i = 0; i < 4; i++)
+        for (uint i = 0; i < AppSettings.XInputMaxControllers; i++)
         {
             // 開啟 XInput.XInputGetState，若回傳 0（ERROR_SUCCESS）代表該控制器已連接。
             if (XInput.XInputGetState(i, out _) == 0)

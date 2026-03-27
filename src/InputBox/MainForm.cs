@@ -243,7 +243,9 @@ public partial class MainForm : Form
 
         Disposed += (s, e) =>
         {
-            _formCts?.Dispose();
+            // 若直接呼叫 Dispose() 跳過 OnFormClosing，仍需先取消再釋放，
+            // 確保等待此 Token 的非同步工作都能收到取消訊號。
+            Interlocked.Exchange(ref _formCts, null)?.CancelAndDispose();
         };
 
         // 套用全域震動強度設定。
@@ -459,7 +461,7 @@ public partial class MainForm : Form
 
         cmsInput?.Dispose();
 
-        // 原子化處置輸入框專用字型。
+        // 原子化清除輸入框字型參考（共用字型不呼叫 Dispose）。
         Interlocked.Exchange(ref _inputFont, null);
 
         // 確保所有旗標正確歸零。

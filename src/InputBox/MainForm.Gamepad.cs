@@ -376,6 +376,8 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+
                         Debug.WriteLine($"[手把] RightPressed 處理失敗：{ex.Message}");
                     }
                 });

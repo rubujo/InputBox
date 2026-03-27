@@ -94,7 +94,7 @@ public class InputHistoryService(int maxHistory = 100)
         {
             _listHistory.Clear();
 
-            ResetIndex();
+            _currentIndex = -1;
         }
     }
 

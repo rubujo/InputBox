@@ -15,7 +15,7 @@ public class WindowFocusService
     /// <summary>
     /// 目前捕捉到的視窗控制代碼
     /// </summary>
-    private volatile nint _capturedHwnd;
+    private nint _capturedHwnd;
 
     /// <summary>
     /// 取得目前捕捉到的視窗控制代碼
