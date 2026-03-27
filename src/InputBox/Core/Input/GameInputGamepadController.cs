@@ -529,6 +529,23 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         // 記錄觸發當下的時間。
                         Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
                     });
+
+                // ── 初始化快速掃描 ────────────────────────────────────────────────
+                // RegisterDeviceCallback(Blocking) 已保證同步完成枚舉。
+                // 此時直接呼叫 TryFindDevice() 可立即建立連線，完全跳過 Poll() 中
+                // 的 GamepadRefreshCooldownMs（500ms）防抖冷卻。
+                //
+                // 背景：防抖冷卻的設計目的是避免插拔事件的連續 callback 導致高頻重新列舉。
+                // 但在初始化階段，Blocking callback 只觸發一次，不需要防抖；
+                // 舊的「首幀手動 Poll」設計並無法繞過冷卻，TryFindDevice() 仍被跳過，
+                // 造成 COM init + 500ms 合計約 600-700ms 的啟動延遲。
+                // 此處直接呼叫是目前架構下最佳化的做法，可消除其中約 500ms。
+                if (_needsRefresh &&
+                    !cancellationToken.IsCancellationRequested &&
+                    !_disposed)
+                {
+                    TryFindDevice();
+                }
             }
 
             // 成功完成初始化，通知 CreateAsync 解除等待
@@ -548,9 +565,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             using PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(PollingIntervalMs));
 
-            // 手動執行首發 Poll，搶下第一幀！
-            // 既然 Blocking 已經拿到了名單，我們不要白白等待計時器的第一個 16ms 延遲。
-            // 直接手動呼叫一次 Poll()，達成「視窗一出現，手把就連上」的秒抓體感！
+            // 手動執行首發 Poll，讀取初始按鍵狀態。
+            // 裝置連線已由初始化快速掃描完成；此次呼叫的目的是在計時器首幀（16ms）
+            // 延遲發生前，先讀取一次完整的按鍵／搖桿初始狀態，避免首幀狀態為空白。
             if (!cancellationToken.IsCancellationRequested &&
                 !_disposed)
             {
