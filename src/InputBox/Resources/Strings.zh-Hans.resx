@@ -748,7 +748,16 @@ F1	打开帮助对话框
 ←	光标左移
 →	光标右移
 Shift+←	向左选取文字
-Shift+→	向右选取文字</value>
+Shift+→	向右选取文字
+Home / End	光标跳至行首 / 行尾
+Ctrl+← / →	前一个 / 后一个单词
+Backspace	删除前一字符或选中内容
+Delete	删除后一字符
+Alt+B	返回游戏（不复制）
+Alt+↑ / ↓	增加 / 减少窗口透明度（+5% / −5%）
+Alt+0	重置窗口透明度（100%）
+Alt+P	切换隐私模式
+F10 / Alt+M	打开右键菜单</value>
     <comment>帮助对话框中键盘快捷键表格的数据行，以 Tab 分隔列：按键{tab}功能，每行一条。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

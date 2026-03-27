@@ -127,7 +127,7 @@ public partial class MainForm
         };
 
         // 快速鍵設定子選單。
-        ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'H'))
+        ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'T'))
         {
             AccessibleName = Strings.Menu_HotkeySettings,
             AccessibleDescription = Strings.Menu_HotkeySettings_Desc

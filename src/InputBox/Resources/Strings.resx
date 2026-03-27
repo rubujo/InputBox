@@ -748,7 +748,16 @@ F1	Open this Help dialog
 ←	Move cursor left
 →	Move cursor right
 Shift+←	Select text leftward
-Shift+→	Select text rightward</value>
+Shift+→	Select text rightward
+Home / End	Jump cursor to line start / end
+Ctrl+← / →	Move cursor by word
+Backspace	Delete previous character or selection
+Delete	Delete next character
+Alt+B	Return to game without copying
+Alt+↑ / ↓	Increase / decrease window opacity (+5% / −5%)
+Alt+0	Reset window opacity (100%)
+Alt+P	Toggle privacy mode
+F10 / Alt+M	Open context menu</value>
     <comment>Tab-separated rows for the keyboard shortcut table in the Help dialog. Format: Key{tab}Action. One row per line.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
