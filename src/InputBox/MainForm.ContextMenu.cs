@@ -365,7 +365,7 @@ public partial class MainForm
                     Strings.Settings_WindowOpacity,
                     AppSettings.Current.WindowOpacity * 100,
                     100.0f,
-                    50.0f,
+                    70.0f,
                     100.0f,
                     1.0m,
                     0);
