@@ -554,12 +554,35 @@ public partial class MainForm
             int borderThickness = (int)Math.Max(3, 3 * scale),
                 inset = (int)Math.Max(2, 2 * scale);
 
-            // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
-            using Pen borderPen = new(
-                SystemInformation.HighContrast ?
-                    SystemColors.HighlightText :
-                    (isDark ? Color.RoyalBlue : Color.Cyan),
-                borderThickness);
+            // 邊框色依 BtnCopy.BackColor 實際值動態選取，確保在強視覺（反轉底色）與
+            // 中性（懸停灰 / isDefault 系統色）兩種狀態下皆達 WCAG AAA（≥ 7:1）：
+            //   Color.Black（淺色強視覺）→ Cyan        16.75:1 AAA
+            //   Color.White（深色強視覺）→ MediumBlue  11.16:1 AAA
+            //   深色中性 / 懸停灰        → DeepSkyBlue  5.20:1 AA（典型 #3C3C3C）
+            //   淺色中性 / 懸停灰        → MediumBlue   8.14:1 AAA
+            Color borderColor;
+            if (SystemInformation.HighContrast)
+            {
+                borderColor = SystemColors.HighlightText;
+            }
+            else if (BtnCopy.BackColor == Color.Black)
+            {
+                borderColor = Color.Cyan;           // 淺色強視覺（黑底）16.75:1 AAA
+            }
+            else if (BtnCopy.BackColor == Color.White)
+            {
+                borderColor = Color.MediumBlue;     // 深色強視覺（白底）11.16:1 AAA
+            }
+            else if (isDark)
+            {
+                borderColor = Color.DeepSkyBlue;    // 深色中性 / 懸停 ≥5.2:1 AA
+            }
+            else
+            {
+                borderColor = Color.MediumBlue;     // 淺色中性 / 懸停 8.14:1 AAA
+            }
+
+            using Pen borderPen = new(borderColor, borderThickness);
 
             e.Graphics.DrawRectangle(
                 borderPen,

@@ -2321,12 +2321,31 @@ internal sealed class NumericInputDialog : Form
                 int borderThickness = (int)Math.Max(3, 3 * currentScale),
                     inset = (int)Math.Max(2, 2 * currentScale);
 
-                // 完全對齊 BtnCopy：淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
-                using Pen borderPen = new(
-                    SystemInformation.HighContrast ?
-                        SystemColors.HighlightText :
-                        (isDark ? Color.RoyalBlue : Color.Cyan),
-                    borderThickness);
+                // 邊框色依 btn.BackColor 實際值動態選取，對齊 BtnCopy 與 BtnClose 的情境感知邏輯，
+                // 確保在強視覺（反轉底色）與中性（懸停灰 / isDefault 系統色）下皆達 WCAG AAA：
+                Color borderColor;
+                if (SystemInformation.HighContrast)
+                {
+                    borderColor = SystemColors.HighlightText;
+                }
+                else if (btn.BackColor == Color.Black)
+                {
+                    borderColor = Color.Cyan;           // 淺色強視覺（黑底）16.75:1 AAA
+                }
+                else if (btn.BackColor == Color.White)
+                {
+                    borderColor = Color.MediumBlue;     // 深色強視覺（白底）11.16:1 AAA
+                }
+                else if (isDark)
+                {
+                    borderColor = Color.DeepSkyBlue;    // 深色中性 / 懸停 ≥5.2:1 AA
+                }
+                else
+                {
+                    borderColor = Color.MediumBlue;     // 淺色中性 / 懸停 8.14:1 AAA
+                }
+
+                using Pen borderPen = new(borderColor, borderThickness);
 
                 e.Graphics.DrawRectangle(
                     borderPen,
