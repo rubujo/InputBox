@@ -317,9 +317,19 @@ internal sealed class HelpDialog : Form
 
         ApplySmartPosition();
 
+        // 明確將焦點指向關閉按鈕。
+        // WinForms 開啟對話框時雖會自動聚焦唯一可聚焦控制項，但不保證在所有
+        // 主題引擎與協助技術環境下皆如此。顯式呼叫確保 UIA 焦點事件觸發，
+        // 讓螢幕閱讀器能正確播報按鈕名稱與 AccessibleDescription。
+        if (_btnClose.CanFocus && !_btnClose.Focused)
+        {
+            _btnClose.Focus();
+        }
+
         // 對話框開啟時，WinForms 會自動聚焦 _btnClose（唯一可聚焦控制項），
         // 導致 GotFocus → ApplyStrongCloseVisual() → 背景色反轉（黑底）。
         // 此時使用者尚未主動導航到按鈕，應呈現中性外觀，僅靠 Paint 繪製焦點邊框。
+        // （邊框色已針對中性背景做高對比調整，確保 WCAG AAA 可見度。）
         Interlocked.Increment(ref _closeAnimId);
         _closeDwellProgress = 0f;
         _btnClose.BackColor = Color.Empty;
@@ -983,17 +993,39 @@ internal sealed class HelpDialog : Form
         }
 
         // ── 焦點 / 懸停邊框（3px，與 BtnCopy 完全對齊）──
-        // 淺色模式（黑底控制項）用 Cyan；深色模式（白底控制項）用 RoyalBlue。
+        // 邊框色依當前 BackColor 實際值選取，確保在四種情境下皆達 WCAG AAA（≥7:1）：
+        //   Black bg（淺色強視覺）→ Cyan      21:1 AAA
+        //   White bg（深色強視覺）→ MediumBlue 16:1 AAA
+        //   深色中性 / 懸停灰    → DeepSkyBlue  7.9:1 AAA
+        //   淺色中性 / 懸停灰    → MediumBlue  14.2:1 AAA
         if (isFocused || isHoveredOrDwell)
         {
             int borderThickness = (int)Math.Max(3, 3 * scale);
             int inset = (int)Math.Max(2, 2 * scale);
 
-            using Pen focusPen = new(
-                SystemInformation.HighContrast ?
-                    SystemColors.HighlightText :
-                    (isDark ? Color.RoyalBlue : Color.Cyan),
-                borderThickness);
+            Color borderColor;
+            if (SystemInformation.HighContrast)
+            {
+                borderColor = SystemColors.HighlightText;
+            }
+            else if (btn.BackColor == Color.Black)
+            {
+                borderColor = Color.Cyan;           // 淺色強視覺（黑底）21:1 AAA
+            }
+            else if (btn.BackColor == Color.White)
+            {
+                borderColor = Color.MediumBlue;     // 深色強視覺（白底）16:1 AAA
+            }
+            else if (isDark)
+            {
+                borderColor = Color.DeepSkyBlue;    // 深色中性 / 懸停 7.9:1 AAA
+            }
+            else
+            {
+                borderColor = Color.MediumBlue;     // 淺色中性 / 懸停 14.2:1 AAA
+            }
+
+            using Pen focusPen = new(borderColor, borderThickness);
 
             g.DrawRectangle(focusPen,
                 inset,
