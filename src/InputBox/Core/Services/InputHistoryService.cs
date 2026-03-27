@@ -136,7 +136,7 @@ public class InputHistoryService(int maxHistory = 100)
             }
 
             int previousIndex = _currentIndex;
-            
+
             // 索引 0 是最新的一筆，Count-1 是最舊的一筆。
             // 方向 -1 (向上) 代表要找「較舊」的記錄，因此索引必須增加。
             // 方向 +1 (向下) 代表要找「較新」的記錄，因此索引必須減少。

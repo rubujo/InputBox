@@ -3,7 +3,7 @@
 /// <summary>
 /// 遊戲控制器重複設定
 /// </summary>
-/// <remarks> 
+/// <remarks>
 /// 單位為「Polling frame」，而非毫秒。
 /// 實際時間取決於 PollingIntervalMs（預設約 16ms）。
 /// </remarks>

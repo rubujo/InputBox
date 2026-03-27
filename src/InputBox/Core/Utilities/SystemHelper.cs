@@ -52,7 +52,7 @@ public static partial class SystemHelper
             }
             catch
             {
-                // 忽略 Registry 存取錯誤。 
+                // 忽略 Registry 存取錯誤。
             }
         }
 

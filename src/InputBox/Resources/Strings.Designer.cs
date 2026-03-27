@@ -421,7 +421,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 {0}. Current: {1:P0}. Minimum is 50%. 的當地語系化字串。
+        ///   查詢類似 {0}. Current: {1:P0}. Minimum is 70%. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_OpacityDesc {
             get {
@@ -1009,6 +1009,7 @@ namespace InputBox.Resources {
         ///Back+X	Reset window opacity
         ///↑ / ↓	Navigate history
         ///← / →	Move cursor
+        ///LB+← / →	Jump cursor by word
         ///RS ← / →	Expand or shrink selection
         ///Back+↑ / ↓	Adjust window opacity (+5% / −5%) 的當地語系化字串。
         /// </summary>
@@ -1021,6 +1022,8 @@ namespace InputBox.Resources {
         /// <summary>
         ///   查詢類似 Esc	Clear input / Return to game (if empty)
         ///Enter	Copy to clipboard and return to game
+        ///Alt+A	Same as Enter
+        ///Shift+Enter	Insert a new line
         ///F1	Open this Help dialog
         ///↑	Previous history entry
         ///↓	Next history entry
@@ -1033,7 +1036,7 @@ namespace InputBox.Resources {
         ///Backspace	Delete previous character or selection
         ///Delete	Delete next character
         ///Alt+B	Return to game without copying
-        ///Alt+↑ / ↓	Increase / decrease window opacity (+5% / − [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
+        ///A [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string Help_Keyboard_Rows {
             get {

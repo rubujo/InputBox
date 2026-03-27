@@ -36,9 +36,9 @@ partial class MainForm
         TLPHost.SuspendLayout();
         PInputHost.SuspendLayout();
         SuspendLayout();
-        // 
+        //
         // TLPHost
-        // 
+        //
         TLPHost.AccessibleDescription = "包含文字輸入與操作按鈕的主要容器。";
         TLPHost.AccessibleName = "主要版面配置";
         TLPHost.AccessibleRole = AccessibleRole.Grouping;
@@ -54,9 +54,9 @@ partial class MainForm
         TLPHost.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         TLPHost.Size = new Size(384, 60);
         TLPHost.TabIndex = 0;
-        // 
+        //
         // PInputHost
-        // 
+        //
         PInputHost.AccessibleDescription = "包含文字輸入欄位的容器。";
         PInputHost.AccessibleName = "輸入區";
         PInputHost.AccessibleRole = AccessibleRole.Grouping;
@@ -67,9 +67,9 @@ partial class MainForm
         PInputHost.Padding = new Padding(3);
         PInputHost.Size = new Size(228, 54);
         PInputHost.TabIndex = 0;
-        // 
+        //
         // TBInput
-        // 
+        //
         TBInput.AccessibleDescription = "請在此輸入要複製到剪貼簿的文字。";
         TBInput.AccessibleName = "輸入文字";
         TBInput.AccessibleRole = AccessibleRole.Text;
@@ -87,9 +87,9 @@ partial class MainForm
         TBInput.Enter += TBInput_Enter;
         TBInput.KeyDown += TBInput_KeyDown;
         TBInput.Leave += TBInput_Leave;
-        // 
+        //
         // BtnCopy
-        // 
+        //
         BtnCopy.AccessibleDescription = "將文字方塊中的文字複製到剪貼簿。";
         BtnCopy.AccessibleName = "複製到剪貼簿";
         BtnCopy.AccessibleRole = AccessibleRole.PushButton;
@@ -111,9 +111,9 @@ partial class MainForm
         BtnCopy.Leave += BtnCopy_Leave;
         BtnCopy.MouseEnter += BtnCopy_MouseEnter;
         BtnCopy.MouseLeave += BtnCopy_MouseLeave;
-        // 
+        //
         // MainForm
-        // 
+        //
         AccessibleDescription = "輸入文字後，可按下複製到剪貼簿按鈕以複製文字到剪貼簿。";
         AccessibleName = "文字輸入與複製";
         AccessibleRole = AccessibleRole.Dialog;
