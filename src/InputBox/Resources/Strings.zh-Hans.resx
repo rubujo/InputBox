@@ -728,7 +728,7 @@
     <comment>帮助对话框中两个表格的「功能」列标题。</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>关闭 (&amp;C)</value>
+    <value>关闭 (&amp;B)</value>
     <comment>帮助对话框中「关闭」按钮的标签文字。</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
@@ -755,7 +755,7 @@ Shift+→	向右选取文字</value>
     <value>A / Start	复制到剪贴板并返回游戏
 B	清除文字
 LB+RB+B	返回游戏（输入框已空时）
-Back（松开）	返回游戏
+Back （松开）	返回游戏
 Y	打开右键菜单
 X	删除前一字符或选中内容
 LB+RB+X	退出程序

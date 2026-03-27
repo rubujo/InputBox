@@ -4,6 +4,7 @@ using InputBox.Core.Input;
 using InputBox.Resources;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 
 namespace InputBox.Core.Controls;
 
@@ -131,11 +132,20 @@ internal sealed class HelpDialog : Form
             Anchor = AnchorStyles.Top | AnchorStyles.Right,
             FlatStyle = FlatStyle.Flat,
             AccessibleName = Strings.Help_Btn_Close,
-            DialogResult = DialogResult.Cancel
+            AccessibleRole = AccessibleRole.PushButton,
+            DialogResult = DialogResult.Cancel,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty
         };
         _btnClose.FlatAppearance.BorderSize = 0;
+
+        // Click：打斷目前動畫後關閉。
         _btnClose.Click += (s, e) =>
         {
+            Interlocked.Increment(ref _closeAnimId);
+            _closeDwellProgress = 0f;
+            _btnClose.Invalidate();
+
             try
             {
                 Close();
@@ -145,6 +155,53 @@ internal sealed class HelpDialog : Form
                 Debug.WriteLine($"[說明] 關閉失敗：{ex.Message}");
             }
         };
+
+        // MouseEnter / Leave：懸停視覺回饋。
+        _btnClose.MouseEnter += (s, e) =>
+        {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
+            _closeIsHovered = true;
+            StartCloseAnimationFeedback();
+        };
+        _btnClose.MouseLeave += (s, e) =>
+        {
+            _closeIsHovered = false;
+            _closeIsPressed = false;
+            StopCloseFeedback();
+        };
+
+        // MouseDown / Up：按壓狀態追蹤。
+        _btnClose.MouseDown += (s, e) =>
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _closeIsPressed = true;
+                StartCloseAnimationFeedback();
+            }
+        };
+        _btnClose.MouseUp += (s, e) =>
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _closeIsPressed = false;
+                StartCloseAnimationFeedback();
+            }
+        };
+
+        // GotFocus / LostFocus：鍵盤焦點強烈視覺回饋。
+        _btnClose.GotFocus += (s, e) => ApplyStrongCloseVisual();
+        _btnClose.LostFocus += (s, e) =>
+        {
+            _closeIsPressed = false;
+            StopCloseFeedback();
+        };
+
+        // Paint：自訂邊框與注視進度條。
+        _btnClose.Paint += BtnClose_Paint;
 
         Panel pnlFooter = new()
         {
@@ -173,6 +230,7 @@ internal sealed class HelpDialog : Form
         PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, Strings.Help_Keyboard_Rows);
         PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
         BindGamepadEvents();
+        UpdateButtonMinimumSize();
         UpdateFormSize();
     }
 
@@ -184,6 +242,7 @@ internal sealed class HelpDialog : Form
         base.OnDpiChanged(e);
 
         ApplyFont();
+        UpdateButtonMinimumSize();
         UpdateFormSize();
         ApplySmartPosition();
     }
@@ -230,16 +289,35 @@ internal sealed class HelpDialog : Form
         base.OnFormClosing(e);
 
         UnbindGamepadEvents();
+        Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
         // 共享字體不由此對話框處置。
         Font? f = Interlocked.Exchange(ref _currentFont, null);
         // f 來自快取池，不處置，僅歸零欄位。
         _ = f;
+        // 關閉按鈕基礎字型（非快取池，需處置）。
+        Interlocked.Exchange(ref _closeRegularFont, null)?.Dispose();
     }
 
     /// <summary>
     /// 目前使用的字型（來自快取池，不由此對話框處置）
     /// </summary>
     private Font? _currentFont;
+
+    /// <summary>
+    /// 對話框存續期間的取消權杖（用於 Dwell 動畫等背景任務）
+    /// </summary>
+    private CancellationTokenSource? _cts = new();
+
+    /// <summary>
+    /// 關閉按鈕目前使用的基礎字型（不含 Bold）
+    /// </summary>
+    private Font? _closeRegularFont;
+
+    // ──── 關閉按鈕視覺狀態 ────
+    private float _closeDwellProgress;
+    private long _closeAnimId;
+    private bool _closeIsHovered;
+    private bool _closeIsPressed;
 
     /// <summary>
     /// 套用共享 A11y 字型到所有控制項。
@@ -249,6 +327,10 @@ internal sealed class HelpDialog : Form
         Font shared = MainForm.GetSharedA11yFont(DeviceDpi);
 
         Interlocked.Exchange(ref _currentFont, shared);
+        // 建立非 Bold 的按鈕基礎字型（供 Bold 寬度計算與正常狀態使用）。
+        Font? oldRegular = Interlocked.Exchange(ref _closeRegularFont,
+            new Font(shared, FontStyle.Regular));
+        oldRegular?.Dispose();
 
         Font = shared;
     }
@@ -430,20 +512,212 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private void OnGamepadClose()
     {
-        this.SafeInvoke(() =>
+        this.SafeBeginInvoke(async () =>
         {
             try
             {
-                if (!IsDisposed)
+                if (IsDisposed)
                 {
-                    Close();
+                    return;
                 }
+
+                ApplyStrongCloseVisual();
+                await Task.Delay(80, _cts?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                await this.InvokeAsync(() =>
+                {
+                    if (!IsDisposed)
+                    {
+                        Close();
+                    }
+                });
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[說明] 手把關閉失敗：{ex.Message}");
             }
         });
+    }
+
+    #endregion
+
+    #region 關閉按鈕視覺特效
+
+    /// <summary>
+    /// 預先計算按鈕 Bold 文字最大寬度，鎖定 MinimumSize 防止字型加粗時佈局抖動。
+    /// </summary>
+    private void UpdateButtonMinimumSize()
+    {
+        Font? regularFont = _closeRegularFont;
+        if (regularFont == null)
+        {
+            return;
+        }
+
+        using Font boldFont = new(regularFont, FontStyle.Bold);
+        using Graphics g = _btnClose.CreateGraphics();
+
+        SizeF regularSize = g.MeasureString(_btnClose.Text, regularFont);
+        SizeF boldSize = g.MeasureString(_btnClose.Text, boldFont);
+
+        int maxW = (int)Math.Ceiling(Math.Max(regularSize.Width, boldSize.Width)) +
+                   _btnClose.Padding.Horizontal + 12;
+        int maxH = (int)Math.Ceiling(Math.Max(regularSize.Height, boldSize.Height)) +
+                   _btnClose.Padding.Vertical + 6;
+
+        _btnClose.MinimumSize = new Size(maxW, maxH);
+    }
+
+    /// <summary>
+    /// 焦點或按壓時套用強烈靜態視覺（主題感知反轉 + Bold 字型）。
+    /// </summary>
+    private void ApplyStrongCloseVisual()
+    {
+        if (_btnClose.IsDisposed)
+        {
+            return;
+        }
+
+        Interlocked.Increment(ref _closeAnimId);
+        _closeDwellProgress = 0f;
+
+        bool isDark = _btnClose.IsDarkModeActive();
+        _btnClose.BackColor = isDark ? Color.White : Color.Black;
+        _btnClose.ForeColor = isDark ? Color.Black : Color.White;
+        _btnClose.Font = _closeRegularFont != null
+            ? new Font(_closeRegularFont, FontStyle.Bold)
+            : _btnClose.Font;
+        _btnClose.Invalidate();
+    }
+
+    /// <summary>
+    /// 懸停（Hover）或一般互動時啟動 Dwell 動畫。
+    /// </summary>
+    private void StartCloseAnimationFeedback()
+    {
+        if (_btnClose.IsDisposed)
+        {
+            return;
+        }
+
+        // 鍵盤焦點狀態由 GotFocus 統一處理，不在此啟動 Dwell。
+        if (_btnClose.Focused && !_closeIsHovered)
+        {
+            return;
+        }
+
+        bool isDark = _btnClose.IsDarkModeActive();
+        _btnClose.BackColor = isDark ? Color.FromArgb(60, 60, 60) : Color.Gainsboro;
+        _btnClose.ForeColor = Color.Empty;
+        _btnClose.Font = _closeRegularFont ?? _btnClose.Font;
+
+        long currentId = Interlocked.Increment(ref _closeAnimId);
+        _closeDwellProgress = 0f;
+        _btnClose.Invalidate();
+
+        CancellationToken ct = _cts?.Token ?? CancellationToken.None;
+        _btnClose.RunDwellAnimationAsync(
+            id: currentId,
+            animationIdGetter: () => Interlocked.Read(ref _closeAnimId),
+            progressSetter: p =>
+            {
+                _closeDwellProgress = p;
+                _btnClose.Invalidate();
+            },
+            durationMs: 1000,
+            ct: ct
+        ).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 停止回饋：恢復預設外觀或依焦點/懸停狀態調整。
+    /// </summary>
+    private void StopCloseFeedback()
+    {
+        Interlocked.Increment(ref _closeAnimId);
+        _closeDwellProgress = 0f;
+
+        if (_btnClose.Focused)
+        {
+            // 焦點留存，維持強烈視覺。
+            ApplyStrongCloseVisual();
+            return;
+        }
+
+        if (_closeIsHovered)
+        {
+            // 懸停留存，維持懸停背景。
+            StartCloseAnimationFeedback();
+            return;
+        }
+
+        // 恢復預設（由主題引擎決定）。
+        _btnClose.BackColor = Color.Empty;
+        _btnClose.ForeColor = Color.Empty;
+        _btnClose.Font = _closeRegularFont ?? _btnClose.Font;
+        _btnClose.Invalidate();
+    }
+
+    /// <summary>
+    /// 自訂繪製：基礎邊框 → 焦點/懸停邊框 → Dwell 進度條。
+    /// </summary>
+    private void BtnClose_Paint(object? sender, PaintEventArgs e)
+    {
+        Button btn = _btnClose;
+        Graphics g = e.Graphics;
+        Rectangle rc = btn.ClientRectangle;
+
+        bool isDark = btn.IsDarkModeActive();
+        float scale = DeviceDpi / 96.0f;
+
+        // ── 基礎邊框（1px，確保無邊框時仍可辨識）──
+        int baseBorderPx = Math.Max(1, (int)scale);
+        Color baseBorderColor = isDark ? Color.DarkGray : Color.DimGray;
+        using (Pen basePen = new(baseBorderColor, baseBorderPx))
+        {
+            g.DrawRectangle(basePen,
+                baseBorderPx / 2f, baseBorderPx / 2f,
+                rc.Width - baseBorderPx, rc.Height - baseBorderPx);
+        }
+
+        bool isFocused = btn.Focused;
+        bool isHoveredOrDwell = _closeIsHovered || (_closeDwellProgress > 0f);
+
+        // ── 焦點 / 懸停邊框（3px）──
+        if (isFocused || isHoveredOrDwell)
+        {
+            int focusBorderPx = Math.Max(2, (int)(3 * scale));
+            Color focusColor = isFocused
+                ? (isDark ? Color.Cyan : Color.RoyalBlue)
+                : (isDark ? Color.RoyalBlue : Color.RoyalBlue);
+            using Pen focusPen = new(focusColor, focusBorderPx);
+            g.DrawRectangle(focusPen,
+                focusBorderPx / 2f, focusBorderPx / 2f,
+                rc.Width - focusBorderPx, rc.Height - focusBorderPx);
+        }
+
+        // ── Dwell 進度條（Hover 時，繪於底部）──
+        float progress = _closeDwellProgress;
+        if (progress > 0f && !isFocused && !_closeIsPressed)
+        {
+            int barH = Math.Max(3, (int)(4 * scale));
+            int barW = (int)(rc.Width * progress);
+
+            // 進度條繪製於懸停灰底之上。
+            // 淺色懸停（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停（#3C3C3C）→ DarkOrange 4.73:1。
+            Color baseColor = isDark ? Color.DarkOrange : Color.SaddleBrown;
+            Color hatchColor = isDark ? Color.OrangeRed : Color.DarkOrange;
+
+            if (barW > 0)
+            {
+                Rectangle barRect = new(0, rc.Bottom - barH, barW, barH);
+                using SolidBrush baseBrush = new(baseColor);
+                g.FillRectangle(baseBrush, barRect);
+
+                using HatchBrush hatch = new(HatchStyle.ForwardDiagonal, hatchColor, baseColor);
+                g.FillRectangle(hatch, barRect);
+            }
+        }
     }
 
     #endregion

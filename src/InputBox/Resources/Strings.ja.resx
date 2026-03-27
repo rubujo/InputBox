@@ -728,7 +728,7 @@
     <comment>ヘルプダイアログ内の両方の表の「操作」列ヘッダー。</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>閉じる (&amp;C)</value>
+    <value>閉じる (&amp;B)</value>
     <comment>ヘルプダイアログ内の「閉じる」ボタンのラベルテキスト。</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
@@ -755,7 +755,7 @@ Shift+→	右に選択を拡大</value>
     <value>A / Start	クリップボードにコピーしてゲームに戻る
 B	文字をクリア
 LB+RB+B	ゲームに戻る（入力欄が空の場合）
-Back（離す）	ゲームに戻る
+Back （離す）	ゲームに戻る
 Y	右クリックメニューを開く
 X	直前の文字または選択範囲を削除
 LB+RB+X	アプリを終了

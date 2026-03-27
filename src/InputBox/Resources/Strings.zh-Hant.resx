@@ -728,7 +728,7 @@
     <comment>說明對話框中兩個表格的「功能」欄標題。</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>關閉 (&amp;C)</value>
+    <value>關閉 (&amp;B)</value>
     <comment>說明對話框中「關閉」按鈕的標籤文字。</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
@@ -755,7 +755,7 @@ Shift+→	向右選取文字</value>
     <value>A / Start	複製到剪貼簿並返回遊戲
 B	清除文字
 LB+RB+B	返回遊戲（文字框已空時）
-Back（放開）	返回遊戲
+Back （放開）	返回遊戲
 Y	開啟右鍵選單
 X	刪除前一字元或選取範圍
 LB+RB+X	結束程式

@@ -728,7 +728,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Column header for the action description column in both tables inside the Help dialog.</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>Close (&amp;C)</value>
+    <value>Close (&amp;B)</value>
     <comment>Label for the Close button in the Help dialog.</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
