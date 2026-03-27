@@ -82,21 +82,29 @@ jobs:
         $zipName = "InputBox-$tagName-win-x64.zip"
         "ZIP_FILENAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-        # 1. 建立外層目錄（dist）與內層目錄（dist/InputBox）。
+        # 1. 建立外層目錄（dist）、內層目錄（dist/InputBox）與授權子目錄（dist/InputBox/Licenses）。
         $distDir = "./dist"
         $packDir = Join-Path $distDir "InputBox"
+        $licensesDir = Join-Path $packDir "Licenses"
         if (Test-Path $distDir) {
             Remove-Item -Recurse -Force $distDir
         }
         New-Item -ItemType Directory -Force -Path $packDir | Out-Null
+        New-Item -ItemType Directory -Force -Path $licensesDir | Out-Null
 
         # 2. 複製執行檔與專案文件到內層目錄。
+        #    - 執行檔與 README.md 放根目錄。
+        #    - 專案授權（LICENSE）保留根目錄（業界慣例：使用者預期在根層找到它）。
+        #    - ThirdPartyNotices.txt 放入 Licenses/ 子目錄。
         Copy-Item -Path (Join-Path ${{ env.PUBLISH_DIR }} ${{ env.EXE_NAME }}) -Destination $packDir
-        $docs = @("LICENSE", "README.md", "ThirdPartyNotices.txt")
-        foreach ($doc in $docs) {
+        $rootDocs = @("LICENSE", "README.md")
+        foreach ($doc in $rootDocs) {
             if (Test-Path $doc) {
                 Copy-Item -Path $doc -Destination $packDir
             }
+        }
+        if (Test-Path "ThirdPartyNotices.txt") {
+            Copy-Item -Path "ThirdPartyNotices.txt" -Destination $licensesDir
         }
 
         # 3. 動態抓取 .NET 官方授權檔案。
@@ -120,7 +128,7 @@ jobs:
 
             foreach ($item in $filesToDownload) {
                 $url = "https://raw.githubusercontent.com/dotnet/$($item.Repo)/$tag/$($item.File)"
-                $outPath = Join-Path $packDir $item.Out
+                $outPath = Join-Path $licensesDir $item.Out
                 Write-Host "嘗試下載: $url"
                 try {
                     Invoke-WebRequest -Uri $url -OutFile $outPath -ErrorAction Stop
@@ -158,7 +166,7 @@ jobs:
             )
 
             foreach ($item in $extraFiles) {
-                $outPath = Join-Path $packDir $item.Out
+                $outPath = Join-Path $licensesDir $item.Out
                 Write-Host "嘗試下載: $($item.Url)"
                 try {
                     Invoke-WebRequest -Uri $item.Url -OutFile $outPath -ErrorAction Stop
@@ -186,7 +194,7 @@ jobs:
 
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         '@
-        $bsdLicenseText | Out-File -FilePath (Join-Path $packDir "usb_ids_LICENSE.txt") -Encoding utf8
+        $bsdLicenseText | Out-File -FilePath (Join-Path $licensesDir "usb_ids_LICENSE.txt") -Encoding utf8
         Write-Host "✅ 成功建立 usb_ids_LICENSE.txt"
         Write-Host "======================================="
 
