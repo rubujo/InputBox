@@ -336,6 +336,34 @@ internal sealed class HelpDialog : Form
     /// <summary>
     /// F1 / Esc 關閉對話框。
     /// </summary>
+    /// <summary>
+    /// 在 ProcessDialogKey（方向鍵焦點導航）之前攔截，確保 ↑↓ 可捲動內容面板。
+    /// PageUp/Down/Home/End 由 OnKeyDown 處理（不受 ProcessDialogKey 干擾）。
+    /// </summary>
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        const int WM_KEYDOWN = 0x0100;
+
+        if (msg.Msg == WM_KEYDOWN)
+        {
+            Keys key = keyData & Keys.KeyCode;
+
+            if (key is Keys.Up or Keys.Down)
+            {
+                float scale = DeviceDpi / AppSettings.BaseDpi;
+                int step = (int)Math.Max(20, 40 * scale);
+                int maxY = Math.Max(0,
+                    _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
+                int current = -_pnlScroll.AutoScrollPosition.Y;
+                int newY = Math.Clamp(current + (key == Keys.Up ? -step : step), 0, maxY);
+                _pnlScroll.AutoScrollPosition = new Point(0, newY);
+                return true;
+            }
+        }
+
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
@@ -347,20 +375,18 @@ internal sealed class HelpDialog : Form
             return;
         }
 
-        // 方向鍵 / PageUp / PageDown / Home / End 捲動內容面板。
-        // 焦點常駐於 _btnClose（Panel 不響應方向鍵），故在表單層攔截。
+        // PageUp / PageDown / Home / End 捲動內容面板。
+        // ↑↓ 已由 ProcessCmdKey 處理（避免被 ProcessDialogKey 焦點導航消耗）。
         float scale = DeviceDpi / AppSettings.BaseDpi;
         int step = (int)Math.Max(20, 40 * scale);
         int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
 
         int delta = e.KeyCode switch
         {
-            Keys.Up   => -step,
-            Keys.Down =>  step,
             Keys.PageUp   => -pageStep,
             Keys.PageDown =>  pageStep,
-            Keys.Home => int.MinValue,  // clamp 至 0
-            Keys.End  => int.MaxValue,  // clamp 至 maxY
+            Keys.Home => int.MinValue,
+            Keys.End  => int.MaxValue,
             _ => 0,
         };
 
@@ -882,18 +908,12 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 停止回饋：恢復預設外觀或依焦點/懸停狀態調整。
+    /// 停止回饋：恢復預設外觀或依懸停狀態調整。
     /// </summary>
     private void StopCloseFeedback()
     {
         Interlocked.Increment(ref _closeAnimId);
         _closeDwellProgress = 0f;
-
-        if (_btnClose.Focused)
-        {
-            ApplyStrongCloseVisual();
-            return;
-        }
 
         if (_closeIsHovered)
         {
@@ -902,6 +922,9 @@ internal sealed class HelpDialog : Form
         }
 
         // 恢復預設（由主題引擎決定）。
+        // 注意：此對話框的 _btnClose 為唯一可聚焦控制項，永遠持有焦點。
+        // 不在此呼叫 ApplyStrongCloseVisual()，焦點邊框由 Paint 事件負責繪製，
+        // 避免滑鼠離開後背景始終維持反轉色（黑色），造成視覺混淆。
         _btnClose.BackColor = Color.Empty;
         _btnClose.ForeColor = Color.Empty;
 
