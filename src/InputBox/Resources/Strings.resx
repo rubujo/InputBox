@@ -527,6 +527,14 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Reset the value to the factory default: {0}.</value>
     <comment>Accessibility description for the Reset button. {0} is the factory default value.</comment>
   </data>
+  <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
+    <value>Reset all settings in this group to their factory defaults.</value>
+    <comment>Accessibility description for Reset buttons that reset multiple settings at once (e.g., window ops, feedback, gamepad).</comment>
+  </data>
+  <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
+    <value>Contains the numeric input field and increment/decrement buttons.</value>
+    <comment>Accessibility description for the numeric input grid container in NumericInputDialog.</comment>
+  </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} enabled</value>
     <comment>Accessibility message when a modifier key is turned on. {0} is the name.</comment>

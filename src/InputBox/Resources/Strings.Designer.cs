@@ -115,6 +115,15 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Reset all settings in this group to their factory defaults. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Btn_SetDefault_Group_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Btn_SetDefault_Group_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Copies the text from the input box to the clipboard. 的當地語系化字串。
         /// </summary>
         internal static string A11y_BtnCopyDesc {
@@ -273,6 +282,15 @@ namespace InputBox.Resources {
         internal static string A11y_Gamepad_Fallback {
             get {
                 return ResourceManager.GetString("A11y_Gamepad_Fallback", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Contains the numeric input field and increment/decrement buttons. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Grid_Numeric_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Grid_Numeric_Desc", resourceCulture);
             }
         }
 

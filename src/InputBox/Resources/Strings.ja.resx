@@ -527,6 +527,14 @@
     <value>値を初期設定にリセットします。デフォルト：{0}。</value>
     <comment>既定値リセットボタンのアクセシビリティ記述です。{0} はその項目の工場出荷時の既定値です。</comment>
   </data>
+  <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
+    <value>このグループのすべての設定を工場出荷時の既定値にリセットします。</value>
+    <comment>複数の設定を一括リセットするボタン（ウィンドウ操作・フィードバック・ゲームパッドなど）のアクセシビリティ記述です。</comment>
+  </data>
+  <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
+    <value>数値入力フィールドと増減ボタンを含む操作グループです。</value>
+    <comment>NumericInputDialog の数値入力グリッドコンテナのアクセシビリティ記述です。</comment>
+  </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} がオンになりました</value>
     <comment>アクセシビリティメッセージ。修飾キーが有効になったときに再生されます。{0} は修飾キーの名前です。</comment>

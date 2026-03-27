@@ -527,6 +527,14 @@
     <value>将数值重置为默认值：{0}。</value>
     <comment>重置默认值按钮的无障碍描述。{0} 是该项目的出厂默认值。</comment>
   </data>
+  <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
+    <value>将此组的所有设置重置为出厂默认值。</value>
+    <comment>同时重置多项设置的重置按钮（如窗口操作、反馈、手柄设置）的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
+    <value>包含数值输入框与加减按钮的操作组。</value>
+    <comment>NumericInputDialog 中数值输入网格容器的无障碍描述。</comment>
+  </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} 已开启</value>
     <comment>无障碍消息，当修饰键被启用时播放。{0} 是修饰键名称。</comment>

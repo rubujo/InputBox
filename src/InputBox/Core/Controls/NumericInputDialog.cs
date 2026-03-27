@@ -1467,6 +1467,7 @@ internal sealed class NumericInputDialog : Form
 
         // 建立 A11y 廣播器（作為備援）。
         _announcer = new AnnouncerLabel();
+        _announcer.AccessibleName = "\u00A0";
 
         // 繼承圖示：優先從主視窗繼承，保持應用程式視覺識別的一致性。
         Icon = Application.OpenForms.OfType<MainForm>().FirstOrDefault()?.Icon ??
@@ -1498,6 +1499,7 @@ internal sealed class NumericInputDialog : Form
         Label lblPrompt = new()
         {
             Text = string.Format(Strings.Msg_EnterValue, title),
+            AccessibleName = string.Format(Strings.Msg_EnterValue, title),
             AutoSize = true,
             MaximumSize = new Size((int)(500 * scale), 0),
             Margin = new Padding(0, 0, 0, (int)(25 * scale)),
@@ -1512,7 +1514,8 @@ internal sealed class NumericInputDialog : Form
             ColumnCount = 3,
             RowCount = 2,
             AccessibleRole = AccessibleRole.Grouping,
-            AccessibleName = string.Format(Strings.Msg_EnterValue, title)
+            AccessibleName = string.Format(Strings.Msg_EnterValue, title),
+            AccessibleDescription = Strings.A11y_Grid_Numeric_Desc
         };
         _tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         _tlpGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
@@ -1538,6 +1541,7 @@ internal sealed class NumericInputDialog : Form
             AccessibleName = string.Format(Strings.Msg_EnterValue, title),
             // A11y 描述：報讀目前值與有效範圍。
             AccessibleDescription = string.Format(Strings.A11y_Value_Range_Desc, currentValue, minimum, maximum),
+            AccessibleRole = AccessibleRole.SpinButton,
             TabIndex = 1,
             Anchor = AnchorStyles.None
         };

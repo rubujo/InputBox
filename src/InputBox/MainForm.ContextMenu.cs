@@ -324,7 +324,8 @@ public partial class MainForm
         // 重設不透明度。
         ToolStripMenuItem tsmiResetOpacity = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
-            AccessibleName = Strings.Btn_SetDefault
+            AccessibleName = Strings.Btn_SetDefault,
+            AccessibleDescription = Strings.A11y_Btn_SetDefault_Group_Desc
         };
         tsmiResetOpacity.Click += (s, e) =>
         {
@@ -436,7 +437,8 @@ public partial class MainForm
         tsmiWinOps.DropDownItems.Add(new ToolStripSeparator());
         ToolStripMenuItem tsmiResetWinOps = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
-            AccessibleName = Strings.Btn_SetDefault
+            AccessibleName = Strings.Btn_SetDefault,
+            AccessibleDescription = Strings.A11y_Btn_SetDefault_Group_Desc
         };
         tsmiResetWinOps.Click += (s, e) =>
         {
@@ -535,7 +537,8 @@ public partial class MainForm
         tsmiFeedback.DropDownItems.Add(new ToolStripSeparator());
         ToolStripMenuItem tsmiResetFeedback = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
-            AccessibleName = Strings.Btn_SetDefault
+            AccessibleName = Strings.Btn_SetDefault,
+            AccessibleDescription = Strings.A11y_Btn_SetDefault_Group_Desc
         };
         tsmiResetFeedback.Click += (s, e) =>
         {
@@ -621,7 +624,8 @@ public partial class MainForm
         tsmiProvider.DropDownItems.Add(new ToolStripSeparator());
         ToolStripMenuItem tsmiResetProvider = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
-            AccessibleName = Strings.Btn_SetDefault
+            AccessibleName = Strings.Btn_SetDefault,
+            AccessibleDescription = Strings.A11y_Btn_SetDefault_Group_Desc
         };
         tsmiResetProvider.Click += (s, e) =>
         {
@@ -700,7 +704,8 @@ public partial class MainForm
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
         ToolStripMenuItem tsmiResetGamepad = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
         {
-            AccessibleName = Strings.Btn_SetDefault
+            AccessibleName = Strings.Btn_SetDefault,
+            AccessibleDescription = Strings.A11y_Btn_SetDefault_Group_Desc
         };
         tsmiResetGamepad.Click += (s, e) =>
         {

@@ -527,6 +527,14 @@
     <value>將數值重設為預設值：{0}。</value>
     <comment>重設預設值按鈕的無障礙描述。{0} 是該項目的出廠預設值。</comment>
   </data>
+  <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
+    <value>將此群組的所有設定重設為出廠預設值。</value>
+    <comment>同時重設多項設定的重設按鈕（如視窗操作、回饋、手把設定）的無障礙描述。</comment>
+  </data>
+  <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
+    <value>包含數值輸入框與加減按鈕的操作群組。</value>
+    <comment>NumericInputDialog 中數值輸入網格容器的無障礙描述。</comment>
+  </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} 已開啟</value>
     <comment>無障礙訊息，當修飾鍵被啟用時播放。{0} 是修飾鍵名稱。</comment>
