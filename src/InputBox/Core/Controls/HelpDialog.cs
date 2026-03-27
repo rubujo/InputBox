@@ -234,6 +234,65 @@ internal sealed class HelpDialog : Form
         // 才能正確佔據底部空間，讓 Fill 面板填滿剩餘區域。
         Controls.Add(_pnlScroll);
         Controls.Add(_pnlFooter);
+
+        // 應用程式切回前景時恢復控制器輪詢（防止 alt-tab 後控制器停滯）。
+        // 加入 50ms 延遲確保系統焦點切換完成後再呼叫 Resume，與 NumericInputDialog 一致。
+        Activated += (s, e) =>
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    CancellationToken token = _cts?.Token ?? CancellationToken.None;
+                    token.ThrowIfCancellationRequested();
+                    await Task.Delay(50, token);
+                    await this.SafeInvokeAsync(() =>
+                    {
+                        try
+                        {
+                            GamepadController?.Resume();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[說明] 恢復控制器失敗：{ex.Message}");
+                        }
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+                    // 正常取消，不進行報錯。
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[說明] Activated 恢復控制器失敗：{ex.Message}");
+                }
+            },
+            _cts?.Token ?? CancellationToken.None)
+            .SafeFireAndForget();
+        };
+
+        // 應用程式切至背景時暫停控制器輪詢，防止背景誤觸。
+        Deactivate += (s, e) =>
+        {
+            try
+            {
+                this.SafeBeginInvoke(() =>
+                {
+                    try
+                    {
+                        GamepadController?.Pause();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[說明] 暫停控制器失敗：{ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[說明] Deactivate 處理失敗：{ex.Message}");
+            }
+        };
     }
 
     /// <summary>
@@ -709,7 +768,7 @@ internal sealed class HelpDialog : Form
     #region 手把事件
 
     /// <summary>
-    /// 綁定手把事件（B / Back 關閉對話框）。
+    /// 綁定手把事件（B / Back 關閉；Start / A 確認關閉；LT / RT 翻頁捲動；↑↓ 行捲動）。
     /// </summary>
     private void BindGamepadEvents()
     {
@@ -720,6 +779,10 @@ internal sealed class HelpDialog : Form
 
         GamepadController.BPressed += OnGamepadClose;
         GamepadController.BackPressed += OnGamepadClose;
+        GamepadController.StartPressed += OnGamepadClose;
+        GamepadController.APressed += OnGamepadClose;
+        GamepadController.LeftTriggerPressed += OnGamepadPageUp;
+        GamepadController.RightTriggerPressed += OnGamepadPageDown;
         GamepadController.UpPressed += OnGamepadScrollUp;
         GamepadController.UpRepeat += OnGamepadScrollUp;
         GamepadController.DownPressed += OnGamepadScrollDown;
@@ -738,6 +801,10 @@ internal sealed class HelpDialog : Form
 
         GamepadController.BPressed -= OnGamepadClose;
         GamepadController.BackPressed -= OnGamepadClose;
+        GamepadController.StartPressed -= OnGamepadClose;
+        GamepadController.APressed -= OnGamepadClose;
+        GamepadController.LeftTriggerPressed -= OnGamepadPageUp;
+        GamepadController.RightTriggerPressed -= OnGamepadPageDown;
         GamepadController.UpPressed -= OnGamepadScrollUp;
         GamepadController.UpRepeat -= OnGamepadScrollUp;
         GamepadController.DownPressed -= OnGamepadScrollDown;
@@ -745,7 +812,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 手把 LS 上 / D-pad 上：向上捲動內容面板。
+    /// 控制器 LS 上 / D-pad 上：向上捲動內容面板（行捲動）。
     /// </summary>
     private void OnGamepadScrollUp()
     {
@@ -763,7 +830,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 手把 LS 下 / D-pad 下：向下捲動內容面板。
+    /// 控制器 LS 下 / D-pad 下：向下捲動內容面板（行捲動）。
     /// </summary>
     private void OnGamepadScrollDown()
     {
@@ -783,7 +850,49 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 手把 B / Back 關閉對話框。
+    /// 控制器 LT：向上翻頁捲動（等同 PageUp）。
+    /// </summary>
+    private void OnGamepadPageUp()
+    {
+        this.SafeBeginInvoke(() =>
+        {
+            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            {
+                return;
+            }
+
+            float scale = DeviceDpi / AppSettings.BaseDpi;
+            int step = (int)Math.Max(20, 40 * scale);
+            int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
+            int newY = Math.Max(0, -_pnlScroll.AutoScrollPosition.Y - pageStep);
+            _pnlScroll.AutoScrollPosition = new Point(0, newY);
+        });
+    }
+
+    /// <summary>
+    /// 控制器 RT：向下翻頁捲動（等同 PageDown）。
+    /// </summary>
+    private void OnGamepadPageDown()
+    {
+        this.SafeBeginInvoke(() =>
+        {
+            if (IsDisposed || !_pnlScroll.IsHandleCreated)
+            {
+                return;
+            }
+
+            float scale = DeviceDpi / AppSettings.BaseDpi;
+            int step = (int)Math.Max(20, 40 * scale);
+            int pageStep = (int)Math.Max(100, _pnlScroll.ClientSize.Height - step);
+            int maxY = Math.Max(0,
+                _pnlScroll.DisplayRectangle.Height - _pnlScroll.ClientSize.Height);
+            int newY = Math.Min(maxY, -_pnlScroll.AutoScrollPosition.Y + pageStep);
+            _pnlScroll.AutoScrollPosition = new Point(0, newY);
+        });
+    }
+
+    /// <summary>
+    /// 控制器 B / Back / Start / A：關閉對話框。
     /// </summary>
     private void OnGamepadClose()
     {
