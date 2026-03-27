@@ -13,7 +13,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <AssemblyTitle>輸入框 InputBox</AssemblyTitle>
     <Company>垃圾桶 rubujo</Company>
-    <Copyright>CC0 1.0 Universal</Copyright>
+    <Copyright>在法律允許的最大範圍內，作者已放棄所有著作權及相關權利（CC0 1.0）</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
