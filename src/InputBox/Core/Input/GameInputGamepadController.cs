@@ -832,8 +832,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         _allDevices.RemoveAt(i);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Debug.WriteLine($"[GameInput] 裝置狀態更新發生錯誤，嘗試清理：{ex.Message}");
+
                     // 確保即使發生例外，COM 物件的釋放也不會被延遲。
                     if (oldDev == _device)
                     {
@@ -844,9 +846,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     {
                         oldDev.Dispose();
                     }
-                    catch
+                    catch (Exception disposeEx)
                     {
-                        // 忽略已經失效的 COM 釋放錯誤。
+                        Debug.WriteLine($"[GameInput] 釋放失效裝置時發生錯誤（已忽略）：{disposeEx.Message}");
                     }
 
                     // 若裝置已失效，則直接移除。
@@ -885,8 +887,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         newDev.Dispose();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Debug.WriteLine($"[GameInput] 加入新裝置時發生錯誤，已釋放：{ex.Message}");
                     newDev.Dispose();
                 }
             }
@@ -977,9 +980,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // 忽略切換過程中的讀取錯誤。
+                    Debug.WriteLine($"[GameInput] 切換裝置時讀取狀態失敗（已忽略）：{ex.Message}");
                 }
             }
         }
@@ -1029,8 +1032,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             _cachedDeviceName = displayName;
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"[GameInput] 取得裝置資訊失敗，使用預設值：{ex.Message}");
             _cachedDeviceName = "Unknown Gamepad";
             _supportsRumble = false;
         }
@@ -1079,8 +1083,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 _hasPreviousState = false;
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"[GameInput] 初始化裝置狀態失敗，使用空狀態：{ex.Message}");
             _previousState = null;
             _previousProcessedButtons = 0;
             _hasPreviousState = false;
@@ -1468,14 +1473,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         dev.SetRumbleState(new GameInputRumbleParams());
                     }
                 }
-                catch
+                catch (Exception innerEx)
                 {
-
+                    Debug.WriteLine($"[GameInput] 取消後強制停止馬達失敗（已忽略）：{innerEx.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"GameInput 震動發生錯誤：{ex.Message}");
             }
         },
         ct);
@@ -1610,9 +1611,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 {
                     dev.SetRumbleState(new GameInputRumbleParams());
                 }
-                catch
+                catch (Exception bgEx)
                 {
-                    // 忽略背景清理的任何錯誤。
+                    Debug.WriteLine($"[GameInput] 背景停止馬達失敗（已忽略）：{bgEx.Message}");
                 }
             });
         }
@@ -1672,9 +1673,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     {
                         await _taskPolling.ConfigureAwait(false);
                     }
-                    catch
+                    catch (Exception taskEx)
                     {
-                        // 忽略 Task 結束時的任何錯誤。
+                        Debug.WriteLine($"[GameInput] 等待輪詢 Task 結束時發生錯誤（已忽略）：{taskEx.Message}");
                     }
                 }
 
@@ -1690,9 +1691,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 gameInput?.Dispose();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                Debug.WriteLine($"[GameInput] 釋放資源時發生未預期錯誤：{ex.Message}");
             }
         });
     }

@@ -3,8 +3,8 @@ name: 建置與發佈
 on:
   push:
     tags:
-      # 當推送標籤（Tag）如 v1.0.0 時觸發。
-      - 'v*'
+      # 當推送符合語意版本的標籤（如 v1.0.0）時觸發，排除非版本標籤（如 vtest）。
+      - 'v[0-9]*'
 
 jobs:
   build-and-release:

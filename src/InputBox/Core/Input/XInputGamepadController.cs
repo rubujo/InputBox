@@ -822,9 +822,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             _ = XInput.XInputSetState(_userIndex, in stopVibration);
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略。
+            Debug.WriteLine($"[XInput] StopVibration 失敗（已忽略）：{ex.Message}");
         }
     }
 
@@ -987,9 +987,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             await pollingTask.ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // 忽略等待過程中的任何錯誤。
+            Debug.WriteLine($"[XInput] 等待輪詢任務結束時發生錯誤（已忽略）：{ex.Message}");
         }
 
         // 停止震動與釋放資源。
