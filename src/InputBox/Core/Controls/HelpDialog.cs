@@ -135,7 +135,7 @@ internal sealed class HelpDialog : Form
         {
             Text = Strings.Help_Btn_Close,
             AutoSize = true,
-            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Anchor = AnchorStyles.Right,
             FlatStyle = FlatStyle.Flat,
             AccessibleName = Strings.Help_Btn_Close,
             AccessibleRole = AccessibleRole.PushButton,
@@ -213,9 +213,20 @@ internal sealed class HelpDialog : Form
         {
             Dock = DockStyle.Bottom,
             Height = 44,
-            Padding = new Padding(0, 8, 0, 0),
+            Padding = new Padding(8, 6, 8, 6),
         };
-        _pnlFooter.Controls.Add(_btnClose);
+
+        // TableLayoutPanel 讓按鈕右對齊且垂直置中（Anchor=Right 在 TLP cell 中自動垂直置中）。
+        TableLayoutPanel tlpFooter = new()
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 1,
+        };
+        tlpFooter.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        tlpFooter.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        tlpFooter.Controls.Add(_btnClose, 0, 0);
+        _pnlFooter.Controls.Add(tlpFooter);
 
         CancelButton = _btnClose;
 
@@ -908,12 +919,20 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 停止回饋：恢復預設外觀或依懸停狀態調整。
+    /// 停止回饋：恢復預設外觀或依焦點/懸停狀態調整。
     /// </summary>
     private void StopCloseFeedback()
     {
         Interlocked.Increment(ref _closeAnimId);
         _closeDwellProgress = 0f;
+
+        // 與 BtnCopy 的 RestoreButtonDefaultStyle 邏輯一致：
+        // 滑鼠移出但仍具備鍵盤焦點 → 強烈靜態高亮（反轉色）。
+        if (_btnClose.Focused)
+        {
+            ApplyStrongCloseVisual();
+            return;
+        }
 
         if (_closeIsHovered)
         {
@@ -922,9 +941,6 @@ internal sealed class HelpDialog : Form
         }
 
         // 恢復預設（由主題引擎決定）。
-        // 注意：此對話框的 _btnClose 為唯一可聚焦控制項，永遠持有焦點。
-        // 不在此呼叫 ApplyStrongCloseVisual()，焦點邊框由 Paint 事件負責繪製，
-        // 避免滑鼠離開後背景始終維持反轉色（黑色），造成視覺混淆。
         _btnClose.BackColor = Color.Empty;
         _btnClose.ForeColor = Color.Empty;
 
