@@ -644,7 +644,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Setting item name for window transparency level.</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}. Current: {1:P0}. Minimum is 50%.</value>
+    <value>{0}. Current: {1:P0}. Minimum is 70%.</value>
     <comment>Accessibility description for the opacity menu item. {0} is label, {1} is percentage.</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">

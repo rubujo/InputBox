@@ -644,7 +644,7 @@
     <comment>设置项目名称，指窗口的透明程度。</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}。当前值：{1:P0}。下限为 50%。</value>
+    <value>{0}。当前值：{1:P0}。下限为 70%。</value>
     <comment>不透明度菜单项的无障碍描述。{0} 是标签名称，{1} 是目前的百分比。</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">

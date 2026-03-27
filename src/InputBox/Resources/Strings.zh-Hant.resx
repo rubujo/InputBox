@@ -644,7 +644,7 @@
     <comment>設定項目名稱，指視窗的透明程度。</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}。目前值：{1:P0}。下限為 50%。</value>
+    <value>{0}。目前值：{1:P0}。下限為 70%。</value>
     <comment>不透明度選單項目的無障礙描述。{0} 是標籤名稱，{1} 是目前的百分比。</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">

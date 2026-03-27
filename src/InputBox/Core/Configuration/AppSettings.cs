@@ -290,17 +290,18 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 視窗不透明度（0.5 ~ 1.0）
+    /// 視窗不透明度（0.7 ~ 1.0）
     /// </summary>
     private volatile float _windowOpacity = 1.0f;
 
     /// <summary>
-    /// 視窗不透明度（0.5 ~ 1.0）
+    /// 視窗不透明度（0.7 ~ 1.0）。
+    /// 下限設為 70% 以確保文字對比度在最差背景條件下仍可達 WCAG AAA（≥ 7:1）。
     /// </summary>
     public float WindowOpacity
     {
         get => _windowOpacity;
-        set => _windowOpacity = Math.Clamp(value, 0.5f, 1.0f);
+        set => _windowOpacity = Math.Clamp(value, 0.7f, 1.0f);
     }
 
     #endregion

@@ -312,7 +312,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_WindowOpacity,
-            Tag = new MenuMetadata(Strings.Settings_WindowOpacity, 'S', 50, 100)
+            Tag = new MenuMetadata(Strings.Settings_WindowOpacity, 'S', 70, 100)
         };
         tsmiSetOpacity.Click += (s, e) =>
         {

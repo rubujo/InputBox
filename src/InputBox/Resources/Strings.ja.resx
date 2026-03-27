@@ -644,7 +644,7 @@
     <comment>設定項目の名前で、ウィンドウの透明度を指します。</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}。現在の値：{1:P0}。下限は 50% です。</value>
+    <value>{0}。現在の値：{1:P0}。下限は 70% です。</value>
     <comment>不透明度メニュー項目のアクセシビリティ説明です。{0} はラベル名、{1} は現在のパーセンテージです。</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
