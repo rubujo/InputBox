@@ -2353,13 +2353,15 @@ internal sealed class NumericInputDialog : Form
                 }
                 else
                 {
-                    // 淺色（黑底）= DarkOrange／Orange；深色（白底）= Firebrick／OrangeRed。
+                    // 進度條繪製於懸停灰底之上（非焦點黑/白底），必須選用對灰底有足夠對比的顏色。
+                    // 淺色懸停底（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停底（#3C3C3C）→ DarkOrange 4.73:1。
+                    // 均符合 WCAG 1.4.11 非文字 UI 組件最低 3:1 需求。
                     Color baseColor = isDark ?
-                            Color.Firebrick :
-                            Color.DarkOrange,
+                            Color.DarkOrange :
+                            Color.SaddleBrown,
                         hatchColor = isDark ?
                             Color.OrangeRed :
-                            Color.Orange;
+                            Color.DarkOrange;
 
                     // 雙重編碼：實心背景 + 斜向條紋紋理。
                     using Brush bgBrush = new SolidBrush(baseColor);

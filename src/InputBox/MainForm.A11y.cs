@@ -220,6 +220,8 @@ public partial class MainForm
             Size = new Size(1, 1),
             Location = new Point(-1, -1),
             TabStop = false,
+            // 防止 & 符號被解析為助記鍵，避免 A11y 文字顯示異常。
+            UseMnemonic = false,
             Parent = this
         };
 
