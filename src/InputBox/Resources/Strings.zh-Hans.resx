@@ -635,6 +635,10 @@
     <value>无法返回：目标窗口已关闭。</value>
     <comment>当用户尝试返回前一个窗口，但该窗口已不存在时的无障碍语音提示。</comment>
   </data>
+  <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
+    <value>焦点已移至文本输入框</value>
+    <comment>按下 Ctrl+M 跳至主文本输入框时的无障碍播报（WCAG 2.4.1 跳过导航）。</comment>
+  </data>
   <data name="A11y_SnapBack" xml:space="preserve">
     <value>窗口已自动修正位置。</value>
     <comment>无障碍语音播报，当窗口超出屏幕边界被自动弹回时播放。</comment>
@@ -757,7 +761,8 @@ Alt+B	返回游戏（不复制）
 Alt+↑ / ↓	增加 / 减少窗口透明度（+5% / −5%）
 Alt+0	重置窗口透明度（100%）
 Alt+P	切换隐私模式
-F10 / Alt+M	打开右键菜单</value>
+F10 / Alt+M	打开右键菜单
+Ctrl+M	跳至文本输入框</value>
     <comment>帮助对话框中键盘快捷键表格的数据行，以 Tab 分隔列：按键{tab}功能，每行一条。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

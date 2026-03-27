@@ -10,6 +10,15 @@ using System.Runtime.InteropServices;
 
 namespace InputBox;
 
+/// <summary>
+/// 應用程式進入點與全域資源管理。
+/// </summary>
+/// <remarks>
+/// 螢幕方向（WCAG 1.3.4）：本應用程式為 Windows 桌面軟體，不強制鎖定螢幕方向。
+/// WinForms 的 <see cref="AutoScaleMode.Dpi"/> 機制與 DPI 感知設定（Per-Monitor V2）
+/// 可自動適應橫向與縱向兩種顯示方向，由 Windows 作業系統負責處理旋轉適配，
+/// 無需應用程式層級的方向鎖定設定。
+/// </remarks>
 internal static class Program
 {
     /// <summary>

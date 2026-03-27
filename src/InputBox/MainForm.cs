@@ -661,6 +661,17 @@ public partial class MainForm : Form
                 this.SafeInvoke(ShowContextMenuAtInput);
 
                 return true;
+
+            // Ctrl + M：跳至主要輸入框（WCAG 2.4.1 略過導覽）。
+            case Keys.Control | Keys.M:
+                if (TBInput.CanFocus)
+                {
+                    TBInput.Focus();
+
+                    AnnounceA11y(Strings.A11y_SkipNav_JumpToInput);
+                }
+
+                return true;
         }
 
         if (ActiveControl == TBInput)

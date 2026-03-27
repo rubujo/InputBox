@@ -673,6 +673,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Focus moved to text input 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_SkipNav_JumpToInput {
+            get {
+                return ResourceManager.GetString("A11y_SkipNav_JumpToInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Window position corrected automatically. 的當地語系化字串。
         /// </summary>
         internal static string A11y_SnapBack {

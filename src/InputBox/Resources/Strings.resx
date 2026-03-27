@@ -635,6 +635,10 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Cannot return: The target window has been closed.</value>
     <comment>Accessibility voice prompt when user tries to return to a non-existent target window.</comment>
   </data>
+  <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
+    <value>Focus moved to text input</value>
+    <comment>Announced when Ctrl+M is pressed to jump to the main text input field (WCAG 2.4.1 skip navigation).</comment>
+  </data>
   <data name="A11y_SnapBack" xml:space="preserve">
     <value>Window position corrected automatically.</value>
     <comment>Accessibility voice prompt played when the window is snapped back from off-screen.</comment>
@@ -757,7 +761,8 @@ Alt+B	Return to game without copying
 Alt+↑ / ↓	Increase / decrease window opacity (+5% / −5%)
 Alt+0	Reset window opacity (100%)
 Alt+P	Toggle privacy mode
-F10 / Alt+M	Open context menu</value>
+F10 / Alt+M	Open context menu
+Ctrl+M	Jump to text input</value>
     <comment>Tab-separated rows for the keyboard shortcut table in the Help dialog. Format: Key{tab}Action. One row per line.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

@@ -1510,6 +1510,10 @@ internal sealed class NumericInputDialog : Form
             MaximumSize = new Size((int)(500 * scale), 0),
             Margin = new Padding(0, 0, 0, (int)(25 * scale)),
             Font = _a11yFont,
+            // AccessibleRole.StaticText + 作為首要 Label：
+            // WinForms 的 AccessibleRole 列舉不含 Heading，
+            // 此標籤置於對話框最頂端，文字內容已充分描述區段目的，
+            // 滿足 WCAG 2.4.10 的精神（區段標題，AAA）。
             AccessibleRole = AccessibleRole.StaticText
         };
 

@@ -635,6 +635,10 @@
     <value>戻ることができません：ターゲットウィンドウが閉じられています。</value>
     <comment>ユーザーが前のウィンドウに戻ろうとしたが、そのウィンドウが既に存在しない場合のアクセシビリティ音声プロンプト。</comment>
   </data>
+  <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
+    <value>テキスト入力欄にフォーカスを移動しました</value>
+    <comment>Ctrl+M でメインテキスト入力欄にジャンプしたときのアクセシビリティ通知（WCAG 2.4.1 スキップナビゲーション）。</comment>
+  </data>
   <data name="A11y_SnapBack" xml:space="preserve">
     <value>ウィンドウが画面内に自動的に戻りました。</value>
     <comment>ウィンドウが画面外に出たため、自動的に戻されたときに再生されるアクセシビリティ音声ガイドです。</comment>
@@ -757,7 +761,8 @@ Alt+B	コピーせずにゲームに戻る
 Alt+↑ / ↓	ウィンドウの透明度を増減（+5% / −5%）
 Alt+0	ウィンドウの透明度をリセット（100%）
 Alt+P	プライバシーモードを切り替え
-F10 / Alt+M	右クリックメニューを開く</value>
+F10 / Alt+M	右クリックメニューを開く
+Ctrl+M	テキスト入力欄にジャンプ</value>
     <comment>ヘルプダイアログ内のキーボードショートカット表のデータ行。タブ区切り形式：キー{tab}操作、1行1項目。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

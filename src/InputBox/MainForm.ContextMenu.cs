@@ -133,6 +133,19 @@ public partial class MainForm
             AccessibleDescription = Strings.Menu_HotkeySettings_Desc
         };
 
+        // WCAG 2.4.8：進入子選單時宣告層級，提供位置感知。
+        tsmiHotkeySettings.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_HotkeySettings));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiHotkeySettings.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
+
         // 修飾鍵設定（使用本地函數）。
         // 將 modValue 的型別從 int 改為 User32.KeyModifiers 列舉
         void AddModifierItem(string label, User32.KeyModifiers modValue)
@@ -280,6 +293,19 @@ public partial class MainForm
             AccessibleDescription = Strings.A11y_Menu_Settings_Desc
         };
 
+        // WCAG 2.4.8：進入子選單時宣告層級。
+        tsmiSettings.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Settings));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiSettings.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
+
         // 視窗與操作。
         ToolStripMenuItem tsmiWinOps = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Window, 'W'))
         {
@@ -287,12 +313,27 @@ public partial class MainForm
             AccessibleDescription = Strings.A11y_Menu_WinOps_Desc
         };
 
+        // WCAG 2.4.8：進入子選單時宣告層級。
+        tsmiWinOps.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Settings_Window));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiWinOps.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
+
         // 不透明度。
         ToolStripMenuItem tsmiOpacity = new(ControlExtensions.GetMnemonicText(Strings.Settings_WindowOpacity, 'O'))
         {
-            AccessibleName = "OpacityGroup",
+            AccessibleName = Strings.Settings_WindowOpacity,
         };
-        tsmiOpacity.DropDownOpening += (s, e) =>
+
+        // WCAG 2.4.8：進入子選單時宣告層級。
+        tsmiOpacity.DropDownOpened += (s, e) =>
         {
             try
             {
@@ -300,6 +341,8 @@ public partial class MainForm
                     Strings.A11y_Menu_OpacityDesc,
                     Strings.Settings_WindowOpacity,
                     AppSettings.Current.WindowOpacity);
+
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Settings_WindowOpacity));
             }
             catch (Exception ex)
             {
@@ -499,6 +542,19 @@ public partial class MainForm
             AccessibleName = Strings.Menu_Settings_Feedback,
             AccessibleDescription = Strings.A11y_Menu_Feedback_Desc
         };
+
+        // WCAG 2.4.8：進入子選單時宣告層級。
+        tsmiFeedback.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Settings_Feedback));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiFeedback.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
         ToolStripMenuItem tsmiVibEnable = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Vibration, 'V'))
         {
             CheckOnClick = true,
@@ -602,11 +658,37 @@ public partial class MainForm
             AccessibleDescription = Strings.A11y_Menu_Gamepad_Desc
         };
 
+        // WCAG 2.4.8：進入子選單時宣告層級。
+        tsmiGamepad.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Settings_Gamepad));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiGamepad.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
+
         // Provider（需重啟）。
         ToolStripMenuItem tsmiProvider = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Provider, 'P'))
         {
             AccessibleName = Strings.Menu_Settings_Provider,
             AccessibleDescription = Strings.A11y_Menu_Provider_Desc
+        };
+
+        // WCAG 2.4.8：進入子選單時宣告層級。
+        tsmiProvider.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Settings_Provider));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiProvider.DropDownOpened 失敗：{ex.Message}");
+            }
         };
 
         void AddProviderItem(AppSettings.GamepadProvider provider)

@@ -635,6 +635,10 @@
     <value>無法返回：目標視窗已關閉。</value>
     <comment>當使用者嘗試返回前一個視窗，但該視窗已不存在時的無障礙語音提示。</comment>
   </data>
+  <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
+    <value>焦點已移至文字輸入框</value>
+    <comment>按下 Ctrl+M 跳至主文字輸入框時的無障礙播報（WCAG 2.4.1 略過導覽）。</comment>
+  </data>
   <data name="A11y_SnapBack" xml:space="preserve">
     <value>視窗已自動修正位置。</value>
     <comment>無障礙語音播報，當視窗超出螢幕邊界被自動彈回時播放。</comment>
@@ -757,7 +761,8 @@ Alt+B	返回遊戲（不複製）
 Alt+↑ / ↓	增加 / 減少視窗透明度（+5% / −5%）
 Alt+0	重設視窗透明度（100%）
 Alt+P	切換隱私模式
-F10 / Alt+M	開啟右鍵選單</value>
+F10 / Alt+M	開啟右鍵選單
+Ctrl+M	跳至文字輸入框</value>
     <comment>說明對話框中鍵盤快速鍵表格的資料列，以 Tab 分隔欄位：按鍵{tab}功能，每行一列。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
