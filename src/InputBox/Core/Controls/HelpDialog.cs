@@ -547,7 +547,7 @@ internal sealed class HelpDialog : Form
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
         // 上限設為可用高度的 70%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）上仍能舒適使用。
         int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8;
-        int maxH = (int)(workArea.Height * 0.70f);
+        int maxH = (int)(workArea.Height * 0.60f);
         int formH = Math.Clamp(naturalH, 200, maxH);
 
         Size = new Size(formW, formH);
