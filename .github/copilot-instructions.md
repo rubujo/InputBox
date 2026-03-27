@@ -105,9 +105,9 @@
       - **情境感知焦點邊框色（Context-Aware Focus Border Color）**：自定義按鈕的焦點邊框色，必須依控制項 `BackColor` **實際值**動態選取，確保在強視覺（反轉底色）與中性（懸停灰 / `isDefault` 系統色）兩種狀態下皆達 WCAG AA（≥ 4.5:1）以上：
         - `BackColor == Color.Black`（淺色強視覺反轉底色）→ `Cyan`（16.75:1 AAA）
         - `BackColor == Color.White`（深色強視覺反轉底色）→ `MediumBlue`（11.16:1 AAA）
-        - 深色模式中性 / 懸停灰（`Color.Empty`）→ `DeepSkyBlue`（≥ 5.2:1 AA）
+        - 深色模式中性 / 懸停灰（`Color.Empty`）→ `LightBlue`（≥ 7.2:1 AAA）
         - 淺色模式中性 / 懸停灰（`Color.Empty`）→ `MediumBlue`（8.14:1 AAA）
-        - **絕對禁令**：嚴禁在中性背景上固定使用 `Cyan`（對系統淺灰 ≈ 1.1:1 ❌）或 `RoyalBlue`（對系統深灰 #3C3C3C ≈ 2.28:1 ❌）作為焦點邊框色。邊框色**必須**基於 `btn.BackColor` 動態決定，而非全域 `isDark` 旗標。
+        - **絕對禁令**：嚴禁在中性背景上固定使用 `Cyan`（對系統淺灰 ≈ 1.1:1 ❌）或 `RoyalBlue`（對系統深灰 #3C3C3C ≈ 2.28:1 ❌）或 `DeepSkyBlue`（對 #3C3C3C ≈ 5.2:1，未達 AAA ❌）作為焦點邊框色。邊框色**必須**基於 `btn.BackColor` 動態決定，而非全域 `isDark` 旗標。
         - **一致性要求**：所有自定義繪製的按鈕（`BtnCopy`、`NumericInputDialog` 各按鈕、`HelpDialog` 關閉按鈕）必須使用相同的情境感知邏輯，確保視覺一致性。
     - **色盲友善警示色**：在一般主題下，優先選用暖橘色（如 DarkOrange）作為警示色，以獲得跨 CVD 類型（Protan／Deutan／Tritan）的最佳對比。
     - **插值基色中性化（Interpolation Neutrality）**：

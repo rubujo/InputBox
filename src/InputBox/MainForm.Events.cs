@@ -575,7 +575,7 @@ public partial class MainForm
             }
             else if (isDark)
             {
-                borderColor = Color.DeepSkyBlue;    // 深色中性 / 懸停 ≥5.2:1 AA
+                borderColor = Color.LightBlue;      // 深色中性 / 懸停 ≥7.2:1 AAA
             }
             else
             {

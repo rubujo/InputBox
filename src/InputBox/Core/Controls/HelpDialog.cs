@@ -1018,7 +1018,7 @@ internal sealed class HelpDialog : Form
             }
             else if (isDark)
             {
-                borderColor = Color.DeepSkyBlue;    // 深色中性 / 懸停 7.9:1 AAA
+                borderColor = Color.LightBlue;    // 深色中性 / 懸停 ≥7.2:1 AAA
             }
             else
             {
