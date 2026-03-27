@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Input;
 using InputBox.Resources;
@@ -14,7 +14,7 @@ partial class DesignerBlocker { };
 
 /// <summary>
 /// 說明對話框（WCAG 3.3.5 Help）
-/// <para>提供鍵盤快速鍵與手把按鍵對應表，可透過 F1 或右鍵選單開啟。</para>
+/// <para>提供鍵盤快速鍵與控制器按鍵對應表，可透過 F1 或右鍵選單開啟。</para>
 /// </summary>
 internal sealed class HelpDialog : Form
 {
@@ -35,7 +35,7 @@ internal sealed class HelpDialog : Form
     private readonly TableLayoutPanel _tlpKeyboard;
 
     /// <summary>
-    /// 手把按鍵對應表格面板
+    /// 控制器按鍵對應表格面板
     /// </summary>
     private readonly TableLayoutPanel _tlpGamepad;
 
@@ -73,7 +73,7 @@ internal sealed class HelpDialog : Form
         AccessibleName = Strings.Help_Title;
         AccessibleRole = AccessibleRole.Dialog;
 
-        // 內容版面：垂直堆疊（鍵盤表頭、鍵盤表、手把表頭、手把表）。
+        // 內容版面：垂直堆疊（鍵盤表頭、鍵盤表、控制器表頭、控制器表）。
         // 使用 Anchor=Top|Left 而非 Dock=Fill，讓捲動面板可正確計算捲動範圍。
         _tlpContent = new TableLayoutPanel()
         {
@@ -106,7 +106,7 @@ internal sealed class HelpDialog : Form
         pnlKeyboard.Controls.Add(_tlpKeyboard);
         _tlpContent.Controls.Add(pnlKeyboard, 0, 1);
 
-        // === 手把按鍵對應區段 ===
+        // === 控制器按鍵對應區段 ===
         Label lblGamepadHeading = CreateSectionHeading(Strings.Help_Section_Gamepad);
         _tlpContent.Controls.Add(lblGamepadHeading, 0, 2);
 
@@ -490,7 +490,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 關閉時解除手把事件。
+    /// 關閉時解除控制器事件。
     /// </summary>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
@@ -765,10 +765,10 @@ internal sealed class HelpDialog : Form
         }
     }
 
-    #region 手把事件
+    #region 控制器事件
 
     /// <summary>
-    /// 綁定手把事件（B / Back 關閉；Start / A 確認關閉；LT / RT 翻頁捲動；↑↓ 行捲動）。
+    /// 綁定控制器事件（B / Back 關閉；Start / A 確認關閉；LT / RT 翻頁捲動；↑↓ 行捲動）。
     /// </summary>
     private void BindGamepadEvents()
     {
@@ -790,7 +790,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 解除手把事件。
+    /// 解除控制器事件。
     /// </summary>
     private void UnbindGamepadEvents()
     {
@@ -918,7 +918,7 @@ internal sealed class HelpDialog : Form
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[說明] 手把關閉失敗：{ex.Message}");
+                Debug.WriteLine($"[說明] 控制器關閉失敗：{ex.Message}");
             }
         });
     }

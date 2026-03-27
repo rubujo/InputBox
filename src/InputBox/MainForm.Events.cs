@@ -1254,7 +1254,7 @@ public partial class MainForm
     /// </summary>
     private void ClearInput()
     {
-        // 統一震動回饋，確保鍵盤 Esc 或手把觸發時皆有觸覺感應。
+        // 統一震動回饋，確保鍵盤 Esc 或控制器觸發時皆有觸覺感應。
         VibrateAsync(VibrationPatterns.ClearInput).SafeFireAndForget();
 
         FeedbackService.PlaySound(SystemSounds.Beep);
@@ -1796,7 +1796,7 @@ public partial class MainForm
     private void RestoreUIFromCaptureMode()
     {
         // 若目前不處於擷取模式，則不執行還原邏輯。
-        // 這能防止鍵盤 Esc 與手把 B 同時觸發取消時的重複 UI 重新整理。
+        // 這能防止鍵盤 Esc 與控制器 B 同時觸發取消時的重複 UI 重新整理。
         if (_isCapturingHotkey == 0)
         {
             return;

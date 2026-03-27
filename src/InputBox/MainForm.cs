@@ -338,7 +338,7 @@ public partial class MainForm : Form
     {
         base.OnDeactivate(e);
 
-        // 如果是因為正在呼叫觸控小鍵盤而失去焦點，則不進行任何處理（保留視覺狀態與手把輪詢）。
+        // 如果是因為正在呼叫觸控小鍵盤而失去焦點，則不進行任何處理（保留視覺狀態與控制器輪詢）。
         if (_isShowingTouchKeyboard != 0)
         {
             return;
@@ -377,13 +377,13 @@ public partial class MainForm : Form
                 Debug.WriteLine($"[事件] 清除視窗失焦視覺殘留失敗：{ex.Message}");
             }
 
-            // 如果還有其他視窗（例如數值輸入對話框）是活躍的，代表應用程式還在前景，不應停止手把輪詢。
+            // 如果還有其他視窗（例如數值輸入對話框）是活躍的，代表應用程式還在前景，不應停止控制器輪詢。
             if (ActiveForm != null)
             {
                 return;
             }
 
-            // 當整個應用程式完全退到背景時，停止震動並暫停手把輪詢。
+            // 當整個應用程式完全退到背景時，停止震動並暫停控制器輪詢。
             FeedbackService.StopAllVibrationsAsync(_gamepadController).SafeFireAndForget();
 
             _gamepadController?.Pause();

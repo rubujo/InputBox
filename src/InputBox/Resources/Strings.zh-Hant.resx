@@ -449,7 +449,7 @@
   </data>
   <data name="Settings_InputJitterRange" xml:space="preserve">
     <value>隨機抖動範圍</value>
-    <comment>設定項目名稱，指手把輸入時的隨機抖動範圍。</comment>
+    <comment>設定項目名稱，指控制器輸入時的隨機抖動範圍。</comment>
   </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>歷程記錄容量</value>
@@ -465,11 +465,11 @@
   </data>
   <data name="Settings_RepeatDelay" xml:space="preserve">
     <value>重複輸入延遲</value>
-    <comment>設定項目名稱，指手把按鍵重複輸入的延遲時間。</comment>
+    <comment>設定項目名稱，指控制器按鍵重複輸入的延遲時間。</comment>
   </data>
   <data name="Settings_RepeatSpeed" xml:space="preserve">
     <value>重複輸入速度</value>
-    <comment>設定項目名稱，指手把按鍵重複輸入的速度。</comment>
+    <comment>設定項目名稱，指控制器按鍵重複輸入的速度。</comment>
   </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>此變更需要重啟程式才能生效。是否立即重啟？</value>
@@ -529,7 +529,7 @@
   </data>
   <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
     <value>將此群組的所有設定重設為出廠預設值。</value>
-    <comment>同時重設多項設定的重設按鈕（如視窗操作、回饋、手把設定）的無障礙描述。</comment>
+    <comment>同時重設多項設定的重設按鈕（如視窗操作、回饋、控制器設定）的無障礙描述。</comment>
   </data>
   <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
     <value>包含數值輸入框與加減按鈕的操作群組。</value>
@@ -612,7 +612,7 @@
     <comment>震動開關項目的無障礙描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
-    <value>選擇手把輸入的底層 API（GameInput 或 XInput）。</value>
+    <value>選擇控制器輸入的底層 API（GameInput 或 XInput）。</value>
     <comment>API 提供者項目的無障礙描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
@@ -656,8 +656,8 @@
     <comment>無障礙語音播報，在高對比模式下不透明度被強制鎖定時播放。</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
-    <value>遊戲手把初始化失敗，部分功能可能無法使用。</value>
-    <comment>啟動時手把初始化失敗後，透過 A11y 廣播的語音訊息內容。</comment>
+    <value>遊戲控制器初始化失敗，部分功能可能無法使用。</value>
+    <comment>啟動時控制器初始化失敗後，透過 A11y 廣播的語音訊息內容。</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
     <value>套用系統主題（需重啟）</value>
@@ -700,11 +700,11 @@
     <comment>開啟說明對話框的右鍵選單項目（WCAG 3.3.5）。</comment>
   </data>
   <data name="Menu_Help_Desc" xml:space="preserve">
-    <value>顯示鍵盤快速鍵與手把按鍵對應表（F1）</value>
+    <value>顯示鍵盤快速鍵與控制器按鍵對應表（F1）</value>
     <comment>「說明」選單項目的無障礙描述。</comment>
   </data>
   <data name="Help_Title" xml:space="preserve">
-    <value>說明 — 鍵盤快速鍵與手把按鍵對應</value>
+    <value>說明 — 鍵盤快速鍵與控制器按鍵對應</value>
     <comment>說明對話框的標題列文字。</comment>
   </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
@@ -712,8 +712,8 @@
     <comment>說明對話框中鍵盤快速鍵表格的區段標題。</comment>
   </data>
   <data name="Help_Section_Gamepad" xml:space="preserve">
-    <value>手把按鍵對應</value>
-    <comment>說明對話框中手把按鍵對應表格的區段標題。</comment>
+    <value>控制器按鍵對應</value>
+    <comment>說明對話框中控制器按鍵對應表格的區段標題。</comment>
   </data>
   <data name="Help_Col_Key" xml:space="preserve">
     <value>按鍵</value>
@@ -721,7 +721,7 @@
   </data>
   <data name="Help_Col_Button" xml:space="preserve">
     <value>按鈕</value>
-    <comment>說明對話框中手把按鍵對應表格的「按鈕」欄標題。</comment>
+    <comment>說明對話框中控制器按鍵對應表格的「按鈕」欄標題。</comment>
   </data>
   <data name="Help_Col_Action" xml:space="preserve">
     <value>功能</value>
@@ -736,8 +736,8 @@
     <comment>說明對話框中鍵盤快速鍵區段容器的無障礙名稱。</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
-    <value>手把按鍵對應表格</value>
-    <comment>說明對話框中手把按鍵對應區段容器的無障礙名稱。</comment>
+    <value>控制器按鍵對應表格</value>
+    <comment>說明對話框中控制器按鍵對應區段容器的無障礙名稱。</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字 / 返回遊戲（已空時）
@@ -773,6 +773,6 @@ Back+X	重設視窗透明度
 ← / →	游標左移 / 右移
 RS ← / →	擴大或縮小選取範圍
 Back+↑ / ↓	調整視窗透明度（+5% / −5%）</value>
-    <comment>說明對話框中手把按鍵對應表格的資料列，以 Tab 分隔欄位：按鈕{tab}功能，每行一列。</comment>
+    <comment>說明對話框中控制器按鍵對應表格的資料列，以 Tab 分隔欄位：按鈕{tab}功能，每行一列。</comment>
   </data>
 </root>

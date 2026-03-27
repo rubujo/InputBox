@@ -392,7 +392,7 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 封裝相互關聯的手把設定，用於原子化更新快照
+    /// 封裝相互關聯的控制器設定，用於原子化更新快照
     /// </summary>
     public record GamepadConfigSnapshot(
         int ThumbDeadzoneEnter,
@@ -401,12 +401,12 @@ public class AppSettings
         int RepeatIntervalFrames);
 
     /// <summary>
-    /// 手把設定快照
+    /// 控制器設定快照
     /// </summary>
     private volatile GamepadConfigSnapshot _gamepadSettings = new(7849, 2500, 30, 5);
 
     /// <summary>
-    /// 取得手把設定快照
+    /// 取得控制器設定快照
     /// </summary>
     [JsonIgnore]
     public GamepadConfigSnapshot GamepadSettings => _gamepadSettings;
@@ -470,7 +470,7 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 更新手把設定快照，確保背景執行緒讀取到一致的數值組合
+    /// 更新控制器設定快照，確保背景執行緒讀取到一致的數值組合
     /// </summary>
     private void UpdateGamepadSnapshot()
     {

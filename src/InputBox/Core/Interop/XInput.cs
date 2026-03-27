@@ -25,7 +25,7 @@ internal static partial class XInput
         public uint PacketNumber;
 
         /// <summary>
-        /// 手把按鍵與類比狀態
+        /// 控制器按鍵與類比狀態
         /// </summary>
         public XInputGamepad Gamepad;
 
@@ -38,7 +38,7 @@ internal static partial class XInput
     }
 
     /// <summary>
-    /// XInput 手把資料
+    /// XInput 控制器資料
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct XInputGamepad

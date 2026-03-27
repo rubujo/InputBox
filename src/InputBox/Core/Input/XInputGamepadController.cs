@@ -63,9 +63,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private volatile bool _hasPreviousState;
 
     /// <summary>
-    /// 是否已處置
+    /// 是否已處置（0 = 未處置，1 = 已處置；使用 int 以支援 Interlocked.CompareExchange 原子操作）
     /// </summary>
-    private volatile bool _disposed;
+    private volatile int _disposed;
 
     /// <summary>
     /// 控制器按鈕重複方向
@@ -325,7 +325,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             while (await periodicTimer.WaitForNextTickAsync(cancellationToken))
             {
                 // 在執行 Poll 前檢查是否已處置，避免觸發事件。
-                if (_disposed ||
+                if (_disposed != 0 ||
                     cancellationToken.IsCancellationRequested)
                 {
                     break;
@@ -854,7 +854,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             return Task.CompletedTask;
         }
 
-        // 將 XInput 呼叫推入背景執行緒，避免因藍牙手把休眠或驅動延遲而阻塞 UI 執行緒。
+        // 將 XInput 呼叫推入背景執行緒，避免因藍牙控制器休眠或驅動延遲而阻塞 UI 執行緒。
         return Task.Run(async () =>
         {
             // 再檢查一次：避免在 Task ThreadPool 排隊等待時，外部就已經取消了。
@@ -921,7 +921,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             // 檢查：
             // 1. 是否已處置。
             // 2. 我的通行證是不是最新的？
-            if (_disposed ||
+            if (_disposed != 0 ||
                 currentToken != Interlocked.Read(ref _vibrationToken))
             {
                 return;
@@ -943,7 +943,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     public void Resume()
     {
-        if (!_disposed)
+        if (_disposed == 0)
         {
             StartPolling();
         }
@@ -968,12 +968,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <returns>ValueTask</returns>
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
         {
             return;
         }
-
-        _disposed = true;
 
         // 取消註冊。
         FeedbackService.UnregisterController(this);
@@ -1008,12 +1006,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     public void Dispose()
     {
-        if (_disposed)
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
         {
             return;
         }
-
-        _disposed = true;
 
         // 取消註冊。
         FeedbackService.UnregisterController(this);

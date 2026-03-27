@@ -747,7 +747,7 @@ public partial class MainForm
 
                 FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-                // 告知手把設定已重置。
+                // 告知控制器設定已重置。
                 AnnounceA11y(Strings.Msg_InputCleared);
             }
             catch (Exception ex)
@@ -1035,12 +1035,12 @@ public partial class MainForm
 
                 if (fullText != null)
                 {
-                    // 關鍵修正：套用 GetMnemonicText 以確保手把按鍵提示始終顯示於末尾。
+                    // 關鍵修正：套用 GetMnemonicText 以確保控制器按鍵提示始終顯示於末尾。
                     mi.Text = mnemonic != ' ' ?
                         ControlExtensions.GetMnemonicText(fullText, mnemonic) :
                         fullText;
 
-                    // 同步更新無障礙名稱，確保手把導覽時能播報目前數值。
+                    // 同步更新無障礙名稱，確保控制器導覽時能播報目前數值。
                     mi.AccessibleName = fullText;
 
                     // 針對可勾選項（隱私模式、震動等），附加狀態文字以提升播報穩定性。

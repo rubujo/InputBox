@@ -96,7 +96,7 @@ public partial class MainForm
                 // 捕獲目前的控制器實例，確保 Lambda 內部存取的安全性。
                 IGamepadController controller = _gamepadController;
 
-                // 當手把連線狀態改變時進行廣播。
+                // 當控制器連線狀態改變時進行廣播。
                 controller.ConnectionChanged += (isConnected) =>
                 {
                     this.SafeInvoke(() =>
@@ -121,7 +121,7 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"[手把] ConnectionChanged 處理失敗：{ex.Message}");
+                            Debug.WriteLine($"[控制器] ConnectionChanged 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -136,9 +136,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -169,7 +169,7 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] BackReleased 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] BackReleased 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -202,9 +202,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.DownPressed += () => this.SafeInvoke(() =>
@@ -236,9 +236,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.UpRepeat += () => this.SafeInvoke(() =>
@@ -270,9 +270,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.DownRepeat += () => this.SafeInvoke(() =>
@@ -304,9 +304,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.LeftPressed += () => this.SafeInvoke(() =>
@@ -328,9 +328,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.LeftRepeat += () => this.SafeInvoke(() =>
@@ -352,9 +352,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
                 controller.RightPressed += () => this.SafeInvoke(() =>
@@ -376,9 +376,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] RightPressed 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] RightPressed 處理失敗：{ex.Message}");
                     }
                 });
                 controller.RightRepeat += () => this.SafeInvoke(() =>
@@ -400,9 +400,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -435,9 +435,9 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                            LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                            Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                            Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -462,9 +462,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -521,9 +521,9 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                            LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                            Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                            Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                         }
                     });
                 };
@@ -585,9 +585,9 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                        Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                     }
                 });
 
@@ -600,7 +600,7 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] RSLeftPressed 失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] RSLeftPressed 失敗：{ex.Message}");
                     }
                 });
                 controller.RSLeftRepeat += () => this.SafeInvoke(() =>
@@ -611,7 +611,7 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] RSLeftRepeat 失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] RSLeftRepeat 失敗：{ex.Message}");
                     }
                 });
                 controller.RSRightPressed += () => this.SafeInvoke(() =>
@@ -622,7 +622,7 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] RSRightPressed 失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] RSRightPressed 失敗：{ex.Message}");
                     }
                 });
                 controller.RSRightRepeat += () => this.SafeInvoke(() =>
@@ -633,7 +633,7 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[手把] RSRightRepeat 失敗：{ex.Message}");
+                        Debug.WriteLine($"[控制器] RSRightRepeat 失敗：{ex.Message}");
                     }
                 });
 
@@ -737,9 +737,9 @@ public partial class MainForm
                         }
                         catch (Exception ex)
                         {
-                            LoggerService.LogException(ex, "[手把] 事件處理失敗");
+                            LoggerService.LogException(ex, "[控制器] 事件處理失敗");
 
-                            Debug.WriteLine($"[手把] 處理失敗：{ex.Message}");
+                            Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
                         }
                     });
                 };

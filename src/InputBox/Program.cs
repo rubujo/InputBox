@@ -296,7 +296,7 @@ internal static class Program
         // 記錄錯誤到 Debug 控制台。
         Debug.WriteLine($"[嚴重] 未捕捉例外：{ex}");
 
-        // 緊急停止所有控制器震動，防止崩潰後手把持續震動。
+        // 緊急停止所有控制器震動，防止崩潰後控制器持續震動。
         FeedbackService.EmergencyStopAllActiveControllers();
 
         // 執行統一清理路徑。

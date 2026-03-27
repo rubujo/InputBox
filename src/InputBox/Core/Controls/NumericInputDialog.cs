@@ -452,6 +452,9 @@ internal sealed class NumericInputDialog : Form
 
                 Interlocked.Exchange(ref _announcer, null)?.Dispose();
 
+                // 解除控制器事件訂閱，防止記憶體洩漏（_gamepadController 生命週期由外部管理）。
+                UnsubscribeGamepadEvents();
+
                 // 確保靜態事件在視窗處置時被絕對釋放，防止 Handle 未建立時的洩漏。
                 SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
             }
@@ -463,7 +466,7 @@ internal sealed class NumericInputDialog : Form
     }
 
     /// <summary>
-    /// 取消訂閱手把事件
+    /// 取消訂閱控制器事件
     /// </summary>
     private void UnsubscribeGamepadEvents()
     {
@@ -492,12 +495,12 @@ internal sealed class NumericInputDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[NumericInputDialog] 取消訂閱手把事件失敗：{ex.Message}");
+            Debug.WriteLine($"[NumericInputDialog] 取消訂閱控制器事件失敗：{ex.Message}");
         }
     }
 
     /// <summary>
-    /// 處理手把連線狀態變更
+    /// 處理控制器連線狀態變更
     /// </summary>
     /// <param name="connected">是否已連線</param>
     private void HandleGamepadConnectionChanged(bool connected)
@@ -509,14 +512,14 @@ internal sealed class NumericInputDialog : Form
                 _gamepadController?.Resume();
             }
 
-            // 告知使用者手把連線狀態變更。
+            // 告知使用者控制器連線狀態變更。
             AnnounceA11y(connected ?
                 string.Format(Strings.A11y_Gamepad_Connected, _gamepadController?.DeviceName) :
                 string.Format(Strings.A11y_Gamepad_Disconnected, _gamepadController?.DeviceName));
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[NumericInputDialog] 手把連線變更處理失敗：{ex.Message}");
+            Debug.WriteLine($"[NumericInputDialog] 控制器連線變更處理失敗：{ex.Message}");
         }
     }
 
@@ -530,7 +533,7 @@ internal sealed class NumericInputDialog : Form
         {
             try
             {
-                // 利用 _isFlashing 作為防呆機制，避免手把長按連發時造成音效與語音播報卡頓。
+                // 利用 _isFlashing 作為防呆機制，避免控制器長按連發時造成音效與語音播報卡頓。
                 if (_isFlashing == 0)
                 {
                     FeedbackService.PlaySound(SystemSounds.Beep);
@@ -857,7 +860,7 @@ internal sealed class NumericInputDialog : Form
 
             _nud?.ValidateValue();
 
-            // 發送與手把對等的震動與 A11y 播報。
+            // 發送與控制器對等的震動與 A11y 播報。
             FeedbackService.PlaySound(SystemSounds.Asterisk);
 
             FeedbackService.VibrateAsync(
@@ -891,7 +894,7 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            // 發送與手把對等的震動（比照返回動作）。
+            // 發送與控制器對等的震動（比照返回動作）。
             FeedbackService.PlaySound(SystemSounds.Exclamation);
 
             FeedbackService.VibrateAsync(
@@ -1919,7 +1922,7 @@ internal sealed class NumericInputDialog : Form
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"[NumericInputDialog] 恢復手把失敗：{ex.Message}");
+                            Debug.WriteLine($"[NumericInputDialog] 恢復控制器失敗：{ex.Message}");
                         }
                     });
                 }
@@ -1929,7 +1932,7 @@ internal sealed class NumericInputDialog : Form
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[Activated] 恢復手把狀態失敗：{ex.Message}");
+                    Debug.WriteLine($"[Activated] 恢復控制器狀態失敗：{ex.Message}");
                 }
             },
             _cts?.Token ?? CancellationToken.None)
@@ -1940,7 +1943,7 @@ internal sealed class NumericInputDialog : Form
         {
             try
             {
-                // 根據規範：視窗失去焦點時必須立即暫停手把，防止背景誤觸。
+                // 根據規範：視窗失去焦點時必須立即暫停控制器，防止背景誤觸。
                 this.SafeBeginInvoke(() =>
                 {
                     try
@@ -1949,7 +1952,7 @@ internal sealed class NumericInputDialog : Form
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[NumericInputDialog] 暫停手把失敗：{ex.Message}");
+                        Debug.WriteLine($"[NumericInputDialog] 暫停控制器失敗：{ex.Message}");
                     }
                 });
             }
@@ -2434,7 +2437,7 @@ internal sealed class NumericInputDialog : Form
 
             CancellationToken token = repeatCts.Token;
 
-            // 取得目前連發設定（對齊手把標準）。
+            // 取得目前連發設定（對齊控制器標準）。
             AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
             int initialDelayMs = (int)(config.RepeatInitialDelayFrames * AppSettings.TargetFrameTimeMs),
