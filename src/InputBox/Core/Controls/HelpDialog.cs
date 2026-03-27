@@ -305,6 +305,22 @@ internal sealed class HelpDialog : Form
         base.OnShown(e);
 
         ApplySmartPosition();
+
+        // 對話框開啟時，WinForms 會自動聚焦 _btnClose（唯一可聚焦控制項），
+        // 導致 GotFocus → ApplyStrongCloseVisual() → 背景色反轉（黑底）。
+        // 此時使用者尚未主動導航到按鈕，應呈現中性外觀，僅靠 Paint 繪製焦點邊框。
+        Interlocked.Increment(ref _closeAnimId);
+        _closeDwellProgress = 0f;
+        _btnClose.BackColor = Color.Empty;
+        _btnClose.ForeColor = Color.Empty;
+
+        Font? regularFont = _closeRegularFont;
+        if (regularFont != null)
+        {
+            _btnClose.Font = regularFont;
+        }
+
+        _btnClose.Invalidate();
     }
 
     /// <summary>
@@ -744,9 +760,10 @@ internal sealed class HelpDialog : Form
             return;
         }
 
-        // 鍵盤焦點狀態由 GotFocus 統一處理，不在此啟動 Dwell。
-        if (_btnClose.Focused && !_closeIsHovered)
+        // 按壓中（MouseDown）或純鍵盤焦點（未懸停）：套用強烈靜態視覺，不啟動 Dwell。
+        if (_closeIsPressed || (_btnClose.Focused && !_closeIsHovered))
         {
+            ApplyStrongCloseVisual();
             return;
         }
 
@@ -776,11 +793,7 @@ internal sealed class HelpDialog : Form
         _btnClose.RunDwellAnimationAsync(
             id: currentId,
             animationIdGetter: () => Interlocked.Read(ref _closeAnimId),
-            progressSetter: p =>
-            {
-                _closeDwellProgress = p;
-                _btnClose.Invalidate();
-            },
+            progressSetter: p => _closeDwellProgress = p,
             durationMs: 1000,
             ct: ct
         ).SafeFireAndForget();
@@ -868,10 +881,10 @@ internal sealed class HelpDialog : Form
                 btn.Height - (inset * 2) - 1);
         }
 
-        // ── Dwell 進度條（懸停中且非焦點/按壓狀態）──
+        // ── Dwell 進度條（懸停中且非按壓狀態）──
         // 雙重編碼（CVD 補償）：實心背景 + BackwardDiagonal 條紋紋理。
         float progress = _closeDwellProgress;
-        if (progress > 0f && !isFocused && !_closeIsPressed)
+        if (progress > 0f && !_closeIsPressed)
         {
             int barH = (int)(6 * scale);
             int barW = (int)(btn.Width * progress);
