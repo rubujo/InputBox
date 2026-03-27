@@ -258,7 +258,7 @@ public partial class MainForm
         try
         {
             // Tab 鍵進入時，中止正在進行的警示動畫。
-            _alertCts?.CancelAndDispose();
+            Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
             // 如果正在擷取快速鍵，則不執行一般的進入變色邏輯，保留擷取模式的視覺狀態。
             if (_isCapturingHotkey != 0)
@@ -371,7 +371,7 @@ public partial class MainForm
                 // 必須放行，讓 TBInput 乖乖清除黑色背景，避免雙重焦點！
             }
 
-            _alertCts?.CancelAndDispose();
+            Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
             // 如果正在擷取快速鍵時失去焦點，則取消擷取模式。
             if (_isCapturingHotkey != 0)
@@ -1434,7 +1434,7 @@ public partial class MainForm
                     _ = ResetTouchKeyboardFlagAsync();
                 }
             });
-        });
+        }).SafeFireAndForget();
     }
 
     /// <summary>

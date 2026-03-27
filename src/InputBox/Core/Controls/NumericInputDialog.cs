@@ -958,12 +958,14 @@ internal sealed class NumericInputDialog : Form
             return;
         }
 
-        Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
-
-        _alertCts = CancellationTokenSource
+        // 先建立新 CTS 的本地引用，再原子交換出舊實例，最後從本地引用取 Token。
+        // 此模式防止「Exchange 後、Token 取用前」另一執行緒將欄位置 null 引發 NullReferenceException。
+        CancellationTokenSource newAlertCts = CancellationTokenSource
             .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
 
-        CancellationToken token = _alertCts.Token;
+        Interlocked.Exchange(ref _alertCts, newAlertCts)?.CancelAndDispose();
+
+        CancellationToken token = newAlertCts.Token;
 
         try
         {
@@ -1573,7 +1575,7 @@ internal sealed class NumericInputDialog : Form
         {
             try
             {
-                _alertCts?.CancelAndDispose();
+                Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
                 User32.DestroyCaret();
 

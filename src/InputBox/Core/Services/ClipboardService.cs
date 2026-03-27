@@ -151,11 +151,13 @@ internal class ClipboardService
                 }
 
                 // 指數退避延遲。
-                int baseDelay = AppSettings.Current.ClipboardRetryDelay * (int)Math.Pow(2, retryCount - 1);
+                // 使用 Math.Min 在 double 域先截斷，再轉型為 int，避免大 retryCount 時溢位。
+                double rawDelay = AppSettings.Current.ClipboardRetryDelay * Math.Pow(2, retryCount - 1);
+                int baseDelay = (int)Math.Min(rawDelay, AppSettings.ClipboardMaxRetryDelayMs);
 
                 try
                 {
-                    await Task.Delay(Math.Min(baseDelay, AppSettings.ClipboardMaxRetryDelayMs), cts.Token);
+                    await Task.Delay(baseDelay, cts.Token);
                 }
                 catch (OperationCanceledException)
                 {

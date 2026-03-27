@@ -15,6 +15,11 @@ namespace InputBox;
 public partial class MainForm : Form
 {
     /// <summary>
+    /// 字體回收桶緊急清理門檻（字體數量超過此值時立即全部清除）
+    /// </summary>
+    private const int FontTrashCanEmergencyThreshold = 50;
+
+    /// <summary>
     /// 標題快取同步鎖
     /// </summary>
     private readonly Lock _titleLock = new();
@@ -428,7 +433,7 @@ public partial class MainForm : Form
             {
                 // 忽略背景清理的任何錯誤。
             }
-        });
+        }).SafeFireAndForget();
 
         try
         {
@@ -1038,9 +1043,9 @@ public partial class MainForm : Form
         {
             _fontTrashCan.Add(font);
 
-            // 防護機制：若回收桶堆積超過 50 個字體，立即執行一次緊急清理。
+            // 防護機制：若回收桶堆積超過門檻，立即執行一次緊急清理。
             // 這種情境通常發生在極端 DPI 切換或長時間執行的環境中。
-            if (_fontTrashCan.Count > 50)
+            if (_fontTrashCan.Count > FontTrashCanEmergencyThreshold)
             {
                 foreach (Font f in _fontTrashCan)
                 {
@@ -1078,7 +1083,7 @@ public partial class MainForm : Form
                 {
                     // 忽略背景清理的任何錯誤。
                 }
-            });
+            }).SafeFireAndForget();
         }
     }
 
