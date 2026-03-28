@@ -634,14 +634,27 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 裝置清單防抖與掃描邏輯。
         if (_needsRefresh)
         {
-            long elapsedTicks = Stopwatch.GetTimestamp() - Interlocked.Read(ref _refreshRequestedTicks),
-                elapsedMs = elapsedTicks / (Stopwatch.Frequency / 1000);
-
-            if (elapsedMs >= AppSettings.GamepadRefreshCooldownMs)
+            // 若目前尚未連線任何裝置，直接重掃，不套用 500ms 防抖，
+            // 以縮短「未連線 → 新插入」的首段偵測延遲。
+            if (_device == null)
             {
                 _reconnectCounter = 0;
 
                 TryFindDevice();
+            }
+
+            // 尚未連線時已做過即時重掃，本幀不再進行第二次防抖重掃，避免重複列舉。
+            if (_device != null)
+            {
+                long elapsedTicks = Stopwatch.GetTimestamp() - Interlocked.Read(ref _refreshRequestedTicks),
+                    elapsedMs = elapsedTicks / (Stopwatch.Frequency / 1000);
+
+                if (elapsedMs >= AppSettings.GamepadRefreshCooldownMs)
+                {
+                    _reconnectCounter = 0;
+
+                    TryFindDevice();
+                }
             }
         }
         else if (_device == null)
@@ -790,7 +803,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        bool needsDisconnect = false;
+        bool needsDisconnect = false,
+            needsConnectNotify = false;
 
         lock (_deviceLock)
         {
@@ -906,6 +920,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     UpdateDeviceInfo();
                     InitializeDeviceState();
                     SetupReadingCallback();
+
+                    // 連線事件需在鎖外觸發，避免 UI 執行緒回呼反向取鎖造成風險。
+                    needsConnectNotify = true;
                 }
             }
             else
@@ -922,6 +939,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             HandleDisconnect();
         }
+
+        if (needsConnectNotify)
+        {
+            ConnectionChanged?.Invoke(true);
+        }
     }
 
     /// <summary>
@@ -936,6 +958,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             return false;
         }
+
+        bool switched = false;
 
         lock (_deviceLock)
         {
@@ -976,7 +1000,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                             InitializeDeviceState();
                             SetupReadingCallback();
 
-                            return true;
+                            switched = true;
+
+                            break;
                         }
                     }
                 }
@@ -987,7 +1013,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
         }
 
-        return false;
+        if (switched)
+        {
+            ConnectionChanged?.Invoke(true);
+        }
+
+        return switched;
     }
 
     /// <summary>
@@ -1041,7 +1072,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 初始化裝置的初始狀態，並觸發連線事件更新 UI
+    /// 初始化裝置的初始狀態
     /// </summary>
     private void InitializeDeviceState()
     {
@@ -1091,7 +1122,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _hasPreviousState = false;
         }
 
-        ConnectionChanged?.Invoke(true);
     }
 
     /// <summary>
