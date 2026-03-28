@@ -212,7 +212,7 @@ jobs:
           - **版本號碼**：`${{ github.ref_name }}`
           - **目標平台**：Windows x64
           - **執行環境**：.NET 10（已隨附 Runtime，無需額外安裝）
-          - **檔案雜湊值（SHA256）**：`${{ env.SHA256_HASH }}`
+          - **執行檔案的雜湊值（SHA256）**：`${{ env.SHA256_HASH }}`
 
           ---
           > [!NOTE]

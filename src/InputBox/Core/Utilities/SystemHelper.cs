@@ -41,8 +41,8 @@ public static partial class SystemHelper
 
                 if (rkSubKey?.GetValue(null) is string strPath)
                 {
-                    // 清理路徑（先 Trim() 去除空白，再 Trim('"') 去除前後的雙引號，保留中間的內容不變）並展開環境變數。
-                    strPath = Environment.ExpandEnvironmentVariables(strPath.Trim().Trim('"'));
+                    // 清理路徑（先 Trim('"') 去除前後的雙引號，再 Trim() 去除殘餘空白）並展開環境變數。
+                    strPath = Environment.ExpandEnvironmentVariables(strPath.Trim('"').Trim());
 
                     if (!string.IsNullOrEmpty(strPath))
                     {

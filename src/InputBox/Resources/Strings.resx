@@ -799,4 +799,12 @@ RS ← / →	Expand or shrink selection
 Back + ↑ / ↓	Adjust window opacity (+5% / −5%)</value>
     <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>
   </data>
+  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+    <value>Feature Menu</value>
+    <comment>Accessibility name for the main context menu strip.</comment>
+  </data>
+  <data name="A11y_ContextMenu_Desc" xml:space="preserve">
+    <value>Contains privacy mode, hotkey settings, advanced settings, and other application functions.</value>
+    <comment>Accessibility description for the main context menu strip.</comment>
+  </data>
 </root>

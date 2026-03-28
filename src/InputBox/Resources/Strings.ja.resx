@@ -799,4 +799,12 @@ RS ← / →	選択範囲を拡大または縮小
 Back + ↑ / ↓	透明度を調整（+5% / −5%）</value>
     <comment>ヘルプダイアログ内のゲームパッド操作表のデータ行。タブ区切り形式：ボタン{tab}操作、1行1項目。</comment>
   </data>
+  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+    <value>機能メニュー</value>
+    <comment>コンテキストメニューのアクセシビリティ名。</comment>
+  </data>
+  <data name="A11y_ContextMenu_Desc" xml:space="preserve">
+    <value>プライバシーモード、ホットキー設定、詳細設定、その他のアプリケーション機能が含まれます。</value>
+    <comment>コンテキストメニューのアクセシビリティ説明。</comment>
+  </data>
 </root>

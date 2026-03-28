@@ -1336,7 +1336,7 @@ public partial class MainForm
                 // 取得文字方塊總共的行數（最後一行的 Index）。
                 totalLines = TBInput.GetLineFromCharIndex(TBInput.TextLength);
 
-            // 只有在最後一行時，按「下」才觸發歷史記錄。
+            // 只有在最後一行時，按「下」才觸發歷程記錄。
             if (currentLine == totalLines)
             {
                 NavigateHistory(+1);

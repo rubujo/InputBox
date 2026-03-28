@@ -595,16 +595,15 @@ internal sealed class HelpDialog : Form
         Interlocked.Exchange(ref _currentFont, shared);
 
         // Regular 字型（供懸停與一般狀態使用）。
-        Font? oldRegular = Interlocked.Exchange(
-            ref _closeRegularFont,
-            new Font(shared, FontStyle.Regular));
+        // 使用 try-finally 確保即使建構子拋出例外，舊字體仍能被正確釋放。
+        Font newRegular = new(shared, FontStyle.Regular);
+        Font? oldRegular = Interlocked.Exchange(ref _closeRegularFont, newRegular);
 
         oldRegular?.Dispose();
 
         // Bold 字型（供焦點／按壓強烈視覺使用）。
-        Font? oldBold = Interlocked.Exchange(
-            ref _closeBoldFont,
-            new Font(shared, FontStyle.Bold));
+        Font newBold = new(shared, FontStyle.Bold);
+        Font? oldBold = Interlocked.Exchange(ref _closeBoldFont, newBold);
 
         oldBold?.Dispose();
 

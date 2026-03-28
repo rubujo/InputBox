@@ -799,4 +799,12 @@ RS ← / →	扩大或缩小选取范围
 Back + ↑ / ↓	调整窗口透明度（+5% / −5%）</value>
     <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
   </data>
+  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+    <value>功能菜单</value>
+    <comment>右键菜单的无障碍名称。</comment>
+  </data>
+  <data name="A11y_ContextMenu_Desc" xml:space="preserve">
+    <value>包含隐私模式、快捷键设置、高级设置及其他应用程序功能。</value>
+    <comment>右键菜单的无障碍描述。</comment>
+  </data>
 </root>

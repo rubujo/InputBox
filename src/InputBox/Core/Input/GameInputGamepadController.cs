@@ -271,7 +271,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? RSRightRepeat;
 
     /// <summary>
-    /// 當左觸發鍵（LT 鍵）被按下時觅发
+    /// 當左觸發鍵（LT 鍵）被按下時觸發
     /// </summary>
     public event Action? LeftTriggerPressed;
 

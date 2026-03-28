@@ -162,7 +162,7 @@
 | | `ThumbDeadzoneExit` | 整數 | `2500` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿回彈重置閾值。此值必須顯著低於觸發閾值以防止抖動。 |
 | | `RepeatInitialDelayFrames` | 整數（幀） | `30` | `1 ~ 300` | 長按方向鍵時，開始重複輸入前的延遲（幀）。1 幀約為 16.6ms（60 FPS）。 |
 | | `RepeatIntervalFrames` | 整數（幀） | `5` | `1 ~ 100` | 長按方向鍵時的重複速度（幀），數值越小越快。1 幀約為 16.6ms（60 FPS）。 |
-| | `HistoryCapacity` | 整數 | `100` | `1 ~ 1000` | 輸入歷程記錄的最大保存筆數。 |
+| **操作體驗調整** | `HistoryCapacity` | 整數 | `100` | `1 ~ 1000` | 輸入歷程記錄的最大保存筆數。 |
 | **回饋** | `EnableVibration` | 布林值 | `true` | - | 是否啟用控制器震動回饋（`true`／`false`）。 |
 | | `VibrationIntensity` | 浮點數 | `0.7` | `0.0 ~ 1.0` | 全域震動強度（`0.0` ~ `1.0`）。若覺得震動太強可改為 `0.5`。 |
 | **快速鍵** | `HotKeyModifiers` | 字串 | `"Alt, Control, Shift"` | - | 喚醒輸入框的修飾鍵組合。可填寫：`Alt`、`Control`、`Shift`、`Win`，多個修飾鍵請以逗號隔開。例如 **Win** + **Ctrl** + **I** 請設為 `"Win, Control"`。 |

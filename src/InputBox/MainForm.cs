@@ -776,7 +776,11 @@ public partial class MainForm : Form
         // DPI 變更時，需重新計算並套用字型縮放。
         ApplyLocalization();
 
-        // 若輸入框正取得焦點，同步更新游標寬度以符合新 DPI。
+        // DPI 變更時強制失效游標快取，確保下次進入或目前焦點中的游標尺寸一定會被重新計算。
+        _lastCaretWidth = -1;
+        _lastCaretHeight = -1;
+
+        // 若輸入框正取得焦點，立即同步更新游標寬度以符合新 DPI。
         if (TBInput.Focused)
         {
             UpdateCaretWidth();

@@ -222,6 +222,7 @@ public partial class MainForm
             TabStop = false,
             // 防止 & 符號被解析為助記鍵，避免 A11y 文字顯示異常。
             UseMnemonic = false,
+            AccessibleRole = AccessibleRole.StaticText,
             Parent = this
         };
 

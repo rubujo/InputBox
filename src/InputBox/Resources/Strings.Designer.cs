@@ -223,6 +223,24 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Contains privacy mode, hotkey settings, advanced settings, and other application functions. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_ContextMenu_Desc {
+            get {
+                return ResourceManager.GetString("A11y_ContextMenu_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Feature Menu 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_ContextMenu_Name {
+            get {
+                return ResourceManager.GetString("A11y_ContextMenu_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Current value: {0}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_CurrentValue {

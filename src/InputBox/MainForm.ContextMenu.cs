@@ -32,7 +32,11 @@ public partial class MainForm
     /// </summary>
     private void InitializeContextMenu()
     {
-        _cmsInput ??= new ContextMenuStrip();
+        _cmsInput ??= new ContextMenuStrip
+        {
+            AccessibleName = Strings.A11y_ContextMenu_Name,
+            AccessibleDescription = Strings.A11y_ContextMenu_Desc
+        };
 
         // 動態加入主題變更重啟提示。
         if (IsThemeUpdatePending)

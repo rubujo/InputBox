@@ -92,7 +92,7 @@ public class FloatingPointFormatConverter : JsonConverterFactory
             float value,
             JsonSerializerOptions options)
         {
-            if (value % 1 == 0)
+            if (MathF.Abs(value % 1) < float.Epsilon)
             {
                 writer.WriteRawValue(value.ToString("0.0", CultureInfo.InvariantCulture));
             }
@@ -143,7 +143,7 @@ public class FloatingPointFormatConverter : JsonConverterFactory
             double value,
             JsonSerializerOptions options)
         {
-            if (value % 1 == 0)
+            if (Math.Abs(value % 1) < double.Epsilon)
             {
                 writer.WriteRawValue(value.ToString("0.0", CultureInfo.InvariantCulture));
             }
@@ -194,7 +194,7 @@ public class FloatingPointFormatConverter : JsonConverterFactory
             decimal value,
             JsonSerializerOptions options)
         {
-            if (value % 1 == 0)
+            if (value % 1 == 0m)
             {
                 writer.WriteRawValue(value.ToString("0.0", CultureInfo.InvariantCulture));
             }

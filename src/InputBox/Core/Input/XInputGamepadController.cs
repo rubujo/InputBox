@@ -165,7 +165,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public bool IsConnected => _hasPreviousState;
 
     /// <summary>
-    /// Controls for A, B, X, Y buttons
+    /// 控制器 A, B, X, Y 按鈕事件
     /// </summary>
     public event Action? APressed;
     public event Action? BPressed;
