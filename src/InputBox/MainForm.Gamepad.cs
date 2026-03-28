@@ -751,6 +751,12 @@ public partial class MainForm
                                 {
                                     AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, len));
                                 }
+                                else if (AppSettings.Current.IsPrivacyMode)
+                                {
+                                    AnnounceA11y(len > 1 ?
+                                        string.Format(Strings.A11y_Delete_Multiple, len) :
+                                        Strings.A11y_Delete_Char_PrivacySafe);
+                                }
                                 else
                                 {
                                     AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedSelection));
@@ -766,7 +772,9 @@ public partial class MainForm
                                 TBInput.Select(position - 1, 1);
                                 TBInput.SelectedText = string.Empty;
 
-                                AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar));
+                                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                                    Strings.A11y_Delete_Char_PrivacySafe :
+                                    string.Format(Strings.A11y_Delete_Char, deletedChar));
                             }
                             else
                             {
@@ -1096,7 +1104,9 @@ public partial class MainForm
             TBInput.ScrollToCaret();
 
             // 手動報讀游標目前的絕對位置。
-            AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                Strings.A11y_Cursor_Move_PrivacySafe :
+                string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
 
             VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
         }
@@ -1146,7 +1156,9 @@ public partial class MainForm
             TBInput.ScrollToCaret();
 
             // 手動報讀游標目前的絕對位置。
-            AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                Strings.A11y_Cursor_Move_PrivacySafe :
+                string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
         }
         else if (TBInput.SelectionStart == TBInput.Text.Length)
         {
@@ -1198,18 +1210,18 @@ public partial class MainForm
             _rsSelectionAnchor = TBInput.SelectionStart;
         }
 
-        nint anchor = _rsSelectionAnchor.Value;
+        int anchor = _rsSelectionAnchor.Value;
 
         // 推算目前的活動邊緣（Caret）。
         // WinForms SelectionStart 始終為較小的索引，因此若 Start 與錨點一致，則 Caret 在右側；否則 Caret 在左側。
-        nint caret = (TBInput.SelectionStart == anchor) ?
+        int caret = (TBInput.SelectionStart == anchor) ?
             (anchor + TBInput.SelectionLength) :
             TBInput.SelectionStart;
 
         // 防禦性寫法：確保方向永遠只會是 -1、0 或 1，杜絕任何溢出造成的邏輯錯亂。
         int safeDirection = Math.Sign(direction);
 
-        nint newCaret = Math.Clamp(caret + safeDirection, 0, TBInput.TextLength);
+        int newCaret = Math.Clamp(caret + safeDirection, 0, TBInput.TextLength);
 
         if (newCaret == caret)
         {
@@ -1225,7 +1237,9 @@ public partial class MainForm
         // A11y：報讀目前選取的文字內容。
         if (TBInput.SelectionLength > 0)
         {
-            AnnounceA11y(string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), interrupt: true);
+            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                Strings.A11y_Selected_Text_PrivacySafe :
+                string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), interrupt: true);
         }
 
         VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();

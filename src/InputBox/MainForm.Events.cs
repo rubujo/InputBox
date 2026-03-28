@@ -266,9 +266,6 @@ public partial class MainForm
                 return;
             }
 
-            // 更新邊框狀態。
-            UpdateBorderColor(true);
-
             // 判斷是否為高對比模式，如果系統已經開啟高對比，
             // 就完全尊重系統設定，不要自己改顏色。
             if (SystemInformation.HighContrast)
@@ -276,6 +273,9 @@ public partial class MainForm
                 // 高對比模式配色。
                 TBInput.BackColor = SystemColors.Highlight;
                 TBInput.ForeColor = SystemColors.HighlightText;
+
+                // 顏色套用後再更新邊框，確保情境感知選色與目前背景一致。
+                UpdateBorderColor(true);
 
                 return;
             }
@@ -293,6 +293,9 @@ public partial class MainForm
                 TBInput.BackColor = Color.Black;
                 TBInput.ForeColor = Color.White;
             }
+
+            // 顏色套用後再更新邊框，避免邊框以舊背景狀態判斷造成可見性下降。
+            UpdateBorderColor(true);
 
             // 強化游標辨識度。
             UpdateCaretWidth();
@@ -441,6 +444,7 @@ public partial class MainForm
         try
         {
             _isBtnHovered = false;
+            _isBtnPressed = false;
 
             RestoreButtonDefaultStyle();
         }
@@ -449,6 +453,50 @@ public partial class MainForm
             LoggerService.LogException(ex, "BtnCopy_MouseLeave 處理失敗");
 
             Debug.WriteLine($"[事件] BtnCopy_MouseLeave 處理失敗：{ex.Message}");
+        }
+    }
+
+    private void BtnCopy_MouseDown(object? sender, MouseEventArgs e)
+    {
+        try
+        {
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            _isBtnPressed = true;
+
+            // 按壓中立即套用強烈靜態視覺，對齊其他對話框行為。
+            ApplyButtonHoverStyle(isKeyboardFocus: BtnCopy.Focused);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "BtnCopy_MouseDown 處理失敗");
+
+            Debug.WriteLine($"[事件] BtnCopy_MouseDown 處理失敗：{ex.Message}");
+        }
+    }
+
+    private void BtnCopy_MouseUp(object? sender, MouseEventArgs e)
+    {
+        try
+        {
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            _isBtnPressed = false;
+
+            // 放開後回到 Hover/Focus 對應狀態。
+            ApplyButtonHoverStyle(isKeyboardFocus: BtnCopy.Focused);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "BtnCopy_MouseUp 處理失敗");
+
+            Debug.WriteLine($"[事件] BtnCopy_MouseUp 處理失敗：{ex.Message}");
         }
     }
 
@@ -554,32 +602,35 @@ public partial class MainForm
             int borderThickness = (int)Math.Max(3, 3 * scale),
                 inset = (int)Math.Max(2, 2 * scale);
 
-            // 邊框色依 BtnCopy.BackColor 實際值動態選取，確保在強視覺（反轉底色）與
-            // 中性（懸停灰 / isDefault 系統色）兩種狀態下皆達 WCAG AAA（≥ 7:1）：
-            //   Color.Black（淺色強視覺）→ Cyan        16.75:1 AAA
-            //   Color.White（深色強視覺）→ MediumBlue  11.16:1 AAA
-            //   深色中性 / 懸停灰        → DeepSkyBlue  5.20:1 AA（典型 #3C3C3C）
-            //   淺色中性 / 懸停灰        → MediumBlue   8.14:1 AAA
+            bool isStrongVisual = _isBtnPressed ||
+                (BtnCopy.Focused && !_isBtnHovered);
+
+            // 邊框色依 BtnCopy 的互動狀態動態選取，確保在強視覺（Focus／Pressed）與
+            // 中性（懸停灰／isDefault 系統色）兩種狀態下皆達 WCAG AAA（≥ 7:1）：
+            //   深色強視覺（Focus=White／Pressed=Amber）→ MediumBlue  ≥7.33:1 AAA
+            //   淺色強視覺（Focus=Black／Pressed=近黑） → Cyan        ≥13.57:1 AAA
+            //   深色中性／懸停灰                        → LightBlue    ≥7.2:1 AAA
+            //   淺色中性／懸停灰                        → MediumBlue   8.14:1 AAA
             Color borderColor;
             if (SystemInformation.HighContrast)
             {
                 borderColor = SystemColors.HighlightText;
             }
-            else if (BtnCopy.BackColor == Color.Black)
+            else if (isStrongVisual)
             {
-                borderColor = Color.Cyan;           // 淺色強視覺（黑底）16.75:1 AAA
-            }
-            else if (BtnCopy.BackColor == Color.White)
-            {
-                borderColor = Color.MediumBlue;     // 深色強視覺（白底）11.16:1 AAA
+                borderColor = isDark ?
+                    Color.MediumBlue :
+                    Color.Cyan;
             }
             else if (isDark)
             {
-                borderColor = Color.LightBlue;      // 深色中性 / 懸停 ≥7.2:1 AAA
+                // 深色中性／懸停 ≥7.2:1 AAA。
+                borderColor = Color.LightBlue;
             }
             else
             {
-                borderColor = Color.MediumBlue;     // 淺色中性 / 懸停 8.14:1 AAA
+                // 淺色中性／懸停 8.14:1 AAA。
+                borderColor = Color.MediumBlue;
             }
 
             using Pen borderPen = new(borderColor, borderThickness);
@@ -590,6 +641,27 @@ public partial class MainForm
                 inset,
                 BtnCopy.Width - (inset * 2) - 1,
                 BtnCopy.Height - (inset * 2) - 1);
+
+            if (!SystemInformation.HighContrast &&
+                _isBtnPressed)
+            {
+                // Pressed 專屬非顏色提示：
+                // 以文字同色再畫一層 1px 內框，讓 achromatopsia 也能區分 Pressed／Focused。
+                int pressedInset = inset + borderThickness;
+
+                if (BtnCopy.Width - (pressedInset * 2) - 1 > 0 &&
+                    BtnCopy.Height - (pressedInset * 2) - 1 > 0)
+                {
+                    using Pen pressedCuePen = new(BtnCopy.ForeColor, Math.Max(1f, scale));
+
+                    e.Graphics.DrawRectangle(
+                        pressedCuePen,
+                        pressedInset,
+                        pressedInset,
+                        BtnCopy.Width - (pressedInset * 2) - 1,
+                        BtnCopy.Height - (pressedInset * 2) - 1);
+                }
+            }
         }
 
         // 繪製注視進度條（Dwell Feedback）。
@@ -608,15 +680,17 @@ public partial class MainForm
             }
             else
             {
-                // 進度條繪製於懸停灰底之上（非焦點黑/白底），選用綠色系以與焦點藍、警示橘形成三色語意分工。
+                // 進度條繪製於懸停灰底之上（非焦點黑／白底），選用綠色系以與焦點藍、警示橘形成三色語意分工。
                 // 淺色懸停底（#DCDCDC）→ Green 3.75:1；深色懸停底（#3C3C3C）→ LimeGreen 5.21:1。
                 // 全類型 CVD 最低對比：淺色 3.50:1、深色 3.45:1，均符合 WCAG 1.4.11 非文字 UI ≥ 3:1。
                 Color baseColor = isDark ?
                         Color.LimeGreen :
                         Color.Green,
                     hatchColor = isDark ?
-                        Color.DarkGreen :       // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）
-                        Color.PaleGreen;        // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）
+                        // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）。
+                        Color.DarkGreen :
+                        // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）。
+                        Color.PaleGreen;
 
                 // 雙重編碼（CVD 色盲補償）。
                 // 實心背景 + 斜向條紋紋理，確保不同色覺類型皆能直觀辨識。
@@ -723,9 +797,13 @@ public partial class MainForm
         // 核心邏輯調整：
         // 1. 若為鍵盤焦點觸發且滑鼠「不在」按鈕上，則套用強烈靜態視覺（不啟動動畫）。
         // 2. 其餘情況（主要是滑鼠懸停），不論是否有焦點，皆啟動 Dwell 動畫以支援 Re-gaze。
-        bool isPureKeyboardFocus = isKeyboardFocus && !_isBtnHovered;
+        bool isPureKeyboardFocus = isKeyboardFocus &&
+                !_isBtnHovered,
+            isPressedVisual = _isBtnPressed,
+            useStrongVisual = isPressedVisual ||
+                isPureKeyboardFocus;
 
-        if (isPureKeyboardFocus)
+        if (useStrongVisual)
         {
             // 強烈視覺：純鍵盤焦點（Tab 鍵切換過來，且滑鼠不在上方）。
             // 目的：讓使用者明確知道按下 Enter 會觸發此按鈕。
@@ -741,17 +819,36 @@ public partial class MainForm
             }
             else
             {
-                if (BtnCopy.IsDarkModeActive())
+                bool isDark = BtnCopy.IsDarkModeActive();
+
+                if (isPressedVisual)
                 {
-                    // 深色模式：白底黑字（最強烈對比）。
-                    BtnCopy.BackColor = Color.White;
-                    BtnCopy.ForeColor = Color.Black;
+                    // Pressed 專屬視覺：
+                    // 深色模式使用飽和琥珀色（255,200,120）。
+                    // ΔL*=16.1（正常視覺）／ΔL*=14.3（Tritanopia 調整後），確保在藍-黃混淆軸的
+                    // 三色視障礙者仍能感知亮度差；淺色模式使用略亮於純黑的底色。
+                    // 再搭配 Paint 內層對比框，讓全色盲情境下仍能與 Focus 區分。
+                    BtnCopy.BackColor = isDark ?
+                        Color.FromArgb(255, 200, 120) :
+                        Color.FromArgb(28, 28, 28);
+                    BtnCopy.ForeColor = isDark ?
+                        Color.Black :
+                        Color.White;
                 }
                 else
                 {
-                    // 淺色模式：黑底白字（最強烈對比）。
-                    BtnCopy.BackColor = Color.Black;
-                    BtnCopy.ForeColor = Color.White;
+                    if (isDark)
+                    {
+                        // 深色模式：白底黑字（最強烈對比）。
+                        BtnCopy.BackColor = Color.White;
+                        BtnCopy.ForeColor = Color.Black;
+                    }
+                    else
+                    {
+                        // 淺色模式：黑底白字（最強烈對比）。
+                        BtnCopy.BackColor = Color.Black;
+                        BtnCopy.ForeColor = Color.White;
+                    }
                 }
             }
 
@@ -763,7 +860,9 @@ public partial class MainForm
 
             // 邊框由 Paint 事件繪製，此處將原生 BorderSize 設為 0。
             BtnCopy.FlatAppearance.BorderSize = 0;
-            BtnCopy.AccessibleDescription = $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
+            BtnCopy.AccessibleDescription = isPressedVisual
+                ? $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Pressed})"
+                : $"{Strings.A11y_BtnCopyDesc} ({Strings.A11y_State_Focused})";
         }
         else
         {
@@ -1685,10 +1784,9 @@ public partial class MainForm
                     // 還原 PInputHost 及其所有子控制項的顏色（包含 ForeColor），消除視覺殘留。
                     PInputHost.ResetThemeRecursive();
 
-                    // 恢復邊框樣式與厚度。
-                    UpdateBorderColor(TBInput.Focused);
-
                     // 根據焦點狀態重新套用強烈視覺回饋（若有焦點）。
+                    // 必須在 UpdateBorderColor 之前設定 BackColor，
+                    // 確保情境感知選色以正確的背景狀態為基準（對齊 TBInput_Enter 的修正邏輯）。
                     if (TBInput.Focused)
                     {
                         if (SystemInformation.HighContrast)
@@ -1710,6 +1808,9 @@ public partial class MainForm
                             }
                         }
                     }
+
+                    // BackColor 設定完畢後再恢復邊框，確保情境感知選色與當前背景一致。
+                    UpdateBorderColor(TBInput.Focused);
                 });
             }
         }
@@ -1759,15 +1860,15 @@ public partial class MainForm
             }
             else if (TBInput.IsDarkModeActive())
             {
-                // TBInput 尚未反轉（即將設為 White），使用深色模式預期色。
-                // 深色中性 11.16:1 AAA。
-                borderColor = Color.MediumBlue;
+                // TBInput 尚未反轉，視為深色中性背景。
+                // 深色中性 / 懸停 ≥ 7.2:1 AAA。
+                borderColor = Color.LightBlue;
             }
             else
             {
-                // TBInput 尚未反轉（即將設為 Black），使用淺色模式預期色。
-                // 淺色中性 16.75:1 AAA。
-                borderColor = Color.Cyan;
+                // TBInput 尚未反轉，視為淺色中性背景。
+                // 淺色中性 / 懸停 8.14:1 AAA。
+                borderColor = Color.MediumBlue;
             }
 
             PInputHost.BackColor = borderColor;

@@ -434,8 +434,9 @@ internal sealed class NumericInputDialog : Form
         {
             if (disposing)
             {
-                // 處置取消權杖來源。
+                // 處置取消權杖來源（主要任務與 Flash Alert 各自獨立處置）。
                 Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
+                Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
                 // 原子化處置 UI 控制項與資源。
                 Interlocked.Exchange(ref _nud, null)?.Dispose();
@@ -648,7 +649,9 @@ internal sealed class NumericInputDialog : Form
                 // 取得目前游標位置（1-based 報讀）。
                 int pos = textBox.SelectionStart;
 
-                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
+                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                    Strings.A11y_Cursor_Move_PrivacySafe :
+                    string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
 
                 FeedbackService.VibrateAsync(
                         _gamepadController,
@@ -711,16 +714,16 @@ internal sealed class NumericInputDialog : Form
                 _rsSelectionAnchor = textBox.SelectionStart;
             }
 
-            nint anchor = _rsSelectionAnchor.Value;
+            int anchor = _rsSelectionAnchor.Value;
 
             // 推算活動邊緣。
-            nint caret = (textBox.SelectionStart == anchor) ?
+            int caret = (textBox.SelectionStart == anchor) ?
                 (anchor + textBox.SelectionLength) :
                 textBox.SelectionStart;
 
             int direction = forward ? 1 : -1;
 
-            nint newCaret = Math.Clamp(caret + direction, 0, textBox.TextLength);
+            int newCaret = Math.Clamp(caret + direction, 0, textBox.TextLength);
 
             if (newCaret == caret)
             {
@@ -826,9 +829,16 @@ internal sealed class NumericInputDialog : Form
                             if (deleteIndex >= 0 &&
                                 deleteIndex < oldText.Length)
                             {
-                                char deletedChar = oldText[deleteIndex];
+                                if (AppSettings.Current.IsPrivacyMode)
+                                {
+                                    AnnounceA11y(Strings.A11y_Delete_Char_PrivacySafe, true);
+                                }
+                                else
+                                {
+                                    char deletedChar = oldText[deleteIndex];
 
-                                AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                                    AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedChar), true);
+                                }
                             }
                         }
                     }
@@ -1125,7 +1135,8 @@ internal sealed class NumericInputDialog : Form
                         !IsDisposed &&
                         IsHandleCreated)
                     {
-                        await this.SafeInvokeAsync(() => _announcer?.Announce(message, interrupt));
+                        await this.SafeInvokeAsync(() =>
+                            _announcer?.Announce(message, interrupt && AppSettings.Current.A11yInterruptEnabled));
                     }
                 }
                 catch (OperationCanceledException)
@@ -1622,7 +1633,9 @@ internal sealed class NumericInputDialog : Form
                             {
                                 if (textBox.SelectionLength > 0)
                                 {
-                                    AnnounceA11y(string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
+                                    AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                                        Strings.A11y_Selected_Text_PrivacySafe :
+                                        string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
                                 }
                             }
                             else
@@ -1630,7 +1643,9 @@ internal sealed class NumericInputDialog : Form
                                 // 取得目前游標所在的絕對索引（1-based 報讀）。
                                 int pos = textBox.SelectionStart;
 
-                                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
+                                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                                    Strings.A11y_Cursor_Move_PrivacySafe :
+                                    string.Format(Strings.A11y_Cursor_Move, pos + 1), true);
                             }
                         }
                         catch (Exception ex)
@@ -1660,7 +1675,9 @@ internal sealed class NumericInputDialog : Form
                             if (textBox != null &&
                                 !textBox.IsDisposed)
                             {
-                                AnnounceA11y(string.Format(Strings.A11y_Cursor_Move, textBox.SelectionStart + 1), true);
+                                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                                    Strings.A11y_Cursor_Move_PrivacySafe :
+                                    string.Format(Strings.A11y_Cursor_Move, textBox.SelectionStart + 1), true);
                             }
                         }
                         catch (Exception ex)
@@ -2172,12 +2189,24 @@ internal sealed class NumericInputDialog : Form
             {
                 bool isDark = btn.IsDarkModeActive();
 
-                btn.BackColor = isDark ?
-                    Color.White :
-                    Color.Black;
-                btn.ForeColor = isDark ?
-                    Color.Black :
-                    Color.White;
+                if (isPressed)
+                {
+                    btn.BackColor = isDark ?
+                        Color.FromArgb(255, 200, 120) :
+                        Color.FromArgb(28, 28, 28);
+                    btn.ForeColor = isDark ?
+                        Color.Black :
+                        Color.White;
+                }
+                else
+                {
+                    btn.BackColor = isDark ?
+                        Color.White :
+                        Color.Black;
+                    btn.ForeColor = isDark ?
+                        Color.Black :
+                        Color.White;
+                }
             }
 
             // 加粗（大）。
@@ -2186,7 +2215,9 @@ internal sealed class NumericInputDialog : Form
                 btn.Font = boldFont;
             }
 
-            btn.AccessibleDescription = $"{description} ({Strings.A11y_State_Focused})";
+            btn.AccessibleDescription = isPressed ?
+                $"{description} ({Strings.A11y_State_Pressed})" :
+                $"{description} ({Strings.A11y_State_Focused})";
             btn.Padding = new Padding(0);
             btn.Invalidate();
         }
@@ -2205,6 +2236,7 @@ internal sealed class NumericInputDialog : Form
                 (btn.Focused && !isHovered))
             {
                 ApplyStrongVisual();
+
                 return;
             }
 
@@ -2333,28 +2365,31 @@ internal sealed class NumericInputDialog : Form
                 int borderThickness = (int)Math.Max(3, 3 * currentScale),
                     inset = (int)Math.Max(2, 2 * currentScale);
 
-                // 邊框色依 btn.BackColor 實際值動態選取，對齊 BtnCopy 與 BtnClose 的情境感知邏輯，
-                // 確保在強視覺（反轉底色）與中性（懸停灰 / isDefault 系統色）下皆達 WCAG AAA：
+                bool isStrongVisual = isPressed ||
+                    (btn.Focused && !isHovered);
+
+                // 邊框色依 btn 的互動狀態動態選取，對齊 BtnCopy 與 BtnClose 的情境感知邏輯，
+                // 確保在強視覺（Focus／Pressed）與中性（懸停灰／isDefault 系統色）下皆達 WCAG AAA：
                 Color borderColor;
                 if (SystemInformation.HighContrast)
                 {
                     borderColor = SystemColors.HighlightText;
                 }
-                else if (btn.BackColor == Color.Black)
+                else if (isStrongVisual)
                 {
-                    borderColor = Color.Cyan;           // 淺色強視覺（黑底）16.75:1 AAA
-                }
-                else if (btn.BackColor == Color.White)
-                {
-                    borderColor = Color.MediumBlue;     // 深色強視覺（白底）11.16:1 AAA
+                    borderColor = isDark ?
+                        Color.MediumBlue :
+                        Color.Cyan;
                 }
                 else if (isDark)
                 {
-                    borderColor = Color.LightBlue;      // 深色中性 / 懸停 ≥7.2:1 AAA
+                    // 深色中性／懸停 ≥7.2:1 AAA。
+                    borderColor = Color.LightBlue;
                 }
                 else
                 {
-                    borderColor = Color.MediumBlue;     // 淺色中性 / 懸停 8.14:1 AAA
+                    // 淺色中性／懸停 8.14:1 AAA。
+                    borderColor = Color.MediumBlue;
                 }
 
                 using Pen borderPen = new(borderColor, borderThickness);
@@ -2365,6 +2400,25 @@ internal sealed class NumericInputDialog : Form
                     inset,
                     btn.Width - (inset * 2) - 1,
                     btn.Height - (inset * 2) - 1);
+
+                if (!SystemInformation.HighContrast &&
+                    isPressed)
+                {
+                    int pressedInset = inset + borderThickness;
+
+                    if (btn.Width - (pressedInset * 2) - 1 > 0 &&
+                        btn.Height - (pressedInset * 2) - 1 > 0)
+                    {
+                        using Pen pressedCuePen = new(btn.ForeColor, Math.Max(1f, currentScale));
+
+                        e.Graphics.DrawRectangle(
+                            pressedCuePen,
+                            pressedInset,
+                            pressedInset,
+                            btn.Width - (pressedInset * 2) - 1,
+                            btn.Height - (pressedInset * 2) - 1);
+                    }
+                }
             }
 
             // 後繪製注視進度條（Dwell Feedback）。
@@ -2384,15 +2438,17 @@ internal sealed class NumericInputDialog : Form
                 }
                 else
                 {
-                    // 進度條繪製於懸停灰底之上（非焦點黑/白底），選用綠色系以與焦點藍、警示橘形成三色語意分工。
+                    // 進度條繪製於懸停灰底之上（非焦點黑／白底），選用綠色系以與焦點藍、警示橘形成三色語意分工。
                     // 淺色懸停底（#DCDCDC）→ Green 3.75:1；深色懸停底（#3C3C3C）→ LimeGreen 5.21:1。
                     // 全類型 CVD 最低對比：淺色 3.50:1、深色 3.45:1，均符合 WCAG 1.4.11 非文字 UI ≥ 3:1。
                     Color baseColor = isDark ?
                             Color.LimeGreen :
                             Color.Green,
                         hatchColor = isDark ?
-                            Color.DarkGreen :       // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）
-                            Color.PaleGreen;        // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）
+                            // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）。
+                            Color.DarkGreen :
+                            // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）。
+                            Color.PaleGreen;
 
                     // 雙重編碼：實心背景 + 斜向條紋紋理。
                     using Brush bgBrush = new SolidBrush(baseColor);

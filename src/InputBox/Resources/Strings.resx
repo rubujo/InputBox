@@ -141,6 +141,10 @@
     <value>Hovering</value>
     <comment>State text appended to the accessibility description when the control is hovered.</comment>
   </data>
+  <data name="A11y_State_Pressed" xml:space="preserve">
+    <value>Pressed</value>
+    <comment>State text appended to the accessibility description when the button is physically pressed (MouseDown). Distinct from Focused to help AT users distinguish between keyboard focus and physical press.</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>Copies the text from the input box to the clipboard.</value>
     <comment>Accessibility description for the copy button, explaining its function.</comment>
@@ -711,6 +715,10 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Help — Keyboard Shortcuts &amp; Gamepad Controls</value>
     <comment>Title bar text of the Help dialog.</comment>
   </data>
+  <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Shows keyboard shortcuts and gamepad controls. Use arrow keys, Page Up, Page Down, or the gamepad to scroll, then choose Close to return.</value>
+    <comment>Accessible description for the Help dialog itself.</comment>
+  </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
     <value>Keyboard Shortcuts</value>
     <comment>Section heading inside the Help dialog for the keyboard shortcut table.</comment>
@@ -739,9 +747,17 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Keyboard shortcuts table</value>
     <comment>Accessible name for the keyboard shortcuts section container in the Help dialog.</comment>
   </data>
+  <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
+    <value>Lists the available keyboard shortcuts and their actions.</value>
+    <comment>Accessible description for the keyboard shortcuts section container in the Help dialog.</comment>
+  </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
     <value>Gamepad controls table</value>
     <comment>Accessible name for the gamepad controls section container in the Help dialog.</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
+    <value>Lists the available gamepad buttons and their actions.</value>
+    <comment>Accessible description for the gamepad controls section container in the Help dialog.</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	Clear input / Return to game (if empty)

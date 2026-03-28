@@ -141,6 +141,10 @@
     <value>指向中</value>
     <comment>當控制項處於指向（Hover）狀態時，附加於無障礙描述後方的狀態文字。</comment>
   </data>
+  <data name="A11y_State_Pressed" xml:space="preserve">
+    <value>按壓中</value>
+    <comment>當按鈕處於實體按壓（MouseDown）狀態時，附加於無障礙描述後方的狀態文字。與「已獲得焦點」不同，讓輔助科技使用者能區分鍵盤焦點與實體按壓。</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>將輸入框中的文字複製到剪貼簿。</value>
     <comment>複製按鈕的無障礙描述，解釋按鈕的功能（複製到剪貼簿）。</comment>
@@ -711,6 +715,10 @@
     <value>說明 — 鍵盤快速鍵與控制器按鍵對應</value>
     <comment>說明對話框的標題列文字。</comment>
   </data>
+  <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
+    <value>顯示鍵盤快速鍵與控制器按鍵對應。可用方向鍵、PageUp、PageDown 或控制器捲動內容，按關閉返回。</value>
+    <comment>說明對話框本體的無障礙描述。</comment>
+  </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
     <value>鍵盤快速鍵</value>
     <comment>說明對話框中鍵盤快速鍵表格的區段標題。</comment>
@@ -739,9 +747,17 @@
     <value>鍵盤快速鍵表格</value>
     <comment>說明對話框中鍵盤快速鍵區段容器的無障礙名稱。</comment>
   </data>
+  <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
+    <value>列出可用的鍵盤快速鍵與對應功能。</value>
+    <comment>說明對話框中鍵盤快速鍵區段容器的無障礙描述。</comment>
+  </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
     <value>控制器按鍵對應表格</value>
     <comment>說明對話框中控制器按鍵對應區段容器的無障礙名稱。</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
+    <value>列出可用的控制器按鍵與對應功能。</value>
+    <comment>說明對話框中控制器按鍵對應區段容器的無障礙描述。</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字／返回遊戲（已空時）

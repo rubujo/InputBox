@@ -198,14 +198,14 @@ public partial class MainForm : Form
     private float _lastAppliedDpi = -1;
 
     /// <summary>
-    /// 上一次建立游標時的寬度快取
+    /// 上一次建立游標時的寬度快取（-1 表示未初始化，與 Leave 事件重置語意一致）
     /// </summary>
-    private int _lastCaretWidth = 0;
+    private int _lastCaretWidth = -1;
 
     /// <summary>
-    /// 上一次建立游標時的高度快取
+    /// 上一次建立游標時的高度快取（-1 表示未初始化，與 Leave 事件重置語意一致）
     /// </summary>
-    private int _lastCaretHeight = 0;
+    private int _lastCaretHeight = -1;
 
     /// <summary>
     /// 快取的原始邊距（用於懸停零邊距策略）
@@ -221,6 +221,11 @@ public partial class MainForm : Form
     /// 是否正被注視中
     /// </summary>
     private bool _isBtnHovered = false;
+
+    /// <summary>
+    /// 複製按鈕是否處於滑鼠按壓中
+    /// </summary>
+    private bool _isBtnPressed = false;
 
     /// <summary>
     /// 目前按鈕動畫的序號（用於處理中止與競爭）
@@ -296,6 +301,10 @@ public partial class MainForm : Form
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
         TBInput.MaxLength = AppSettings.MaxHistoryEntryLength;
 
+        // 為 BtnCopy 補齊按壓狀態追蹤，對齊其他對話框的 Pressed 視覺模型。
+        BtnCopy.MouseDown += BtnCopy_MouseDown;
+        BtnCopy.MouseUp += BtnCopy_MouseUp;
+
         // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>
         {
@@ -359,6 +368,7 @@ public partial class MainForm : Form
 
                 // 1. 強制清除按鈕的 Hover 或 Focus 視覺殘留。
                 _isBtnHovered = false;
+                _isBtnPressed = false;
 
                 if (BtnCopy != null && !BtnCopy.IsDisposed)
                 {

@@ -141,6 +141,10 @@
     <value>ホバー中</value>
     <comment>コントロールがホバー状態のとき、アクセシビリティの説明の後ろに追加される状態テキスト。</comment>
   </data>
+  <data name="A11y_State_Pressed" xml:space="preserve">
+    <value>押下中</value>
+    <comment>ボタンが実際に押下（MouseDown）されているとき、アクセシビリティの説明の後ろに追加される状態テキスト。「フォーカス取得済み」と区別し、AT ユーザーがキーボードフォーカスと物理的押下を識別できるようにする。</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>入力ボックスのテキストをクリップボードにコピーします。</value>
     <comment>コピーボタンのアクセシビリティ記述。ボタンの機能（クリップボードへのコピー）を説明します。</comment>
@@ -711,6 +715,10 @@
     <value>ヘルプ — キーボードショートカットとゲームパッド操作</value>
     <comment>ヘルプダイアログのタイトルバーテキスト。</comment>
   </data>
+  <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
+    <value>キーボードショートカットとゲームパッド操作を表示します。方向キー、PageUp、PageDown、またはゲームパッドで内容をスクロールし、閉じるで戻れます。</value>
+    <comment>ヘルプダイアログ本体のアクセシビリティ説明です。</comment>
+  </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
     <value>キーボードショートカット</value>
     <comment>ヘルプダイアログ内のキーボードショートカット表のセクション見出し。</comment>
@@ -739,9 +747,17 @@
     <value>キーボードショートカット表</value>
     <comment>ヘルプダイアログ内のキーボードショートカットセクションコンテナのアクセシブル名。</comment>
   </data>
+  <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
+    <value>利用できるキーボードショートカットと対応する機能を一覧表示します。</value>
+    <comment>ヘルプダイアログ内のキーボードショートカットセクションコンテナのアクセシビリティ説明です。</comment>
+  </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
     <value>ゲームパッド操作表</value>
     <comment>ヘルプダイアログ内のゲームパッド操作セクションコンテナのアクセシブル名。</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
+    <value>利用できるゲームパッドのボタンと対応する機能を一覧表示します。</value>
+    <comment>ヘルプダイアログ内のゲームパッド操作セクションコンテナのアクセシビリティ説明です。</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	文字をクリア（空の場合はゲームに戻る）

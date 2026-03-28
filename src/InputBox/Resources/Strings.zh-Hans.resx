@@ -141,6 +141,10 @@
     <value>指向中</value>
     <comment>当控件处于指向（Hover）状态时，附加于无障碍描述后方的状态文字。</comment>
   </data>
+  <data name="A11y_State_Pressed" xml:space="preserve">
+    <value>按压中</value>
+    <comment>当按钮处于实体按压（MouseDown）状态时，附加于无障碍描述后方的状态文字。与「已获得焦点」不同，让辅助技术用户能区分键盘焦点与实体按压。</comment>
+  </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>将输入框中的文字复制到剪贴板。</value>
     <comment>复制按钮的无障碍描述，说明按钮功能（复制到剪贴板）。</comment>
@@ -158,8 +162,8 @@
     <comment>无障碍消息，当用户取消快捷键捕获流程时播放。</comment>
   </data>
   <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
-    <value>按 ESC 鍵即可取消。</value>
-    <comment>无障碍消息，提示用户可以按下 ESC 鍵来取消捕获。</comment>
+    <value>按 ESC 键即可取消。</value>
+    <comment>无障碍消息，提示用户可以按下 ESC 键来取消捕获。</comment>
   </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>当前数值：{0}。</value>
@@ -711,6 +715,10 @@
     <value>帮助 — 键盘快捷键与手柄按键对照</value>
     <comment>帮助对话框的标题栏文字。</comment>
   </data>
+  <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
+    <value>显示键盘快捷键与手柄按键对照。可用方向键、PageUp、PageDown 或控制器滚动内容，按关闭返回。</value>
+    <comment>帮助对话框本体的无障碍描述。</comment>
+  </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
     <value>键盘快捷键</value>
     <comment>帮助对话框中键盘快捷键表格的区段标题。</comment>
@@ -739,9 +747,17 @@
     <value>键盘快捷键表格</value>
     <comment>帮助对话框中键盘快捷键区段容器的无障碍名称。</comment>
   </data>
+  <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
+    <value>列出可用的键盘快捷键与对应功能。</value>
+    <comment>帮助对话框中键盘快捷键区段容器的无障碍描述。</comment>
+  </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
     <value>手柄按键对照表格</value>
     <comment>帮助对话框中手柄按键对照区段容器的无障碍名称。</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
+    <value>列出可用的手柄按键与对应功能。</value>
+    <comment>帮助对话框中手柄按键对照区段容器的无障碍描述。</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字 / 返回游戏（已空时）

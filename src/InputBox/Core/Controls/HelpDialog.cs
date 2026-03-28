@@ -71,6 +71,7 @@ internal sealed class HelpDialog : Form
         Text = Strings.Help_Title;
         Padding = new Padding(12);
         AccessibleName = Strings.Help_Title;
+        AccessibleDescription = Strings.Help_A11y_Dialog_Desc;
 
         // 繼承圖示：優先從主視窗繼承，保持應用程式視覺識別的一致性。
         Icon = Application.OpenForms.OfType<MainForm>().FirstOrDefault()?.Icon ??
@@ -104,6 +105,7 @@ internal sealed class HelpDialog : Form
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             AccessibleName = Strings.Help_A11y_Keyboard_Group,
+            AccessibleDescription = Strings.Help_A11y_Keyboard_Group_Desc,
             AccessibleRole = AccessibleRole.Grouping
         };
 
@@ -123,6 +125,7 @@ internal sealed class HelpDialog : Form
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             AccessibleName = Strings.Help_A11y_Gamepad_Group,
+            AccessibleDescription = Strings.Help_A11y_Gamepad_Group_Desc,
             AccessibleRole = AccessibleRole.Grouping
         };
 
@@ -402,28 +405,12 @@ internal sealed class HelpDialog : Form
         if (_btnClose.CanFocus &&
             !_btnClose.Focused)
         {
+            // Focus() 會觸發 GotFocus → ApplyStrongCloseVisual()，正確呈現聚焦強烈視覺。
+            // 不可在 Focus() 後手動重置顏色至 Color.Empty：在深色模式下 Color.Empty 可能回退
+            // 為系統預設 ButtonFace（淺灰）+ ControlText（黑字），造成按鈕在深色對話框中
+            // 呈現淺色外觀，且 Paint 選用的 MediumBlue 邊框在淺灰底對深色背景中對比失準。
             _btnClose.Focus();
         }
-
-        // 對話框開啟時，WinForms 會自動聚焦 _btnClose（唯一可聚焦控制項），
-        // 導致 GotFocus → ApplyStrongCloseVisual() → 背景色反轉（黑底）。
-        // 此時使用者尚未主動導航到按鈕，應呈現中性外觀，僅靠 Paint 繪製焦點邊框。
-        // （邊框色已針對中性背景做高對比調整，確保 WCAG AAA 可見度。）
-        Interlocked.Increment(ref _closeAnimId);
-
-        _closeDwellProgress = 0f;
-
-        _btnClose.BackColor = Color.Empty;
-        _btnClose.ForeColor = Color.Empty;
-
-        Font? regularFont = _closeRegularFont;
-
-        if (regularFont != null)
-        {
-            _btnClose.Font = regularFont;
-        }
-
-        _btnClose.Invalidate();
     }
 
     /// <summary>
@@ -1063,8 +1050,20 @@ internal sealed class HelpDialog : Form
         {
             bool isDark = _btnClose.IsDarkModeActive();
 
-            _btnClose.BackColor = isDark ? Color.White : Color.Black;
-            _btnClose.ForeColor = isDark ? Color.Black : Color.White;
+            if (_closeIsPressed)
+            {
+                _btnClose.BackColor = isDark ?
+                    Color.FromArgb(255, 200, 120) :
+                    Color.FromArgb(28, 28, 28);
+                _btnClose.ForeColor = isDark ?
+                    Color.Black :
+                    Color.White;
+            }
+            else
+            {
+                _btnClose.BackColor = isDark ? Color.White : Color.Black;
+                _btnClose.ForeColor = isDark ? Color.Black : Color.White;
+            }
         }
 
         // 使用預建 Bold 字型，避免每次呼叫建立新物件洩漏 GDI 資源。
@@ -1075,6 +1074,9 @@ internal sealed class HelpDialog : Form
             _btnClose.Font = boldFont;
         }
 
+        _btnClose.AccessibleDescription = _closeIsPressed
+            ? $"{Strings.Help_Btn_Close} ({Strings.A11y_State_Pressed})"
+            : $"{Strings.Help_Btn_Close} ({Strings.A11y_State_Focused})";
         _btnClose.Invalidate();
     }
 
@@ -1210,11 +1212,13 @@ internal sealed class HelpDialog : Form
         }
 
         // 焦點／懸停邊框（3px，與 BtnCopy 完全對齊）。
-        // 邊框色依當前 BackColor 實際值選取，確保在四種情境下皆達 WCAG AAA（≥7:1）：
-        // Black bg（淺色強視覺）→ Cyan 21:1 AAA
-        // White bg（深色強視覺）→ MediumBlue 16:1 AAA
-        // 深色中性／懸停灰 → DeepSkyBlue 7.9:1 AAA
-        // 淺色中性／懸停灰 → MediumBlue 4.2:1 AAA
+        bool isStrongVisual = _closeIsPressed || (isFocused && !_closeIsHovered);
+
+        // 邊框色依互動狀態選取，確保在強視覺（Focus／Pressed）與中性（Hover）下皆達 WCAG AAA（≥7:1）：
+        // 深色強視覺（Focus=White／Pressed=Amber）→ MediumBlue  ≥7.33:1 AAA
+        // 淺色強視覺（Focus=Black／Pressed=近黑）→ Cyan        ≥13.57:1 AAA
+        // 深色中性／懸停灰                      → LightBlue    ≥7.2:1 AAA
+        // 淺色中性／懸停灰                      → MediumBlue  14.2:1 AAA
         if (isFocused ||
             isHoveredOrDwell)
         {
@@ -1227,15 +1231,11 @@ internal sealed class HelpDialog : Form
             {
                 borderColor = SystemColors.HighlightText;
             }
-            else if (btn.BackColor == Color.Black)
+            else if (isStrongVisual)
             {
-                // 淺色強視覺（黑底）21:1 AAA。
-                borderColor = Color.Cyan;
-            }
-            else if (btn.BackColor == Color.White)
-            {
-                // 深色強視覺（白底）16:1 AAA。
-                borderColor = Color.MediumBlue;
+                borderColor = isDark ?
+                    Color.MediumBlue :
+                    Color.Cyan;
             }
             else if (isDark)
             {
@@ -1255,6 +1255,25 @@ internal sealed class HelpDialog : Form
                 inset,
                 btn.Width - (inset * 2) - 1,
                 btn.Height - (inset * 2) - 1);
+
+            if (!SystemInformation.HighContrast &&
+                _closeIsPressed)
+            {
+                int pressedInset = inset + borderThickness;
+
+                if (btn.Width - (pressedInset * 2) - 1 > 0 &&
+                    btn.Height - (pressedInset * 2) - 1 > 0)
+                {
+                    using Pen pressedCuePen = new(btn.ForeColor, Math.Max(1f, scale));
+
+                    g.DrawRectangle(
+                        pressedCuePen,
+                        pressedInset,
+                        pressedInset,
+                        btn.Width - (pressedInset * 2) - 1,
+                        btn.Height - (pressedInset * 2) - 1);
+                }
+            }
         }
 
         // Dwell 進度條（懸停中且非按壓狀態）。
@@ -1285,8 +1304,10 @@ internal sealed class HelpDialog : Form
                             Color.LimeGreen :
                             Color.Green,
                         hatchColor = isDark ?
-                            Color.DarkGreen :       // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）
-                            Color.PaleGreen;        // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）
+                            // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）。
+                            Color.DarkGreen :
+                            // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）。
+                            Color.PaleGreen;
 
                     using Brush bgBrush = new SolidBrush(baseColor);
                     using Brush hatchBrush = new HatchBrush(

@@ -1,6 +1,9 @@
-# 輸入框（InputBox）專案開發規範
+# 輸入框（InputBox）詳細工程規範
 
-本文件為 **輸入框（InputBox）** 專案的最高指導原則。所有 AI 輔助開發（審查、重構、功能擴充）必須絕對優先遵循以下指令。
+本文件是 InputBox 的詳細工程參考，保留完整理由、術語表與審查清單。
+
+- 永遠載入的精簡版 workspace instructions 位於 [.github/copilot-instructions.md](.github/copilot-instructions.md)。
+- 若兩份文件有重疊，應以「copilot-instructions 的精簡規則 + 本文件的詳細說明」共同理解，避免再建立第三份重複規範。
 
 ---
 
@@ -19,7 +22,7 @@
   2. **Windows PowerShell 5.1（powershell）**：僅在無 pwsh 時使用。
   3. **Command Prompt（cmd）**。
 - **指令相容性**：
-  - 執行 `run_shell_command` 時，必須優先使用與上述環境相容的內建指令（例如優先使用 `dir` 或 `Get-ChildItem` 而非 `ls`，除非在 PowerShell 環境下）。
+  - 執行終端命令時，必須優先使用與上述環境相容的內建指令（例如優先使用 `dir` 或 `Get-ChildItem` 而非 `ls`，除非在 PowerShell 環境下）。
   - 當需要調用任何 CLI 工具或命令（如 `git`、`dotnet` 等）時，必須優先使用預設開發環境所支援且已驗證的指令版本。
 
 ---
@@ -72,6 +75,7 @@
   - **雙重緩衝（Double Buffered）**：`MainForm` 與所有自定義對話框必須啟用 `DoubleBuffered = true`。
 - **分離式回饋原則（Separated Feedback）**：
   - **鍵盤焦點**：當控制項透過鍵盤（如 Tab 鍵）獲得焦點時，僅執行「強烈靜態視覺回饋」（如明暗反轉、字體加粗），禁止啟動耗時的填滿動畫。
+  - **按壓狀態**：當控制項處於實體按壓中（Pressed）時，必須提供**獨立於 Focus 的第三視覺層級**。深色模式必須使用與純白底色亮度差 **ΔL*≥13**（且在 Tritanopia S-cone 喪失後的調整亮度下仍需 ΔL*≥13）的飽和暖色（如琥珀色 `255,200,120`），避免使用近白色；淺色模式使用略亮於純黑的底色（如 `28,28,28`）。原因：人眼在高亮端的感知閾值（JND）遠大於低亮端（Weber's Law），單純「略暗於白」在深色模式中幾乎無法分辨；黃橘色處於藍-黃混淆軸，Tritanopia 使用者的有效 ΔL* 會因 S-cone 缺失而縮水，需選用 L+M 主導亮度的飽和色確保閾值達標。**Tritanopia 調整公式**：$L_{tritan} = (R_{lin} \times 0.2126 + G_{lin} \times 0.7152) / 0.9278$。`(255,200,120)` 正常 ΔL*=16.1，Tritanopia 調整後 ΔL*=14.3，均高於 ≥13 門檻。但**不得只依賴色相差異**，必須額外提供非顏色線索（如內層對比框或其他不改變尺寸的形狀提示），以支援全類型色弱與全色盲使用者。
   - **注視／懸停**：當視線進入或滑鼠懸停時，啟動「線性填滿（Linear Fill）」動畫，提供明確的動作預期感。
   - **預設動作引導（Default Action Guidance）**：
     - **規範**：對話框的 `AcceptButton` 在焦點位於非按鈕控制項（如輸入框）時，必須顯示與「焦點框」相同的視覺特徵（如 Cyan／RoyalBlue 邊框），指引 Enter 鍵的預設動作。
@@ -110,6 +114,7 @@
         - 淺色模式中性 / 懸停灰（`Color.Empty`）→ `MediumBlue`（8.14:1 AAA）
         - **絕對禁令**：嚴禁在中性背景上固定使用 `Cyan`（對系統淺灰 ≈ 1.1:1 ❌）或 `RoyalBlue`（對系統深灰 #3C3C3C ≈ 2.28:1 ❌）或 `DeepSkyBlue`（對 #3C3C3C ≈ 5.2:1，未達 AAA ❌）作為焦點邊框色。邊框色**必須**基於 `btn.BackColor` 動態決定，而非全域 `isDark` 旗標。
         - **一致性要求**：所有自定義繪製的按鈕（`BtnCopy`、`NumericInputDialog` 各按鈕、`HelpDialog` 關閉按鈕）必須使用相同的情境感知邏輯，確保視覺一致性。
+          - **對比量測基準（Contrast Measurement Baseline）**：上列所有對比比值均為**內緣量測**，即「邊框色 vs 相鄰的控制項底色（TBInput 或按鈕 BackColor）」。深色強視覺模式下（白底），邊框外緣（`MediumBlue` vs 表單深色背景 ≈ `#3C3C3C`）對比為 ≈ 1.0:1，此為刻意的設計取捨——WCAG 2.4.11 的主要焦點指示器是 TBInput**整體色塊反轉**（空白區域 vs 深色表單 ≈ 20:1），邊框外緣融入背景不影響合規性。若要外緣亦可見，需採雙層邊框結構，會增加佈局複雜度，目前不予實作。
     - **色盲友善警示色**：在一般主題下，優先選用暖橘色（如 DarkOrange）作為警示色，以獲得跨 CVD 類型（Protan／Deutan／Tritan）的最佳對比。
     - **插值基色中性化（Interpolation Neutrality）**：
       - **規範**：執行閃爍動畫時，過渡起點（Base）必須固定為該控制項在該模式下的**焦點反轉底色**（深色模式用 `Color.White`，淺色模式用 `Color.Black`）。
@@ -264,7 +269,7 @@
     - 檢查是否符合微軟 .NET 開發指導原則（例外處理、非同步安全性、資源釋放）。
     - 修正潛在風險、效能瓶頸或不符合現代 C# 慣例的錯誤。
 2.  **A11y 與視覺安全校閱**：
-    - 確保所有新控制項具備正確的 `AccessibleName／Role／Description`。
+  - 確保所有新控制項具備正確的 `AccessibleName`、`AccessibleRole` 與 `AccessibleDescription`。
     - 驗證狀態回饋是否包含「非顏色相關」的視覺提示與「光敏安全」檢查。
 3.  **語系術語校對**：
     - 檢查所有支援語系（特別是 `Strings.zh-Hant.resx`）是否符合微軟標準與臺灣在地化習慣。
