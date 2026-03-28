@@ -89,8 +89,9 @@
       - **視覺警示（Flash Alert）**：屬於「系統狀態導向」。發生邊界錯誤時，必須執行 **1Hz 平滑脈衝**（心跳變幻）以提供顯著提醒，直至錯誤狀態解除或焦點轉移。
     - **失焦重置**：當視線離開控制項時，必須立即重置進度條並終止背景任務。
     - **懸停進度條對比規範（Dwell Bar Contrast，WCAG 1.4.11）**：進度條填色必須以**懸停狀態底色**（而非焦點反轉底色）為基準計算對比，確保非文字 UI 組件對比達 ≥ 3:1。
-      - **淺色模式**（懸停底色 `#DCDCDC`）：底色 `SaddleBrown`（5.18:1）✅ + CVD 補償紋理 `DarkOrange`（3.04:1 on SaddleBrown）；嚴禁直接以 `DarkOrange` 作為底色（1.70:1 ❌）。
-      - **深色模式**（懸停底色 `#3C3C3C`）：底色 `DarkOrange`（4.73:1）✅ + CVD 補償紋理 `Maroon`（4.69:1 on DarkOrange）；嚴禁使用 `OrangeRed` 作為紋理（1.48:1 on DarkOrange ❌ 不可見）。
+      - **淺色模式**（懸停底色 `#DCDCDC`）：底色 `DarkSlateBlue`（6.61:1）✅ + CVD 補償紋理 `SkyBlue`（5.21:1 on DarkSlateBlue）。全類型 CVD 最低對比 5.08:1。
+      - **深色模式**（懸停底色 `#3C3C3C`）：底色 `CornflowerBlue`（3.71:1）✅ + CVD 補償紋理 `Navy`（5.39:1 on CornflowerBlue）。全類型 CVD 最低對比 3.50:1。
+      - 配色選用與焦點邊框同族的藍色系，維持 UI 視覺一致性。嚴禁使用暖色系（如 DarkOrange、SaddleBrown），以免與冷色調 UI 產生色調斷裂。
       - ⚠️ Flash Alert 的警示色是針對**焦點反轉底色**（黑／白）設計，不可直接套用於懸停進度條，兩者底色完全不同。
     - **非同步中止機制**：所有 UI 動畫任務必須實作基於 `Interlocked` 原子序號（animationId）的檢查機制，確保當焦點快速切換時，舊任務能立即中止。
     - **抗抖動寬度鎖定（Anti-Jitter Lock）**：為防止字體加粗引發佈局抖動導致眼動儀「追逐目標」，必須在初始化時預先計算 **Bold** 狀態的最大寬度並鎖定為 `MinimumSize`。

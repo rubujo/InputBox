@@ -113,11 +113,32 @@ public partial class MainForm
 
                             _lastGamepadConnectedState = isConnected;
 
+                            // 多模態回饋（Multi-Modal Feedback）：
+                            // 確保視障、聽障、視聽雙障的使用者皆能透過至少一種通道感知狀態變更。
+
+                            // 1. 語音廣播（視障通道）。
                             string msg = isConnected ?
                                 string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName) :
                                 string.Format(Strings.A11y_Gamepad_Disconnected, controller.DeviceName);
 
                             AnnounceA11y(msg);
+
+                            // 2. 系統音效（聽覺通道，尊重使用者的系統音效設定）。
+                            FeedbackService.PlaySound(
+                                isConnected ? SystemSounds.Asterisk : SystemSounds.Exclamation);
+
+                            // 3. 觸覺回饋（體感通道，僅連線時——斷線時控制器已離線無法震動）。
+                            //    對視聽雙障的使用者而言，這是唯一能感知「控制器已被識別」的通道。
+                            //    VibrateAsync 內部已檢查 EnableVibration 設定與 GlobalIntensityMultiplier。
+                            if (isConnected)
+                            {
+                                CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
+
+                                FeedbackService.VibrateAsync(
+                                    controller,
+                                    VibrationPatterns.ControllerConnected,
+                                    ct).SafeFireAndForget();
+                            }
                         }
                         catch (Exception ex)
                         {

@@ -52,4 +52,11 @@ public static class VibrationPatterns
     /// 說明：稍微加強並延長，與 ReturnStart 組合形成「起->落」的完整切換體驗。
     /// </summary>
     public static readonly VibrationProfile ReturnSuccess = new(30000, 120);
+
+    /// <summary>
+    /// 控制器已連線（觸覺握手）
+    /// 說明：中等強度的短脈衝，確認控制器與應用程式之間的通訊已建立。
+    /// 對視聽雙障的使用者而言，這可能是唯一能感知「控制器已被識別」的通道。
+    /// </summary>
+    public static readonly VibrationProfile ControllerConnected = new(30000, 200);
 }

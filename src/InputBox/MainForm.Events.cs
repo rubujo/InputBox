@@ -608,15 +608,15 @@ public partial class MainForm
             }
             else
             {
-                // 進度條繪製於懸停灰底之上（非焦點黑/白底），必須選用對灰底有足夠對比的顏色。
-                // 淺色懸停底（#DCDCDC）→ SaddleBrown 5.18:1；深色懸停底（#3C3C3C）→ DarkOrange 4.73:1。
-                // 均符合 WCAG 1.4.11 非文字 UI 組件最低 3:1 需求。
+                // 進度條繪製於懸停灰底之上（非焦點黑/白底），選用與焦點邊框同族的藍色系。
+                // 淺色懸停底（#DCDCDC）→ DarkSlateBlue 6.61:1；深色懸停底（#3C3C3C）→ CornflowerBlue 3.71:1。
+                // 全類型 CVD 最低對比：淺色 5.08:1、深色 3.50:1，均符合 WCAG 1.4.11 非文字 UI ≥ 3:1。
                 Color baseColor = isDark ?
-                        Color.DarkOrange :
-                        Color.SaddleBrown,
+                        Color.CornflowerBlue :
+                        Color.DarkSlateBlue,
                     hatchColor = isDark ?
-                        Color.Maroon :          // Maroon on DarkOrange = 4.69:1 UI-AA（OrangeRed = 1.48:1 ❌ CVD 紋理不可見）
-                        Color.DarkOrange;
+                        Color.Navy :            // Navy on CornflowerBlue = 5.39:1（全 CVD ≥ 4.60:1）
+                        Color.SkyBlue;          // SkyBlue on DarkSlateBlue = 5.21:1（全 CVD ≥ 5.08:1）
 
                 // 雙重編碼（CVD 色盲補償）。
                 // 實心背景 + 斜向條紋紋理，確保不同色覺類型皆能直觀辨識。
