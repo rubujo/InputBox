@@ -147,6 +147,28 @@ public partial class MainForm
                     });
                 };
 
+                // 補償初始連線狀態：GameInput 的 CreateAsync 工廠模式會在訂閱者附加前
+                // 就完成設備偵測並觸發 ConnectionChanged，導致初始事件遺失。
+                // 在此統一檢查，確保兩種 API 後端（XInput／GameInput）行為一致。
+                if (controller.IsConnected && _lastGamepadConnectedState != true)
+                {
+                    _lastGamepadConnectedState = true;
+
+                    UpdateTitle();
+
+                    AnnounceA11y(
+                        string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName));
+
+                    FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+                    CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
+
+                    FeedbackService.VibrateAsync(
+                        controller,
+                        VibrationPatterns.ControllerConnected,
+                        ct).SafeFireAndForget();
+                }
+
                 // 控制器事件綁定。
                 controller.BackPressed += () => this.SafeInvoke(() =>
                 {

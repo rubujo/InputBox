@@ -2384,15 +2384,15 @@ internal sealed class NumericInputDialog : Form
                 }
                 else
                 {
-                    // 進度條繪製於懸停灰底之上（非焦點黑/白底），選用與焦點邊框同族的藍色系。
-                    // 淺色懸停底（#DCDCDC）→ DarkSlateBlue 6.61:1；深色懸停底（#3C3C3C）→ CornflowerBlue 3.71:1。
-                    // 全類型 CVD 最低對比：淺色 5.08:1、深色 3.50:1，均符合 WCAG 1.4.11 非文字 UI ≥ 3:1。
+                    // 進度條繪製於懸停灰底之上（非焦點黑/白底），選用綠色系以與焦點藍、警示橘形成三色語意分工。
+                    // 淺色懸停底（#DCDCDC）→ Green 3.75:1；深色懸停底（#3C3C3C）→ LimeGreen 5.21:1。
+                    // 全類型 CVD 最低對比：淺色 3.50:1、深色 3.45:1，均符合 WCAG 1.4.11 非文字 UI ≥ 3:1。
                     Color baseColor = isDark ?
-                            Color.CornflowerBlue :
-                            Color.DarkSlateBlue,
+                            Color.LimeGreen :
+                            Color.Green,
                         hatchColor = isDark ?
-                            Color.Navy :            // Navy on CornflowerBlue = 5.39:1（全 CVD ≥ 4.60:1）
-                            Color.SkyBlue;          // SkyBlue on DarkSlateBlue = 5.21:1（全 CVD ≥ 5.08:1）
+                            Color.DarkGreen :       // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）
+                            Color.PaleGreen;        // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）
 
                     // 雙重編碼：實心背景 + 斜向條紋紋理。
                     using Brush bgBrush = new SolidBrush(baseColor);
