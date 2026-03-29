@@ -155,7 +155,7 @@ internal static class Program
             Debug.WriteLine($"[清理] 退訂 SessionEnding 事件時發生例外：{ex.GetType().Name}: {ex.Message}");
         }
 
-        //處置全域字體快取，杜絕 GDI Handle 洩漏。
+        // 處置全域字體快取，杜絕 GDI Handle 洩漏。
         try
         {
             MainForm.DisposeCaches();
@@ -175,7 +175,7 @@ internal static class Program
             Debug.WriteLine($"[清理] 釋放觸控式鍵盤 COM 介面時發生例外：{ex.GetType().Name}: {ex.Message}");
         }
 
-        //釋放單一執行個體 Mutex，以利立即重啟。
+        // 釋放單一執行個體 Mutex，以利立即重啟。
         try
         {
             ReleaseMutex();

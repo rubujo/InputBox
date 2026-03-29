@@ -58,6 +58,17 @@ internal sealed class AnnouncerLabel : Label
         AccessibleName = "\u00A0";
 
         AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+
+        // 觸發現代 UIA LiveRegion 變更事件，確保螢幕閱讀器能感知清除動作。
+        // 與 Announce() 保持一致，兩層通知皆需發送。
+        try
+        {
+            AccessibilityObject.RaiseLiveRegionChanged();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[A11y] Clear 廣播失敗：{ex.Message}");
+        }
     }
 
     /// <summary>

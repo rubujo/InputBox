@@ -424,11 +424,9 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// F1 / Esc 關閉對話框。
-    /// </summary>
-    /// <summary>
     /// 在 ProcessDialogKey（方向鍵焦點導航）之前攔截，確保 ↑↓ 可捲動內容面板。
     /// PageUp/Down/Home/End 由 OnKeyDown 處理（不受 ProcessDialogKey 干擾）。
+    /// F1 / Esc 由 <see cref="OnKeyDown"/> 處理。
     /// </summary>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {

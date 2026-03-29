@@ -19,17 +19,61 @@ namespace InputBox.Core.Controls;
 /// </summary>
 internal sealed class PhraseEditDialog : Form
 {
+    /// <summary>
+    /// 片語名稱輸入框
+    /// </summary>
     private readonly TextBox _txtName;
+
+    /// <summary>
+    /// 片語內容輸入框
+    /// </summary>
     private readonly TextBox _txtContent;
+
+    /// <summary>
+    /// 確認按鈕
+    /// </summary>
     private readonly Button _btnOk;
+
+    /// <summary>
+    /// 取消按鈕
+    /// </summary>
     private readonly Button _btnCancel;
+
+    /// <summary>
+    /// A11y 廣播用的 Label
+    /// </summary>
     private readonly AnnouncerLabel _announcer;
 
+    /// <summary>
+    /// 用於管理對話框生命週期內非同步任務的取消權杖來源
+    /// </summary>
     private CancellationTokenSource? _cts = new();
+
+    /// <summary>
+    /// A11y 廣播防抖用的序號
+    /// </summary>
     private long _a11yDebounceId;
+
+    /// <summary>
+    /// 遅戲控制器（由外部導入，生命週期由外部管理）
+    /// </summary>
     private IGamepadController? _gamepadController;
+
+    /// <summary>
+    /// 統一放大的 A11y 字型（來自共享快取）
+    /// </summary>
     private Font? _a11yFont;
+
+    /// <summary>
+    /// A11y Bold 字型（來自共享快取，用於焦點加粗）
+    /// </summary>
     private Font? _boldFont;
+
+    /// <summary>
+    /// 建構子中直接建立的輸入框字型（未替換為共享快取前暫用）
+    /// <para>在 <see cref="OnShown"/> 時替換為共享快取字型並釋放此實例。</para>
+    /// </summary>
+    private Font? _txtInputFont;
 
     /// <summary>
     /// 按鈕視覺狀態追蹤
@@ -172,6 +216,8 @@ internal sealed class PhraseEditDialog : Form
         tlp.Controls.Add(lblName, 0, 0);
 
         // 名稱輸入。
+        // 使用 _txtInputFont 追蹤此字體實例，以便在 OnShown 中替換為共享快取字體後安全釋放。
+        _txtInputFont = new Font(Font.FontFamily, 28f, FontStyle.Regular, GraphicsUnit.Point);
         _txtName = new TextBox()
         {
             Text = name,
@@ -181,7 +227,7 @@ internal sealed class PhraseEditDialog : Form
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
             ImeMode = ImeMode.On,
-            Font = new Font(Font.FontFamily, 28f, FontStyle.Regular, GraphicsUnit.Point),
+            Font = _txtInputFont,
             AccessibleName = Strings.Phrase_Edit_Name,
             AccessibleDescription = Strings.Phrase_A11y_Edit_Name_Desc,
             TabIndex = 0,
@@ -204,7 +250,7 @@ internal sealed class PhraseEditDialog : Form
         };
         tlp.Controls.Add(lblContent, 0, 1);
 
-        // 內容輸入（多行）。
+        // 內容輸入（多行）；共用同一個私有字體實例。
         _txtContent = new TextBox()
         {
             Text = content,
@@ -217,7 +263,7 @@ internal sealed class PhraseEditDialog : Form
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
             ImeMode = ImeMode.On,
-            Font = new Font(Font.FontFamily, 28f, FontStyle.Regular, GraphicsUnit.Point),
+            Font = _txtInputFont,
             AccessibleName = Strings.Phrase_Edit_Content,
             AccessibleDescription = Strings.Phrase_A11y_Edit_Content_Desc,
             AcceptsReturn = true,
@@ -351,6 +397,20 @@ internal sealed class PhraseEditDialog : Form
         // 從共享快取取得 Bold 字型。
         _boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
 
+        // 將建構子中建立的私有字體替換為共享快取字體，防止 GDI Handle 洩漏。
+        // 使用 2.0x 倍率取得 28pt 大字型（與主視窗 TBInput 對齊）。
+        Font sharedInputFont = MainForm.GetSharedA11yFont(
+            DeviceDpi,
+            FontStyle.Regular,
+            _a11yFont?.FontFamily,
+            2.0f);
+
+        _txtName.Font = sharedInputFont;
+        _txtContent.Font = sharedInputFont;
+
+        // 釋放建構子中建立的私有字體實例（兩個輸入框共用同一實例）。
+        Interlocked.Exchange(ref _txtInputFont, null)?.Dispose();
+
         UpdateButtonMinimumSizes();
 
         float scale = DeviceDpi / AppSettings.BaseDpi;
@@ -427,6 +487,10 @@ internal sealed class PhraseEditDialog : Form
 
             Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
 
+            // 安全釋放建構子建立的私有字體（如果 OnShown 未執行即關閉對話框時使用）。
+            Interlocked.Exchange(ref _txtInputFont, null)?.Dispose();
+
+            // 共享字體僅歸零，由 Program.cs 統一釋放。
             _a11yFont = null;
             _boldFont = null;
         }
