@@ -192,17 +192,27 @@ public partial class MainForm
 
         int finalWindowHeight = Math.Max(minWindowSize.Height, (int)(80 * currentScale));
 
-        // 更新視窗最小尺寸。
-        MinimumSize = new Size(minWindowSize.Width, finalWindowHeight);
+        Rectangle workArea = Screen.FromControl(this).WorkingArea;
 
-        // 如果目前寬度或高度低於測量出的地板，則強制擴張。
-        // 這能確保切換至長語系（如 ja）時，UI 立即適應而非維持舊尺寸。
-        if (Width < minWindowSize.Width ||
-            ClientSize.Height < finalClientHeight)
+        // 超高縮放保護：限制最小尺寸不超過目前工作區（保留 40px 邊界）。
+        int maxFitWidth = Math.Max(1, workArea.Width - 40),
+            maxFitHeight = Math.Max(1, workArea.Height - 40);
+
+        int clampedMinWidth = Math.Min(minWindowSize.Width, maxFitWidth),
+            clampedMinHeight = Math.Min(finalWindowHeight, maxFitHeight);
+
+        // 更新視窗最小尺寸。
+        MinimumSize = new Size(clampedMinWidth, clampedMinHeight);
+
+        // 若目前尺寸超出可視區，或低於縮放地板，則同步修正。
+        if (Width < clampedMinWidth ||
+            Height < clampedMinHeight ||
+            Width > maxFitWidth ||
+            Height > maxFitHeight)
         {
             Size = new Size(
-                Math.Max(Width, minWindowSize.Width),
-                Math.Max(Height, finalWindowHeight));
+                Math.Clamp(Width, clampedMinWidth, maxFitWidth),
+                Math.Clamp(Height, clampedMinHeight, maxFitHeight));
 
             // 佈局擴張後，立即執行智慧定位檢查，防止視窗邊緣跑出螢幕。
             ApplySmartPosition();

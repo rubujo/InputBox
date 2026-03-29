@@ -20,6 +20,11 @@ namespace InputBox.Core.Controls;
 internal sealed class PhraseEditDialog : Form
 {
     /// <summary>
+    /// 片語編輯視窗的基準最小寬度（96 DPI）
+    /// </summary>
+    private const int BaseDialogMinWidth = 760;
+
+    /// <summary>
     /// 片語名稱輸入框
     /// </summary>
     private readonly TextBox _txtName;
@@ -103,6 +108,11 @@ internal sealed class PhraseEditDialog : Form
     /// 右搖桿選取錨點
     /// </summary>
     private int? _rsSelectionAnchor;
+
+    /// <summary>
+    /// 已套用的 DPI 快取，避免重複計算最小寬度
+    /// </summary>
+    private float _lastAppliedDpi;
 
     /// <summary>
     /// 遊戲控制器
@@ -412,30 +422,43 @@ internal sealed class PhraseEditDialog : Form
         Interlocked.Exchange(ref _txtInputFont, null)?.Dispose();
 
         UpdateButtonMinimumSizes();
-
-        float scale = DeviceDpi / AppSettings.BaseDpi;
-
-        int minW = (int)(350 * scale);
-
-        if (Width < minW)
-        {
-            Width = minW;
-        }
-
-        // 螢幕邊界修正。
-        Rectangle workArea = Screen.GetWorkingArea(this);
-
-        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width)),
-            y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
-
-        if (x != Left || y != Top)
-        {
-            Location = new Point(x, y);
-        }
+        UpdateMinimumSize();
+        ApplySmartPosition();
 
         _txtName.Focus();
         _txtName.SelectAll();
         ApplyInputBoxStrongVisual(_txtName);
+    }
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+
+        UpdateMinimumSize();
+
+        this.SafeBeginInvoke(() =>
+        {
+            ApplySmartPosition();
+        });
+    }
+
+    protected override void OnDpiChanged(DpiChangedEventArgs e)
+    {
+        base.OnDpiChanged(e);
+
+        this.SafeInvoke(() =>
+        {
+            UpdateButtonMinimumSizes();
+            UpdateMinimumSize();
+            ApplySmartPosition();
+        });
+    }
+
+    protected override void OnResizeEnd(EventArgs e)
+    {
+        base.OnResizeEnd(e);
+
+        ApplySmartPosition();
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -1633,5 +1656,71 @@ internal sealed class PhraseEditDialog : Form
         },
         _cts?.Token ?? CancellationToken.None)
         .SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 依 DPI 更新最小寬度，讓片語名稱/內容輸入框有更充足的可視範圍。
+    /// </summary>
+    private void UpdateMinimumSize()
+    {
+        float currentDpi = DeviceDpi;
+
+        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        {
+            return;
+        }
+
+        _lastAppliedDpi = currentDpi;
+
+        float scale = currentDpi / AppSettings.BaseDpi;
+        int desiredMinWidth = (int)(BaseDialogMinWidth * scale);
+
+        Rectangle workArea = Screen.GetWorkingArea(this);
+
+        // 小尺寸螢幕保護：保留 40px 邊界，避免高縮放下最小寬度超出可視區。
+        int maxFitWidth = Math.Max(1, workArea.Width - 40);
+        int maxFitHeight = Math.Max(1, workArea.Height - 40);
+
+        // 正常情況至少保留 320px 的可編輯寬度；若工作區本身更窄，則以工作區上限為準。
+        int minWidth = maxFitWidth >= 320 ?
+            Math.Clamp(desiredMinWidth, 320, maxFitWidth) :
+            maxFitWidth;
+
+        MinimumSize = new Size(minWidth, 0);
+
+        if (Width < minWidth)
+        {
+            Width = minWidth;
+        }
+        else if (Width > maxFitWidth)
+        {
+            Width = maxFitWidth;
+        }
+
+        if (Height > maxFitHeight)
+        {
+            Height = maxFitHeight;
+        }
+    }
+
+    /// <summary>
+    /// 保持對話框位於目前螢幕可視範圍內。
+    /// </summary>
+    private void ApplySmartPosition()
+    {
+        if (!IsHandleCreated || IsDisposed)
+        {
+            return;
+        }
+
+        Rectangle workArea = Screen.GetWorkingArea(this);
+
+        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width));
+        int y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
+
+        if (x != Left || y != Top)
+        {
+            Location = new Point(x, y);
+        }
     }
 }

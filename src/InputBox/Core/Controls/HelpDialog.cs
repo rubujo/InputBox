@@ -331,7 +331,7 @@ internal sealed class HelpDialog : Form
             BindGamepadEvents();
             UpdateButtonMinimumSize();
             UpdateFooterHeight();
-            UpdateFormSize();
+            UpdateMinimumSize();
 
             // 延遲位置修正，確保 Handle 完全建立後再執行。
             this.SafeBeginInvoke(() =>
@@ -372,7 +372,7 @@ internal sealed class HelpDialog : Form
                     ApplyFont();
                     UpdateButtonMinimumSize();
                     UpdateFooterHeight();
-                    UpdateFormSize();
+                    UpdateMinimumSize();
                     ApplySmartPosition();
 
                     _btnClose.Invalidate();
@@ -523,9 +523,9 @@ internal sealed class HelpDialog : Form
         // f 來自快取池，不處置，僅歸零欄位。
         _ = f;
 
-        // 關閉按鈕字型（非快取池，需處置）。
-        Interlocked.Exchange(ref _closeRegularFont, null)?.Dispose();
-        Interlocked.Exchange(ref _closeBoldFont, null)?.Dispose();
+        // 關閉按鈕字型來自共享快取池，僅歸零引用。
+        _ = Interlocked.Exchange(ref _closeRegularFont, null);
+        _ = Interlocked.Exchange(ref _closeBoldFont, null);
     }
 
     protected override void OnHandleDestroyed(EventArgs e)
@@ -552,12 +552,12 @@ internal sealed class HelpDialog : Form
     private CancellationTokenSource? _cts = new();
 
     /// <summary>
-    /// 關閉按鈕目前使用的基礎字型（不含 Bold）
+    /// 關閉按鈕目前使用的基礎字型（來自共享快取）
     /// </summary>
     private Font? _closeRegularFont;
 
     /// <summary>
-    /// 關閉按鈕 Bold 狀態字型（焦點/按壓時使用，需獨立管理生命週期）
+    /// 關閉按鈕 Bold 狀態字型（焦點/按壓時使用，來自共享快取）
     /// </summary>
     private Font? _closeBoldFont;
 
@@ -584,7 +584,7 @@ internal sealed class HelpDialog : Form
     private bool _closeIsPressed;
 
     /// <summary>
-    /// 套用共享 A11y 字型到所有控制項，並同步建立按鈕用 Regular／Bold 字型副本
+    /// 套用共享 A11y 字型到所有控制項，並同步取得按鈕用 Regular／Bold 共享字型
     /// </summary>
     private void ApplyFont()
     {
@@ -592,18 +592,15 @@ internal sealed class HelpDialog : Form
 
         Interlocked.Exchange(ref _currentFont, shared);
 
-        // Regular 字型（供懸停與一般狀態使用）。
-        // 使用 try-finally 確保即使建構子拋出例外，舊字體仍能被正確釋放。
-        Font newRegular = new(shared, FontStyle.Regular);
-        Font? oldRegular = Interlocked.Exchange(ref _closeRegularFont, newRegular);
+        FontFamily family = shared.FontFamily;
 
-        oldRegular?.Dispose();
+        _ = Interlocked.Exchange(
+            ref _closeRegularFont,
+            MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Regular, family));
 
-        // Bold 字型（供焦點／按壓強烈視覺使用）。
-        Font newBold = new(shared, FontStyle.Bold);
-        Font? oldBold = Interlocked.Exchange(ref _closeBoldFont, newBold);
-
-        oldBold?.Dispose();
+        _ = Interlocked.Exchange(
+            ref _closeBoldFont,
+            MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, family));
 
         Font = shared;
     }
@@ -707,7 +704,7 @@ internal sealed class HelpDialog : Form
     /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸
     /// 確保捲動條只在真正需要時出現，且關閉按鈕永遠可見
     /// </summary>
-    private void UpdateFormSize()
+    private void UpdateMinimumSize()
     {
         Rectangle workArea = Screen.GetWorkingArea(this);
 
@@ -793,7 +790,7 @@ internal sealed class HelpDialog : Form
                     {
                         UpdateButtonMinimumSize();
                         UpdateFooterHeight();
-                        UpdateFormSize();
+                        UpdateMinimumSize();
                         ApplySmartPosition();
 
                         _btnClose.Invalidate();

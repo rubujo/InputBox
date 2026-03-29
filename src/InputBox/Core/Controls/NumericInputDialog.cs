@@ -1308,13 +1308,27 @@ internal sealed class NumericInputDialog : Form
             // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
             Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
 
-            MinimumSize = SizeFromClientSize(minClientSize);
+            Size desiredMinWindowSize = SizeFromClientSize(minClientSize);
 
-            // 如果目前尺寸低於測量出的地板，則強制擴張。
+            Rectangle workArea = Screen.GetWorkingArea(this);
+            int maxFitW = Math.Max(1, workArea.Width - 40),
+                maxFitH = Math.Max(1, workArea.Height - 40);
+
+            Size clampedMinWindowSize = new(
+                Math.Min(desiredMinWindowSize.Width, maxFitW),
+                Math.Min(desiredMinWindowSize.Height, maxFitH));
+
+            MinimumSize = clampedMinWindowSize;
+
+            // 如果目前尺寸超出可視區或低於測量地板，則強制修正。
             if (Width < MinimumSize.Width ||
-                Height < MinimumSize.Height)
+                Height < MinimumSize.Height ||
+                Width > maxFitW ||
+                Height > maxFitH)
             {
-                Size = MinimumSize;
+                Size = new Size(
+                    Math.Clamp(Width, MinimumSize.Width, maxFitW),
+                    Math.Clamp(Height, MinimumSize.Height, maxFitH));
 
                 // 佈局擴張後，執行智慧定位檢查。
                 ApplySmartPosition();

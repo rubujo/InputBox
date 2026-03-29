@@ -461,6 +461,13 @@ internal sealed class PhraseManagerDialog : Form
             {
                 this.SafeBeginInvoke(() =>
                 {
+                    // 若目前仍有其他本應用程式視窗（例如子對話框）處於作用中，
+                    // 不應暫停同一支控制器，避免子視窗手把操作失效。
+                    if (ActiveForm != null)
+                    {
+                        return;
+                    }
+
                     try { GamepadController?.Pause(); }
                     catch (Exception ex) { Debug.WriteLine($"[片語] Pause 失敗：{ex.Message}"); }
                 });
@@ -732,6 +739,19 @@ internal sealed class PhraseManagerDialog : Form
         {
             // 子對話框關閉後重新訂閱控制器事件。
             SubscribeGamepadEvents();
+
+            // 防止 Owner/Child 失焦競態導致控制器殘留在 Pause 狀態。
+            if (ActiveForm == this)
+            {
+                try
+                {
+                    _gamepadController?.Resume();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語] AddPhrase Resume 失敗：{ex.Message}");
+                }
+            }
         }
     }
 
@@ -787,6 +807,19 @@ internal sealed class PhraseManagerDialog : Form
         {
             // 子對話框關閉後重新訂閱控制器事件。
             SubscribeGamepadEvents();
+
+            // 防止 Owner/Child 失焦競態導致控制器殘留在 Pause 狀態。
+            if (ActiveForm == this)
+            {
+                try
+                {
+                    _gamepadController?.Resume();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語] EditSelectedPhrase Resume 失敗：{ex.Message}");
+                }
+            }
         }
     }
 
@@ -1445,11 +1478,20 @@ internal sealed class PhraseManagerDialog : Form
 
         int minH = baseClientH + nonClientH;
 
+        Rectangle workArea = Screen.GetWorkingArea(this);
+        int maxFitW = Math.Max(1, workArea.Width - 40),
+            maxFitH = Math.Max(1, workArea.Height - 40);
+
+        minW = Math.Min(minW, maxFitW);
+        minH = Math.Min(minH, maxFitH);
+
         MinimumSize = new Size(minW, minH);
 
-        if (Width < minW || Height < minH)
+        if (Width < minW || Height < minH || Width > maxFitW || Height > maxFitH)
         {
-            Size = new Size(Math.Max(Width, minW), Math.Max(Height, minH));
+            Size = new Size(
+                Math.Clamp(Width, minW, maxFitW),
+                Math.Clamp(Height, minH, maxFitH));
         }
     }
 
