@@ -343,6 +343,10 @@
     <value>輸入已清除</value>
     <comment>輸入框內容清除後顯示的狀態訊息。</comment>
   </data>
+  <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
+    <value>確定要刪除片語「{0}」嗎？此動作無法還原。</value>
+    <comment>刪除片語前的確認訊息。{0} = 片語名稱。</comment>
+  </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>請按下任意按鍵...</value>
     <comment>進入擷取模式時，提示使用者按下按鍵的訊息。</comment>

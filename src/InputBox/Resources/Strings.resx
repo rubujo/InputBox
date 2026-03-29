@@ -343,6 +343,10 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Input cleared</value>
     <comment>Status message shown when input box is cleared.</comment>
   </data>
+  <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
+    <value>Are you sure you want to delete the phrase "{0}"? This action cannot be undone.</value>
+    <comment>Confirmation message shown before deleting a phrase. {0} = phrase name.</comment>
+  </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>Press any key...</value>
     <comment>Prompt asking users to press a key in capture mode.</comment>

@@ -343,6 +343,10 @@
     <value>入力がクリアされました</value>
     <comment>入力フィールドの内容がクリアされた後に表示される状態メッセージです。</comment>
   </data>
+  <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
+    <value>フレーズ「{0}」を削除してもよろしいですか？この操作は元に戻せません。</value>
+    <comment>フレーズを削除する前に表示する確認メッセージ。{0} = フレーズ名。</comment>
+  </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>いずれかのキーを押してください...</value>
     <comment>キャプチャモードに入ったときに、ユーザーにキーを押すよう促すメッセージです。</comment>

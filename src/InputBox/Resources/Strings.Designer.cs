@@ -1855,6 +1855,15 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Are you sure you want to delete the phrase "{0}"? This action cannot be undone. 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ConfirmDeletePhrase {
+            get {
+                return ResourceManager.GetString("Msg_ConfirmDeletePhrase", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Press any key... 的當地語系化字串。
         /// </summary>
         internal static string Msg_PressAnyKey {
