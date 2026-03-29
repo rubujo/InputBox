@@ -1194,20 +1194,18 @@ internal sealed class HelpDialog : Form
             isFocused = btn.Focused,
             isHoveredOrDwell = _closeIsHovered || (_closeDwellProgress > 0f);
 
+        // 停用態：統一使用共用非色彩提示（虛線邊框 + 斜線）。
+        if (btn.TryDrawDisabledButtonCue(g, isDark, scale))
+        {
+            return;
+        }
+
         // 基礎邊框（只在非焦點、非懸停時繪製，與焦點邊框互斥）。
         // 確保按鈕在靜態狀態下仍具備物理辨識度，不融入背景。
         if (!isFocused &&
             !isHoveredOrDwell)
         {
-            int thickness = (int)Math.Max(1, scale);
-
-            using Pen basePen = new(
-                SystemInformation.HighContrast ?
-                    SystemColors.WindowFrame :
-                    (isDark ? Color.DimGray : Color.DarkGray),
-                thickness);
-
-            g.DrawRectangle(basePen, 0, 0, btn.Width - 1, btn.Height - 1);
+            btn.DrawButtonBaseBorder(g, isDark, scale);
         }
 
         // 焦點／懸停邊框（3px，與 BtnCopy 完全對齊）。
@@ -1221,57 +1219,22 @@ internal sealed class HelpDialog : Form
         if (isFocused ||
             isHoveredOrDwell)
         {
-            int borderThickness = (int)Math.Max(3, 3 * scale);
-            int inset = (int)Math.Max(2, 2 * scale);
+            int borderThickness;
+            int inset;
 
-            Color borderColor;
+            Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
 
-            if (SystemInformation.HighContrast)
-            {
-                borderColor = SystemColors.HighlightText;
-            }
-            else if (isStrongVisual)
-            {
-                borderColor = isDark ?
-                    Color.MediumBlue :
-                    Color.Cyan;
-            }
-            else if (isDark)
-            {
-                // 深色中性／懸停 ≥7.2:1 AAA。
-                borderColor = Color.LightBlue;
-            }
-            else
-            {
-                // 淺色中性／懸停 14.2:1 AAA。
-                borderColor = Color.MediumBlue;
-            }
-
-            using Pen focusPen = new(borderColor, borderThickness);
-
-            g.DrawRectangle(focusPen,
-                inset,
-                inset,
-                btn.Width - (inset * 2) - 1,
-                btn.Height - (inset * 2) - 1);
+            btn.DrawButtonInteractiveBorder(
+                g,
+                borderColor,
+                scale,
+                out inset,
+                out borderThickness);
 
             if (!SystemInformation.HighContrast &&
                 _closeIsPressed)
             {
-                int pressedInset = inset + borderThickness;
-
-                if (btn.Width - (pressedInset * 2) - 1 > 0 &&
-                    btn.Height - (pressedInset * 2) - 1 > 0)
-                {
-                    using Pen pressedCuePen = new(btn.ForeColor, Math.Max(1f, scale));
-
-                    g.DrawRectangle(
-                        pressedCuePen,
-                        pressedInset,
-                        pressedInset,
-                        btn.Width - (pressedInset * 2) - 1,
-                        btn.Height - (pressedInset * 2) - 1);
-                }
+                btn.DrawPressedInnerCue(g, scale, inset, borderThickness);
             }
         }
 

@@ -30,6 +30,11 @@ public partial class MainForm : Form
     private readonly InputHistoryService _historyService;
 
     /// <summary>
+    /// PhraseService
+    /// </summary>
+    private readonly PhraseService _phraseService;
+
+    /// <summary>
     /// WindowFocusService
     /// </summary>
     private readonly WindowFocusService _windowFocusService;
@@ -118,6 +123,11 @@ public partial class MainForm : Form
     /// 允許中斷廣播選單項
     /// </summary>
     private ToolStripMenuItem? _tsmiA11yInterrupt;
+
+    /// <summary>
+    /// 片語子選單項
+    /// </summary>
+    private ToolStripMenuItem? _tsmiPhrases;
 
     /// <summary>
     /// 上一次的遊戲控制器連線狀態（用於防止重複廣播）
@@ -271,6 +281,8 @@ public partial class MainForm : Form
         {
             IsPrivacyMode = AppSettings.Current.IsPrivacyMode
         };
+        _phraseService = new PhraseService();
+        _phraseService.Load();
         _windowFocusService = new WindowFocusService();
         _navigationService = new WindowNavigationService(_windowFocusService);
 

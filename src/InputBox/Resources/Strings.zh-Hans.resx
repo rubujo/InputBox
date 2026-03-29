@@ -807,4 +807,208 @@ Back + ↑ / ↓	调整窗口透明度（+5% / −5%）</value>
     <value>包含隐私模式、快捷键设置、高级设置及其他应用程序功能。</value>
     <comment>右键菜单的无障碍描述。</comment>
   </data>
+  <data name="Menu_Phrases" xml:space="preserve">
+    <value>短语</value>
+    <comment>右键菜单中短语子菜单的标签。</comment>
+  </data>
+  <data name="Menu_ManagePhrases" xml:space="preserve">
+    <value>管理短语…</value>
+    <comment>打开短语管理对话框的菜单项。</comment>
+  </data>
+  <data name="Menu_PhraseEmpty" xml:space="preserve">
+    <value>（无短语）</value>
+    <comment>短语子菜单为空时显示的文字。</comment>
+  </data>
+  <data name="Phrase_Title" xml:space="preserve">
+    <value>短语管理</value>
+    <comment>短语管理对话框的标题。</comment>
+  </data>
+  <data name="Phrase_Btn_Add" xml:space="preserve">
+    <value>添加</value>
+    <comment>按钮标签：添加新短语。</comment>
+  </data>
+  <data name="Phrase_Btn_Edit" xml:space="preserve">
+    <value>编辑</value>
+    <comment>按钮标签：编辑选中的短语。</comment>
+  </data>
+  <data name="Phrase_Btn_Delete" xml:space="preserve">
+    <value>删除</value>
+    <comment>按钮标签：删除选中的短语。</comment>
+  </data>
+  <data name="Phrase_Btn_MoveUp" xml:space="preserve">
+    <value>上移</value>
+    <comment>按钮标签：将选中的短语上移。</comment>
+  </data>
+  <data name="Phrase_Btn_MoveDown" xml:space="preserve">
+    <value>下移</value>
+    <comment>按钮标签：将选中的短语下移。</comment>
+  </data>
+  <data name="Phrase_Btn_Close" xml:space="preserve">
+    <value>关闭</value>
+    <comment>按钮标签：关闭短语管理对话框。</comment>
+  </data>
+  <data name="Phrase_Btn_Confirm" xml:space="preserve">
+    <value>确定</value>
+    <comment>按钮标签：确认短语编辑。</comment>
+  </data>
+  <data name="Phrase_Btn_Cancel" xml:space="preserve">
+    <value>取消</value>
+    <comment>按钮标签：取消短语编辑。</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Add" xml:space="preserve">
+    <value>添加短语</value>
+    <comment>添加新短语时编辑对话框的标题。</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
+    <value>编辑短语</value>
+    <comment>编辑现有短语时编辑对话框的标题。</comment>
+  </data>
+  <data name="Phrase_Edit_Name" xml:space="preserve">
+    <value>名称：</value>
+    <comment>短语名称输入框的标签。</comment>
+  </data>
+  <data name="Phrase_Edit_Content" xml:space="preserve">
+    <value>内容：</value>
+    <comment>短语内容输入框的标签。</comment>
+  </data>
+  <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
+    <value>管理短语：添加、编辑、删除及排序。手柄 Y 键添加、A 键插入、X 键删除、左/右方向键排序。</value>
+    <comment>短语管理对话框的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_List_Name" xml:space="preserve">
+    <value>短语列表</value>
+    <comment>短语列表的无障碍名称。</comment>
+  </data>
+  <data name="Phrase_A11y_List_Desc" xml:space="preserve">
+    <value>选择一个短语后按 Enter 或手柄 A 键可将其插入到输入框。</value>
+    <comment>短语列表的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
+    <value>短语操作</value>
+    <comment>短语操作按钮区域的无障碍名称。</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
+    <value>包含短语操作的动作按钮。</value>
+    <comment>短语操作按钮区域分组容器的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
+    <value>上一页</value>
+    <comment>短语子菜单分页上一页按钮的无障碍名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Next" xml:space="preserve">
+    <value>下一页</value>
+    <comment>短语子菜单分页下一页按钮的无障碍名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Info" xml:space="preserve">
+    <value>第 {0} 页，共 {1} 页</value>
+    <comment>短语子菜单分页信息项的无障碍名称。{0} = 当前页码，{1} = 总页数。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
+    <value>添加一个新短语。手柄：Y 键。</value>
+    <comment>添加按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
+    <value>编辑选中的短语。</value>
+    <comment>编辑按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
+    <value>删除选中的短语。手柄：X 键。</value>
+    <comment>删除按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
+    <value>将选中的短语上移。手柄：左方向键。</value>
+    <comment>上移按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
+    <value>将选中的短语下移。手柄：右方向键。</value>
+    <comment>下移按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
+    <value>关闭短语管理。手柄：B 键。</value>
+    <comment>关闭按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
+    <value>确认并保存短语。手柄：A 键。</value>
+    <comment>编辑对话框中确定按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>取消编辑。手柄：B 键。</value>
+    <comment>编辑对话框中取消按钮的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
+    <value>输入短语名称和内容。按 Enter 或手柄 A 键确认。</value>
+    <comment>短语编辑对话框的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
+    <value>输入此短语的显示名称（最多 50 个字符）。</value>
+    <comment>短语名称文本框的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
+    <value>输入要插入的文本内容（最多 500 个字符）。支持多行。</value>
+    <comment>短语内容文本框的无障碍描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Selected" xml:space="preserve">
+    <value>已选中：{0}</value>
+    <comment>选中短语时的无障碍播报。{0} = 短语名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Added" xml:space="preserve">
+    <value>已添加短语：{0}</value>
+    <comment>添加短语后的无障碍播报。{0} = 短语名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Updated" xml:space="preserve">
+    <value>已更新短语：{0}</value>
+    <comment>更新短语后的无障碍播报。{0} = 短语名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted" xml:space="preserve">
+    <value>已删除短语：{0}</value>
+    <comment>删除短语后的无障碍播报。{0} = 短语名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Moved" xml:space="preserve">
+    <value>已移至第 {0} 位</value>
+    <comment>排序短语后的无障碍播报。{0} = 新位置（从 1 开始）。</comment>
+  </data>
+  <data name="Phrase_A11y_Full" xml:space="preserve">
+    <value>短语列表已满，无法添加更多短语。</value>
+    <comment>短语列表已达上限时的无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted" xml:space="preserve">
+    <value>已插入短语：{0}</value>
+    <comment>将短语插入输入框时的无障碍播报。{0} = 短语名称。</comment>
+  </data>
+  <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
+    <value>已选中短语。</value>
+    <comment>隐私模式下选中短语时的安全无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
+    <value>已添加短语。</value>
+    <comment>隐私模式下添加短语后的安全无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
+    <value>已更新短语。</value>
+    <comment>隐私模式下更新短语后的安全无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
+    <value>已删除短语。</value>
+    <comment>隐私模式下删除短语后的安全无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
+    <value>已插入短语。</value>
+    <comment>隐私模式下插入短语时的安全无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_NameRequired" xml:space="preserve">
+    <value>请输入短语名称。</value>
+    <comment>用户未输入名称就尝试确认时的无障碍播报。</comment>
+  </data>
+  <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
+    <value>请输入短语内容。</value>
+    <comment>用户未输入内容就尝试确认时的无障碍播报。</comment>
+  </data>
+  <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
+    <value>请输入短语名称…</value>
+    <comment>短语编辑对话框名称输入框的占位文本。</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
+    <value>请输入短语内容…</value>
+    <comment>短语编辑对话框内容输入框的占位文本。</comment>
+  </data>
 </root>

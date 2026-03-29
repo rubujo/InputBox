@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Drawing.Drawing2D;
 using InputBox.Core.Configuration;
 using InputBox.Core.Services;
 
@@ -387,6 +388,163 @@ public static class ControlExtensions
 
         // .NET 10 官方 API：返回目前應用程式實際解析後的深色模式狀態。
         return Application.IsDarkModeEnabled;
+    }
+
+    /// <summary>
+    /// 繪製按鈕停用態提示（虛線邊框 + 斜線），並回傳是否已處理停用態。
+    /// </summary>
+    /// <param name="button">目標按鈕</param>
+    /// <param name="graphics">繪圖物件</param>
+    /// <param name="isDark">是否深色模式</param>
+    /// <param name="scale">DPI 縮放</param>
+    /// <returns>若按鈕為停用且已繪製提示則回傳 true</returns>
+    public static bool TryDrawDisabledButtonCue(
+        this Button button,
+        Graphics graphics,
+        bool isDark,
+        float scale)
+    {
+        if (button.Enabled)
+        {
+            return false;
+        }
+
+        int thickness = (int)Math.Max(1, scale);
+
+        Color disabledColor = SystemInformation.HighContrast ?
+            SystemColors.GrayText :
+            (isDark ? Color.FromArgb(140, 140, 140) : Color.FromArgb(120, 120, 120));
+
+        using Pen disabledPen = new(disabledColor, thickness)
+        {
+            DashStyle = DashStyle.Dot
+        };
+
+        graphics.DrawRectangle(disabledPen, 0, 0, button.Width - 1, button.Height - 1);
+
+        // 美觀 + A11y：在一般模式加入低透明度斜線紋理，避免僅靠單一線段提示停用。
+        if (!SystemInformation.HighContrast &&
+            button.Width > 4 &&
+            button.Height > 4)
+        {
+            Rectangle innerRect = new(2, 2, Math.Max(1, button.Width - 4), Math.Max(1, button.Height - 4));
+
+            using Brush hatchBrush = new HatchBrush(
+                HatchStyle.ForwardDiagonal,
+                Color.FromArgb(isDark ? 60 : 45, disabledColor),
+                Color.Transparent);
+
+            graphics.FillRectangle(hatchBrush, innerRect);
+        }
+
+        using Pen cuePen = new(disabledColor, Math.Max(1f, scale));
+        graphics.DrawLine(cuePen, 2, button.Height - 3, button.Width - 3, 2);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 繪製按鈕基礎邊框（非焦點、非懸停狀態）。
+    /// </summary>
+    public static void DrawButtonBaseBorder(
+        this Button button,
+        Graphics graphics,
+        bool isDark,
+        float scale)
+    {
+        int thickness = (int)Math.Max(1, scale);
+
+        using Pen basePen = new(
+            SystemInformation.HighContrast ?
+                SystemColors.WindowFrame :
+                (isDark ? Color.DimGray : Color.DarkGray),
+            thickness);
+
+        graphics.DrawRectangle(basePen, 0, 0, button.Width - 1, button.Height - 1);
+    }
+
+    /// <summary>
+    /// 依互動情境取得焦點/懸停邊框色。
+    /// </summary>
+    public static Color GetButtonInteractiveBorderColor(this Button button, bool isStrongVisual, bool isDark)
+    {
+        if (SystemInformation.HighContrast)
+        {
+            return SystemColors.HighlightText;
+        }
+
+        static bool IsSameColor(Color left, Color right) => left.ToArgb() == right.ToArgb();
+
+        // 強視覺場景依實際背景色決策，避免僅依主題旗標造成對比不足。
+        if (isStrongVisual)
+        {
+            if (IsSameColor(button.BackColor, Color.Black))
+            {
+                return Color.Cyan;
+            }
+
+            if (IsSameColor(button.BackColor, Color.White))
+            {
+                return Color.MediumBlue;
+            }
+
+            return isDark ? Color.MediumBlue : Color.Cyan;
+        }
+
+        // 中性場景保持主題感知對比（深色 LightBlue、淺色 MediumBlue）。
+        return isDark ? Color.LightBlue : Color.MediumBlue;
+    }
+
+    /// <summary>
+    /// 繪製按鈕焦點/懸停邊框。
+    /// </summary>
+    public static void DrawButtonInteractiveBorder(
+        this Button button,
+        Graphics graphics,
+        Color borderColor,
+        float scale,
+        out int inset,
+        out int borderThickness)
+    {
+        borderThickness = (int)Math.Max(3, 3 * scale);
+        inset = (int)Math.Max(2, 2 * scale);
+
+        using Pen borderPen = new(borderColor, borderThickness);
+
+        graphics.DrawRectangle(
+            borderPen,
+            inset,
+            inset,
+            button.Width - (inset * 2) - 1,
+            button.Height - (inset * 2) - 1);
+    }
+
+    /// <summary>
+    /// 繪製 Pressed 內緣提示（非顏色線索）。
+    /// </summary>
+    public static void DrawPressedInnerCue(
+        this Button button,
+        Graphics graphics,
+        float scale,
+        int inset,
+        int borderThickness)
+    {
+        int pressedInset = inset + borderThickness;
+
+        if (button.Width - (pressedInset * 2) - 1 <= 0 ||
+            button.Height - (pressedInset * 2) - 1 <= 0)
+        {
+            return;
+        }
+
+        using Pen pressedCuePen = new(button.ForeColor, Math.Max(1f, scale));
+
+        graphics.DrawRectangle(
+            pressedCuePen,
+            pressedInset,
+            pressedInset,
+            button.Width - (pressedInset * 2) - 1,
+            button.Height - (pressedInset * 2) - 1);
     }
 
     /// <summary>

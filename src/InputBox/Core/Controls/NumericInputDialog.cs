@@ -2328,6 +2328,12 @@ internal sealed class NumericInputDialog : Form
 
             bool isDark = btn.IsDarkModeActive();
 
+            // 停用態：統一使用共用非色彩提示（虛線邊框 + 斜線）。
+            if (btn.TryDrawDisabledButtonCue(e.Graphics, isDark, currentScale))
+            {
+                return;
+            }
+
             // 判斷該按鈕是否為目前對話框的預設動作按鈕（AcceptButton）。
             // 只有當目前焦點「不在任何按鈕上」時，預設按鈕才顯示焦點邊框，避免雙焦點誤導。
             bool isDefault = ReferenceEquals(AcceptButton, btn) &&
@@ -2340,21 +2346,7 @@ internal sealed class NumericInputDialog : Form
                 !isHovered &&
                 !isDefault)
             {
-                int thickness = (int)Math.Max(1, currentScale);
-
-                // 高對比模式下使用系統框線色，確保物理辨識度。
-                using Pen basePen = new(
-                    SystemInformation.HighContrast ?
-                        SystemColors.WindowFrame :
-                        (isDark ? Color.DimGray : Color.DarkGray),
-                    thickness);
-
-                e.Graphics.DrawRectangle(
-                    basePen,
-                    0,
-                    0,
-                    btn.Width - 1,
-                    btn.Height - 1);
+                btn.DrawButtonBaseBorder(e.Graphics, isDark, currentScale);
             }
 
             // 繪製焦點與 Hover 邊框（Focus／Hover Border）。
@@ -2362,62 +2354,27 @@ internal sealed class NumericInputDialog : Form
                 isHovered ||
                 isDefault)
             {
-                int borderThickness = (int)Math.Max(3, 3 * currentScale),
-                    inset = (int)Math.Max(2, 2 * currentScale);
+                int borderThickness;
+                int inset;
 
                 bool isStrongVisual = isPressed ||
                     (btn.Focused && !isHovered);
 
                 // 邊框色依 btn 的互動狀態動態選取，對齊 BtnCopy 與 BtnClose 的情境感知邏輯，
                 // 確保在強視覺（Focus／Pressed）與中性（懸停灰／isDefault 系統色）下皆達 WCAG AAA：
-                Color borderColor;
-                if (SystemInformation.HighContrast)
-                {
-                    borderColor = SystemColors.HighlightText;
-                }
-                else if (isStrongVisual)
-                {
-                    borderColor = isDark ?
-                        Color.MediumBlue :
-                        Color.Cyan;
-                }
-                else if (isDark)
-                {
-                    // 深色中性／懸停 ≥7.2:1 AAA。
-                    borderColor = Color.LightBlue;
-                }
-                else
-                {
-                    // 淺色中性／懸停 8.14:1 AAA。
-                    borderColor = Color.MediumBlue;
-                }
+                Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
 
-                using Pen borderPen = new(borderColor, borderThickness);
-
-                e.Graphics.DrawRectangle(
-                    borderPen,
-                    inset,
-                    inset,
-                    btn.Width - (inset * 2) - 1,
-                    btn.Height - (inset * 2) - 1);
+                btn.DrawButtonInteractiveBorder(
+                    e.Graphics,
+                    borderColor,
+                    currentScale,
+                    out inset,
+                    out borderThickness);
 
                 if (!SystemInformation.HighContrast &&
                     isPressed)
                 {
-                    int pressedInset = inset + borderThickness;
-
-                    if (btn.Width - (pressedInset * 2) - 1 > 0 &&
-                        btn.Height - (pressedInset * 2) - 1 > 0)
-                    {
-                        using Pen pressedCuePen = new(btn.ForeColor, Math.Max(1f, currentScale));
-
-                        e.Graphics.DrawRectangle(
-                            pressedCuePen,
-                            pressedInset,
-                            pressedInset,
-                            btn.Width - (pressedInset * 2) - 1,
-                            btn.Height - (pressedInset * 2) - 1);
-                    }
+                    btn.DrawPressedInnerCue(e.Graphics, currentScale, inset, borderThickness);
                 }
             }
 

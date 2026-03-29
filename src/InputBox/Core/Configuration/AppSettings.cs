@@ -2,6 +2,7 @@
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,6 +26,7 @@ public class AppSettings
     {
         WriteIndented = true,
         MaxDepth = 32,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         Converters =
         {
             new JsonStringEnumConverter(),

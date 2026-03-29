@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Configuration;
+using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Interop;
@@ -14,6 +15,19 @@ partial class DesignerBlocker { };
 
 public partial class MainForm
 {
+    private const int PhraseMenuPageSizeLarge = 6;
+    private const int PhraseMenuPageSizeMedium = 4;
+    private const int PhraseMenuPageSizeSmall = 3;
+    private const int RecentPhraseLimitLarge = 5;
+    private const int RecentPhraseLimitMedium = 3;
+    private const int RecentPhraseLimitSmall = 2;
+
+    private int _phraseMenuPage;
+    // 僅在分頁按鈕觸發的「下一次」子選單重開時保留目前頁碼。
+    // 一般使用者重新開啟子選單時，會回到第 1 頁，符合常見使用習慣。
+    private bool _keepPhrasePageOnNextOpen;
+    private readonly List<PhraseService.PhraseEntry> _recentPhrases = [];
+
     /// <summary>
     /// 選單項目中繼資料，支援 A11y 動態描述生成。
     /// </summary>
@@ -967,8 +981,57 @@ public partial class MainForm
         // 使用共享快取取得選單字型。
         _cmsInput.Font = GetSharedA11yFont(DeviceDpi);
 
+        // 片語子選單。
+        _tsmiPhrases = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_Phrases, 'F'))
+        {
+            AccessibleName = Strings.Menu_Phrases
+        };
+
+        // 新增佔位項確保 HasDropDownItems 為 true，使 WinForms 將此項目視為子選單父項。
+        // 沒有此佔位項時，控制器因 HasDropDownItems == false 而不會呼叫 ShowDropDown()，
+        // 滑鼠也不會顯示子選單箭頭。DropDownOpening 會在展開前清除並重建所有項目。
+        _tsmiPhrases.DropDownItems.Add(new ToolStripMenuItem(Strings.Menu_PhraseEmpty) { Enabled = false });
+
+        _tsmiPhrases.DropDownOpening += (s, e) =>
+        {
+            try
+            {
+                if (_keepPhrasePageOnNextOpen)
+                {
+                    // 分頁按鈕觸發的重開：沿用目前頁碼，並在本次後自動清除旗標。
+                    _keepPhrasePageOnNextOpen = false;
+                }
+                else
+                {
+                    // 一般開啟片語子選單：重置回第 1 頁（index = 0）。
+                    _phraseMenuPage = 0;
+                }
+
+                RebuildPhraseMenuItems();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _tsmiPhrases.DropDownOpening 失敗：{ex.Message}");
+            }
+        };
+
+        _tsmiPhrases.DropDownOpened += (s, e) =>
+        {
+            try
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Phrases));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _tsmiPhrases.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
+
         _cmsInput.Items.Add(_tsmiPrivacyMode);
         _cmsInput.Items.Add(_tsmiA11yInterrupt);
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(_tsmiPhrases);
+        _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(tsmiHotkeySettings);
         _cmsInput.Items.Add(tsmiSettings);
         _cmsInput.Items.Add(new ToolStripSeparator());
@@ -1217,4 +1280,381 @@ public partial class MainForm
             VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
         }
     }
+
+    /// <summary>
+    /// 重建片語子選單項目
+    /// </summary>
+    private void RebuildPhraseMenuItems()
+    {
+        if (_tsmiPhrases == null)
+        {
+            return;
+        }
+
+        _tsmiPhrases.DropDownItems.Clear();
+
+        IReadOnlyList<PhraseService.PhraseEntry> phrases = _phraseService.Phrases;
+        int recentLimit = GetRecentPhraseDisplayLimit();
+        int pageSize = GetPhraseMenuPageSize();
+
+        if (_tsmiPhrases.DropDown is ToolStripDropDownMenu dropDownMenu)
+        {
+            Rectangle workArea = Screen.GetWorkingArea(this);
+            dropDownMenu.MaximumSize = new Size(0, (int)(workArea.Height * 0.55f));
+        }
+
+        // 同步清理已不存在於主片語清單的最近使用快取。
+        _recentPhrases.RemoveAll(r => !phrases.Any(p => p.Name == r.Name && p.Content == r.Content));
+
+        if (_recentPhrases.Count > 0)
+        {
+            foreach (PhraseService.PhraseEntry recent in _recentPhrases.Take(recentLimit))
+            {
+                PhraseService.PhraseEntry snapshot = recent;
+
+                ToolStripMenuItem recentItem = new($"★ {snapshot.Name}")
+                {
+                    AccessibleName = snapshot.Name,
+                    AccessibleDescription = snapshot.Content.Length > 50
+                        ? $"{snapshot.Content[..50]}…"
+                        : snapshot.Content
+                };
+                recentItem.Click += (s, e) =>
+                {
+                    try
+                    {
+                        // 插入後維持原生右鍵選單行為：選單自動關閉，避免多餘一步返回。
+                        InsertPhraseContent(snapshot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[選單] 最近片語插入失敗：{ex.Message}");
+                    }
+                };
+
+
+                _tsmiPhrases.DropDownItems.Add(recentItem);
+            }
+
+            _tsmiPhrases.DropDownItems.Add(new ToolStripSeparator());
+        }
+
+        if (phrases.Count == 0)
+        {
+            ToolStripMenuItem emptyItem = new(Strings.Menu_PhraseEmpty)
+            {
+                Enabled = false,
+                AccessibleName = Strings.Menu_PhraseEmpty
+            };
+
+            _tsmiPhrases.DropDownItems.Add(emptyItem);
+        }
+        else
+        {
+            int totalPages = (phrases.Count + pageSize - 1) / pageSize;
+
+            _phraseMenuPage = Math.Clamp(_phraseMenuPage, 0, Math.Max(0, totalPages - 1));
+
+            if (totalPages > 1)
+            {
+                ToolStripMenuItem prevPage = new("◀")
+                {
+                    Enabled = _phraseMenuPage > 0,
+                    AccessibleName = Strings.Phrase_A11y_Page_Previous
+                };
+                prevPage.Click += (s, e) =>
+                {
+                    if (_phraseMenuPage <= 0)
+                    {
+                        return;
+                    }
+
+                    _phraseMenuPage--;
+                    _keepPhrasePageOnNextOpen = true;
+                    ReopenPhraseSubMenuAndSelectFirst();
+                };
+
+                ToolStripMenuItem pageInfo = new($"{_phraseMenuPage + 1}/{totalPages}")
+                {
+                    Enabled = false,
+                    AccessibleName = string.Format(
+                        Strings.Phrase_A11y_Page_Info,
+                        _phraseMenuPage + 1,
+                        totalPages)
+                };
+
+                ToolStripMenuItem nextPage = new("▶")
+                {
+                    Enabled = _phraseMenuPage < totalPages - 1,
+                    AccessibleName = Strings.Phrase_A11y_Page_Next
+                };
+                nextPage.Click += (s, e) =>
+                {
+                    if (_phraseMenuPage >= totalPages - 1)
+                    {
+                        return;
+                    }
+
+                    _phraseMenuPage++;
+                    _keepPhrasePageOnNextOpen = true;
+                    ReopenPhraseSubMenuAndSelectFirst();
+                };
+
+                _tsmiPhrases.DropDownItems.Add(prevPage);
+                _tsmiPhrases.DropDownItems.Add(pageInfo);
+                _tsmiPhrases.DropDownItems.Add(nextPage);
+                _tsmiPhrases.DropDownItems.Add(new ToolStripSeparator());
+            }
+
+            int start = _phraseMenuPage * pageSize;
+            int endExclusive = Math.Min(start + pageSize, phrases.Count);
+
+            for (int i = start; i < endExclusive; i++)
+            {
+                PhraseService.PhraseEntry entry = phrases[i];
+
+                ToolStripMenuItem phraseItem = new(entry.Name)
+                {
+                    AccessibleName = entry.Name,
+                    AccessibleDescription = entry.Content.Length > 50
+                        ? $"{entry.Content[..50]}…"
+                        : entry.Content,
+                    Tag = i
+                };
+                phraseItem.Click += (s, e) =>
+                {
+                    try
+                    {
+                        if (s is ToolStripMenuItem mi && mi.Tag is int idx)
+                        {
+                            IReadOnlyList<PhraseService.PhraseEntry> current = _phraseService.Phrases;
+
+                            if (idx >= 0 && idx < current.Count)
+                            {
+                                // 插入後不重開片語子選單，讓焦點回到輸入流程。
+                                InsertPhraseContent(current[idx]);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[選單] 片語插入失敗：{ex.Message}");
+                    }
+                };
+
+                _tsmiPhrases.DropDownItems.Add(phraseItem);
+            }
+        }
+
+        _tsmiPhrases.DropDownItems.Add(new ToolStripSeparator());
+
+        // 管理片語選項。
+        ToolStripMenuItem tsmiManage = new(ControlExtensions.GetMnemonicText(Strings.Menu_ManagePhrases, 'M'))
+        {
+            AccessibleName = Strings.Menu_ManagePhrases
+        };
+        tsmiManage.Click += (s, e) =>
+        {
+            try
+            {
+                ShowPhraseManagerDialog();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiManage.Click 失敗：{ex.Message}");
+            }
+        };
+
+        _tsmiPhrases.DropDownItems.Add(tsmiManage);
+    }
+
+    /// <summary>
+    /// 顯示片語管理對話框
+    /// </summary>
+    private void ShowPhraseManagerDialog()
+    {
+        try
+        {
+            using PhraseManagerDialog dialog = new(_phraseService)
+            {
+                GamepadController = _gamepadController
+            };
+
+            dialog.StartPosition = FormStartPosition.Manual;
+            dialog.Location = new Point(
+                Left + Width + 8,
+                Top);
+
+            DialogResult result = dialog.ShowDialog(this);
+
+            // 如果使用者選取了要插入的片語，則插入至輸入框。
+            if (result == DialogResult.OK &&
+                !string.IsNullOrEmpty(dialog.SelectedPhraseContent))
+            {
+                InsertPhraseContent(new PhraseService.PhraseEntry(
+                    string.Empty,
+                    dialog.SelectedPhraseContent));
+            }
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "[片語] ShowPhraseManagerDialog 失敗");
+
+            Debug.WriteLine($"[片語] ShowPhraseManagerDialog 失敗：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 將片語內容插入文字方塊
+    /// </summary>
+    /// <param name="entry">片語項目</param>
+    private void InsertPhraseContent(PhraseService.PhraseEntry entry)
+    {
+        if (TBInput == null || TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        int selectionStart = TBInput.SelectionStart;
+
+        // 若有選取的文字，取代之；否則在游標處插入。
+        if (TBInput.SelectionLength > 0)
+        {
+            TBInput.SelectedText = entry.Content;
+        }
+        else
+        {
+            string text = TBInput.Text;
+
+            TBInput.Text = text.Insert(selectionStart, entry.Content);
+            TBInput.SelectionStart = selectionStart + entry.Content.Length;
+        }
+
+        TBInput.Focus();
+
+        if (!string.IsNullOrEmpty(entry.Name))
+        {
+            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                Strings.Phrase_A11y_Inserted_PrivacySafe :
+                string.Format(Strings.Phrase_A11y_Inserted, entry.Name));
+        }
+
+        RegisterRecentPhrase(entry);
+    }
+
+    private void RegisterRecentPhrase(PhraseService.PhraseEntry entry)
+    {
+        PhraseService.PhraseEntry normalized = entry;
+
+        // 從片語管理對話框插入時名稱可能為空，嘗試回查正式名稱。
+        if (string.IsNullOrEmpty(normalized.Name) && !string.IsNullOrEmpty(normalized.Content))
+        {
+            IReadOnlyList<PhraseService.PhraseEntry> phrases = _phraseService.Phrases;
+
+            PhraseService.PhraseEntry? resolved = phrases.FirstOrDefault(p => p.Content == normalized.Content);
+
+            if (resolved != null)
+            {
+                normalized = resolved;
+            }
+        }
+
+        if (string.IsNullOrEmpty(normalized.Name) || string.IsNullOrEmpty(normalized.Content))
+        {
+            return;
+        }
+
+        _recentPhrases.RemoveAll(p => p.Name == normalized.Name && p.Content == normalized.Content);
+        _recentPhrases.Insert(0, normalized);
+
+        int maxRecent = RecentPhraseLimitLarge;
+
+        if (_recentPhrases.Count > maxRecent)
+        {
+            _recentPhrases.RemoveRange(maxRecent, _recentPhrases.Count - maxRecent);
+        }
+    }
+
+    private int GetPhraseMenuPageSize()
+    {
+        int screenHeight = Screen.GetWorkingArea(this).Height;
+
+        if (screenHeight <= 900)
+        {
+            return PhraseMenuPageSizeSmall;
+        }
+
+        if (screenHeight <= 1200)
+        {
+            return PhraseMenuPageSizeMedium;
+        }
+
+        return PhraseMenuPageSizeLarge;
+    }
+
+    private int GetRecentPhraseDisplayLimit()
+    {
+        int screenHeight = Screen.GetWorkingArea(this).Height;
+
+        if (screenHeight <= 900)
+        {
+            return RecentPhraseLimitSmall;
+        }
+
+        if (screenHeight <= 1200)
+        {
+            return RecentPhraseLimitMedium;
+        }
+
+        return RecentPhraseLimitLarge;
+    }
+
+    /// <summary>
+    /// 選取片語子選單中第一個片語項目（有整數 Tag 的項目）
+    /// </summary>
+    private void SelectFirstPhraseInDropDown()
+    {
+        if (_tsmiPhrases?.DropDown is not ToolStripDropDown dropDown)
+        {
+            return;
+        }
+
+        foreach (ToolStripItem item in dropDown.Items)
+        {
+            if (item.Tag is int &&
+                item.Enabled &&
+                item.Visible)
+            {
+                item.Select();
+
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 重新開啟片語子選單並自動選取第一個片語，用於分頁換頁後保持導覽焦點
+    /// </summary>
+    private void ReopenPhraseSubMenuAndSelectFirst()
+    {
+        this.SafeBeginInvoke(() =>
+        {
+            try
+            {
+                if (IsDisposed || !IsHandleCreated)
+                {
+                    return;
+                }
+
+                ShowContextMenuAtInput();
+                _tsmiPhrases?.ShowDropDown();
+                SelectFirstPhraseInDropDown();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] ReopenPhraseSubMenuAndSelectFirst 失敗：{ex.Message}");
+            }
+        });
+    }
+
 }

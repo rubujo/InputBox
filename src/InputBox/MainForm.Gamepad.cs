@@ -466,15 +466,9 @@ public partial class MainForm
                                 return;
                             }
 
-                            if (TBInput.CanFocus &&
-                                !TBInput.Focused)
-                            {
-                                TBInput.Focus();
-                            }
-                            else
-                            {
-                                ExecuteConfirmAction();
-                            }
+                            // Start 鍵統一作為「開啟觸控鍵盤」入口，
+                            // 即使 TBInput 已有文字也可叫出鍵盤進行修正。
+                            ShowTouchKeyboard();
                         }
                         catch (Exception ex)
                         {

@@ -807,4 +807,208 @@ Back + ↑ / ↓	Adjust window opacity (+5% / −5%)</value>
     <value>Contains privacy mode, hotkey settings, advanced settings, and other application functions.</value>
     <comment>Accessibility description for the main context menu strip.</comment>
   </data>
+  <data name="Menu_Phrases" xml:space="preserve">
+    <value>Phrases</value>
+    <comment>Context menu item label for the phrases submenu.</comment>
+  </data>
+  <data name="Menu_ManagePhrases" xml:space="preserve">
+    <value>Manage Phrases…</value>
+    <comment>Context menu item to open the phrase management dialog.</comment>
+  </data>
+  <data name="Menu_PhraseEmpty" xml:space="preserve">
+    <value>(No phrases)</value>
+    <comment>Displayed in the phrases submenu when no phrases exist.</comment>
+  </data>
+  <data name="Phrase_Title" xml:space="preserve">
+    <value>Phrase Manager</value>
+    <comment>Title of the phrase management dialog.</comment>
+  </data>
+  <data name="Phrase_Btn_Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button label: add a new phrase.</comment>
+  </data>
+  <data name="Phrase_Btn_Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button label: edit the selected phrase.</comment>
+  </data>
+  <data name="Phrase_Btn_Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button label: delete the selected phrase.</comment>
+  </data>
+  <data name="Phrase_Btn_MoveUp" xml:space="preserve">
+    <value>Move Up</value>
+    <comment>Button label: move the selected phrase up.</comment>
+  </data>
+  <data name="Phrase_Btn_MoveDown" xml:space="preserve">
+    <value>Move Down</value>
+    <comment>Button label: move the selected phrase down.</comment>
+  </data>
+  <data name="Phrase_Btn_Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button label: close the phrase management dialog.</comment>
+  </data>
+  <data name="Phrase_Btn_Confirm" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button label: confirm phrase edit.</comment>
+  </data>
+  <data name="Phrase_Btn_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button label: cancel phrase edit.</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Add" xml:space="preserve">
+    <value>Add Phrase</value>
+    <comment>Title of the phrase edit dialog when adding a new phrase.</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
+    <value>Edit Phrase</value>
+    <comment>Title of the phrase edit dialog when editing an existing phrase.</comment>
+  </data>
+  <data name="Phrase_Edit_Name" xml:space="preserve">
+    <value>Name:</value>
+    <comment>Label for the phrase name input field.</comment>
+  </data>
+  <data name="Phrase_Edit_Content" xml:space="preserve">
+    <value>Content:</value>
+    <comment>Label for the phrase content input field.</comment>
+  </data>
+  <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Manage phrases: add, edit, delete, and reorder. Use gamepad Y to add, A to insert, X to delete, Left/Right to reorder.</value>
+    <comment>Accessibility description for the phrase management dialog.</comment>
+  </data>
+  <data name="Phrase_A11y_List_Name" xml:space="preserve">
+    <value>Phrase List</value>
+    <comment>Accessibility name for the phrase list box.</comment>
+  </data>
+  <data name="Phrase_A11y_List_Desc" xml:space="preserve">
+    <value>Select a phrase and press Enter or gamepad A to insert it into the input box.</value>
+    <comment>Accessibility description for the phrase list box.</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
+    <value>Phrase Actions</value>
+    <comment>Accessibility name for the phrase action button area.</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
+    <value>Contains action buttons for phrase operations.</value>
+    <comment>Accessibility description for the phrase action button area grouping container.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
+    <value>Previous page</value>
+    <comment>Accessibility name for phrase submenu pagination previous button.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Next" xml:space="preserve">
+    <value>Next page</value>
+    <comment>Accessibility name for phrase submenu pagination next button.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Info" xml:space="preserve">
+    <value>Page {0} of {1}</value>
+    <comment>Accessibility name for phrase submenu pagination info item. {0} = current page, {1} = total pages.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
+    <value>Add a new phrase. Gamepad: Y button.</value>
+    <comment>Accessibility description for the Add button.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
+    <value>Edit the selected phrase.</value>
+    <comment>Accessibility description for the Edit button.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
+    <value>Delete the selected phrase. Gamepad: X button.</value>
+    <comment>Accessibility description for the Delete button.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
+    <value>Move the selected phrase up. Gamepad: Left D-pad.</value>
+    <comment>Accessibility description for the Move Up button.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
+    <value>Move the selected phrase down. Gamepad: Right D-pad.</value>
+    <comment>Accessibility description for the Move Down button.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
+    <value>Close the phrase manager. Gamepad: B button.</value>
+    <comment>Accessibility description for the Close button.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
+    <value>Confirm and save the phrase. Gamepad: A button.</value>
+    <comment>Accessibility description for the OK button in the edit dialog.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>Cancel editing. Gamepad: B button.</value>
+    <comment>Accessibility description for the Cancel button in the edit dialog.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
+    <value>Enter a name and content for the phrase. Press Enter or gamepad A to confirm.</value>
+    <comment>Accessibility description for the phrase edit dialog.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
+    <value>Enter a display name for this phrase (max 50 characters).</value>
+    <comment>Accessibility description for the phrase name text box.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
+    <value>Enter the text content to be inserted (max 500 characters). Supports multiple lines.</value>
+    <comment>Accessibility description for the phrase content text box.</comment>
+  </data>
+  <data name="Phrase_A11y_Selected" xml:space="preserve">
+    <value>Selected: {0}</value>
+    <comment>A11y announcement when a phrase is selected in the list. {0} = phrase name.</comment>
+  </data>
+  <data name="Phrase_A11y_Added" xml:space="preserve">
+    <value>Phrase added: {0}</value>
+    <comment>A11y announcement after a phrase is added. {0} = phrase name.</comment>
+  </data>
+  <data name="Phrase_A11y_Updated" xml:space="preserve">
+    <value>Phrase updated: {0}</value>
+    <comment>A11y announcement after a phrase is updated. {0} = phrase name.</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted" xml:space="preserve">
+    <value>Phrase deleted: {0}</value>
+    <comment>A11y announcement after a phrase is deleted. {0} = phrase name.</comment>
+  </data>
+  <data name="Phrase_A11y_Moved" xml:space="preserve">
+    <value>Moved to position {0}</value>
+    <comment>A11y announcement after a phrase is reordered. {0} = new 1-based position.</comment>
+  </data>
+  <data name="Phrase_A11y_Full" xml:space="preserve">
+    <value>Phrase list is full. Cannot add more phrases.</value>
+    <comment>A11y announcement when the phrase list has reached maximum capacity.</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted" xml:space="preserve">
+    <value>Phrase inserted: {0}</value>
+    <comment>A11y announcement when a phrase is inserted into the input box. {0} = phrase name.</comment>
+  </data>
+  <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
+    <value>Phrase selected.</value>
+    <comment>Privacy-safe A11y announcement when selecting a phrase item.</comment>
+  </data>
+  <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
+    <value>Phrase added.</value>
+    <comment>Privacy-safe A11y announcement after adding a phrase.</comment>
+  </data>
+  <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
+    <value>Phrase updated.</value>
+    <comment>Privacy-safe A11y announcement after updating a phrase.</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
+    <value>Phrase deleted.</value>
+    <comment>Privacy-safe A11y announcement after deleting a phrase.</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
+    <value>Phrase inserted.</value>
+    <comment>Privacy-safe A11y announcement when inserting a phrase into the input box.</comment>
+  </data>
+  <data name="Phrase_A11y_NameRequired" xml:space="preserve">
+    <value>Please enter a phrase name.</value>
+    <comment>A11y announcement when the user tries to confirm without entering a name.</comment>
+  </data>
+  <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
+    <value>Please enter phrase content.</value>
+    <comment>A11y announcement when the user tries to confirm without entering content.</comment>
+  </data>
+  <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
+    <value>Enter phrase name...</value>
+    <comment>Placeholder text for phrase name input in phrase edit dialog.</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
+    <value>Enter phrase content...</value>
+    <comment>Placeholder text for phrase content input in phrase edit dialog.</comment>
+  </data>
 </root>

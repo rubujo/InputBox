@@ -807,4 +807,208 @@ Back + ↑ / ↓	透明度を調整（+5% / −5%）</value>
     <value>プライバシーモード、ホットキー設定、詳細設定、その他のアプリケーション機能が含まれます。</value>
     <comment>コンテキストメニューのアクセシビリティ説明。</comment>
   </data>
+  <data name="Menu_Phrases" xml:space="preserve">
+    <value>定型文</value>
+    <comment>コンテキストメニュー内の定型文サブメニューのラベル。</comment>
+  </data>
+  <data name="Menu_ManagePhrases" xml:space="preserve">
+    <value>定型文の管理…</value>
+    <comment>定型文管理ダイアログを開くメニュー項目。</comment>
+  </data>
+  <data name="Menu_PhraseEmpty" xml:space="preserve">
+    <value>（定型文なし）</value>
+    <comment>定型文サブメニューに定型文がない場合に表示されるテキスト。</comment>
+  </data>
+  <data name="Phrase_Title" xml:space="preserve">
+    <value>定型文の管理</value>
+    <comment>定型文管理ダイアログのタイトル。</comment>
+  </data>
+  <data name="Phrase_Btn_Add" xml:space="preserve">
+    <value>追加</value>
+    <comment>ボタンラベル：新しい定型文を追加。</comment>
+  </data>
+  <data name="Phrase_Btn_Edit" xml:space="preserve">
+    <value>編集</value>
+    <comment>ボタンラベル：選択した定型文を編集。</comment>
+  </data>
+  <data name="Phrase_Btn_Delete" xml:space="preserve">
+    <value>削除</value>
+    <comment>ボタンラベル：選択した定型文を削除。</comment>
+  </data>
+  <data name="Phrase_Btn_MoveUp" xml:space="preserve">
+    <value>上へ</value>
+    <comment>ボタンラベル：選択した定型文を上に移動。</comment>
+  </data>
+  <data name="Phrase_Btn_MoveDown" xml:space="preserve">
+    <value>下へ</value>
+    <comment>ボタンラベル：選択した定型文を下に移動。</comment>
+  </data>
+  <data name="Phrase_Btn_Close" xml:space="preserve">
+    <value>閉じる</value>
+    <comment>ボタンラベル：定型文管理ダイアログを閉じる。</comment>
+  </data>
+  <data name="Phrase_Btn_Confirm" xml:space="preserve">
+    <value>OK</value>
+    <comment>ボタンラベル：定型文の編集を確定。</comment>
+  </data>
+  <data name="Phrase_Btn_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+    <comment>ボタンラベル：定型文の編集をキャンセル。</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Add" xml:space="preserve">
+    <value>定型文の追加</value>
+    <comment>新しい定型文を追加するときの編集ダイアログのタイトル。</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
+    <value>定型文の編集</value>
+    <comment>既存の定型文を編集するときの編集ダイアログのタイトル。</comment>
+  </data>
+  <data name="Phrase_Edit_Name" xml:space="preserve">
+    <value>名前：</value>
+    <comment>定型文名の入力フィールドのラベル。</comment>
+  </data>
+  <data name="Phrase_Edit_Content" xml:space="preserve">
+    <value>内容：</value>
+    <comment>定型文内容の入力フィールドのラベル。</comment>
+  </data>
+  <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
+    <value>定型文の管理：追加・編集・削除・並べ替え。コントローラー Y で追加、A で挿入、X で削除、左/右で並べ替え。</value>
+    <comment>定型文管理ダイアログのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_List_Name" xml:space="preserve">
+    <value>定型文リスト</value>
+    <comment>定型文リストのアクセシビリティ名。</comment>
+  </data>
+  <data name="Phrase_A11y_List_Desc" xml:space="preserve">
+    <value>定型文を選択して Enter またはコントローラー A ボタンで入力欄に挿入します。</value>
+    <comment>定型文リストのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
+    <value>定型文操作</value>
+    <comment>定型文操作ボタンエリアのアクセシビリティ名。</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
+    <value>定型文操作のアクションボタンが含まれます。</value>
+    <comment>定型文操作ボタンエリアグループコンテナーのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
+    <value>前のページ</value>
+    <comment>定型文サブメニューのページング「前へ」ボタンのアクセシビリティ名。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Next" xml:space="preserve">
+    <value>次のページ</value>
+    <comment>定型文サブメニューのページング「次へ」ボタンのアクセシビリティ名。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Info" xml:space="preserve">
+    <value>{0} / {1} ページ</value>
+    <comment>定型文サブメニューのページ情報項目のアクセシビリティ名。{0} = 現在ページ、{1} = 総ページ数。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
+    <value>新しい定型文を追加します。コントローラー：Y ボタン。</value>
+    <comment>追加ボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
+    <value>選択した定型文を編集します。</value>
+    <comment>編集ボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
+    <value>選択した定型文を削除します。コントローラー：X ボタン。</value>
+    <comment>削除ボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
+    <value>選択した定型文を上に移動します。コントローラー：左方向キー。</value>
+    <comment>上へボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
+    <value>選択した定型文を下に移動します。コントローラー：右方向キー。</value>
+    <comment>下へボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
+    <value>定型文管理を閉じます。コントローラー：B ボタン。</value>
+    <comment>閉じるボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
+    <value>定型文を確定して保存します。コントローラー：A ボタン。</value>
+    <comment>編集ダイアログの OK ボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>編集をキャンセルします。コントローラー：B ボタン。</value>
+    <comment>編集ダイアログのキャンセルボタンのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
+    <value>定型文の名前と内容を入力してください。Enter またはコントローラー A ボタンで確定。</value>
+    <comment>定型文編集ダイアログのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
+    <value>この定型文の表示名を入力します（最大 50 文字）。</value>
+    <comment>定型文名テキストボックスのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
+    <value>挿入するテキスト内容を入力します（最大 500 文字）。複数行対応。</value>
+    <comment>定型文内容テキストボックスのアクセシビリティ説明。</comment>
+  </data>
+  <data name="Phrase_A11y_Selected" xml:space="preserve">
+    <value>選択：{0}</value>
+    <comment>定型文を選択したときのアクセシビリティ読み上げ。{0} = 定型文名。</comment>
+  </data>
+  <data name="Phrase_A11y_Added" xml:space="preserve">
+    <value>定型文を追加しました：{0}</value>
+    <comment>定型文を追加した後のアクセシビリティ読み上げ。{0} = 定型文名。</comment>
+  </data>
+  <data name="Phrase_A11y_Updated" xml:space="preserve">
+    <value>定型文を更新しました：{0}</value>
+    <comment>定型文を更新した後のアクセシビリティ読み上げ。{0} = 定型文名。</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted" xml:space="preserve">
+    <value>定型文を削除しました：{0}</value>
+    <comment>定型文を削除した後のアクセシビリティ読み上げ。{0} = 定型文名。</comment>
+  </data>
+  <data name="Phrase_A11y_Moved" xml:space="preserve">
+    <value>{0} 番目に移動しました</value>
+    <comment>定型文を並べ替えた後のアクセシビリティ読み上げ。{0} = 新しい位置（1 始まり）。</comment>
+  </data>
+  <data name="Phrase_A11y_Full" xml:space="preserve">
+    <value>定型文リストが満杯です。これ以上追加できません。</value>
+    <comment>定型文リストが上限に達したときのアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted" xml:space="preserve">
+    <value>定型文を挿入しました：{0}</value>
+    <comment>定型文を入力欄に挿入したときのアクセシビリティ読み上げ。{0} = 定型文名。</comment>
+  </data>
+  <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
+    <value>定型文を選択しました。</value>
+    <comment>プライバシーモードで定型文選択時の安全なアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
+    <value>定型文を追加しました。</value>
+    <comment>プライバシーモードで定型文追加後の安全なアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
+    <value>定型文を更新しました。</value>
+    <comment>プライバシーモードで定型文更新後の安全なアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
+    <value>定型文を削除しました。</value>
+    <comment>プライバシーモードで定型文削除後の安全なアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
+    <value>定型文を挿入しました。</value>
+    <comment>プライバシーモードで定型文挿入時の安全なアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_NameRequired" xml:space="preserve">
+    <value>定型文の名前を入力してください。</value>
+    <comment>名前を入力せずに確定しようとしたときのアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
+    <value>定型文の内容を入力してください。</value>
+    <comment>内容を入力せずに確定しようとしたときのアクセシビリティ読み上げ。</comment>
+  </data>
+  <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
+    <value>定型文名を入力してください…</value>
+    <comment>定型文編集ダイアログの名前入力欄プレースホルダー。</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
+    <value>定型文の内容を入力してください…</value>
+    <comment>定型文編集ダイアログの内容入力欄プレースホルダー。</comment>
+  </data>
 </root>

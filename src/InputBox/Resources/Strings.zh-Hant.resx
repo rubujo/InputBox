@@ -807,4 +807,208 @@ Back + ↑／↓	調整視窗透明度（+5%／−5%）</value>
     <value>包含隱私模式、快速鍵設定、進階設定及其他應用程式功能。</value>
     <comment>右鍵選單的無障礙描述。</comment>
   </data>
+  <data name="Menu_Phrases" xml:space="preserve">
+    <value>片語</value>
+    <comment>右鍵選單中的片語子選單標籤。</comment>
+  </data>
+  <data name="Menu_ManagePhrases" xml:space="preserve">
+    <value>管理片語…</value>
+    <comment>開啟片語管理對話框的選單項目。</comment>
+  </data>
+  <data name="Menu_PhraseEmpty" xml:space="preserve">
+    <value>（無片語）</value>
+    <comment>片語子選單中沒有任何片語時顯示的文字。</comment>
+  </data>
+  <data name="Phrase_Title" xml:space="preserve">
+    <value>片語管理</value>
+    <comment>片語管理對話框的標題。</comment>
+  </data>
+  <data name="Phrase_Btn_Add" xml:space="preserve">
+    <value>新增</value>
+    <comment>按鈕標籤：新增片語。</comment>
+  </data>
+  <data name="Phrase_Btn_Edit" xml:space="preserve">
+    <value>編輯</value>
+    <comment>按鈕標籤：編輯選取的片語。</comment>
+  </data>
+  <data name="Phrase_Btn_Delete" xml:space="preserve">
+    <value>刪除</value>
+    <comment>按鈕標籤：刪除選取的片語。</comment>
+  </data>
+  <data name="Phrase_Btn_MoveUp" xml:space="preserve">
+    <value>上移</value>
+    <comment>按鈕標籤：將選取的片語上移。</comment>
+  </data>
+  <data name="Phrase_Btn_MoveDown" xml:space="preserve">
+    <value>下移</value>
+    <comment>按鈕標籤：將選取的片語下移。</comment>
+  </data>
+  <data name="Phrase_Btn_Close" xml:space="preserve">
+    <value>關閉</value>
+    <comment>按鈕標籤：關閉片語管理對話框。</comment>
+  </data>
+  <data name="Phrase_Btn_Confirm" xml:space="preserve">
+    <value>確定</value>
+    <comment>按鈕標籤：確認片語編輯。</comment>
+  </data>
+  <data name="Phrase_Btn_Cancel" xml:space="preserve">
+    <value>取消</value>
+    <comment>按鈕標籤：取消片語編輯。</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Add" xml:space="preserve">
+    <value>新增片語</value>
+    <comment>新增片語時的編輯對話框標題。</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
+    <value>編輯片語</value>
+    <comment>編輯現有片語時的編輯對話框標題。</comment>
+  </data>
+  <data name="Phrase_Edit_Name" xml:space="preserve">
+    <value>名稱：</value>
+    <comment>片語名稱輸入欄位的標籤。</comment>
+  </data>
+  <data name="Phrase_Edit_Content" xml:space="preserve">
+    <value>內容：</value>
+    <comment>片語內容輸入欄位的標籤。</comment>
+  </data>
+  <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
+    <value>管理片語：新增、編輯、刪除及排序。使用控制器 Y 鍵新增、A 鍵插入、X 鍵刪除、左／右方向鍵排序。</value>
+    <comment>片語管理對話框的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_List_Name" xml:space="preserve">
+    <value>片語清單</value>
+    <comment>片語清單的無障礙名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_List_Desc" xml:space="preserve">
+    <value>選取一個片語後按 Enter 或控制器 A 鍵可將其插入輸入框。</value>
+    <comment>片語清單的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
+    <value>片語操作</value>
+    <comment>片語操作按鈕區域的無障礙名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
+    <value>包含片語操作的動作按鈕。</value>
+    <comment>片語操作按鈕區域群組容器的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
+    <value>上一頁</value>
+    <comment>片語子選單分頁上一頁按鈕的無障礙名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Next" xml:space="preserve">
+    <value>下一頁</value>
+    <comment>片語子選單分頁下一頁按鈕的無障礙名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Info" xml:space="preserve">
+    <value>第 {0} 頁，共 {1} 頁</value>
+    <comment>片語子選單分頁資訊項目的無障礙名稱。{0} = 目前頁碼，{1} = 總頁數。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
+    <value>新增一個片語。控制器：Y 鍵。</value>
+    <comment>新增按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
+    <value>編輯選取的片語。</value>
+    <comment>編輯按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
+    <value>刪除選取的片語。控制器：X 鍵。</value>
+    <comment>刪除按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
+    <value>將選取的片語上移。控制器：左方向鍵。</value>
+    <comment>上移按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
+    <value>將選取的片語下移。控制器：右方向鍵。</value>
+    <comment>下移按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
+    <value>關閉片語管理。控制器：B 鍵。</value>
+    <comment>關閉按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
+    <value>確認並儲存片語。控制器：A 鍵。</value>
+    <comment>編輯對話框中確定按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>取消編輯。控制器：B 鍵。</value>
+    <comment>編輯對話框中取消按鈕的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
+    <value>輸入片語名稱和內容。按 Enter 或控制器 A 鍵確認。</value>
+    <comment>片語編輯對話框的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
+    <value>輸入此片語的顯示名稱（最多 50 個字元）。</value>
+    <comment>片語名稱文字方塊的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
+    <value>輸入要插入的文字內容（最多 500 個字元）。支援多行。</value>
+    <comment>片語內容文字方塊的無障礙描述。</comment>
+  </data>
+  <data name="Phrase_A11y_Selected" xml:space="preserve">
+    <value>已選取：{0}</value>
+    <comment>選取片語時的無障礙播報。{0} = 片語名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Added" xml:space="preserve">
+    <value>已新增片語：{0}</value>
+    <comment>新增片語後的無障礙播報。{0} = 片語名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Updated" xml:space="preserve">
+    <value>已更新片語：{0}</value>
+    <comment>更新片語後的無障礙播報。{0} = 片語名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted" xml:space="preserve">
+    <value>已刪除片語：{0}</value>
+    <comment>刪除片語後的無障礙播報。{0} = 片語名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Moved" xml:space="preserve">
+    <value>已移至第 {0} 位</value>
+    <comment>排序片語後的無障礙播報。{0} = 新的位置（從 1 起算）。</comment>
+  </data>
+  <data name="Phrase_A11y_Full" xml:space="preserve">
+    <value>片語清單已滿，無法新增更多片語。</value>
+    <comment>片語清單已達上限時的無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted" xml:space="preserve">
+    <value>已插入片語：{0}</value>
+    <comment>將片語插入輸入框時的無障礙播報。{0} = 片語名稱。</comment>
+  </data>
+  <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
+    <value>已選取片語。</value>
+    <comment>隱私模式下選取片語時的安全無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
+    <value>已新增片語。</value>
+    <comment>隱私模式下新增片語後的安全無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
+    <value>已更新片語。</value>
+    <comment>隱私模式下更新片語後的安全無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
+    <value>已刪除片語。</value>
+    <comment>隱私模式下刪除片語後的安全無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
+    <value>已插入片語。</value>
+    <comment>隱私模式下插入片語時的安全無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_NameRequired" xml:space="preserve">
+    <value>請輸入片語名稱。</value>
+    <comment>使用者未輸入名稱就嘗試確認時的無障礙播報。</comment>
+  </data>
+  <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
+    <value>請輸入片語內容。</value>
+    <comment>使用者未輸入內容就嘗試確認時的無障礙播報。</comment>
+  </data>
+  <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
+    <value>請輸入片語名稱…</value>
+    <comment>片語編輯對話框名稱輸入框的預留文字。</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
+    <value>請輸入片語內容…</value>
+    <comment>片語編輯對話框內容輸入框的預留文字。</comment>
+  </data>
 </root>

@@ -562,6 +562,12 @@ public partial class MainForm
 
         bool isDark = BtnCopy.IsDarkModeActive();
 
+        // 停用態：統一使用共用非色彩提示（虛線邊框 + 斜線）。
+        if (BtnCopy.TryDrawDisabledButtonCue(e.Graphics, isDark, scale))
+        {
+            return;
+        }
+
         // 雙焦點衝突防護（Dual-Focus Conflict Protection）：
         // 判斷該按鈕是否為目前表單的預設動作按鈕（AcceptButton）。
         // 根據規範，只有當目前焦點「不在任何按鈕上」且按鈕為「可用狀態」時，預設按鈕才顯示焦點邊框，
@@ -577,20 +583,7 @@ public partial class MainForm
             !_isBtnHovered &&
             !isDefault)
         {
-            int baseThickness = (int)Math.Max(1, scale);
-
-            using Pen basePen = new(
-                SystemInformation.HighContrast ?
-                    SystemColors.WindowFrame :
-                    (isDark ? Color.DimGray : Color.DarkGray),
-                baseThickness);
-
-            e.Graphics.DrawRectangle(
-                basePen,
-                0,
-                0,
-                BtnCopy.Width - 1,
-                BtnCopy.Height - 1);
+            BtnCopy.DrawButtonBaseBorder(e.Graphics, isDark, scale);
         }
 
         // 繪製焦點、懸停與預設動作邊框（Focus／Hover／Default Border）：
@@ -598,9 +591,8 @@ public partial class MainForm
             _isBtnHovered ||
             isDefault)
         {
-            // 實施「Zero-Jitter」原則：使用固定的 3 像素厚度，與輸入框焦點邊框對齊。
-            int borderThickness = (int)Math.Max(3, 3 * scale),
-                inset = (int)Math.Max(2, 2 * scale);
+            int borderThickness;
+            int inset;
 
             bool isStrongVisual = _isBtnPressed ||
                 (BtnCopy.Focused && !_isBtnHovered);
@@ -611,56 +603,21 @@ public partial class MainForm
             //   淺色強視覺（Focus=Black／Pressed=近黑） → Cyan        ≥13.57:1 AAA
             //   深色中性／懸停灰                        → LightBlue    ≥7.2:1 AAA
             //   淺色中性／懸停灰                        → MediumBlue   8.14:1 AAA
-            Color borderColor;
-            if (SystemInformation.HighContrast)
-            {
-                borderColor = SystemColors.HighlightText;
-            }
-            else if (isStrongVisual)
-            {
-                borderColor = isDark ?
-                    Color.MediumBlue :
-                    Color.Cyan;
-            }
-            else if (isDark)
-            {
-                // 深色中性／懸停 ≥7.2:1 AAA。
-                borderColor = Color.LightBlue;
-            }
-            else
-            {
-                // 淺色中性／懸停 8.14:1 AAA。
-                borderColor = Color.MediumBlue;
-            }
+            Color borderColor = BtnCopy.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
 
-            using Pen borderPen = new(borderColor, borderThickness);
-
-            e.Graphics.DrawRectangle(
-                borderPen,
-                inset,
-                inset,
-                BtnCopy.Width - (inset * 2) - 1,
-                BtnCopy.Height - (inset * 2) - 1);
+            BtnCopy.DrawButtonInteractiveBorder(
+                e.Graphics,
+                borderColor,
+                scale,
+                out inset,
+                out borderThickness);
 
             if (!SystemInformation.HighContrast &&
                 _isBtnPressed)
             {
                 // Pressed 專屬非顏色提示：
                 // 以文字同色再畫一層 1px 內框，讓 achromatopsia 也能區分 Pressed／Focused。
-                int pressedInset = inset + borderThickness;
-
-                if (BtnCopy.Width - (pressedInset * 2) - 1 > 0 &&
-                    BtnCopy.Height - (pressedInset * 2) - 1 > 0)
-                {
-                    using Pen pressedCuePen = new(BtnCopy.ForeColor, Math.Max(1f, scale));
-
-                    e.Graphics.DrawRectangle(
-                        pressedCuePen,
-                        pressedInset,
-                        pressedInset,
-                        BtnCopy.Width - (pressedInset * 2) - 1,
-                        BtnCopy.Height - (pressedInset * 2) - 1);
-                }
+                BtnCopy.DrawPressedInnerCue(e.Graphics, scale, inset, borderThickness);
             }
         }
 

@@ -1396,6 +1396,438 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Phrases 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Phrases {
+            get {
+                return ResourceManager.GetString("Menu_Phrases", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Manage Phrases… 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_ManagePhrases {
+            get {
+                return ResourceManager.GetString("Menu_ManagePhrases", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 (No phrases) 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_PhraseEmpty {
+            get {
+                return ResourceManager.GetString("Menu_PhraseEmpty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase Manager 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Title {
+            get {
+                return ResourceManager.GetString("Phrase_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Add 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_Add {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_Add", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Edit 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_Edit {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_Edit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Delete 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_Delete {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_Delete", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Move Up 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_MoveUp {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_MoveUp", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Move Down 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_MoveDown {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_MoveDown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Close 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_Close {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_Close", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 OK 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_Confirm {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_Confirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Cancel 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Btn_Cancel {
+            get {
+                return ResourceManager.GetString("Phrase_Btn_Cancel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Add Phrase 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Edit_Title_Add {
+            get {
+                return ResourceManager.GetString("Phrase_Edit_Title_Add", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Edit Phrase 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Edit_Title_Edit {
+            get {
+                return ResourceManager.GetString("Phrase_Edit_Title_Edit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Name: 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Edit_Name {
+            get {
+                return ResourceManager.GetString("Phrase_Edit_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Content: 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Edit_Content {
+            get {
+                return ResourceManager.GetString("Phrase_Edit_Content", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Manage phrases: add, edit, delete, and reorder... 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Dialog_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Dialog_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase List 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_List_Name {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_List_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Select a phrase and press Enter or gamepad A to insert... 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_List_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_List_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase Actions 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_ButtonArea {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_ButtonArea", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Contains action buttons for phrase operations. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_ButtonArea_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_ButtonArea_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Previous page 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Page_Previous {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Page_Previous", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Next page 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Page_Next {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Page_Next", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Page {0} of {1} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Page_Info {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Page_Info", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Add a new phrase. Gamepad: Y button. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_Add_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_Add_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Edit the selected phrase. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_Edit_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_Edit_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Delete the selected phrase. Gamepad: X button. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_Delete_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_Delete_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Move the selected phrase up. Gamepad: Left D-pad. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_MoveUp_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_MoveUp_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Move the selected phrase down. Gamepad: Right D-pad. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_MoveDown_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_MoveDown_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Close the phrase manager. Gamepad: B button. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_Close_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_Close_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Confirm and save the phrase. Gamepad: A button. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_Confirm_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_Confirm_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Cancel editing. Gamepad: B button. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Btn_Cancel_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Btn_Cancel_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Enter a name and content for the phrase... 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Edit_Dialog_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Edit_Dialog_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Enter a display name for this phrase... 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Edit_Name_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Edit_Name_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Enter the text content to be inserted... 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Edit_Content_Desc {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Edit_Content_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Selected: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Selected {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Selected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase added: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Added {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Added", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase updated: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Updated {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Updated", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase deleted: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Deleted {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Deleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Moved to position {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Moved {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Moved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase list is full... 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Full {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Full", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase inserted: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Inserted {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Inserted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase selected. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Selected_PrivacySafe {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Selected_PrivacySafe", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase added. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Added_PrivacySafe {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Added_PrivacySafe", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase updated. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Updated_PrivacySafe {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Updated_PrivacySafe", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase deleted. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Deleted_PrivacySafe {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Deleted_PrivacySafe", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Phrase inserted. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Inserted_PrivacySafe {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Inserted_PrivacySafe", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Please enter a phrase name. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_NameRequired {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_NameRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Please enter a new value for {0}: 的當地語系化字串。
         /// </summary>
         internal static string Msg_EnterValue {
