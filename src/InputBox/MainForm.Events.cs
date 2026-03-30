@@ -591,8 +591,6 @@ public partial class MainForm
             _isBtnHovered ||
             isDefault)
         {
-            int borderThickness;
-            int inset;
 
             bool isStrongVisual = _isBtnPressed ||
                 (BtnCopy.Focused && !_isBtnHovered);
@@ -609,8 +607,8 @@ public partial class MainForm
                 e.Graphics,
                 borderColor,
                 scale,
-                out inset,
-                out borderThickness);
+                out int inset,
+                out int borderThickness);
 
             if (!SystemInformation.HighContrast &&
                 _isBtnPressed)

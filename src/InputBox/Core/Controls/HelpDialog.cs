@@ -19,6 +19,11 @@ partial class DesignerBlocker { };
 internal sealed class HelpDialog : Form
 {
     /// <summary>
+    /// 說明視窗的基準最小寬度（96 DPI）
+    /// </summary>
+    private const int BaseDialogMinWidth = 760;
+
+    /// <summary>
     /// 遊戲控制器（由主視窗傳入，不由此對話框管理生命週期）
     /// </summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -724,14 +729,20 @@ internal sealed class HelpDialog : Form
             // 視窗寬度：內容寬度 + 表單 Padding + 捲動條預留空間 + 框架。
             formW = contentPref.Width + Padding.Horizontal + scrollBarW + frameW + 8;
 
-        formW = Math.Max(formW, 360);
+        float scale = DeviceDpi / AppSettings.BaseDpi;
+
+        int desiredMinWidth = (int)(BaseDialogMinWidth * scale);
+
+        formW = Math.Max(formW, desiredMinWidth);
         formW = Math.Min(formW, workArea.Width - 40);
 
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
-        // 上限設為可用高度的 70%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）上仍能舒適使用。
+        // 上限設為可用高度的 45%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）開啟 OSK 時仍能完整顯示。
         int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8,
-            maxH = (int)(workArea.Height * 0.60f),
-            formH = Math.Clamp(naturalH, 200, maxH);
+            maxH = (int)(workArea.Height * 0.45f),
+            desiredMinHeight = (int)(300 * scale);
+
+        int formH = Math.Clamp(naturalH, desiredMinHeight, maxH);
 
         Size = new Size(formW, formH);
     }
@@ -1214,8 +1225,6 @@ internal sealed class HelpDialog : Form
         if (isFocused ||
             isHoveredOrDwell)
         {
-            int borderThickness;
-            int inset;
 
             Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
 
@@ -1223,8 +1232,8 @@ internal sealed class HelpDialog : Form
                 g,
                 borderColor,
                 scale,
-                out inset,
-                out borderThickness);
+                out int inset,
+                out int borderThickness);
 
             if (!SystemInformation.HighContrast &&
                 _closeIsPressed)

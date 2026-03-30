@@ -78,6 +78,11 @@ public partial class MainForm
         TBInput.AccessibleDescription = Strings.A11y_TBInputDesc;
         _lblInput?.Text = Strings.A11y_TBInputName;
 
+        // 按鈕控制項。
+        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+        BtnCopy.AccessibleName = Strings.Btn_CopyDefault;
+        BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
+
         // 從全域共享快取池取得輸入框專用的 28pt 大字體（14pt * 2.0）。
         // 既然使用共享快取，則不應手動放入回收桶，由快取池統一管理生命週期。
         _inputFont = GetSharedA11yFont(

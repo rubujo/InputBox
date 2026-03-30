@@ -23,6 +23,11 @@ partial class DesignerBlocker { };
 internal sealed class PhraseManagerDialog : Form
 {
     /// <summary>
+    /// 片語管理視窗的基準最小寬度（96 DPI）
+    /// </summary>
+    private const int BaseDialogMinWidth = 760;
+
+    /// <summary>
     /// 片語服務（由主視窗傳入，不由此對話框管理生命周期）
     /// </summary>
     private readonly PhraseService _phraseService;
@@ -1276,8 +1281,7 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.LeftRepeat += HandleMoveUp;
                 _gamepadController.RightPressed += HandleMoveDown;
                 _gamepadController.RightRepeat += HandleMoveDown;
-                _gamepadController.LeftTriggerPressed += HandleFocusPrev;
-                _gamepadController.RightTriggerPressed += HandleFocusNext;
+                // LT/RT bindings removed: focus cycling handled via D-Pad / Tab
                 _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
             }
         }
@@ -1307,8 +1311,7 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.LeftRepeat -= HandleMoveUp;
                 _gamepadController.RightPressed -= HandleMoveDown;
                 _gamepadController.RightRepeat -= HandleMoveDown;
-                _gamepadController.LeftTriggerPressed -= HandleFocusPrev;
-                _gamepadController.RightTriggerPressed -= HandleFocusNext;
+                // LT/RT bindings removed: no unsubscription required here
                 _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
             }
         }
@@ -1473,22 +1476,23 @@ internal sealed class PhraseManagerDialog : Form
         if (nonClientH <= 0)
         {
             nonClientH = SystemInformation.CaptionHeight +
-                         SystemInformation.FrameBorderSize.Height * 2;
+                SystemInformation.FrameBorderSize.Height * 2;
         }
 
         // 以主版面實際偏好尺寸作為基準，避免最後一顆按鈕在 row 0 被裁切。
         _tlpMain.PerformLayout();
+
         Size preferred = _tlpMain.GetPreferredSize(Size.Empty);
 
-        int minW = Math.Max((int)(420 * scale), preferred.Width + Padding.Horizontal);
-
-        int baseClientH = Math.Max(
-            (int)(350 * scale) - nonClientH,
-            preferred.Height + Padding.Vertical + (int)(8 * scale));
-
-        int minH = baseClientH + nonClientH;
+        int desiredMinWidth = (int)(BaseDialogMinWidth * scale),
+            minW = Math.Max(desiredMinWidth, preferred.Width + Padding.Horizontal),
+            baseClientH = Math.Max(
+                (int)(300 * scale) - nonClientH,
+                preferred.Height + Padding.Vertical + (int)(8 * scale)),
+            minH = baseClientH + nonClientH;
 
         Rectangle workArea = Screen.GetWorkingArea(this);
+
         int maxFitW = Math.Max(1, workArea.Width - 40),
             maxFitH = Math.Max(1, workArea.Height - 40);
 
@@ -1497,7 +1501,10 @@ internal sealed class PhraseManagerDialog : Form
 
         MinimumSize = new Size(minW, minH);
 
-        if (Width < minW || Height < minH || Width > maxFitW || Height > maxFitH)
+        if (Width < minW ||
+            Height < minH ||
+            Width > maxFitW ||
+            Height > maxFitH)
         {
             Size = new Size(
                 Math.Clamp(Width, minW, maxFitW),
@@ -1694,14 +1701,19 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void ActionButton_Paint(object? sender, PaintEventArgs e)
     {
-        if (sender is not Button btn) return;
+        if (sender is not Button btn)
+        {
+            return;
+        }
 
         try
         {
             _btnStates.TryGetValue(btn, out ButtonVisualState? st);
 
             Graphics g = e.Graphics;
+
             float scale = btn.DeviceDpi / AppSettings.BaseDpi;
+
             bool isDark = btn.IsDarkModeActive(),
                  isFocused = btn.Focused,
                  isHoveredOrDwell = (st?.IsHovered ?? false) || (st?.DwellProgress ?? 0f) > 0f;
@@ -1713,7 +1725,8 @@ internal sealed class PhraseManagerDialog : Form
             }
 
             // 第一層：基礎邊框（非焦點、非懸停時繪製，確保靜態辨識度）。
-            if (!isFocused && !isHoveredOrDwell)
+            if (!isFocused &&
+                !isHoveredOrDwell)
             {
                 btn.DrawButtonBaseBorder(g, isDark, scale);
             }
@@ -1722,10 +1735,9 @@ internal sealed class PhraseManagerDialog : Form
             bool isStrongVisual = (st?.IsPressed ?? false) ||
                 (isFocused && !(st?.IsHovered ?? false));
 
-            if (isFocused || isHoveredOrDwell)
+            if (isFocused ||
+                isHoveredOrDwell)
             {
-                int borderThickness;
-                int inset;
 
                 Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
 
@@ -1733,8 +1745,8 @@ internal sealed class PhraseManagerDialog : Form
                     g,
                     borderColor,
                     scale,
-                    out inset,
-                    out borderThickness);
+                    out int inset,
+                    out int borderThickness);
 
                 // Pressed 內緣框（非顏色線索，支援全類型色弱）。
                 if (!SystemInformation.HighContrast && (st?.IsPressed ?? false))
@@ -1758,12 +1770,17 @@ internal sealed class PhraseManagerDialog : Form
                     if (SystemInformation.HighContrast)
                     {
                         using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
+
                         g.FillRectangle(barBrush, barRect);
                     }
                     else
                     {
-                        Color baseColor = isDark ? Color.LimeGreen : Color.Green,
-                              hatchColor = isDark ? Color.DarkGreen : Color.PaleGreen;
+                        Color baseColor = isDark ?
+                                Color.LimeGreen :
+                                Color.Green,
+                            hatchColor = isDark ?
+                                Color.DarkGreen :
+                                Color.PaleGreen;
 
                         using Brush bgBrush = new SolidBrush(baseColor);
                         using Brush hatchBrush = new HatchBrush(
@@ -1834,7 +1851,8 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void AnnounceA11y(string message, bool interrupt = false)
     {
-        if (IsDisposed || string.IsNullOrEmpty(message))
+        if (IsDisposed ||
+            string.IsNullOrEmpty(message))
         {
             return;
         }

@@ -140,12 +140,12 @@ internal sealed class PhraseService
                             !string.IsNullOrEmpty(entry.Content))
                         {
                             _phrases.Add(new PhraseEntry(
-                                entry.Name.Length > MaxPhraseNameLength
-                                    ? entry.Name[..MaxPhraseNameLength]
-                                    : entry.Name,
-                                entry.Content.Length > MaxPhraseContentLength
-                                    ? entry.Content[..MaxPhraseContentLength]
-                                    : entry.Content));
+                                entry.Name.Length > MaxPhraseNameLength ?
+                                    entry.Name[..MaxPhraseNameLength] :
+                                    entry.Name,
+                                entry.Content.Length > MaxPhraseContentLength ?
+                                    entry.Content[..MaxPhraseContentLength] :
+                                    entry.Content));
                         }
                     }
                 }
@@ -244,7 +244,8 @@ internal sealed class PhraseService
     {
         lock (PhraseLock)
         {
-            if (index < 0 || index >= _phrases.Count)
+            if (index < 0 ||
+                index >= _phrases.Count)
             {
                 return false;
             }
@@ -268,7 +269,8 @@ internal sealed class PhraseService
     {
         lock (PhraseLock)
         {
-            if (index < 0 || index >= _phrases.Count)
+            if (index < 0 ||
+                index >= _phrases.Count)
             {
                 return false;
             }
@@ -290,7 +292,8 @@ internal sealed class PhraseService
     {
         lock (PhraseLock)
         {
-            if (index <= 0 || index >= _phrases.Count)
+            if (index <= 0 ||
+                index >= _phrases.Count)
             {
                 return false;
             }
@@ -312,7 +315,8 @@ internal sealed class PhraseService
     {
         lock (PhraseLock)
         {
-            if (index < 0 || index >= _phrases.Count - 1)
+            if (index < 0 ||
+                index >= _phrases.Count - 1)
             {
                 return false;
             }

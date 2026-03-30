@@ -14,6 +14,9 @@ using System.Runtime.CompilerServices;
 
 namespace InputBox.Core.Controls;
 
+// 阻擋設計工具。
+partial class DesignerBlocker { };
+
 /// <summary>
 /// 片語編輯對話框（新增／編輯單一片語）
 /// </summary>
@@ -151,8 +154,7 @@ internal sealed class PhraseEditDialog : Form
                 _gamepadController.RSLeftRepeat += HandleRSLeft;
                 _gamepadController.RSRightPressed += HandleRSRight;
                 _gamepadController.RSRightRepeat += HandleRSRight;
-                _gamepadController.LeftTriggerPressed += HandleLTNav;
-                _gamepadController.RightTriggerPressed += HandleRTNav;
+                // LT/RT bindings removed: use D-Pad / Tab for navigation
                 _gamepadController.ConnectionChanged += HandleConnectionChanged;
             }
         }
@@ -228,7 +230,7 @@ internal sealed class PhraseEditDialog : Form
         // 名稱輸入。
         // 使用 _txtInputFont 追蹤此字體實例，以便在 OnShown 中替換為共享快取字體後安全釋放。
         _txtInputFont = new Font(Font.FontFamily, 28f, FontStyle.Regular, GraphicsUnit.Point);
-        _txtName = new TextBox()
+        _txtName = new TextBox
         {
             Text = name,
             Dock = DockStyle.Fill,
@@ -241,9 +243,9 @@ internal sealed class PhraseEditDialog : Form
             AccessibleName = Strings.Phrase_Edit_Name,
             AccessibleDescription = Strings.Phrase_A11y_Edit_Name_Desc,
             TabIndex = 0,
-            Margin = new Padding(0, 4, 0, 4)
+            Margin = new Padding(0, 4, 0, 4),
+            PlaceholderText = GetPhraseTextOrFallback("Phrase_Edit_Name_Placeholder", Strings.Phrase_Edit_Name)
         };
-        _txtName.PlaceholderText = GetPhraseTextOrFallback("Phrase_Edit_Name_Placeholder", Strings.Phrase_Edit_Name);
         _txtName.Enter += HandleInputBoxEnter;
         _txtName.Leave += HandleInputBoxLeave;
         tlp.Controls.Add(_txtName, 1, 0);
@@ -261,7 +263,7 @@ internal sealed class PhraseEditDialog : Form
         tlp.Controls.Add(lblContent, 0, 1);
 
         // 內容輸入（多行）；共用同一個私有字體實例。
-        _txtContent = new TextBox()
+        _txtContent = new TextBox
         {
             Text = content,
             Multiline = true,
@@ -278,9 +280,9 @@ internal sealed class PhraseEditDialog : Form
             AccessibleDescription = Strings.Phrase_A11y_Edit_Content_Desc,
             AcceptsReturn = true,
             TabIndex = 1,
-            Margin = new Padding(0, 4, 0, 4)
+            Margin = new Padding(0, 4, 0, 4),
+            PlaceholderText = GetPhraseTextOrFallback("Phrase_Edit_Content_Placeholder", Strings.Phrase_Edit_Content)
         };
-        _txtContent.PlaceholderText = GetPhraseTextOrFallback("Phrase_Edit_Content_Placeholder", Strings.Phrase_Edit_Content);
         _txtContent.Enter += HandleInputBoxEnter;
         _txtContent.Leave += HandleInputBoxLeave;
         tlp.Controls.Add(_txtContent, 1, 1);
@@ -708,11 +710,20 @@ internal sealed class PhraseEditDialog : Form
                             FeedbackService.PlaySound(SystemSounds.Asterisk);
                         }
                     }
-                    catch (Exception ex) { Debug.WriteLine($"[片語編輯] 觸控鍵盤開啟失敗: {ex.Message}"); }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[片語編輯] 觸控鍵盤開啟失敗: {ex.Message}");
+                    }
                 });
             }
-            catch (OperationCanceledException) { }
-            catch (Exception ex) { Debug.WriteLine($"[片語編輯] ShowTouchKeyboard 失敗: {ex.Message}"); }
+            catch (OperationCanceledException)
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[片語編輯] ShowTouchKeyboard 失敗: {ex.Message}");
+            }
         },
         _cts?.Token ?? CancellationToken.None)
         .SafeFireAndForget();
@@ -723,8 +734,16 @@ internal sealed class PhraseEditDialog : Form
     /// </summary>
     private TextBox? GetActiveTextBox()
     {
-        if (_txtName.Focused) return _txtName;
-        if (_txtContent.Focused) return _txtContent;
+        if (_txtName.Focused)
+        {
+            return _txtName;
+        }
+
+        if (_txtContent.Focused)
+        {
+            return _txtContent;
+        }
+
         return null;
     }
 
@@ -761,7 +780,7 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 套用與主輸入框一致的強視覺焦點樣式（高對比優先，其次主題感知反轉）。
     /// </summary>
-    private void ApplyInputBoxStrongVisual(TextBox tb)
+    private static void ApplyInputBoxStrongVisual(TextBox tb)
     {
         if (tb.IsDisposed)
         {
@@ -772,6 +791,7 @@ internal sealed class PhraseEditDialog : Form
         {
             tb.BackColor = SystemColors.Highlight;
             tb.ForeColor = SystemColors.HighlightText;
+
             return;
         }
 
@@ -1273,8 +1293,7 @@ internal sealed class PhraseEditDialog : Form
                 _gamepadController.RSLeftRepeat -= HandleRSLeft;
                 _gamepadController.RSRightPressed -= HandleRSRight;
                 _gamepadController.RSRightRepeat -= HandleRSRight;
-                _gamepadController.LeftTriggerPressed -= HandleLTNav;
-                _gamepadController.RightTriggerPressed -= HandleRTNav;
+                // LT/RT bindings removed: no unsubscription required here
                 _gamepadController.ConnectionChanged -= HandleConnectionChanged;
             }
         }
@@ -1550,8 +1569,6 @@ internal sealed class PhraseEditDialog : Form
 
             if (isFocused || isHoveredOrDwell || isDefault)
             {
-                int borderThickness;
-                int inset;
 
                 Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
 
@@ -1559,8 +1576,8 @@ internal sealed class PhraseEditDialog : Form
                     g,
                     borderColor,
                     scale,
-                    out inset,
-                    out borderThickness);
+                    out int inset,
+                    out int borderThickness);
 
                 // Pressed 內緣框。
                 if (!SystemInformation.HighContrast && (st?.IsPressed ?? false))
@@ -1609,9 +1626,15 @@ internal sealed class PhraseEditDialog : Form
         }
     }
 
+    /// <summary>
+    /// 廣播無障礙訊息
+    /// </summary>
+    /// <param name="message">要廣播的訊息</param>
+    /// <param name="interrupt">是否中斷目前的廣播</param>
     private void AnnounceA11y(string message, bool interrupt = false)
     {
-        if (IsDisposed || string.IsNullOrEmpty(message))
+        if (IsDisposed ||
+            string.IsNullOrEmpty(message))
         {
             return;
         }
@@ -1648,7 +1671,10 @@ internal sealed class PhraseEditDialog : Form
                         _announcer.Announce(message, interrupt && AppSettings.Current.A11yInterruptEnabled));
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+
+            }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[片語編輯] A11y 廣播失敗：{ex.Message}");
@@ -1673,18 +1699,18 @@ internal sealed class PhraseEditDialog : Form
         _lastAppliedDpi = currentDpi;
 
         float scale = currentDpi / AppSettings.BaseDpi;
+
         int desiredMinWidth = (int)(BaseDialogMinWidth * scale);
 
         Rectangle workArea = Screen.GetWorkingArea(this);
 
         // 小尺寸螢幕保護：保留 40px 邊界，避免高縮放下最小寬度超出可視區。
-        int maxFitWidth = Math.Max(1, workArea.Width - 40);
-        int maxFitHeight = Math.Max(1, workArea.Height - 40);
-
-        // 正常情況至少保留 320px 的可編輯寬度；若工作區本身更窄，則以工作區上限為準。
-        int minWidth = maxFitWidth >= 320 ?
-            Math.Clamp(desiredMinWidth, 320, maxFitWidth) :
-            maxFitWidth;
+        int maxFitWidth = Math.Max(1, workArea.Width - 40),
+            maxFitHeight = Math.Max(1, workArea.Height - 40),
+            // 正常情況至少保留 320px 的可編輯寬度；若工作區本身更窄，則以工作區上限為準。
+            minWidth = maxFitWidth >= 320 ?
+                Math.Clamp(desiredMinWidth, 320, maxFitWidth) :
+                maxFitWidth;
 
         MinimumSize = new Size(minWidth, 0);
 
@@ -1708,17 +1734,19 @@ internal sealed class PhraseEditDialog : Form
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated || IsDisposed)
+        if (!IsHandleCreated ||
+            IsDisposed)
         {
             return;
         }
 
         Rectangle workArea = Screen.GetWorkingArea(this);
 
-        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width));
-        int y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
+        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width)),
+            y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
 
-        if (x != Left || y != Top)
+        if (x != Left ||
+            y != Top)
         {
             Location = new Point(x, y);
         }

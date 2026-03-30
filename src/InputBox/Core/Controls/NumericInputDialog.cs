@@ -269,10 +269,13 @@ internal sealed class NumericInputDialog : Form
                 _gamepadController.RSLeftRepeat += HandleRSLeft;
                 _gamepadController.RSRightPressed += HandleRSRight;
                 _gamepadController.RSRightRepeat += HandleRSRight;
-                _gamepadController.APressed += HandleConfirm;
-                _gamepadController.StartPressed += HandleConfirm;
+                _gamepadController.APressed += HandleGamepadA;
+                _gamepadController.StartPressed += HandleOpenTouchKeyboardFromGamepad;
                 _gamepadController.BPressed += HandleCancel;
-                _gamepadController.XPressed += HandleReset;
+                _gamepadController.BackPressed += HandleCancel;
+                _gamepadController.XPressed += HandleBackspace;
+                _gamepadController.YPressed += HandleReset;
+                // 已由 D‑Pad (`LeftPressed` / `RightPressed`) 處理游標移動，移除 LT/RT 綁定以避免語意重複。
                 _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
             }
         }
@@ -487,10 +490,13 @@ internal sealed class NumericInputDialog : Form
                 _gamepadController.RSLeftRepeat -= HandleRSLeft;
                 _gamepadController.RSRightPressed -= HandleRSRight;
                 _gamepadController.RSRightRepeat -= HandleRSRight;
-                _gamepadController.APressed -= HandleConfirm;
-                _gamepadController.StartPressed -= HandleConfirm;
+                _gamepadController.APressed -= HandleGamepadA;
+                _gamepadController.StartPressed -= HandleOpenTouchKeyboardFromGamepad;
                 _gamepadController.BPressed -= HandleCancel;
-                _gamepadController.XPressed -= HandleReset;
+                _gamepadController.BackPressed -= HandleCancel;
+                _gamepadController.XPressed -= HandleBackspace;
+                _gamepadController.YPressed -= HandleReset;
+                // LT/RT 綁定已移除（由 D‑Pad 處理游標移動），無需解除訂閱。
                 _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
             }
         }
@@ -954,6 +960,146 @@ internal sealed class NumericInputDialog : Form
             Debug.WriteLine($"[NumericInputDialog] HandleReset 失敗：{ex.Message}");
         }
     });
+
+    /// <summary>
+    /// A 鍵：按鈕 → PerformClick；輸入框為空時開啟觸控鍵盤；其餘情境走確認驗證。
+    /// </summary>
+    private void HandleGamepadA() => this.SafeInvoke(() =>
+    {
+        try
+        {
+            if (ActiveControl is Button btn)
+            {
+                btn.PerformClick();
+                return;
+            }
+
+            if (_nud != null && (_nud.Focused || _nud.ContainsFocus))
+            {
+                TextBox? tb = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+                if (tb != null && string.IsNullOrWhiteSpace(tb.Text))
+                {
+                    ShowTouchKeyboard(tb);
+                    return;
+                }
+            }
+
+            HandleConfirm();
+        }
+        catch (Exception ex) { Debug.WriteLine($"[NumericInputDialog] HandleGamepadA 失敗: {ex.Message}"); }
+    });
+
+    /// <summary>
+    /// Start 鍵：在輸入框焦點時直接開啟觸控式鍵盤
+    /// </summary>
+    private void HandleOpenTouchKeyboardFromGamepad() => this.SafeInvoke(() =>
+    {
+        try
+        {
+            TextBox? tb = _nud?.Controls.OfType<TextBox>().FirstOrDefault();
+            if (tb != null)
+            {
+                ShowTouchKeyboard(tb);
+            }
+        }
+        catch (Exception ex) { Debug.WriteLine($"[NumericInputDialog] HandleOpenTouchKeyboardFromGamepad 失敗: {ex.Message}"); }
+    });
+
+    /// <summary>
+    /// 開啟觸控式鍵盤
+    /// </summary>
+    private void ShowTouchKeyboard(TextBox tb)
+    {
+        if (tb.CanFocus &&
+            !tb.Focused)
+        {
+            tb.Focus();
+        }
+
+        AnnounceA11y(Strings.A11y_Opening_Keyboard, interrupt: true);
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(150, _cts?.Token ?? CancellationToken.None);
+
+                if (TouchKeyboardService.IsVisible()) return;
+
+                await this.SafeInvokeAsync(() =>
+                {
+                    try
+                    {
+                        bool opened = TouchKeyboardService.TryOpen();
+
+                        if (opened)
+                        {
+                            FeedbackService.PlaySound(SystemSounds.Asterisk);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[NumericInputDialog] ShowTouchKeyboard 內層失敗: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NumericInputDialog] ShowTouchKeyboard 背景工作失敗: {ex.Message}");
+            }
+        }, _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// X 鍵：刪除選取文字或游標前一字元
+    /// </summary>
+    private void HandleBackspace() => this.SafeInvoke(() =>
+    {
+        try
+        {
+            if (_nud == null)
+            {
+                return;
+            }
+
+            TextBox? tb = _nud.Controls.OfType<TextBox>().FirstOrDefault();
+
+            if (tb == null ||
+                tb.IsDisposed ||
+                tb.ReadOnly)
+            {
+                return;
+            }
+
+            // 實施手動字串處理以符合「不模擬按鍵」的安全性紅線。
+            // 透過直接操作 TextBox.Text，能觸發 NumericUpDown 的內部驗證機制且不依賴 Win32 訊息注入。
+            if (tb.SelectionLength > 0)
+            {
+                tb.SelectedText = string.Empty;
+            }
+            else if (tb.SelectionStart > 0)
+            {
+                int start = tb.SelectionStart;
+
+                tb.Text = tb.Text.Remove(start - 1, 1);
+                tb.SelectionStart = start - 1;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NumericInputDialog] HandleBackspace 失敗: {ex.Message}");
+        }
+    });
+
+    /// <summary>
+    /// LT 鍵：向左導覽游標
+    /// </summary>
+    private void HandleLTNav() => MoveCaret(false);
+
+    /// <summary>
+    /// RT 鍵：向右導覽游標
+    /// </summary>
+    private void HandleRTNav() => MoveCaret(true);
 
     /// <summary>
     /// 執行視覺警示閃爍效果
@@ -1499,8 +1645,10 @@ internal sealed class NumericInputDialog : Form
         DoubleBuffered = true;
 
         // 建立 A11y 廣播器（作為備援）。
-        _announcer = new AnnouncerLabel();
-        _announcer.AccessibleName = "\u00A0";
+        _announcer = new AnnouncerLabel
+        {
+            AccessibleName = "\u00A0"
+        };
 
         // 繼承圖示：優先從主視窗繼承，保持應用程式視覺識別的一致性。
         Icon = Application.OpenForms.OfType<MainForm>().FirstOrDefault()?.Icon ??
@@ -1871,7 +2019,7 @@ internal sealed class NumericInputDialog : Form
         CancelButton = _btnCancel;
 
         _btnReset = CreateEyeTrackerButton(
-            ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'),
+            ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'Y'),
             string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue),
             scale,
             _a11yFont);
@@ -2368,8 +2516,6 @@ internal sealed class NumericInputDialog : Form
                 isHovered ||
                 isDefault)
             {
-                int borderThickness;
-                int inset;
 
                 bool isStrongVisual = isPressed ||
                     (btn.Focused && !isHovered);
@@ -2382,8 +2528,8 @@ internal sealed class NumericInputDialog : Form
                     e.Graphics,
                     borderColor,
                     currentScale,
-                    out inset,
-                    out borderThickness);
+                    out int inset,
+                    out int borderThickness);
 
                 if (!SystemInformation.HighContrast &&
                     isPressed)
