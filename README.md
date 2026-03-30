@@ -9,6 +9,11 @@
 
 一款適用於 Windows 電競掌機的文字輸入輔助應用程式，用於改善在《FINAL FANTASY XIV 繁體中文版》遊戲環境中，於特定操作情境下無法直接使用 Windows 觸控式鍵盤輸入中文的使用體驗。✨
 
+## 專案網頁 🌐
+
+- **專案網頁**：<https://rubujo.github.io/InputBox/>
+- **下載最新版本**：<https://github.com/rubujo/InputBox/releases>
+
 ## 一、功能說明 💡
 
 - **輔助輸入** ⌨️：提供單一文字方塊，方便使用控制器開啟 Windows 觸控式鍵盤（`TabTip.exe`）並輸入文字。
@@ -276,7 +281,7 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 
 ## 九、聲明 📢
 
-1. 本應用程式使用 AI 服務輔助開發、翻譯、圖示生成與文件撰寫。 🤖
+1. 本專案使用 AI 服務輔助開發、翻譯、圖示生成、文件撰寫以及網頁製作。 🤖
 2. 本應用程式依賴 `TabTip.exe` 以開啟 Windows 觸控式鍵盤，僅支援於 Windows 11 22H2（Build 22621）以上版本執行。
    - 實際系統功能（如觸控式鍵盤行為或鍵盤配置）可能因系統版本與功能下放狀況而有所差異。
 3. 本應用程式為非官方第三方應用程式，與任何遊戲或服務之開發商、發行商、代理商或營運單位皆無關聯，且無法保證在任何特定遊戲或服務環境中皆能符合使用者的操作需求或使用情境。
@@ -284,9 +289,9 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 
 ## 十、授權條款 📜
 
-本專案本體採用 [**CC0 1.0 Universal**](https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hant) 宣告釋出至公眾領域，並於適用法律允許之最大範圍內不主張任何著作權或相關權利。
+本專案的本體採用 [**CC0 1.0 Universal**](https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hant) 宣告釋出至公眾領域，並於適用法律允許之最大範圍內不主張任何著作權或相關權利。
 
-> 您可以自由地複製、修改、發佈或執行本應用程式（含原始碼），**完全無需取得授權**。🕊️
+> 您可以自由地複製、修改、發佈或執行本應用程式（含原始碼、文件以及網頁等等資源），**完全無需取得授權**。🕊️
 
 ### 第三方函式庫授權聲明 ⚖️
 
