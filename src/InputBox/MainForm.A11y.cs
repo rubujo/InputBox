@@ -215,9 +215,13 @@ public partial class MainForm
             Width > maxFitWidth ||
             Height > maxFitHeight)
         {
+            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
+            int finalMaxW = Math.Max(clampedMinWidth, maxFitWidth),
+                finalMaxH = Math.Max(clampedMinHeight, maxFitHeight);
+
             Size = new Size(
-                Math.Clamp(Width, clampedMinWidth, maxFitWidth),
-                Math.Clamp(Height, clampedMinHeight, maxFitHeight));
+                Math.Clamp(Width, clampedMinWidth, finalMaxW),
+                Math.Clamp(Height, clampedMinHeight, finalMaxH));
 
             // 佈局擴張後，立即執行智慧定位檢查，防止視窗邊緣跑出螢幕。
             ApplySmartPosition();

@@ -1472,9 +1472,13 @@ internal sealed class NumericInputDialog : Form
                 Width > maxFitW ||
                 Height > maxFitH)
             {
+                // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
+                int finalMaxW = Math.Max(MinimumSize.Width, maxFitW),
+                    finalMaxH = Math.Max(MinimumSize.Height, maxFitH);
+
                 Size = new Size(
-                    Math.Clamp(Width, MinimumSize.Width, maxFitW),
-                    Math.Clamp(Height, MinimumSize.Height, maxFitH));
+                    Math.Clamp(Width, MinimumSize.Width, finalMaxW),
+                    Math.Clamp(Height, MinimumSize.Height, finalMaxH));
 
                 // 佈局擴張後，執行智慧定位檢查。
                 ApplySmartPosition();

@@ -739,10 +739,11 @@ internal sealed class HelpDialog : Form
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
         // 上限設為可用高度的 45%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）開啟 OSK 時仍能完整顯示。
         int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8,
-            maxH = (int)(workArea.Height * 0.45f),
-            desiredMinHeight = (int)(300 * scale);
-
-        int formH = Math.Clamp(naturalH, desiredMinHeight, maxH);
+            maxH = Math.Max(320, (int)(workArea.Height * 0.45f)),
+            desiredMinHeight = (int)(300 * scale),
+            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
+            finalMaxH = Math.Max(desiredMinHeight, maxH),
+            formH = Math.Clamp(naturalH, desiredMinHeight, finalMaxH);
 
         Size = new Size(formW, formH);
     }

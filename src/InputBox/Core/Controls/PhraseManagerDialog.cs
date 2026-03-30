@@ -1506,9 +1506,13 @@ internal sealed class PhraseManagerDialog : Form
             Width > maxFitW ||
             Height > maxFitH)
         {
+            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
+            int finalMaxW = Math.Max(minW, maxFitW),
+                finalMaxH = Math.Max(minH, maxFitH);
+
             Size = new Size(
-                Math.Clamp(Width, minW, maxFitW),
-                Math.Clamp(Height, minH, maxFitH));
+                Math.Clamp(Width, minW, finalMaxW),
+                Math.Clamp(Height, minH, finalMaxH));
         }
     }
 
