@@ -1,4 +1,3 @@
-# 用於部署靜態內容至 GitHub Pages 的簡單工作流
 name: 部署靜態網頁至 GitHub Pages
 
 on:
@@ -22,7 +21,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # 由於我們只是部署，因此只有一個部署作業。
   deploy:
     environment:
       name: github-pages
@@ -37,16 +35,25 @@ jobs:
 
       - name: 準備部署內容
         run: |
-          # 建立一個臨時目錄用於存放待部屬檔案。
           mkdir -p _site
-          # 複製所有檔案到 _site，排除 .git 和 .github 資料夾。
-          rsync -av --progress . _site --exclude .git --exclude .github --exclude _site
-          # 根據需求明確排除 AI 指引檔案與專案規範檔案。
-          rm -f _site/GEMINI.md
-          rm -f _site/ENGINEERING_GUIDELINES.md
-          # 排除可能殘留的其他隱藏檔。
-          rm -f _site/.gitignore
-          echo "部署內容已準備就緒，AI 指引與工程規範檔案已排除。"
+          # 1. 使用 rsync 同步，排除所有不需要的檔案。
+          rsync -av --progress ./ _site/ \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '_site/' \
+            --exclude 'GEMINI.md' \
+            --exclude 'ENGINEERING_GUIDELINES.md' \
+            --exclude 'README.md' \
+            --exclude '.gitignore'
+
+          # 2. 徹底檢查 _site 目錄（包含子目錄），確保這些檔案消失。
+          find _site -name "GEMINI.md" -delete
+          find _site -name "ENGINEERING_GUIDELINES.md" -delete
+          find _site -name "README.md" -delete
+
+          # 3. 列出最終清單供日誌查閱。
+          echo "--- 最終打包清單 ---"
+          find _site -maxdepth 2
 
       - name: 上傳部署構件
         uses: actions/upload-pages-artifact@v4
