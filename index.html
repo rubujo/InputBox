@@ -10,13 +10,6 @@
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
     <style>
         /* ========== 結構註解：色彩與主題 ========== */
-        .lang-nav-hidden {
-            position: absolute;
-            width: 0;
-            height: 0;
-            overflow: hidden;
-        }
-
         :root {
             /* WCAG 2.2 AAA Color Palette - Light Mode */
             --bg-color: #ffffff;
@@ -87,6 +80,25 @@
             max-width: 85ch;
             margin: 0 auto;
             padding: clamp(2rem, 5vh, 4rem) 1.5rem;
+        }
+
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+
+        .lang-nav-hidden {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
         }
 
         /* Language Switcher Logic (Radio Button Hack) */
@@ -160,13 +172,12 @@
                 transform: rotate(0deg);
             }
 
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
+            to {
+                transform: rotate(360deg);
             }
+        }
 
+        header h1 {
             font-size: clamp(2.2rem, 5vw, 4.5rem);
             font-weight: 900;
             margin-bottom: 1.5rem;
@@ -420,6 +431,7 @@
             border-collapse: collapse;
             min-width: 650px;
             /* Desktop min-width */
+            table-layout: fixed;
         }
 
         th,
@@ -427,6 +439,8 @@
             padding: 1.25rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            width: 33.33%;
+            word-wrap: break-word;
         }
 
         th {
@@ -455,6 +469,19 @@
             font-family: inherit;
             position: relative;
             top: -2px;
+        }
+
+        /* 補充說明區塊（快速操作） */
+        .usage-advanced-title {
+            margin-top: 2.5rem;
+            font-size: 1.3rem;
+            text-align: left;
+        }
+
+        .usage-advanced-list {
+            margin: 1.5rem 0 0 1.5rem;
+            padding-left: 0;
+            list-style: disc inside;
         }
 
         :focus-visible {
@@ -603,6 +630,7 @@
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
+                width: 100%;
                 /* min-height: auto; 移除以符合 Firefox 相容性 */
             }
 
@@ -642,19 +670,6 @@
         <label for="lang-en" lang="en" id="label-lang-en">English</label>
         <label for="lang-ja" lang="ja" id="label-lang-ja">日本語</label>
         <label for="lang-sc" lang="zh-Hans" id="label-lang-sc">简体中文</label>
-        <style>
-            .visually-hidden {
-                position: absolute !important;
-                width: 1px !important;
-                height: 1px !important;
-                padding: 0 !important;
-                margin: -1px !important;
-                overflow: hidden !important;
-                clip: rect(0, 0, 0, 0) !important;
-                white-space: nowrap !important;
-                border: 0 !important;
-            }
-        </style>
     </nav>
 
     <header role="banner" aria-label="頁首">
@@ -1535,18 +1550,36 @@
                         <tbody>
                             <tr>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">功能項目</span>
+                                        <span class="lang-en" lang="en">Action</span>
+                                        <span class="lang-ja" lang="ja">項目</span>
+                                        <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant">開啟功能選單</span>
                                     <span class="lang-en" lang="en">Open Context Menu</span>
                                     <span class="lang-ja" lang="ja">機能メニューを開く</span>
                                     <span class="lang-sc" lang="zh-Hans">打开功能菜单</span>
                                 </td>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">遊戲控制器 🎮</span>
+                                        <span class="lang-en" lang="en">Controller 🎮</span>
+                                        <span class="lang-ja" lang="ja">コントローラー 🎮</span>
+                                        <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant"><kbd>[Y 鍵]</kbd></span>
                                     <span class="lang-en" lang="en"><kbd>Y Button</kbd></span>
                                     <span class="lang-ja" lang="ja"><kbd>[Y ボタン]</kbd></span>
                                     <span class="lang-sc" lang="zh-Hans"><kbd>[Y 键]</kbd></span>
                                 </td>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">鍵盤快速鍵 ⌨️</span>
+                                        <span class="lang-en" lang="en">Keyboard ⌨️</span>
+                                        <span class="lang-ja" lang="ja">キーボード ⌨️</span>
+                                        <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant">僅於複製按鈕上按下滑鼠右鍵／<kbd>[F10]</kbd>／<kbd>[Alt]</kbd>
                                         + <kbd>[M]</kbd>（輸入框右鍵為系統預設選單）</span>
                                     <span class="lang-en" lang="en">Right Click (on Copy button only) / <kbd>F10</kbd> /
@@ -1560,12 +1593,24 @@
                             </tr>
                             <tr>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">功能項目</span>
+                                        <span class="lang-en" lang="en">Action</span>
+                                        <span class="lang-ja" lang="ja">項目</span>
+                                        <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant">選單導覽與操作</span>
                                     <span class="lang-en" lang="en">Menu Navigation</span>
                                     <span class="lang-ja" lang="ja">メニュー操作</span>
                                     <span class="lang-sc" lang="zh-Hans">菜单导航与操作</span>
                                 </td>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">遊戲控制器 🎮</span>
+                                        <span class="lang-en" lang="en">Controller 🎮</span>
+                                        <span class="lang-ja" lang="ja">コントローラー 🎮</span>
+                                        <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>/<kbd>[↓]</kbd> 移動<br><kbd>[A
                                             鍵]</kbd> 執行<br><kbd>[B 鍵]</kbd> 關閉</span>
                                     <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Move<br><kbd>A
@@ -1576,6 +1621,12 @@
                                             键]</kbd> 执行<br><kbd>[B 键]</kbd> 关闭</span>
                                 </td>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">鍵盤快速鍵 ⌨️</span>
+                                        <span class="lang-en" lang="en">Keyboard ⌨️</span>
+                                        <span class="lang-ja" lang="ja">キーボード ⌨️</span>
+                                        <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd> 執行<br><kbd>[Esc]</kbd>
                                         關閉</span>
                                     <span class="lang-en" lang="en"><kbd>Enter</kbd> Select<br><kbd>Esc</kbd>
@@ -1587,12 +1638,24 @@
                             </tr>
                             <tr>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">功能項目</span>
+                                        <span class="lang-en" lang="en">Action</span>
+                                        <span class="lang-ja" lang="ja">項目</span>
+                                        <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant">數值輸入對話框</span>
                                     <span class="lang-en" lang="en">Numeric Dialog</span>
                                     <span class="lang-ja" lang="ja">数値入力ダイアログ</span>
                                     <span class="lang-sc" lang="zh-Hans">数值输入对话框</span>
                                 </td>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">遊戲控制器 🎮</span>
+                                        <span class="lang-en" lang="en">Controller 🎮</span>
+                                        <span class="lang-ja" lang="ja">コントローラー 🎮</span>
+                                        <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>/<kbd>[↓]</kbd> 調整<br><kbd>[A
                                             鍵]</kbd> 確認<br><kbd>[B 鍵]</kbd> 取消<br><kbd>[X 鍵]</kbd> 重設</span>
                                     <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Adjust<br><kbd>A
@@ -1604,6 +1667,12 @@
                                             键]</kbd> 确认<br><kbd>[B 键]</kbd> 取消<br><kbd>[X 键]</kbd> 重置</span>
                                 </td>
                                 <td>
+                                    <span class="mobile-label">
+                                        <span class="lang-zh" lang="zh-Hant">鍵盤快速鍵 ⌨️</span>
+                                        <span class="lang-en" lang="en">Keyboard ⌨️</span>
+                                        <span class="lang-ja" lang="ja">キーボード ⌨️</span>
+                                        <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                                    </span>
                                     <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd> 確認<br><kbd>[Esc]</kbd>
                                         取消<br><kbd>[Alt]</kbd> + <kbd>[X]</kbd> 重設</span>
                                     <span class="lang-en" lang="en"><kbd>Enter</kbd> Confirm<br><kbd>Esc</kbd>
@@ -1619,21 +1688,6 @@
                 </div>
             </div>
         </section>
-
-        <style>
-            /* 補充說明區塊（快速操作） */
-            .usage-advanced-title {
-                margin-top: 2.5rem;
-                font-size: 1.3rem;
-                text-align: left;
-            }
-
-            .usage-advanced-list {
-                margin: 1.5rem 0 0 1.5rem;
-                padding-left: 0;
-                list-style: disc inside;
-            }
-        </style>
 
         <section id="vibration">
             <div class="container">
@@ -1664,7 +1718,7 @@
                             <span class="lang-zh" lang="zh-Hant">明確確認感 ✅</span>
                             <span class="lang-en" lang="en">Clear Confirmation ✅</span>
                             <span class="lang-ja" lang="ja">明確な確認感 ✅</span>
-                            <span class="lang-sc" lang="zh-Hans">明确确认感 ✅</span>
+                            <span class="lang-sc" lang="zh-Hans">明確確認感 ✅</span>
                         </h3>
                         <p>
                             <span class="lang-zh" lang="zh-Hant">文字成功複製到剪貼簿、或成功切換回目標視窗時觸發。</span>
@@ -1702,82 +1756,6 @@
                                 failures.</span>
                             <span class="lang-ja" lang="ja">エラー発生時、履歴の境界到達時、またはコピー失敗時に発生。</span>
                             <span class="lang-sc" lang="zh-Hans">操作发生错误、历史记录到达边界、或写入剪贴簿失败时触发。</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="spec">
-            <div class="container">
-                <h2>
-                    <span class="lang-zh" lang="zh-Hant">要求聲明 📋</span>
-                    <span class="lang-en" lang="en">Specifications 📋</span>
-                    <span class="lang-ja" lang="ja">要求声明 📋</span>
-                    <span class="lang-sc" lang="zh-Hans">要求声明 📋</span>
-                </h2>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <h3>
-                            <span class="lang-zh" lang="zh-Hant">作業系統與環境 🖥️</span>
-                            <span class="lang-en" lang="en">OS & Environment 🖥️</span>
-                            <span class="lang-ja" lang="ja">OS と動作環境 🖥️</span>
-                            <span class="lang-sc" lang="zh-Hans">操作系统与环境 🖥️</span>
-                        </h3>
-                        <p>
-                            <span class="lang-zh" lang="zh-Hant">Windows 11 22H2 以上。發佈版本採獨立封裝，無需預先安裝環境。</span>
-                            <span class="lang-en" lang="en">Windows 11 22H2 or newer. Standalone executable, no
-                                pre-installation required.</span>
-                            <span class="lang-ja" lang="ja">Windows 11 22H2 以降。ランタイム不要のスタンドアロン形式。</span>
-                            <span class="lang-sc" lang="zh-Hans">Windows 11 22H2 以上。发布版本采独立封装，无需预先安装环境。</span>
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>
-                            <span class="lang-zh" lang="zh-Hant">輸入環境設定 ⌨️</span>
-                            <span class="lang-en" lang="en">IME Settings ⌨️</span>
-                            <span class="lang-ja" lang="ja">入力設定 ⌨️</span>
-                            <span class="lang-sc" lang="zh-Hans">输入环境设置 ⌨️</span>
-                        </h3>
-                        <p>
-                            <span class="lang-zh" lang="zh-Hant">需配合系統內建輸入法（注音、倉頡、速成）之「遊戲控制器」設定使用。</span>
-                            <span class="lang-en" lang="en">Requires "Game Controller" mode for built-in Windows 11
-                                IMEs.</span>
-                            <span class="lang-ja" lang="ja">標準 IME の「ゲーム コントローラー」設定を有効にする必要があります。</span>
-                            <span class="lang-sc" lang="zh-Hans">需配合系统内置输入法（注音、仓颉、速成）之「游戏控制器」设定使用。</span>
-                        </p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>
-                            <span class="lang-zh" lang="zh-Hant">硬體相容性 🎮</span>
-                            <span class="lang-en" lang="en">Compatibility 🎮</span>
-                            <span class="lang-ja" lang="ja">ハードウェア互換性 🎮</span>
-                            <span class="lang-sc" lang="zh-Hans">硬件兼容性 🎮</span>
-                        </h3>
-                        <p>
-                            <span class="lang-zh" lang="zh-Hant">支援 XInput 或 GameInput 相容之控制器（如 ROG Ally X、Xbox
-                                控制器等）。</span>
-                            <span class="lang-en" lang="en">Supports XInput or GameInput controllers（such as ROG Ally X,
-                                Xbox controllers, etc.）.</span>
-                            <span class="lang-ja" lang="ja">XInput または GameInput 準拠のコントローラー（ROG Ally X、Xbox
-                                コントローラーなど）。</span>
-                            <span class="lang-sc" lang="zh-Hans">支持 XInput 或 GameInput 兼容之控制器（如 ROG Ally X、Xbox
-                                控制器等）。</span>
-                            </h3>
-                    </div>
-                    <div class="feature-card">
-                        <h3>
-                            <span class="lang-zh" lang="zh-Hant">安全性聲明 🛡️</span>
-                            <span class="lang-en" lang="en">Safety Statement 🛡️</span>
-                            <span class="lang-ja" lang="ja">安全声明 🛡️</span>
-                            <span class="lang-sc" lang="zh-Hans">安全性声明 🛡️</span>
-                        </h3>
-                        <p>
-                            <span class="lang-zh" lang="zh-Hant">不讀取遊戲記憶體、不攔截網路封包、不模擬按鍵輸入到遊戲。</span>
-                            <span class="lang-en" lang="en">No memory reading, no packet interception, no direct
-                                keystroke simulation.</span>
-                            <span class="lang-ja" lang="ja">メモリ読み取り、パケット傍受、ゲームへの直接送信は一切行いません。</span>
-                            <span class="lang-sc" lang="zh-Hans">不读取游戏内存、不拦截网络封包、不模拟按键输入到游戏。</span>
                         </p>
                     </div>
                 </div>
@@ -1847,7 +1825,7 @@
                                 が「自動」の場合、スティック操作が競合することがあります。制御モードを「デスクトップ」に手動で切り替えてください。</span>
                             <span class="lang-sc" lang="zh-Hans">若使用 ROG Ally 等掌机且 Armory Crate SE
                                 设为「自动」，本应用程序可能会接管控制器信号。建议手动将控制模式切换为「桌面」。</span>
-                            </h3>
+                        </p>
                     </div>
                     <div class="feature-card">
                         <h3>
@@ -1892,7 +1870,7 @@
                     in any specific game or service environment. Any consequences resulting from the use of this
                     application are the sole responsibility of the user.</span>
                 <span class="lang-ja"
-                    lang="ja">本アプリケーションは非公式のサードパーティ製アプリケーションであり、いかなるゲームやサービスの開発元、発売元、代理店、または運営主体とも提携・関連はありません。また、特定のゲームやサービス環境において、利用者の操作上の要求や使用状況に適合することを保証するものではありません。本アプリケーションの使用によって生じたいかなる結果についても、利用者がその責任を負うものとします。</span>
+                    lang="ja">本アプリケーションは非公式のサードパーティ製アプリケーションであり、いかなるゲームやサービスの開發元、発売元、代理店、または運営主体とも提攜・関連はありません。また、特定のゲームやサービス環境において、利用者の操作上の要求や使用状況に適合することを保証するものではありません。本アプリケーションの使用によって生じたいかなる結果についても、利用者がその責任を負うものとします。</span>
                 <span class="lang-sc"
                     lang="zh-Hans">本应用程序为非官方第三方应用程序，与任何游戏或服务的开发商、发行商、代理商或运营单位皆无关联，且无法保证在任何特定游戏或服务环境中皆能符合用户的操作需求或使用情境。使用本应用程序所产生的任何后果，皆由用户自行承担。</span>
             </p>
