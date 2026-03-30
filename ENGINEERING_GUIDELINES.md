@@ -21,11 +21,16 @@
 
 ### 2.1 Radio Button Hack
 為了在不使用 JS 且不影響頁內錨點導覽（如點擊跳至「快速操作」區塊）的情況下切換語系，本站採用 Radio Button 技術：
-- **結構**：在 `<body>` 開頭定義隱藏的 `input[type="radio"]`。
+- **結構**：在 `<body>` 開頭定義隱藏的 `input[type="radio"]`，**必須與主要內容同層，且不可包覆於 landmark 元素內**，以確保 CSS sibling hack 正常運作並通過 WCAG 驗證。
 - **控制**：利用 CSS 相鄰兄弟選擇器 (`~`) 配合 `:checked` 虛擬類別，控制 `.lang-xx` 標籤的 `display` 狀態。
 - **持久性**：此機制能確保使用者在瀏覽頁面各處時，語系狀態不會因為 URL 變動而重置。
+#### 3.0 Landmark 結構要求
+- **landmark 包覆**：所有互動元素與輔助結構（如語系切換 radio button）必須被 landmark 元素（如 `<nav>`、`<header>`、`<main>`、`<footer>` 或具備 `role` 的 `<div>`）包覆，確保螢幕閱讀器正確導覽並通過 WCAG 驗證。
 
 ### 2.2 語意化同步
+#### 2.3 語系切換標籤的 lang 屬性（台灣 A+）
+- **規範**：語系切換 `<label>` 或任何語言選擇器，其 `lang` 屬性值不可與 `<html>` 主語系相同，否則不符台灣無障礙 A+ 2.1.1.1.2 規範。
+- **實作建議**：主語系的 `<label>` 應省略 `lang` 屬性，或以 `lang="und"` 標示，僅為其他語言選項標註正確語系。
 - **規範**：每一段文字必須同時提供 ZH, EN, JA, SC 四種版本。
 - **A11y 重要規則**：每個語言容器必須明確標註 `lang` 屬性：
     - 正體中文：`<span class="lang-zh" lang="zh-Hant">`
