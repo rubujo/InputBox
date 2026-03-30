@@ -1,6 +1,6 @@
 # InputBox Workspace Instructions
 
-本檔只保留「每次任務都應套用」的精簡規則。詳細工程理由、術語表與完整約束請參考 [GEMINI.md](../GEMINI.md)；建置與發佈細節請參考 [README.md](../README.md)。
+本檔只保留「每次任務都應套用」的精簡規則。詳細工程理由、術語表與完整約束請參考 [ENGINEERING_GUIDELINES.md](../ENGINEERING_GUIDELINES.md)；建置與發佈細節請參考 [README.md](../README.md)。
 
 ## Project Context
 
@@ -50,5 +50,5 @@
 
 ## References
 
-- 詳細工程規範：[GEMINI.md](../GEMINI.md)
+- 詳細工程規範：[ENGINEERING_GUIDELINES.md](../ENGINEERING_GUIDELINES.md)
 - 使用與設定說明：[README.md](../README.md)
