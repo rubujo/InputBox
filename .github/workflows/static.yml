@@ -1,0 +1,59 @@
+# 用於部署靜態內容至 GitHub Pages 的簡單工作流
+name: 部署靜態網頁至 GitHub Pages
+
+on:
+  # 當推送到 gh-pages 分支時觸發。
+  push:
+    branches: ["gh-pages"]
+
+  # 允許從 Actions 標籤手動執行此工作流。
+  workflow_dispatch:
+
+# 設定 GITHUB_TOKEN 的權限，以允許部署到 GitHub Pages。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 僅允許一個並行部署，跳過在執行中的部署與最新排隊部署之間排隊的執行。
+# 但是，不要取消進行中的執行，因為我們希望允許這些生產部署完成。
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 由於我們只是部署，因此只有一個部署作業。
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢出原始碼
+        uses: actions/checkout@v6
+
+      - name: 設定 GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: 準備部署內容
+        run: |
+          # 建立一個臨時目錄用於存放待部屬檔案。
+          mkdir -p _site
+          # 複製所有檔案到 _site，排除 .git 和 .github 資料夾。
+          rsync -av --progress . _site --exclude .git --exclude .github --exclude _site
+          # 根據需求明確排除 AI 指引檔案與專案規範檔案。
+          rm -f _site/GEMINI.md
+          rm -f _site/ENGINEERING_GUIDELINES.md
+          # 排除可能殘留的其他隱藏檔。
+          rm -f _site/.gitignore
+          echo "部署內容已準備就緒，AI 指引與工程規範檔案已排除。"
+
+      - name: 上傳部署構件
+        uses: actions/upload-pages-artifact@v4
+        with:
+          # 上傳準備好的 _site 目錄。
+          path: '_site'
+
+      - name: 部署至 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
