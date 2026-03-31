@@ -1,0 +1,15 @@
+# 讓 Git 自動處理換行符號：提交時轉 LF，在 Windows 檢出時轉 CRLF
+* text=auto
+
+# 確保網頁檔案與規範檔案被視為文本，並正確顯示 Diff
+*.html text
+*.css  text
+*.md   text
+*.json text
+*.yml  text
+
+# 排除不需要 Diff 的二進位檔案 (預防性)
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary

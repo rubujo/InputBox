@@ -36,28 +36,15 @@ jobs:
       - name: 準備部署內容
         run: |
           mkdir -p _site
-          # 1. 使用 rsync 同步，排除所有不需要的檔案。
+          # 使用萬用字元排除所有點檔案、Markdown 規範與開發文件
           rsync -av --progress ./ _site/ \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude '_site/' \
+            --exclude '.*' \
+            --exclude '*.md' \
             --exclude 'docs/' \
-            --exclude '.gemini/' \
-            --exclude '.agents/' \
-            --exclude 'GEMINI.md' \
-            --exclude 'ENGINEERING_GUIDELINES.md' \
-            --exclude 'README.md' \
-            --exclude '.gitignore'
+            --exclude '_site/'
 
-          # 2. 徹底檢查 _site 目錄（包含子目錄），確保這些檔案與目錄消失。
-          find _site -name "GEMINI.md" -delete
-          find _site -name "ENGINEERING_GUIDELINES.md" -delete
-          find _site -name "README.md" -delete
-          rm -rf _site/docs _site/.gemini _site/.agents
-
-          # 3. 列出最終清單供日誌查閱。
-          echo "--- 最終打包清單 ---"
-          find _site -maxdepth 2
+          echo "--- 最終部署內容清單 ---"
+          ls -R _site
 
       - name: 上傳部署構件
         uses: actions/upload-pages-artifact@v4

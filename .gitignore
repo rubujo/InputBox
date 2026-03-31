@@ -1,0 +1,25 @@
+# InputBox gh-pages Branch .gitignore
+
+# 系統與編輯器 (OS & IDE)
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
+
+# 專案特定 (Project Specific)
+# 本分支為純網頁 (No JS/No Images)，排除潛在的編譯產物
+node_modules/
+dist/
+build/
+.cache/
+
+# 代理與開發工具 (Agents & Dev Tools)
+# 排除工具產生的暫存與記錄檔，但保留 .md 規範與 GitHub Workflow 檔案
+.gemini/
+.gemini-cli/
+!.gemini.md
+!.github/copilot-instructions.md
+!.github/workflows/*.yml
+!**/SKILL.md
