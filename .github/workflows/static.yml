@@ -41,15 +41,19 @@ jobs:
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '_site/' \
+            --exclude 'docs/' \
+            --exclude '.gemini/' \
+            --exclude '.agents/' \
             --exclude 'GEMINI.md' \
             --exclude 'ENGINEERING_GUIDELINES.md' \
             --exclude 'README.md' \
             --exclude '.gitignore'
 
-          # 2. 徹底檢查 _site 目錄（包含子目錄），確保這些檔案消失。
+          # 2. 徹底檢查 _site 目錄（包含子目錄），確保這些檔案與目錄消失。
           find _site -name "GEMINI.md" -delete
           find _site -name "ENGINEERING_GUIDELINES.md" -delete
           find _site -name "README.md" -delete
+          rm -rf _site/docs _site/.gemini _site/.agents
 
           # 3. 列出最終清單供日誌查閱。
           echo "--- 最終打包清單 ---"
