@@ -1,0 +1,22 @@
+# 核心工程與架構標準 (Core Engineering)
+
+- **目標框架**：`.NET 10 (net10.0-windows)`。
+- **C# 13 特性**：
+  - **執行緒鎖定**：必須使用宣告為 `private readonly Lock _lock = new();` 的專用物件。
+- **非同步與 UI 安全 (Threading)**：
+  - **同步與非同步調度**：
+    - `InvokeAsync(Action)`：同步屬性賦值或簡單調用。
+    - `InvokeAsync(Func<Task>)`：包含 `await` 的非同步 UI 邏輯。
+    - 優先使用 `SafeInvokeAsync` 或 `await control.InvokeAsync(...)` 以避免阻塞。
+  - **權杖安全 (Token Safety)**：存取 `CancellationTokenSource?` 一律使用 `?.Token ?? CancellationToken.None` 模式。
+- **資源管理 (Atomic Dispose)**：
+  - **原子化處置模式**：使用 `Interlocked.Exchange(ref _field, null)?.Dispose()`，確保先歸零、後處置。
+  - **權杖處置紅線**：終止任務時必用擴充方法 `Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();`。
+  - **共享資源歸零 (Shared Nullification)**：來自全域快取池 (如 `GetSharedA11yFont`) 的資源，在 Dispose 時**僅能將欄位設為 null**，絕對禁止手動 `Dispose()` 或放入回收桶。
+  - **字體回收桶 (Trash Can)**：更換「視窗私有」字體實例時，舊實例必須放入 `AddFontToTrashCan` 延遲釋放。
+- **DPI 與佈局一致性**：
+  - **佈局約束**：必須實作 `UpdateLayoutConstraints` 與 `UpdateMinimumSize` 並在 `OnHandleCreated` 與 `OnDpiChanged` 調用。
+  - **計算標記**：計算縮放時除數/被除數必須包含 `96.0f` 或 `(float)` 強制轉型，杜絕整數截斷誤差。
+  - **智慧重定位 (Smart Positioning)**：視窗初始顯示或佈局擴張時，須執行 `ApplySmartPosition` 螢幕邊界檢查。
+- **系統偏好同步**：
+  - **主題還原**：還原預設配色時應將屬性設為 `Color.Empty`，由 .NET 10 主題引擎自動判斷 (禁：硬編碼 `SystemColors.Control`)。

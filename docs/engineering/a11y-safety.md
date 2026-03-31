@@ -1,0 +1,30 @@
+# A11y 無障礙與視覺安全 (A11y & Visual Safety)
+
+- **廣播與避讓 (Announce)**：
+  - 廣播前保留 200ms 延遲 (於非 UI 執行緒執行)，避開 Audio Ducking。
+  - 重複訊息末尾交替附加 `\u200B` (ZWSP) 或 `\u200C` (ZWNJ)。
+  - **詳細程度控制 (WCAG 2.2.4 AAA)**：提供選項將 `interrupt: true` 的非緊急廣播降級為 Polite。
+- **視覺回饋標準 (Visual Feedback)**：
+  - **分離式回饋**：
+    - 鍵盤焦點：強烈靜態視覺回饋 (反轉、字體加粗)。
+    - 按壓狀態：獨立於焦點的第三層級。深色模式使用飽和暖色 (琥珀色 `255,200,120`)，亮度差 **ΔL*≥13**。
+    - **Tritanopia 調整亮度公式**：$L_{tritan} = (R_{lin} \times 0.2126 + G_{lin} \times 0.7152) / 0.9278$。
+  - **預設動作引導**：當焦點在輸入框時，`AcceptButton` 必須顯示與焦點框相同的視覺特徵 (Cyan/RoyalBlue 邊框)。
+- **眼動儀優化與視覺穩定性**：
+  - **視覺凍結 (Zero-Jitter)**：狀態變更嚴禁變動物理尺寸、Margin 或 Padding。
+  - **抗抖動鎖定 (Anti-Jitter Lock)**：初始化時預先計算 **Bold** 狀態最大寬度並鎖定為 `MinimumSize`。
+  - **懸停進度條對比 (WCAG 1.4.11)**：填色須以「懸停底色」為基準。
+    - 淺色模式 (`#DCDCDC`)：Green (3.75:1) + CVD 紋理 PaleGreen。
+    - 深色模式 (`#3C3C3C`)：LimeGreen (5.21:1) + CVD 紋理 DarkGreen。
+- **色覺友善 (CVD) 與亮度計算**：
+  - **情境感知焦點邊框色**：依 `BackColor` 實際值動態選取：
+    - `BackColor == Black` (淺色反轉) → `Cyan` (16.75:1)
+    - `BackColor == White` (深色反轉) → `MediumBlue` (11.16:1)
+  - **視覺脈衝 (Flash Alert)**：
+    - 頻率：1Hz 平滑正弦波脈衝。
+    - 基色：固定為焦點反轉底色 (深色用 White，淺色用 Black)。
+    - **動態 ForeColor 連動**：背景亮度 **L > 0.1791** 時切換文字顏色。
+    - **sRGB 線性化公式**：`f = C/255; C_lin = f <= 0.04045 ? f/12.92 : ((f+0.055)/1.055)^2.4`；`L = 0.2126R + 0.7152G + 0.0722B`。
+- **遞歸與隔離**：
+  - **遞歸更新**：更新 `NumericUpDown` 顏色時必須遞歸更新內部 `TextBox` 編輯區。
+  - **作用域隔離**：邊界警示僅作用於數據內容區，互動按鈕禁止參與背景閃爍。
