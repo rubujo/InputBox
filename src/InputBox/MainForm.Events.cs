@@ -2,13 +2,15 @@
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
-using InputBox.Core.Services;
 using InputBox.Core.Interop;
+using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Media;
+
 
 namespace InputBox;
 
@@ -1434,10 +1436,11 @@ public partial class MainForm
         // 使用非同步延遲，避免與系統原生的 Focus 彈出行為發生競態。
         Task.Run(async () =>
         {
-            // 給予 Windows 系統 150ms 的緩衝時間來啟動其原生的鍵盤彈出邏輯。
-            await Task.Delay(150);
+            // 給予 Windows 系統約 150ms 的緩衝時間來啟動其原生的鍵盤彈出邏輯。
+            // 加入生理抖動（μ=150, σ=22），使行為特徵更接近真人操作。
+            await Task.Delay(HumanoidRandom.NextDelay(150, 45));
 
-            // 如果 150ms 後鍵盤已經顯示（由系統自動開啟），則我們不需要再介入 Toggle。
+            // 如果延遲後鍵盤已經顯示（由系統自動開啟），則我們不需要再介入 Toggle。
             if (TouchKeyboardService.IsVisible())
             {
                 Debug.WriteLine("觸控鍵盤已由系統自動開啟，略過手動 Toggle。");

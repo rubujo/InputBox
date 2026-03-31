@@ -1,10 +1,10 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Media;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Media;
 
 namespace InputBox.Core.Services;
 

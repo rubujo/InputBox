@@ -2,6 +2,7 @@
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Threading.Channels;
@@ -321,8 +322,10 @@ public partial class MainForm
                     try
                     {
                         // 在進入 UI 執行緒前先執行 Audio Ducking 避讓延遲，防止阻塞 UI 執行緒。
-                        // 根據規範，統一使用 AudioDuckingDelayMs。
-                        await Task.Delay(AppSettings.AudioDuckingDelayMs, cancellationToken);
+                        // 根據規範，統一使用 AudioDuckingDelayMs，並加入生理抖動的高斯延遲（μ=200, σ=30），模擬人類反應時間。
+                        int duckingDelay = AppSettings.AudioDuckingDelayMs;
+
+                        await Task.Delay(HumanoidRandom.NextDelay(duckingDelay, 60), cancellationToken);
 
                         // 進入 UI 執行緒進行正式廣播。
                         await this.SafeInvokeAsync(() =>
@@ -371,8 +374,10 @@ public partial class MainForm
                         }
 
                         // 給予足夠的報讀時間，防止下一條訊息立即覆蓋。
-                        // 對於中斷型廣播，可以縮短等待時間。
-                        await Task.Delay(request.Interrupt ? 100 : 300, cancellationToken);
+                        // 對於中斷型廣播，可以縮短等待時間，並加入微小的高斯擾動。
+                        int waitDelay = request.Interrupt ? 100 : 300;
+
+                        await Task.Delay(HumanoidRandom.NextDelay(waitDelay, 40), cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {

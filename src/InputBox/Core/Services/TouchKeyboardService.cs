@@ -1,10 +1,10 @@
+using InputBox.Core.Extensions;
+using InputBox.Core.Interop;
+using InputBox.Core.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using InputBox.Core.Extensions;
-using InputBox.Core.Interop;
-using InputBox.Core.Utilities;
 
 namespace InputBox.Core.Services;
 
@@ -26,7 +26,7 @@ internal static partial class TouchKeyboardService
     /// <summary>
     /// COM 介面實例
     /// </summary>
-    private static User32.ITipInvocation? _tipInvocation;
+    private static Ole32.ITipInvocation? _tipInvocation;
 
     /// <summary>
     /// COM 包裝器實例
@@ -128,14 +128,15 @@ internal static partial class TouchKeyboardService
             // 如果尚未初始化 COM 物件，才進行建立。
             if (_tipInvocation == null)
             {
-                // UIHostNoLaunch CLSID：{4ce576fa-83dc-4f88-951c-9d0782b4e376}
+                // UIHostNoLaunch CLSID：{4ce576fa-83dc-4f88-951c-9d0782b4e376}。
                 Guid clsid_UIHostNoLaunch = new("4ce576fa-83dc-4f88-951c-9d0782b4e376"),
                      iid_IUnknown = new("00000000-0000-0000-C000-000000000046");
 
-                // CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER
-                uint clsContext = 0x1 | 0x4;
+                // CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER。
+                uint clsContext = Ole32.ClsCtx.InprocServer |
+                    Ole32.ClsCtx.LocalServer;
 
-                int hr = User32.CoCreateInstance(in clsid_UIHostNoLaunch, 0, clsContext, in iid_IUnknown, out nint ppv);
+                int hr = Ole32.CoCreateInstance(in clsid_UIHostNoLaunch, 0, clsContext, in iid_IUnknown, out nint ppv);
 
                 if (hr < 0 ||
                     ppv == 0)
@@ -148,7 +149,7 @@ internal static partial class TouchKeyboardService
                 try
                 {
                     // 取得來源生成的 COM 介面。
-                    _tipInvocation = (User32.ITipInvocation)_wrappers.GetOrCreateObjectForComInstance(ppv, CreateObjectFlags.None);
+                    _tipInvocation = (Ole32.ITipInvocation)_wrappers.GetOrCreateObjectForComInstance(ppv, CreateObjectFlags.None);
                 }
                 finally
                 {

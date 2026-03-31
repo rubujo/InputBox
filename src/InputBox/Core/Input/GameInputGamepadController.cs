@@ -5,6 +5,7 @@ using GameInputDotNet.States;
 using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -26,6 +27,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// GamepadRepeatSettings
     /// </summary>
     private readonly GamepadRepeatSettings _repeatSettings;
+
+    /// <summary>
+    /// 目前動態計算的連發間隔幀數（加入生理抖動）
+    /// </summary>
+    private int _currentRepeatInterval;
+
+    /// <summary>
+    /// 目前動態計算的右搖桿連發間隔幀數（加入生理抖動）
+    /// </summary>
+    private int _currentRSRepeatInterval;
 
     /// <summary>
     /// GameInput 實體
@@ -1339,19 +1350,25 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _repeatCounter = 0;
             _repeatDirection = null;
+            _currentRepeatInterval = 0;
         }
         else if (_repeatDirection != currentDir)
         {
             _repeatCounter = 0;
             _repeatDirection = currentDir;
+
+            // 初始觸發後，計算第一次連發所需的動態延遲。
+            // 採用保守的生理抖動係數（σ=15%），確保對身障人士的操作穩定性。
+            _currentRepeatInterval = HumanoidRandom.NextDelay(
+                config.RepeatInitialDelayFrames,
+                (int)(config.RepeatInitialDelayFrames * 0.3));
         }
         else
         {
             _repeatCounter++;
 
-            // 依照 XInput 版本，使用設定檔的延遲與間隔。
-            if (_repeatCounter >= config.RepeatInitialDelayFrames &&
-                (_repeatCounter - config.RepeatInitialDelayFrames) % config.RepeatIntervalFrames == 0)
+            // 當達到目前動態計算的閾值時觸發。
+            if (_repeatCounter >= _currentRepeatInterval)
             {
                 if (currentDir == GameInputGamepadButtons.DPadLeft)
                 {
@@ -1369,23 +1386,36 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 {
                     DownRepeat?.Invoke();
                 }
+
+                // 觸發後，重置計數器並重新計算下一次連發的間隔。
+                _repeatCounter = 0;
+                _currentRepeatInterval = HumanoidRandom.NextDelay(
+                    config.RepeatIntervalFrames,
+                    (int)(config.RepeatIntervalFrames * 0.3));
             }
         }
 
         // 2. 處理右搖桿（RS）重複輸入。
-        // 已在 DetectRisingEdge 中使用 Hysteresis 邏輯更新了 _rsRepeatDirection。
         int rsDir = _rsRepeatDirection;
 
         if (rsDir == 0)
         {
             _rsRepeatCounter = 0;
+            _currentRSRepeatInterval = 0;
         }
         else
         {
+            if (_rsRepeatCounter == 0 && _currentRSRepeatInterval == 0)
+            {
+                // 第一次進入連發判定，設定初始延遲。
+                _currentRSRepeatInterval = HumanoidRandom.NextDelay(
+                    config.RepeatInitialDelayFrames,
+                    (int)(config.RepeatInitialDelayFrames * 0.3));
+            }
+
             _rsRepeatCounter++;
 
-            if (_rsRepeatCounter >= config.RepeatInitialDelayFrames &&
-                (_rsRepeatCounter - config.RepeatInitialDelayFrames) % config.RepeatIntervalFrames == 0)
+            if (_rsRepeatCounter >= _currentRSRepeatInterval)
             {
                 if (rsDir == -1)
                 {
@@ -1395,6 +1425,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 {
                     RSRightRepeat?.Invoke();
                 }
+
+                // 重置並計算下一個間隔。
+                _rsRepeatCounter = 0;
+                _currentRSRepeatInterval = HumanoidRandom.NextDelay(
+                    config.RepeatIntervalFrames,
+                    (int)(config.RepeatIntervalFrames * 0.3));
             }
         }
     }

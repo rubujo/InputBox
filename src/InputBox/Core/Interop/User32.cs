@@ -67,16 +67,6 @@ public static partial class User32
     [LibraryImport("user32.dll", EntryPoint = "SendMessageW")]
     internal static partial nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
 
-    [LibraryImport("ole32.dll")]
-    internal static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
-
-    [GeneratedComInterface, Guid("37c994e7-432b-4834-a2f7-dce1f13b834b")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal partial interface ITipInvocation
-    {
-        void Toggle(nint hwnd);
-    }
-
     /// <summary>
     /// FlashWindowEx 旗標
     /// </summary>
