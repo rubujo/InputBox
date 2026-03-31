@@ -126,11 +126,27 @@
          */
     .lang-state,
     .lang-nav-hidden {
-      position: absolute;
-      width: 0;
-      height: 0;
-      overflow: hidden;
-      opacity: 0;
+      /* 標準視覺隱藏但可聚焦樣式 */
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    /* 當單選鈕被鍵盤聚焦時，為對應的 Label 加入視覺回饋 */
+    #lang-zh:focus-visible~.lang-switcher label[for="lang-zh"],
+    #lang-en:focus-visible~.lang-switcher label[for="lang-en"],
+    #lang-ja:focus-visible~.lang-switcher label[for="lang-ja"],
+    #lang-sc:focus-visible~.lang-switcher label[for="lang-sc"] {
+      outline: 5px solid var(--focus-ring);
+      outline-offset: -4px;
+      background-color: rgba(128, 128, 128, 0.1);
+      border-radius: 4px;
     }
 
     .lang-en,
