@@ -764,43 +764,43 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Accessible description for the gamepad controls section container in the Help dialog.</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
-    <value>Esc	Clear input / Return to game (if empty)
-Enter	Copy to clipboard and return to game
+    <value>Esc	Clear input / Return to previous window (if empty)
+Enter	Copy to clipboard and return (or open OSK)
 Alt + A	Same as Enter
+Alt + C	Same as Esc (Clear input)
+Alt + X	Same as Alt + B
 Shift + Enter	Insert a new line
 F1	Open this Help dialog
-↑	Previous history entry
-↓	Next history entry
-←	Move cursor left
-→	Move cursor right
-Shift + ←	Select text leftward
-Shift + →	Select text rightward
+↑ / ↓	Navigate history
+← / →	Move cursor left / right
+Shift + ← / →	Select text
 Home / End	Jump cursor to line start / end
 Ctrl + ← / →	Move cursor by word
 Backspace	Delete previous character or selection
 Delete	Delete next character
-Alt + B	Return to game without copying
-Alt + ↑ / ↓	Increase / decrease window opacity (+5% / −5%)
+Alt + B	Return to previous window without copying
+Alt + ↑ / ↓	Increase / decrease opacity (±5%)
 Alt + 0	Reset window opacity (100%)
 Alt + P	Toggle privacy mode
-F10 / Alt + M	Open context menu
-Ctrl + M	Jump to text input</value>
+F10 / Alt + M	Open feature menu
+Ctrl + M	Jump to text input
+Ctrl + Alt + Shift + I	Show / Hide InputBox (Global)</value>
     <comment>Tab-separated rows for the keyboard shortcut table in the Help dialog. Format: Key{tab}Action. One row per line.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A / Start	Copy to clipboard and return to game
+    <value>A / Start	Confirm &amp; Return (or open OSK)
 B	Clear input text
-LB + RB + B	Return to game (when input is empty)
-Back (release)	Return to game
-Y	Open context menu
-X	Delete previous character or selection
+LB + RB + B	Quick return to previous window
+Back (release)	Return to previous window
+Y	Open feature menu
+X	Backspace (Delete character/selection)
 LB + RB + X	Exit application
 Back + X	Reset window opacity
 ↑ / ↓	Navigate history
-← / →	Move cursor
+← / →	Move cursor left / right
 LB + ← / →	Jump cursor by word
 RS ← / →	Expand or shrink selection
-Back + ↑ / ↓	Adjust window opacity (+5% / −5%)</value>
+Back + ↑ / ↓	Adjust window opacity (±5%)</value>
     <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">

@@ -764,46 +764,45 @@
     <comment>帮助对话框中手柄按键对照区段容器的无障碍描述。</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
-    <value>Esc	清除文字 / 返回游戏（已空时）
-Enter	复制到剪贴板并返回游戏
-Alt + A	功能等同 Enter
-Shift + Enter	换行
-F1	打开帮助对话框
-↑	上一条历史记录
-↓	下一条历史记录
-←	光标左移
-→	光标右移
-Shift + ←	向左选取文字
-Shift + →	向右选取文字
-Home / End	光标跳至行首 / 行尾
-Ctrl + ← / →	前一个 / 后一个单词
-Backspace	删除前一字符或选中内容
-Delete	删除后一字符
-Alt + B	返回游戏（不复制）
-Alt + ↑ / ↓	增加 / 减少窗口透明度（+5% / −5%）
-Alt + 0	重置窗口透明度（100%）
-Alt + P	切换隐私模式
-F10 / Alt + M	打开右键菜单
-Ctrl + M	跳至文本输入框</value>
+    <value>Esc	清除文字 / 返回前一个窗口（已空时）
+  Enter	复制并返回前一个窗口（或打开键盘）
+  Alt + A	功能等同 Enter
+  Alt + C	功能等同 Esc（清除文字）
+  Alt + X	功能等同 Alt + B
+  Shift + Enter	换行
+  F1	打开帮助对话框
+  ↑ / ↓	浏览历史记录
+  ← / →	光标左移 / 右移
+  Shift + ← / →	选取文本
+  Home / End	光标跳至行首 / 行尾
+  Ctrl + ← / →	按单词跳转光标
+  Backspace	删除前一字符或选中内容
+  Delete	删除后一字符
+  Alt + B	返回前一个窗口（不复制）
+  Alt + ↑ / ↓	增加 / 减少窗口透明度（±5%）
+  Alt + 0	重置窗口透明度（100%）
+  Alt + P	切换隐私模式
+  F10 / Alt + M	打开功能菜单
+  Ctrl + M	跳至文本输入框
+  Ctrl + Alt + Shift + I	显示 / 隐藏输入框（全局）</value>
     <comment>帮助对话框中键盘快捷键表格的数据行，以 Tab 分隔列：按键{tab}功能，每行一条。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A / Start	复制到剪贴板并返回游戏
-B	清除文字
-LB + RB + B	返回游戏（输入框已空时）
-Back（松开）	返回游戏
-Y	打开右键菜单
-X	删除前一字符或选中内容
-LB + RB + X	退出程序
-Back + X	重置窗口透明度
-↑ / ↓	浏览历史记录
-← / →	光标左移 / 右移
-LB + ← / →	单词跳转
-RS ← / →	扩大或缩小选取范围
-Back + ↑ / ↓	调整窗口透明度（+5% / −5%）</value>
+    <value>A / Start	复制并返回前一个窗口（或打开键盘）
+  B	清除文字
+  LB + RB + B	快速返回前一个窗口
+  Back（松开）	返回前一个窗口
+  Y	打开功能菜单
+  X	退格（删除字符 / 选中内容）
+  LB + RB + X	退出程序
+  Back + X	重置窗口透明度
+  ↑ / ↓	浏览历史记录
+  ← / →	光标左移 / 右移
+  LB + ← / →	单词跳转
+  RS ← / →	扩大或缩小选取范围
+  Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
-  </data>
-  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+  </data>  <data name="A11y_ContextMenu_Name" xml:space="preserve">
     <value>功能菜单</value>
     <comment>右键菜单的无障碍名称。</comment>
   </data>
