@@ -139,10 +139,10 @@
     }
 
     /* 當單選鈕被鍵盤聚焦時，為對應的 Label 加入視覺回饋 */
-    #lang-zh:focus-visible~.lang-switcher label[for="lang-zh"],
-    #lang-en:focus-visible~.lang-switcher label[for="lang-en"],
-    #lang-ja:focus-visible~.lang-switcher label[for="lang-ja"],
-    #lang-sc:focus-visible~.lang-switcher label[for="lang-sc"] {
+    body:has(#lang-zh:focus-visible) .lang-switcher label[for="lang-zh"],
+    body:has(#lang-en:focus-visible) .lang-switcher label[for="lang-en"],
+    body:has(#lang-ja:focus-visible) .lang-switcher label[for="lang-ja"],
+    body:has(#lang-sc:focus-visible) .lang-switcher label[for="lang-sc"] {
       outline: 5px solid var(--focus-ring);
       outline-offset: -4px;
       background-color: rgba(128, 128, 128, 0.1);
@@ -159,27 +159,27 @@
       display: inline-block;
     }
 
-    #lang-en:checked~* .lang-zh {
+    body:has(#lang-en:checked) .lang-zh {
       display: none;
     }
 
-    #lang-en:checked~* .lang-en {
+    body:has(#lang-en:checked) .lang-en {
       display: inline-block;
     }
 
-    #lang-ja:checked~* .lang-zh {
+    body:has(#lang-ja:checked) .lang-zh {
       display: none;
     }
 
-    #lang-ja:checked~* .lang-ja {
+    body:has(#lang-ja:checked) .lang-ja {
       display: inline-block;
     }
 
-    #lang-sc:checked~* .lang-zh {
+    body:has(#lang-sc:checked) .lang-zh {
       display: none;
     }
 
-    #lang-sc:checked~* .lang-sc {
+    body:has(#lang-sc:checked) .lang-sc {
       display: inline-block;
     }
 
@@ -342,10 +342,10 @@
       transition: color 0.2s, border-bottom-color 0.2s;
     }
 
-    #lang-zh:checked~.lang-switcher label[for="lang-zh"],
-    #lang-en:checked~.lang-switcher label[for="lang-en"],
-    #lang-ja:checked~.lang-switcher label[for="lang-ja"],
-    #lang-sc:checked~.lang-switcher label[for="lang-sc"] {
+    #lang-zh:checked+label[for="lang-zh"],
+    #lang-en:checked+label[for="lang-en"],
+    #lang-ja:checked+label[for="lang-ja"],
+    #lang-sc:checked+label[for="lang-sc"] {
       color: var(--link-color);
       border-bottom-color: var(--focus-ring);
     }
@@ -623,10 +623,10 @@
     }
 
     .back-to-top span.text {
-      font-size: 0.65rem;
+      font-size: 0.85rem;
       font-weight: 800;
       text-transform: uppercase;
-      margin-top: -2px;
+      margin-top: -4px;
     }
 
     /* 強迫高對比模式優化 (A11y AAA) */
@@ -761,11 +761,6 @@
 
 <body id="top">
 
-  <input type="radio" name="lang" id="lang-zh" checked class="lang-state lang-nav-hidden">
-  <input type="radio" name="lang" id="lang-en" class="lang-state lang-nav-hidden">
-  <input type="radio" name="lang" id="lang-ja" class="lang-state lang-nav-hidden">
-  <input type="radio" name="lang" id="lang-sc" class="lang-state lang-nav-hidden">
-
   <a href="#main-content" class="skip-link">
     <span class="lang-zh" lang="zh-Hant">跳過導覽，直接進入主要內容</span>
     <span class="lang-en" lang="en">Skip Navigation, go to main content</span>
@@ -801,11 +796,29 @@
         <span class="lang-ja" lang="ja">表示言語を選択</span>
         <span class="lang-sc" lang="zh-Hans">选择显示语言</span>
       </legend>
-      <label for="lang-zh" id="label-lang-zh" aria-current="true">正體中文<span
-          class="visually-hidden">（目前語言）</span></label>
-      <label for="lang-en" lang="en" id="label-lang-en">English</label>
-      <label for="lang-ja" lang="ja" id="label-lang-ja">日本語</label>
-      <label for="lang-sc" lang="zh-Hans" id="label-lang-sc">简体中文</label>
+      <input type="radio" name="lang" id="lang-zh" checked class="lang-state lang-nav-hidden">
+      <label for="lang-zh" id="label-lang-zh">
+        正體中文
+        <span class="visually-hidden lang-zh">（目前語言）</span>
+      </label>
+
+      <input type="radio" name="lang" id="lang-en" class="lang-state lang-nav-hidden">
+      <label for="lang-en" lang="en" id="label-lang-en">
+        English
+        <span class="visually-hidden lang-en"> (Current)</span>
+      </label>
+
+      <input type="radio" name="lang" id="lang-ja" class="lang-state lang-nav-hidden">
+      <label for="lang-ja" lang="ja" id="label-lang-ja">
+        日本語
+        <span class="visually-hidden lang-ja">（現在の言語）</span>
+      </label>
+
+      <input type="radio" name="lang" id="lang-sc" class="lang-state lang-nav-hidden">
+      <label for="lang-sc" lang="zh-Hans" id="label-lang-sc">
+        简体中文
+        <span class="visually-hidden lang-sc">（目前语言）</span>
+      </label>
     </fieldset>
   </nav>
   <header role="banner" aria-labelledby="header-label">
