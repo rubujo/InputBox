@@ -18,7 +18,7 @@
             --header-text: #ffffff;
             --nav-bg: rgba(243, 244, 246, 0.9);
             --section-alt-bg: #f9fafb;
-            --link-color: #0056b3;
+            --link-color: #004488; /* Darker blue for AAA contrast (7.1:1) */
             --border-color: #374151;
             --focus-ring: #e67e00;
             --card-bg: #ffffff;
@@ -145,7 +145,8 @@
         /* Header */
         /* ========== 結構註解：頁首區塊 ========== */
         header {
-            background: linear-gradient(135deg, var(--header-bg) 0%, #004a87 100%);
+            background-color: var(--header-bg); /* Ensure solid fallback */
+            background: linear-gradient(135deg, var(--header-bg) 0%, #002d5a 100%);
             color: var(--header-text);
             padding: clamp(4rem, 15vh, 10rem) 0;
             text-align: center;
@@ -153,18 +154,18 @@
             overflow: hidden;
         }
 
-        header::before {
+        .header-glow {
             content: "";
             position: absolute;
             top: -40%;
             left: -40%;
             width: 180%;
             height: 180%;
-            /* 讓光暈更集中且更明顯，透明度提升，過渡區縮小 */
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.12) 28%, transparent 48%);
+            /* 降低透明度 (0.32 -> 0.15) 以確保對比度達標 */
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 28%, transparent 48%);
             animation: slowRotate 30s linear infinite;
             pointer-events: none;
-            transition: background 0.4s;
+            z-index: 1; /* 位於背景之上，文字之下 */
         }
 
         @keyframes slowRotate {
@@ -177,20 +178,26 @@
             }
         }
 
+        header .container {
+            position: relative;
+            z-index: 2; /* 確保內容在光暈之上 */
+        }
+
         header h1 {
             font-size: clamp(2.2rem, 5vw, 4.5rem);
             font-weight: 900;
             margin-bottom: 1.5rem;
             letter-spacing: -0.02em;
             line-height: 1.1;
+            color: #ffffff; /* Explicit white */
         }
 
         header .desc {
             font-size: clamp(1rem, 2vw, 1.4rem);
             max-width: 50ch;
             margin: 0 auto 3rem;
-            opacity: 0.95;
-            font-weight: 500;
+            opacity: 1; /* A11y: Ensure full opacity for contrast */
+            font-weight: 600; /* Slightly bolder for better legibility */
         }
 
         .requirement-list {
@@ -198,11 +205,11 @@
             text-align: left;
             margin: 0 auto 3.5rem;
             padding: 2rem;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             border-radius: 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.25); /* Darken background for better contrast */
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
             max-width: 600px;
         }
 
@@ -211,6 +218,7 @@
             padding-left: 2rem;
             margin-bottom: 1rem;
             font-size: 1rem;
+            color: #ffffff;
         }
 
         /* Prevent icon overlap on header */
@@ -219,7 +227,7 @@
             margin-bottom: 1.5rem;
             font-weight: 800;
             font-size: 1.25rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             padding-bottom: 0.75rem;
         }
 
@@ -234,14 +242,14 @@
         .cta-button {
             display: inline-block;
             background-color: #ffffff;
-            color: #003466;
+            color: #002d5a; /* Darker blue for contrast */
             padding: 1.25rem 3.5rem;
             text-decoration: none;
             font-weight: 800;
             border-radius: 1rem;
             font-size: 1.35rem;
             min-height: 60px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
             border: 4px solid transparent;
         }
@@ -249,14 +257,15 @@
         .cta-button:hover,
         .cta-button:focus {
             transform: scale(1.05);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
         }
 
         .download-hint {
             display: block;
             margin-top: 1.25rem;
-            font-size: 0.9rem;
-            opacity: 0.9;
+            font-size: 0.95rem;
+            opacity: 1; /* A11y */
+            font-weight: 500;
         }
 
         /* Nav */
@@ -673,6 +682,7 @@
     </nav>
 
     <header role="banner" aria-label="頁首">
+        <div class="header-glow"></div>
         <div class="container">
             <h1>
                 <span class="lang-zh" lang="zh-Hant">輸入框 ⌨️</span>
