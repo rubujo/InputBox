@@ -9,28 +9,31 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
     <style>
-        /* ========== 結構註解：色彩與主題 ========== */
+        /*
+         * ========== 1. 色彩與主題 (Variables) ==========
+         * 遵循 WCAG 2.2 AAA 規範，確保所有文字對比度 ≥ 7:1。
+         */
         :root {
-            /* WCAG 2.2 AAA Color Palette - Light Mode */
+            /* Light Mode */
             --bg-color: #ffffff;
             --text-color: #111827;
             --header-bg: #003a70;
             --header-text: #ffffff;
-            --nav-bg: rgba(243, 244, 246, 0.9);
+            --nav-bg: rgba(253, 254, 255, 0.96);
             --section-alt-bg: #f9fafb;
-            --link-color: #004488; /* Darker blue for AAA contrast (7.1:1) */
+            --link-color: #004488;
             --border-color: #374151;
             --focus-ring: #e67e00;
             --card-bg: #ffffff;
             --table-header: #f3f4f6;
             --transition-speed: 0.4s;
-            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                /* WCAG 2.2 AAA Color Palette - Dark Mode（最佳化對比與層次） */
+                /* Dark Mode */
                 --bg-color: #030712;
                 --text-color: #f9fafb;
                 --header-bg: #001e3c;
@@ -45,7 +48,9 @@
             }
         }
 
-        /* Base Reset & Accessibility */
+        /*
+         * ========== 2. 基礎重設與 A11y (Base) ==========
+         */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -71,15 +76,18 @@
             scroll-behavior: smooth;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            /* Prevent horizontal scroll on body */
         }
 
         .container {
-            /* ========== 結構註解：版面容器 ========== */
             width: 90%;
             max-width: 85ch;
             margin: 0 auto;
             padding: clamp(2rem, 5vh, 4rem) 1.5rem;
+        }
+
+        :focus-visible {
+            outline: 5px solid var(--focus-ring) !important;
+            outline-offset: 4px !important;
         }
 
         .visually-hidden {
@@ -94,17 +102,33 @@
             border: 0 !important;
         }
 
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--focus-ring);
+            color: #000;
+            padding: 1rem 2rem;
+            z-index: 9999;
+            font-weight: 900;
+            border-radius: 0 0 1rem 1rem;
+            transition: top 0.2s;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /*
+         * ========== 3. 多語系切換 (Localization) ==========
+         */
+        .lang-state,
         .lang-nav-hidden {
             position: absolute;
             width: 0;
             height: 0;
             overflow: hidden;
-        }
-
-        /* Language Switcher Logic (Radio Button Hack) */
-        /* ========== 結構註解：多語系切換 ========== */
-        .lang-state {
-            position: absolute;
             opacity: 0;
         }
 
@@ -118,34 +142,18 @@
             display: block;
         }
 
-        #lang-en:checked~* .lang-zh {
-            display: none;
-        }
+        #lang-en:checked~* .lang-zh { display: none; }
+        #lang-en:checked~* .lang-en { display: block; }
+        #lang-ja:checked~* .lang-zh { display: none; }
+        #lang-ja:checked~* .lang-ja { display: block; }
+        #lang-sc:checked~* .lang-zh { display: none; }
+        #lang-sc:checked~* .lang-sc { display: block; }
 
-        #lang-en:checked~* .lang-en {
-            display: block;
-        }
-
-        #lang-ja:checked~* .lang-zh {
-            display: none;
-        }
-
-        #lang-ja:checked~* .lang-ja {
-            display: block;
-        }
-
-        #lang-sc:checked~* .lang-zh {
-            display: none;
-        }
-
-        #lang-sc:checked~* .lang-sc {
-            display: block;
-        }
-
-        /* Header */
-        /* ========== 結構註解：頁首區塊 ========== */
+        /*
+         * ========== 4. 頁首區塊 (Header) ==========
+         */
         header {
-            background-color: var(--header-bg); /* Ensure solid fallback */
+            background-color: var(--header-bg);
             background: linear-gradient(135deg, var(--header-bg) 0%, #002d5a 100%);
             color: var(--header-text);
             padding: clamp(4rem, 15vh, 10rem) 0;
@@ -155,32 +163,25 @@
         }
 
         .header-glow {
-            content: "";
             position: absolute;
             top: -40%;
             left: -40%;
             width: 180%;
             height: 180%;
-            /* 降低透明度 (0.32 -> 0.15) 以確保對比度達標 */
             background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 28%, transparent 48%);
             animation: slowRotate 30s linear infinite;
             pointer-events: none;
-            z-index: 1; /* 位於背景之上，文字之下 */
+            z-index: 1;
         }
 
         @keyframes slowRotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         header .container {
             position: relative;
-            z-index: 2; /* 確保內容在光暈之上 */
+            z-index: 2;
         }
 
         header h1 {
@@ -189,15 +190,15 @@
             margin-bottom: 1.5rem;
             letter-spacing: -0.02em;
             line-height: 1.1;
-            color: #ffffff; /* Explicit white */
+            color: #ffffff;
         }
 
         header .desc {
             font-size: clamp(1rem, 2vw, 1.4rem);
             max-width: 50ch;
             margin: 0 auto 3rem;
-            opacity: 1; /* A11y: Ensure full opacity for contrast */
-            font-weight: 600; /* Slightly bolder for better legibility */
+            opacity: 1;
+            font-weight: 600;
         }
 
         .requirement-list {
@@ -207,7 +208,7 @@
             padding: 2rem;
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-radius: 1.5rem;
-            background: rgba(0, 0, 0, 0.25); /* Darken background for better contrast */
+            background: rgba(0, 0, 0, 0.25);
             -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
             max-width: 600px;
@@ -221,7 +222,6 @@
             color: #ffffff;
         }
 
-        /* Prevent icon overlap on header */
         .requirement-list li:first-child {
             padding-left: 0;
             margin-bottom: 1.5rem;
@@ -242,7 +242,7 @@
         .cta-button {
             display: inline-block;
             background-color: #ffffff;
-            color: #002d5a; /* Darker blue for contrast */
+            color: #002d5a;
             padding: 1.25rem 3.5rem;
             text-decoration: none;
             font-weight: 800;
@@ -264,13 +264,13 @@
             display: block;
             margin-top: 1.25rem;
             font-size: 0.95rem;
-            opacity: 1; /* A11y */
             font-weight: 500;
         }
 
-        /* Nav */
+        /*
+         * ========== 5. 導覽列 (Navigation) ==========
+         */
         .lang-switcher {
-            text-align: right;
             padding: 0 1.5rem;
             background-color: var(--nav-bg);
             border-bottom: 1px solid var(--border-color);
@@ -338,17 +338,15 @@
             text-decoration: underline;
         }
 
-        /* Section & Content Spacing */
-        /* ========== 結構註解：內容區塊與間距 ========== */
+        /*
+         * ========== 6. 內容區塊 (Sections) ==========
+         */
         section {
             padding: clamp(4rem, 10vh, 8rem) 0;
             scroll-margin-top: 120px;
-            /* Offset for sticky nav */
         }
 
-        section:nth-child(even) {
-            background-color: var(--section-alt-bg);
-        }
+        section:nth-child(even) { background-color: var(--section-alt-bg); }
 
         h2 {
             font-size: clamp(2rem, 4vw, 3rem);
@@ -359,16 +357,9 @@
             letter-spacing: -0.03em;
         }
 
-        p {
-            margin-bottom: 2rem;
-            max-width: 75ch;
-        }
+        @media (prefers-color-scheme: dark) { h2 { color: var(--link-color); } }
 
-        @media (prefers-color-scheme: dark) {
-            h2 {
-                color: var(--link-color);
-            }
-        }
+        p { margin-bottom: 2rem; max-width: 75ch; }
 
         .feature-grid {
             display: grid;
@@ -382,9 +373,7 @@
             border-radius: 1.5rem;
             background-color: var(--card-bg);
             box-shadow: var(--card-shadow);
-            transition: transform var(--transition-speed) cubic-bezier(0.2, 0, 0, 1),
-                box-shadow var(--transition-speed) ease,
-                border-color var(--transition-speed) ease;
+            transition: transform var(--transition-speed) cubic-bezier(0.2, 0, 0, 1), box-shadow var(--transition-speed);
         }
 
         .feature-card:hover {
@@ -402,8 +391,9 @@
             gap: 0.5rem;
         }
 
-        /* Table Design */
-        /* ========== 結構註解：表格設計與 RWD ========== */
+        /*
+         * ========== 7. 表格設計 (Tables) ==========
+         */
         .table-wrapper {
             overflow-x: auto;
             border-radius: 1.25rem;
@@ -429,40 +419,13 @@
             pointer-events: none;
         }
 
-        @media (max-width: 900px) {
-            .table-wrapper::after {
-                display: block;
-            }
-        }
+        @media (max-width: 900px) { .table-wrapper::after { display: block; } }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 650px;
-            /* Desktop min-width */
-            table-layout: fixed;
-        }
+        table { width: 100%; border-collapse: collapse; min-width: 650px; table-layout: fixed; }
 
-        th,
-        td {
-            padding: 1.25rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            width: 33.33%;
-            word-wrap: break-word;
-        }
+        th, td { padding: 1.25rem; text-align: left; border-bottom: 1px solid var(--border-color); width: 33.33%; word-wrap: break-word; }
 
-        th {
-            background-color: var(--table-header);
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 0.05em;
-        }
-
-        .mobile-label {
-            display: none;
-        }
+        th { background-color: var(--table-header); font-weight: 800; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.05em; }
 
         kbd {
             background-color: var(--table-header);
@@ -480,54 +443,16 @@
             top: -2px;
         }
 
-        /* 補充說明區塊（快速操作） */
-        .usage-advanced-title {
-            margin-top: 2.5rem;
-            font-size: 1.3rem;
-            text-align: left;
-        }
+        .mobile-label { display: none; }
 
-        .usage-advanced-list {
-            margin: 1.5rem 0 0 1.5rem;
-            padding-left: 0;
-            list-style: disc inside;
-        }
+        .usage-advanced-title { margin-top: 2.5rem; font-size: 1.3rem; }
 
-        :focus-visible {
-            outline: 5px solid var(--focus-ring) !important;
-            outline-offset: 4px !important;
-        }
+        /*
+         * ========== 8. 頁尾 (Footer) ==========
+         */
+        footer { padding: 4rem 0; background-color: var(--section-alt-bg); border-top: 1px solid var(--border-color); text-align: center; }
 
-        .skip-link {
-            position: absolute;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--focus-ring);
-            color: #000;
-            padding: 1rem 2rem;
-            z-index: 9999;
-            font-weight: 900;
-            border-radius: 0 0 1rem 1rem;
-            transition: top 0.2s;
-        }
-
-        .skip-link:focus {
-            top: 0;
-        }
-
-        footer {
-            padding: 4rem 0;
-            background-color: var(--section-alt-bg);
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        footer a {
-            color: var(--link-color);
-            font-weight: 800;
-            padding: 0.5rem;
-        }
+        footer a { color: var(--link-color); font-weight: 800; padding: 0.5rem; }
 
         .footer-notice {
             margin-top: 3rem;
@@ -539,132 +464,88 @@
             border: 2px dashed var(--border-color);
         }
 
-        /* RWD Adjustments */
-        /* ========== 結構註解：RWD 響應式調整 ========== */
-        @media (max-width: 1024px) {
-            .container {
-                width: 95%;
-            }
+        /*
+         * ========== 9. 返回頂端 (Back-to-Top) ==========
+         * 使用純 CSS scroll-timeline 實作顯示/隱藏邏輯
+         */
+        @keyframes show-back-to-top {
+            from { opacity: 0; transform: translateY(20px) scale(0.8); pointer-events: none; }
+            to { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        }
 
-            .feature-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            width: 56px;
+            height: 56px;
+            background-color: var(--header-bg);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 3px solid #ffffff;
+            transition: background-color 0.3s, transform 0.3s;
+
+            /* 預設隱藏 */
+            opacity: 0;
+            pointer-events: none;
+
+            /* 捲動驅動動畫 (CSS Scroll-Driven Animations) */
+            animation: show-back-to-top linear both;
+            animation-timeline: scroll();
+            animation-range: 100px 300px;
+        }
+
+        .back-to-top:hover,
+        .back-to-top:focus {
+            background-color: var(--link-color);
+            transform: translateY(-5px);
+        }
+
+        .back-to-top span {
+            font-size: 1.8rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        /*
+         * ========== 10. 響應式調整 (RWD) ==========
+         */
+        @media (max-width: 1024px) {
+            .container { width: 95%; }
+            .feature-grid { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 768px) {
-            header h1 {
-                font-size: 2.2rem;
-            }
+            header h1 { font-size: 2.2rem; }
+            .requirement-list { padding: 1.5rem; }
+            nav.main-nav { position: relative; top: 0; }
+            .lang-switcher { position: relative; justify-content: center; }
+            nav.main-nav ul { flex-direction: column; padding: 0.75rem; gap: 0.25rem; }
+            nav.main-nav a { justify-content: center; width: 100%; border-bottom: 1px solid rgba(128, 128, 128, 0.2); border-radius: 0.75rem; margin: 0; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .back-to-top { bottom: 1.5rem; right: 1.5rem; width: 48px; height: 48px; }
 
-            .requirement-list {
-                padding: 1.5rem;
-            }
-
-            nav.main-nav {
-                position: relative;
-                top: 0;
-            }
-
-            .lang-switcher {
-                position: relative;
-                justify-content: center;
-            }
-
-            nav.main-nav ul {
-                flex-direction: column;
-                padding: 0.75rem;
-                gap: 0.25rem;
-            }
-
-            nav.main-nav li:last-child a {
-                border-bottom: none;
-            }
-
-            nav.main-nav a {
-                justify-content: center;
-                width: 100%;
-                border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-                border-radius: 0.75rem;
-                margin: 0;
-                transition: background-color 0.2s;
-            }
-
-            nav.main-nav a:active {
-                background-color: rgba(128, 128, 128, 0.2);
-            }
-
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
-
-            /* Responsive Table Fixes */
-            .table-wrapper {
-                border: none;
-                box-shadow: none;
-                overflow: visible;
-            }
-
-            table {
-                min-width: 0;
-                width: 100%;
-            }
-
-            table,
-            thead,
-            tbody,
-            th,
-            td,
-            tr {
-                display: block;
-            }
-
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-
-            tr {
-                margin-bottom: 2rem;
-                border: 2px solid var(--border-color);
-                border-radius: 1rem;
-                background: var(--card-bg);
-                padding: 1rem;
-            }
-
-            td {
-                border: none;
-                border-bottom: 1px dashed var(--border-color);
-                padding: 1rem 0;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                width: 100%;
-                /* min-height: auto; 移除以符合 Firefox 相容性 */
-            }
-
-            td:last-child {
-                border-bottom: none;
-            }
-
-            .mobile-label {
-                display: block;
-                font-weight: 900;
-                color: var(--link-color);
-                font-size: 0.8rem;
-                text-transform: uppercase;
-                margin-bottom: 0.5rem;
-            }
-
-            .cta-button {
-                width: 100%;
-                padding: 1.25rem 1rem;
-            }
+            /* Mobile Table */
+            .table-wrapper { border: none; box-shadow: none; overflow: visible; }
+            table { min-width: 0; width: 100%; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { margin-bottom: 2rem; border: 2px solid var(--border-color); border-radius: 1rem; background: var(--card-bg); padding: 1rem; }
+            td { border: none; border-bottom: 1px dashed var(--border-color); padding: 1rem 0; display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+            td:last-child { border-bottom: none; }
+            .mobile-label { display: block; font-weight: 900; color: var(--link-color); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; }
+            .cta-button { width: 100%; padding: 1.25rem 1rem; }
         }
     </style>
 </head>
 
-<body>
+<body id="top">
 
     <input type="radio" name="lang" id="lang-zh" checked class="lang-state lang-nav-hidden">
     <input type="radio" name="lang" id="lang-en" class="lang-state lang-nav-hidden">
@@ -672,13 +553,19 @@
     <input type="radio" name="lang" id="lang-sc" class="lang-state lang-nav-hidden">
 
     <a href="#main-content" class="skip-link">跳過導覽，直接進入主要內容</a>
+    <a href="#top" class="back-to-top" aria-label="回到頂端">
+        <span aria-hidden="true">↑</span>
+    </a>
 
     <nav class="lang-switcher" aria-label="語言切換 🌐" role="navigation">
-        <label for="lang-zh" id="label-lang-zh" aria-current="true">正體中文<span
-                class="visually-hidden">（目前語言）</span></label>
-        <label for="lang-en" lang="en" id="label-lang-en">English</label>
-        <label for="lang-ja" lang="ja" id="label-lang-ja">日本語</label>
-        <label for="lang-sc" lang="zh-Hans" id="label-lang-sc">简体中文</label>
+        <fieldset>
+            <legend class="visually-hidden">選擇顯示語言</legend>
+            <label for="lang-zh" id="label-lang-zh" aria-current="true">正體中文<span
+                    class="visually-hidden">（目前語言）</span></label>
+            <label for="lang-en" lang="en" id="label-lang-en">English</label>
+            <label for="lang-ja" lang="ja" id="label-lang-ja">日本語</label>
+            <label for="lang-sc" lang="zh-Hans" id="label-lang-sc">简体中文</label>
+        </fieldset>
     </nav>
 
     <header role="banner" aria-label="頁首">
@@ -774,12 +661,6 @@
                     <span class="lang-en" lang="en">Specifications 📋</span>
                     <span class="lang-ja" lang="ja">要求声明 📋</span>
                     <span class="lang-sc" lang="zh-Hans">要求声明 📋</span>
-                </a></li>
-            <li><a href="https://github.com/rubujo/InputBox/releases" target="_blank" rel="noopener noreferrer">
-                    <span class="lang-zh" lang="zh-Hant">下載最新版本 📦</span>
-                    <span class="lang-en" lang="en">Download 📦</span>
-                    <span class="lang-ja" lang="ja">ダウンロード 📦</span>
-                    <span class="lang-sc" lang="zh-Hans">下载最新版本 📦</span>
                 </a></li>
             <li><a href="https://github.com/rubujo/InputBox" target="_blank" rel="noopener noreferrer">
                     <span class="lang-zh" lang="zh-Hant">取得原始碼 💻</span>
