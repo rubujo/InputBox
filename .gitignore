@@ -7,6 +7,9 @@ Thumbs.db
 .idea/
 *.swp
 *.log
+.vs/
+src/
+*.slnx
 
 # 專案特定 (Project Specific)
 # 本分支為純網頁 (No JS/No Images)，排除潛在的編譯產物
