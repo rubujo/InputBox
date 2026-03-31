@@ -1,25 +1,25 @@
 ---
 name: inputbox-web-dev
-description: Engineering guidelines and accessibility standards for the InputBox project's web pages (gh-pages branch). Use this skill when modifying index.html, adjusting CSS, syncing localization, or optimizing web A11y.
+description: InputBox 專案網頁開發工程規範技能。當任務涉及修改 index.html、調整 CSS 樣式、同步網頁多語系或優化網頁 A11y 時，載入此技能。
 ---
 
-# InputBox Web Engineering Guidelines
+# InputBox 網頁工程規範指引 (Web Guidelines)
 
-This skill provides the authoritative web engineering standards for the InputBox `gh-pages` branch. The project strictly enforces a "Zero-JS, Zero-Image" policy and requires compliance with WCAG 2.2 AAA standards.
+本技能提供 InputBox `gh-pages` 分支的權威網頁開發標準。本專案嚴格執行「零 JS、零圖片」政策，並致力於達成 WCAG 2.2 AAA 無障礙標準。
 
-## Core Reference Index
+## 核心規範索引 (References)
 
-Load the relevant files based on your current task:
+請根據任務性質載入相關檔案：
 
-1.  **Web Architecture (Zero-JS/Zero-Image)**: `docs/engineering/web-architecture.md`
-2.  **Web Localization (Radio Hack/Terminology)**: `docs/engineering/web-localization.md`
-3.  **Web A11y & Safety (AAA)**: `docs/engineering/web-a11y-safety.md`
-4.  **Web Style & Typography (CJK/kbd)**: `docs/engineering/web-style-typography.md`
-5.  **Web Git & Validation**: `docs/engineering/web-git.md`
+1.  **網頁架構 (零 JS/零圖片)**：`docs/engineering/web-architecture.md`
+2.  **多語系機制 (Radio Hack/術語表)**：`docs/engineering/web-localization.md`
+3.  **A11y 無障礙與視覺安全 (AAA)**：`docs/engineering/web-a11y-safety.md`
+4.  **排版與標籤規範 (CJK/kbd)**：`docs/engineering/web-style-typography.md`
+5.  **Git 提交與驗證規範**：`docs/engineering/web-git.md`
 
-## Workflow Mandates
+## 工作流程指令 (Workflow Mandates)
 
-- **Interactions**: PROHIBITED from using JavaScript. All toggles must use the CSS sibling selector (`~`) and `:checked`.
-- **Visuals**: Ensure "Zero-Jitter" during interactions (Hover/Focus).
-- **Localization**: When modifying text, you MUST update all four languages (ZH, EN, JA, SC) simultaneously.
-- **Validation**: Verify CJK symbol full-width conversion and `lang` attribute correctness before committing.
+- **互動開發**：絕對禁止使用 JavaScript。所有顯隱切換必須透過 CSS 兄弟選擇器 (`~`) 與 `:checked` 達成。
+- **視覺一致性**：確保所有互動（Hover/Focus）達成「零佈局抖動」。
+- **內容同步**：修改任何文字時，必須同步更新 ZH, EN, JA, SC 四種語系。
+- **最終驗證**：提交前必須檢查符號全形化、`lang` 屬性以及 Landmark 導覽結構的正確性。
