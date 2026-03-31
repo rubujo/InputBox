@@ -281,6 +281,13 @@
             backdrop-filter: blur(12px);
             display: flex;
             justify-content: flex-end;
+        }
+
+        .lang-switcher fieldset {
+            border: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
             gap: 0.5rem;
         }
 
@@ -293,6 +300,7 @@
             display: flex;
             align-items: center;
             border-bottom: 4px solid transparent;
+            transition: color 0.2s, border-bottom-color 0.2s;
         }
 
         #lang-zh:checked~.lang-switcher label[for="lang-zh"],
@@ -466,7 +474,7 @@
 
         /*
          * ========== 9. 返回頂端 (Back-to-Top) ==========
-         * 使用純 CSS scroll-timeline 實作顯示/隱藏邏輯
+         * 強化 A11y AAA：確保鍵盤操作、高對比度、與足夠的點擊面積 (56px)
          */
         @keyframes show-back-to-top {
             from { opacity: 0; transform: translateY(20px) scale(0.8); pointer-events: none; }
@@ -484,12 +492,13 @@
             color: #ffffff;
             border-radius: 50%;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             border: 3px solid #ffffff;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: background-color 0.3s, transform 0.3s, outline-offset 0.2s;
 
             /* 預設隱藏 */
             opacity: 0;
@@ -498,19 +507,39 @@
             /* 捲動驅動動畫 (CSS Scroll-Driven Animations) */
             animation: show-back-to-top linear both;
             animation-timeline: scroll();
-            animation-range: 100px 300px;
+            animation-range: 150px 400px;
         }
 
-        .back-to-top:hover,
-        .back-to-top:focus {
+        .back-to-top:hover {
             background-color: var(--link-color);
             transform: translateY(-5px);
         }
 
-        .back-to-top span {
-            font-size: 1.8rem;
+        .back-to-top:focus-visible {
+            outline: 5px solid var(--focus-ring);
+            outline-offset: 8px;
+            opacity: 1 !important; /* 鍵盤聚焦時強制顯示 */
+            pointer-events: auto !important;
+        }
+
+        .back-to-top span.arrow {
+            font-size: 1.4rem;
             font-weight: 900;
             line-height: 1;
+        }
+
+        .back-to-top span.text {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-top: -2px;
+        }
+
+        /* 強迫高對比模式優化 (A11y AAA) */
+        @media (forced-colors: active) {
+            .back-to-top {
+                border: 3px solid ButtonText;
+            }
         }
 
         /*
@@ -554,7 +583,8 @@
 
     <a href="#main-content" class="skip-link">跳過導覽，直接進入主要內容</a>
     <a href="#top" class="back-to-top" aria-label="回到頂端">
-        <span aria-hidden="true">↑</span>
+        <span class="arrow" aria-hidden="true">↑</span>
+        <span class="text" aria-hidden="true">Top</span>
     </a>
 
     <nav class="lang-switcher" aria-label="語言切換 🌐" role="navigation">
