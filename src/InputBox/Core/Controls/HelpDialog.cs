@@ -172,15 +172,8 @@ internal sealed class HelpDialog : Form
         };
         _btnClose.FlatAppearance.BorderSize = 0;
 
-        // Click：打斷目前動畫後關閉。
         _btnClose.Click += (s, e) =>
         {
-            Interlocked.Increment(ref _closeAnimId);
-
-            _closeDwellProgress = 0f;
-
-            _btnClose.Invalidate();
-
             try
             {
                 Close();
@@ -190,58 +183,6 @@ internal sealed class HelpDialog : Form
                 Debug.WriteLine($"[說明] 關閉失敗：{ex.Message}");
             }
         };
-
-        // MouseEnter／Leave：懸停視覺回饋。
-        _btnClose.MouseEnter += (s, e) =>
-        {
-            if (ActiveForm != this)
-            {
-                return;
-            }
-
-            _closeIsHovered = true;
-
-            StartCloseAnimationFeedback();
-        };
-        _btnClose.MouseLeave += (s, e) =>
-        {
-            _closeIsHovered = false;
-            _closeIsPressed = false;
-
-            StopCloseFeedback();
-        };
-
-        // MouseDown / Up：按壓狀態追蹤。
-        _btnClose.MouseDown += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                _closeIsPressed = true;
-
-                StartCloseAnimationFeedback();
-            }
-        };
-        _btnClose.MouseUp += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                _closeIsPressed = false;
-
-                StartCloseAnimationFeedback();
-            }
-        };
-
-        // GotFocus／LostFocus：鍵盤焦點強烈視覺回饋。
-        _btnClose.GotFocus += (s, e) => ApplyStrongCloseVisual();
-        _btnClose.LostFocus += (s, e) =>
-        {
-            _closeIsPressed = false;
-
-            StopCloseFeedback();
-        };
-
-        // Paint：自訂邊框與注視進度條。
-        _btnClose.Paint += BtnClose_Paint;
 
         _pnlFooter = new Panel()
         {
@@ -595,27 +536,7 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private Font? _closeBoldFont;
 
-    // 關閉按鈕視覺狀態。
-
-    /// <summary>
-    /// 關閉按鈕 Dwell 動畫進度（0.0 - 1.0），由動畫邏輯更新並觸發 Invalidate，Paint 事件根據此值繪製注視進度條
-    /// </summary>
-    private float _closeDwellProgress;
-
-    /// <summary>
-    /// 關閉按鈕目前的動畫 ID（用於區分不同次的動畫，避免舊動畫影響新狀態）
-    /// </summary>
-    private long _closeAnimId;
-
-    /// <summary>
-    /// 關閉按鈕目前是否處於懸停狀態（由 MouseEnter/Leave 事件更新，影響動畫邏輯與繪製）
-    /// </summary>
-    private bool _closeIsHovered;
-
-    /// <summary>
-    /// 關閉按鈕目前是否處於按壓狀態（由 MouseDown/Up 事件更新，影響動畫邏輯與繪製）
-    /// </summary>
-    private bool _closeIsPressed;
+    // 關閉按鈕視覺狀態已由 ButtonEyeTrackerExtensions 統一接管。
 
     /// <summary>
     /// 套用共享 A11y 字型到所有控制項，並同步取得按鈕用 Regular／Bold 共享字型
@@ -629,14 +550,17 @@ internal sealed class HelpDialog : Form
         FontFamily family = shared.FontFamily;
 
         _ = Interlocked.Exchange(
-            ref _closeRegularFont,
-            MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Regular, family));
-
-        _ = Interlocked.Exchange(
             ref _closeBoldFont,
             MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, family));
 
         Font = shared;
+
+        _btnClose.Font = shared;
+        _btnClose.AttachEyeTrackerFeedback(
+            baseDescription: Strings.Help_Btn_Close,
+            regularFont: _closeRegularFont,
+            boldFont: _closeBoldFont,
+            formCt: _cts?.Token ?? CancellationToken.None);
     }
 
     /// <summary>
@@ -1003,35 +927,14 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private void OnGamepadClose()
     {
-        this.SafeBeginInvoke(async () =>
+        this.SafeBeginInvoke(() =>
         {
-            try
+            if (IsDisposed)
             {
-                if (IsDisposed)
-                {
-                    return;
-                }
-
-                ApplyStrongCloseVisual();
-
-                await Task.Delay(80, _cts?.Token ?? CancellationToken.None).ConfigureAwait(false);
-
-                await this.InvokeAsync(() =>
-                {
-                    if (!IsDisposed)
-                    {
-                        Close();
-                    }
-                });
+                return;
             }
-            catch (OperationCanceledException)
-            {
 
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[說明] 控制器關閉失敗：{ex.Message}");
-            }
+            Close();
         });
     }
 
@@ -1071,262 +974,6 @@ internal sealed class HelpDialog : Form
         maxH = Math.Max(maxH, a11yMin);
 
         _btnClose.MinimumSize = new Size(maxW, maxH);
-    }
-
-    /// <summary>
-    /// 焦點或按壓時套用強烈靜態視覺（主題感知反轉 + Bold 字型）
-    /// </summary>
-    private void ApplyStrongCloseVisual()
-    {
-        if (_btnClose.IsDisposed)
-        {
-            return;
-        }
-
-        Interlocked.Increment(ref _closeAnimId);
-
-        _closeDwellProgress = 0f;
-
-        if (SystemInformation.HighContrast)
-        {
-            _btnClose.BackColor = SystemColors.Highlight;
-            _btnClose.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            bool isDark = _btnClose.IsDarkModeActive();
-
-            if (_closeIsPressed)
-            {
-                _btnClose.BackColor = isDark ?
-                    Color.FromArgb(255, 200, 120) :
-                    Color.FromArgb(28, 28, 28);
-                _btnClose.ForeColor = isDark ?
-                    Color.Black :
-                    Color.White;
-            }
-            else
-            {
-                _btnClose.BackColor = isDark ? Color.White : Color.Black;
-                _btnClose.ForeColor = isDark ? Color.Black : Color.White;
-            }
-        }
-
-        // 使用預建 Bold 字型，避免每次呼叫建立新物件洩漏 GDI 資源。
-        Font? boldFont = _closeBoldFont;
-
-        if (boldFont != null)
-        {
-            _btnClose.Font = boldFont;
-        }
-
-        _btnClose.AccessibleDescription = _closeIsPressed
-            ? $"{Strings.Help_Btn_Close} ({Strings.A11y_State_Pressed})"
-            : $"{Strings.Help_Btn_Close} ({Strings.A11y_State_Focused})";
-        _btnClose.Invalidate();
-    }
-
-    /// <summary>
-    /// 懸停（Hover）或一般互動時啟動 Dwell 動畫
-    /// </summary>
-    private void StartCloseAnimationFeedback()
-    {
-        if (_btnClose.IsDisposed)
-        {
-            return;
-        }
-
-        // 按壓中（MouseDown）或純鍵盤焦點（未懸停）：套用強烈靜態視覺，不啟動 Dwell。
-        if (_closeIsPressed ||
-            (_btnClose.Focused && !_closeIsHovered))
-        {
-            ApplyStrongCloseVisual();
-
-            return;
-        }
-
-        if (SystemInformation.HighContrast)
-        {
-            _btnClose.BackColor = SystemColors.HotTrack;
-            _btnClose.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            bool isDark = _btnClose.IsDarkModeActive();
-
-            _btnClose.BackColor = isDark ?
-                Color.FromArgb(60, 60, 60) :
-                Color.FromArgb(220, 220, 220);
-            _btnClose.ForeColor = isDark ?
-                Color.White :
-                Color.Black;
-        }
-
-        Font? regularFont = _closeRegularFont;
-
-        if (regularFont != null)
-        {
-            _btnClose.Font = regularFont;
-        }
-
-        long currentId = Interlocked.Increment(ref _closeAnimId);
-
-        _closeDwellProgress = 0f;
-
-        _btnClose.Invalidate();
-
-        CancellationToken ct = _cts?.Token ?? CancellationToken.None;
-
-        _btnClose.RunDwellAnimationAsync(
-            id: currentId,
-            animationIdGetter: () => Interlocked.Read(ref _closeAnimId),
-            progressSetter: p => _closeDwellProgress = p,
-            durationMs: 1000,
-            ct: ct
-        ).SafeFireAndForget();
-    }
-
-    /// <summary>
-    /// 停止回饋：恢復預設外觀或依焦點／懸停狀態調整
-    /// </summary>
-    private void StopCloseFeedback()
-    {
-        Interlocked.Increment(ref _closeAnimId);
-
-        _closeDwellProgress = 0f;
-
-        // 與 BtnCopy 的 RestoreButtonDefaultStyle 邏輯一致：
-        // 滑鼠移出但仍具備鍵盤焦點 → 強烈靜態高亮（反轉色）。
-        if (_btnClose.Focused)
-        {
-            ApplyStrongCloseVisual();
-
-            return;
-        }
-
-        if (_closeIsHovered)
-        {
-            StartCloseAnimationFeedback();
-
-            return;
-        }
-
-        // 恢復預設（由主題引擎決定）。
-        _btnClose.BackColor = Color.Empty;
-        _btnClose.ForeColor = Color.Empty;
-
-        Font? regularFont = _closeRegularFont;
-
-        if (regularFont != null)
-        {
-            _btnClose.Font = regularFont;
-        }
-
-        _btnClose.Invalidate();
-    }
-
-    /// <summary>
-    /// 自訂繪製：基礎邊框 → 焦點／懸停邊框 → Dwell 進度條
-    /// </summary>
-    private void BtnClose_Paint(object? sender, PaintEventArgs e)
-    {
-        Button btn = _btnClose;
-
-        Graphics g = e.Graphics;
-
-        // 動態存取最新 DPI，避免靜態捕獲舊 DPI 導致跨螢幕拖曳時繪圖偏移。
-        float scale = btn.DeviceDpi / AppSettings.BaseDpi;
-
-        bool isDark = btn.IsDarkModeActive(),
-            isFocused = btn.Focused,
-            isHoveredOrDwell = _closeIsHovered || (_closeDwellProgress > 0f);
-
-        // 停用態：統一使用共用非色彩提示（虛線邊框 + 斜線）。
-        if (btn.TryDrawDisabledButtonCue(g, isDark, scale))
-        {
-            return;
-        }
-
-        // 基礎邊框（只在非焦點、非懸停時繪製，與焦點邊框互斥）。
-        // 確保按鈕在靜態狀態下仍具備物理辨識度，不融入背景。
-        if (!isFocused &&
-            !isHoveredOrDwell)
-        {
-            btn.DrawButtonBaseBorder(g, isDark, scale);
-        }
-
-        // 焦點／懸停邊框（3px，與 BtnCopy 完全對齊）。
-        bool isStrongVisual = _closeIsPressed || (isFocused && !_closeIsHovered);
-
-        // 邊框色依互動狀態選取，確保在強視覺（Focus／Pressed）與中性（Hover）下皆達 WCAG AAA（≥7:1）：
-        // 深色強視覺（Focus=White／Pressed=Amber）→ MediumBlue  ≥7.33:1 AAA
-        // 淺色強視覺（Focus=Black／Pressed=近黑）→ Cyan        ≥13.57:1 AAA
-        // 深色中性／懸停灰                      → LightBlue    ≥7.2:1 AAA
-        // 淺色中性／懸停灰                      → MediumBlue  14.2:1 AAA
-        if (isFocused ||
-            isHoveredOrDwell)
-        {
-
-            Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
-
-            btn.DrawButtonInteractiveBorder(
-                g,
-                borderColor,
-                scale,
-                out int inset,
-                out int borderThickness);
-
-            if (!SystemInformation.HighContrast &&
-                _closeIsPressed)
-            {
-                btn.DrawPressedInnerCue(g, scale, inset, borderThickness);
-            }
-        }
-
-        // Dwell 進度條（懸停中且非按壓狀態）。
-        // 雙重編碼（CVD 補償）：實心背景 + BackwardDiagonal 條紋紋理。
-        float progress = _closeDwellProgress;
-
-        if (progress > 0f &&
-            !_closeIsPressed)
-        {
-            int barH = (int)(6 * scale),
-                barW = (int)(btn.Width * progress);
-
-            if (barW > 0)
-            {
-                Rectangle barRect = new(0, btn.Height - barH, barW, barH);
-
-                if (SystemInformation.HighContrast)
-                {
-                    using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
-
-                    g.FillRectangle(barBrush, barRect);
-                }
-                else
-                {
-                    // 懸停灰底對比：淺色（#DCDCDC）→ Green 3.75:1；深色（#3C3C3C）→ LimeGreen 5.21:1。
-                    // 全類型 CVD 最低對比：淺色 3.50:1、深色 3.45:1，均符合 WCAG 1.4.11 非文字 UI ≥ 3:1。
-                    Color baseColor = isDark ?
-                            Color.LimeGreen :
-                            Color.Green,
-                        hatchColor = isDark ?
-                            // DarkGreen on LimeGreen = 3.51:1（全 CVD ≥ 3.45:1）。
-                            Color.DarkGreen :
-                            // PaleGreen on Green = 4.06:1（全 CVD ≥ 3.50:1）。
-                            Color.PaleGreen;
-
-                    using Brush bgBrush = new SolidBrush(baseColor);
-                    using Brush hatchBrush = new HatchBrush(
-                        HatchStyle.BackwardDiagonal,
-                        hatchColor,
-                        Color.Transparent);
-
-                    g.FillRectangle(bgBrush, barRect);
-                    g.FillRectangle(hatchBrush, barRect);
-                }
-            }
-        }
     }
 
     #endregion
