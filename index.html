@@ -217,27 +217,28 @@
       transform-origin: center;
       filter: blur(30px);
       will-change: transform;
+      backface-visibility: hidden;
     }
 
     @keyframes wobblyRotate {
       0% {
-        transform: translate(-50%, -50%) rotate(0deg) scale(1) skew(0deg);
+        transform: translate3d(-50%, -50%, 0) rotate(0deg) scale(1) skew(0deg);
       }
 
       25% {
-        transform: translate(-53%, -47%) rotate(95deg) scale(1.08) skew(2deg);
+        transform: translate3d(-53%, -47%, 0) rotate(95deg) scale(1.08) skew(2deg);
       }
 
       50% {
-        transform: translate(-47%, -53%) rotate(185deg) scale(0.92) skew(-1deg);
+        transform: translate3d(-47%, -53%, 0) rotate(185deg) scale(0.92) skew(-1deg);
       }
 
       75% {
-        transform: translate(-51%, -49%) rotate(275deg) scale(1.04) skew(1deg);
+        transform: translate3d(-51%, -49%, 0) rotate(275deg) scale(1.04) skew(1deg);
       }
 
       100% {
-        transform: translate(-50%, -50%) rotate(360deg) scale(1) skew(0deg);
+        transform: translate3d(-50%, -50%, 0) rotate(360deg) scale(1) skew(0deg);
       }
     }
 
@@ -258,6 +259,7 @@
       z-index: 1;
       /* 確保星星為圓形 */
       border-radius: 50%;
+      backface-visibility: hidden;
     }
 
     /*
@@ -294,12 +296,12 @@
       0%,
       100% {
         opacity: 0.25;
-        transform: translateY(0) scale(0.95);
+        transform: translate3d(0, 0, 0) scale(0.95);
       }
 
       50% {
         opacity: 0.85;
-        transform: translateY(-6px) scale(1.1);
+        transform: translate3d(0, -6px, 0) scale(1.1);
       }
     }
 
@@ -657,16 +659,12 @@
     @keyframes show-back-to-top {
       from {
         opacity: 0;
-        transform: translateY(20px) scale(0.8);
-        visibility: hidden;
-        pointer-events: none;
+        transform: translate3d(0, 20px, 0) scale(0.8);
       }
 
       to {
         opacity: 1;
-        transform: translateY(0) scale(1);
-        visibility: visible;
-        pointer-events: auto;
+        transform: translate3d(0, 0, 0) scale(1);
       }
     }
 
@@ -687,17 +685,34 @@
       text-decoration: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       border: 3px solid #ffffff;
-      transition: background-color 0.3s, transform 0.3s, outline-offset 0.2s;
+      transition: background-color 0.3s, transform 0.3s, opacity 0.3s, outline-offset 0.2s;
 
-      /* 預設隱藏 */
-      opacity: 0;
-      pointer-events: none;
-
-      /* 捲動驅動動畫 (CSS Scroll-Driven Animations) */
-      animation: show-back-to-top linear both;
-      animation-timeline: scroll();
-      animation-range: 150px 400px;
+      /*
+       * 瀏覽器相容性退避方案 (Compatibility Fallback):
+       * 對於不支援 Scroll-Driven Animations 的瀏覽器 (Firefox/Safari) 預設顯示按鈕。
+       */
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
       will-change: transform, opacity;
+      backface-visibility: hidden;
+    }
+
+    /*
+     * 現代瀏覽器漸進式增強 (Progressive Enhancement):
+     * 僅在支援 animation-timeline 的環境下才執行自動隱藏與捲動顯現邏輯。
+     */
+    @supports (animation-timeline: scroll()) {
+      .back-to-top {
+        /*
+         * 效能優化：利用 opacity: 0 配合 Scroll Animation 達成漸顯效果，
+         * 並完全使用 3D Transform 確保 Compositor 執行。
+         */
+        opacity: 0;
+        animation: show-back-to-top linear both;
+        animation-timeline: scroll();
+        animation-range: 150px 400px;
+      }
     }
 
     .back-to-top:hover {
