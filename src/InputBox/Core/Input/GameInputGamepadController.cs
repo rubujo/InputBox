@@ -224,7 +224,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 取得目前是否已連線
     /// </summary>
-    public bool IsConnected => _hasPreviousState;
+    public bool IsConnected => _device != null;
 
     /// <summary>
     /// 控制器 B 鍵
@@ -523,14 +523,23 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 _gameInput = GameInput.Create();
                 _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
 
-                // 註冊裝置連線／斷線事件。
-                // 這裡我們只將旗標設為需要重新整理，真正的列舉會在 Poll 執行緒中安全執行。
+                // 初始化時先直接列舉一次，再註冊非阻塞裝置回呼。
+                // 這樣可避免為了拿到既有裝置名單而付出兩次同步枚舉成本。
+                if (_needsRefresh &&
+                    !cancellationToken.IsCancellationRequested &&
+                    !_disposed)
+                {
+                    TryFindDevice();
+                }
+
+                // 註冊裝置變更事件。
+                // 使用 None 避免在註冊當下再次為現有裝置執行同步枚舉，
+                // 讓啟動成本只落在一次直接列舉上。
                 _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
                     null,
                     GameInputKind.Gamepad,
                     GameInputDeviceStatus.Connected,
-                    // 這會強迫 Windows 系統「立刻」交出設備名單，並瞬間觸發 callback 讓 _needsRefresh 變成 true。
-                    GameInputEnumerationKind.Blocking,
+                    GameInputEnumerationKind.None,
                     (_, _, _, _) =>
                     {
                         _needsRefresh = true;
@@ -538,23 +547,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         // 記錄觸發當下的時間。
                         Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
                     });
-
-                // ── 初始化快速掃描 ────────────────────────────────────────────────
-                // RegisterDeviceCallback(Blocking) 已保證同步完成枚舉。
-                // 此時直接呼叫 TryFindDevice() 可立即建立連線，完全跳過 Poll() 中
-                // 的 GamepadRefreshCooldownMs（500ms）防抖冷卻。
-                //
-                // 背景：防抖冷卻的設計目的是避免插拔事件的連續 callback 導致高頻重新列舉。
-                // 但在初始化階段，Blocking callback 只觸發一次，不需要防抖；
-                // 舊的「首幀手動 Poll」設計並無法繞過冷卻，TryFindDevice() 仍被跳過，
-                // 造成 COM init + 500ms 合計約 600-700ms 的啟動延遲。
-                // 此處直接呼叫是目前架構下最佳化的做法，可消除其中約 500ms。
-                if (_needsRefresh &&
-                    !cancellationToken.IsCancellationRequested &&
-                    !_disposed)
-                {
-                    TryFindDevice();
-                }
             }
 
             // 成功完成初始化，通知 CreateAsync 解除等待

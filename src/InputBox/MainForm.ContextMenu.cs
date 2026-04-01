@@ -302,7 +302,7 @@ public partial class MainForm
                 // Zero-Jitter：擷取模式不改變 Padding，僅透過顏色提示狀態。
                 // 按鈕文字提示與狀態變更。
                 BtnCopy.Enabled = false;
-                BtnCopy.Text = "...";
+                BtnCopy.Text = Strings.Msg_PressAnyKey;
 
                 // 邊框顏色變化（兼顧高對比）。
                 PInputHost.BackColor = SystemInformation.HighContrast ?
