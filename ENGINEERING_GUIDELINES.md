@@ -11,7 +11,7 @@
 - [Git 提交規範與安全性紅線 (Git/Safety)](docs/engineering/git-commit-safety.md)
 
 ## AI 技能位置
-- **Gemini CLI**: `.gemini/skills/inputbox-dev/`
+- **Gemini CLI**: `.agents/skills/inputbox-dev/`（目前共用）
 - **GitHub Copilot / Others**: `.agents/skills/inputbox-dev/`
 
 ---

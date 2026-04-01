@@ -14,8 +14,7 @@
 ## 2. 執行環境
 - **編碼設定**：執行指令前，必須先確保環境編碼為 UTF-8：
   ```powershell
-  [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-  [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+  [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
   ```
 - **建置驗證**：完成修改後執行 `dotnet build src/InputBox/InputBox.csproj --configuration Debug`。
 
