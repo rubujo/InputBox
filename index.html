@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>輸入框｜InputBox</title>
   <meta name="description" content="改善在《FINAL FANTASY XIV 繁體中文版》遊戲環境中，於特定操作情境下無法直接使用 Windows 觸控式鍵盤輸入中文的使用體驗。">
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="輸入框｜InputBox">
+  <meta property="og:description" content="改善在《FINAL FANTASY XIV 繁體中文版》遊戲環境中，於特定操作情境下無法直接使用 Windows 觸控式鍵盤輸入中文的使用體驗。">
+  <meta property="og:type" content="website">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
   <style>
@@ -14,6 +18,7 @@
      * 遵循 WCAG 2.2 AAA 規範，確保所有文字對比度 ≥ 7:1。
      */
     :root {
+      color-scheme: light dark;
       /* Light Mode */
       --bg-color: #ffffff;
       --text-color: #111827;
@@ -500,8 +505,10 @@
     }
 
     nav.main-nav a:hover {
-      background-color: rgba(128, 128, 128, 0.1);
+      background-color: rgba(128, 128, 128, 0.15);
       text-decoration: underline;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 4px;
     }
 
     /*
@@ -772,7 +779,215 @@
     }
 
     /*
-     * ========== 10. 響應式調整 (RWD) ==========
+     * ========== 10. 導覽列捲動監聽 (CSS Scrollspy, A11y AAA) ==========
+     * 使用 view-timeline 與 logical OR 達成零 JS 之狀態跟隨
+     */
+    body {
+      timeline-scope:
+        --section-about,
+        --section-handheld,
+        --section-usage,
+        --section-usage-advanced,
+        --section-spec,
+        --section-vibration,
+        --section-faq;
+    }
+
+    #about {
+      view-timeline: --section-about block;
+    }
+
+    #handheld {
+      view-timeline: --section-handheld block;
+    }
+
+    #usage {
+      view-timeline: --section-usage block;
+    }
+
+    #usage-advanced {
+      view-timeline: --section-usage-advanced block;
+    }
+
+    #spec {
+      view-timeline: --section-spec block;
+    }
+
+    #vibration {
+      view-timeline: --section-vibration block;
+    }
+
+    #faq {
+      view-timeline: --section-faq block;
+    }
+
+    @supports (animation-timeline: view()) {
+      nav.main-nav a[href="#about"] {
+        animation-timeline: --section-about;
+      }
+
+      nav.main-nav a[href="#handheld"] {
+        animation-timeline: --section-handheld;
+      }
+
+      /* #usage 區塊同時監聽 #usage 與 #usage-advanced 兩個片段 */
+      nav.main-nav a[href="#usage"] {
+        animation-timeline: --section-usage, --section-usage-advanced;
+      }
+
+      nav.main-nav a[href="#spec"] {
+        animation-timeline: --section-spec;
+      }
+
+      nav.main-nav a[href="#vibration"] {
+        animation-timeline: --section-vibration;
+      }
+
+      nav.main-nav a[href="#faq"] {
+        animation-timeline: --section-faq;
+      }
+
+      nav.main-nav a {
+        animation-name: spy-active;
+        animation-fill-mode: none;
+        animation-timing-function: linear;
+        /* 從進入螢幕到完全離開螢幕均觸發 (等同於 cover 0% cover 100%) */
+        animation-range: cover;
+      }
+
+      /* 顯式定義兩組動畫狀態對應兩個 timeline */
+      nav.main-nav a[href="#usage"] {
+        animation-name: spy-active, spy-active;
+        animation-fill-mode: none, none;
+        animation-range: cover, cover;
+      }
+
+      @keyframes spy-active {
+
+        0%,
+        100% {
+          background-color: rgba(128, 128, 128, 0.15);
+          text-decoration: underline;
+          text-decoration-thickness: 3px;
+          text-underline-offset: 4px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        nav.main-nav a {
+          /* 覆寫全域預設，確保 Scroll-driven timing function 不被短時間強制縮短而失效 */
+          animation-duration: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    }
+
+    /*
+     * ========== 11. 遊戲控制器圖示 (Xbox Controller Styles, AAA) ==========
+     * 遵循零圖片與 AAA 安全對比色之擬物化設計
+     */
+    .xbox-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif, "Segoe UI Variable Display";
+      font-weight: 800;
+      color: #f9fafb;
+      background-color: #0f172a;
+      border: 1px solid #334155;
+      box-shadow: 0 3px 0 #020617, inset 0 2px 4px rgba(255, 255, 255, 0.1);
+      margin: 0 4px;
+      position: relative;
+      top: -2px;
+      user-select: none;
+      vertical-align: middle;
+    }
+
+    .xbox-round {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      padding: 0;
+    }
+
+    .xbox-pill {
+      border-radius: 12px;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .xbox-bumper {
+      border-radius: 6px 6px 12px 12px;
+      padding: 1px 10px;
+      font-size: 0.75rem;
+    }
+
+    .xbox-trigger {
+      border-radius: 4px 4px 16px 16px;
+      padding: 2px 10px;
+      font-size: 0.75rem;
+    }
+
+    .xbox-dpad {
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      font-size: 0.9rem;
+      background-color: #1e293b;
+      border-color: #475569;
+    }
+
+    .xbox-stick {
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      background: radial-gradient(circle at center, #1e293b 40%, #0f172a 100%);
+      font-size: 0.7rem;
+      border-width: 2px;
+      box-sizing: border-box;
+    }
+
+    .xbox-a {
+      color: #4ade80;
+      text-shadow: 0 0 3px rgba(74, 222, 128, 0.4);
+    }
+
+    .xbox-b {
+      color: #f87171;
+      text-shadow: 0 0 3px rgba(248, 113, 113, 0.4);
+    }
+
+    .xbox-x {
+      color: #60a5fa;
+      text-shadow: 0 0 3px rgba(96, 165, 250, 0.4);
+    }
+
+    .xbox-y {
+      color: #fde047;
+      text-shadow: 0 0 3px rgba(253, 224, 71, 0.4);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .xbox-btn {
+        background-color: #000000;
+        border-color: #1f2937;
+        box-shadow: 0 3px 0 #000000, inset 0 2px 4px rgba(255, 255, 255, 0.05);
+      }
+
+      .xbox-dpad,
+      .xbox-stick {
+        background-color: #030712;
+      }
+
+      .xbox-stick {
+        background: radial-gradient(circle at center, #111827 40%, #000000 100%);
+      }
+    }
+
+    /*
+     * ========== 12. 響應式調整 (RWD) ==========
      */
     @media (max-width: 1024px) {
       .container {
@@ -889,6 +1104,69 @@
       .cta-button {
         width: 100%;
         padding: 1.25rem 1rem;
+      }
+    }
+
+    /*
+     * ========== @media print ==========
+     * 針對列印介面進行黑白化與隱藏多餘導航列的最佳化
+     */
+    @media print {
+      body {
+        background-color: white !important;
+        color: black !important;
+      }
+
+      .main-nav,
+      .lang-nav,
+      .mobile-menu-btn,
+      .gh-link {
+        display: none !important;
+      }
+
+      .container {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        break-inside: avoid;
+      }
+
+      table {
+        break-inside: auto;
+      }
+
+      tr,
+      td,
+      th {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .xbox-btn {
+        border-color: #333 !important;
+        color: #000 !important;
+        background: none !important;
+        box-shadow: none !important;
+      }
+
+      .xbox-a,
+      .xbox-b,
+      .xbox-x,
+      .xbox-y,
+      .xbox-stick,
+      .xbox-dpad,
+      .xbox-bumper,
+      .xbox-start,
+      .xbox-back {
+        text-shadow: none !important;
+        color: black !important;
+        border: 1px solid black !important;
       }
     }
   </style>
@@ -1297,11 +1575,14 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[背鍵]</kbd>／<kbd>[自定義鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>Back Button</kbd> / <kbd>Custom
-                      Key</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[背面ボタン]</kbd>／<kbd>[カスタム ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[背键]</kbd>／<kbd>[自定义键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-pill">M</span> 背鍵／<span
+                      class="xbox-btn xbox-pill">Custom</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-pill xbox-back">Back</span> Button / <span
+                      class="xbox-btn xbox-pill">Custom</span> Key</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-pill">M</span> 背面ボタン／<span
+                      class="xbox-btn xbox-pill">Custom</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill">M</span> 背键／<span
+                      class="xbox-btn xbox-pill">Custom</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1310,14 +1591,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Ctrl]</kbd> + <kbd>[Alt]</kbd> +
-                    <kbd>[Shift]</kbd> + <kbd>[I]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
+                    <kbd>Shift</kbd> + <kbd>I</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd>
                     + <kbd>I</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Ctrl]</kbd> + <kbd>[Alt]</kbd> +
-                    <kbd>[Shift]</kbd> + <kbd>[I]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Ctrl]</kbd> + <kbd>[Alt]</kbd> +
-                    <kbd>[Shift]</kbd> + <kbd>[I]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
+                    <kbd>Shift</kbd> + <kbd>I</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
+                    <kbd>Shift</kbd> + <kbd>I</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1340,10 +1621,14 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[A 鍵]</kbd>／<kbd>[Start 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>A Button</kbd> / <kbd>Start Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[A ボタン]</kbd>／<kbd>[Start ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[A 键]</kbd>／<kbd>[Start 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-round xbox-a">A</span> 鍵／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-a">A</span> Button / <span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-a">A</span> ボタン／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-a">A</span> 键／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1352,14 +1637,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[A]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd>／<kbd>Alt</kbd> +
+                    <kbd>A</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> / <kbd>Alt</kbd> +
                     <kbd>A</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Enter]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[A]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Enter]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[A]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Enter</kbd>／<kbd>Alt</kbd> +
+                    <kbd>A</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd>／<kbd>Alt</kbd> +
+                    <kbd>A</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1382,10 +1667,10 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[B 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>B Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[B ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[B 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-round xbox-b">B</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-b">B</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-b">B</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-b">B</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1394,14 +1679,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Esc]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[C]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Esc</kbd>／<kbd>Alt</kbd> +
+                    <kbd>C</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Esc</kbd> / <kbd>Alt</kbd> +
                     <kbd>C</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Esc]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[C]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Esc]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[C]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Esc</kbd>／<kbd>Alt</kbd> +
+                    <kbd>C</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Esc</kbd>／<kbd>Alt</kbd> +
+                    <kbd>C</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1424,10 +1709,10 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[X 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>X Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[X ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[X 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-x">X</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-x">X</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-x">X</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1436,10 +1721,10 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Backspace]</kbd>／<kbd>[Delete]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Backspace</kbd>／<kbd>Delete</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Backspace</kbd> / <kbd>Delete</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Backspace]</kbd>／<kbd>[Delete]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Backspace]</kbd>／<kbd>[Delete]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Backspace</kbd>／<kbd>Delete</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Backspace</kbd>／<kbd>Delete</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1462,14 +1747,22 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Back 鍵]</kbd>／<kbd>[LB]</kbd> +
-                    <kbd>[RB]</kbd> + <kbd>[B 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>Back Button</kbd> / <kbd>LB</kbd> +
-                    <kbd>RB</kbd> + <kbd>B</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Back ボタン]</kbd>／<kbd>[LB]</kbd> +
-                    <kbd>[RB]</kbd> + <kbd>[B ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Back 键]</kbd>／<kbd>[LB]</kbd> +
-                    <kbd>[RB]</kbd> + <kbd>[B 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵／<span
+                      class="xbox-btn xbox-bumper">LB</span> +
+                    <span class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-b">B</span>
+                    鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-pill xbox-back">Back</span> Button / <span
+                      class="xbox-btn xbox-bumper">LB</span> +
+                    <span class="xbox-btn xbox-bumper">RB</span> + <span
+                      class="xbox-btn xbox-round xbox-b">B</span></span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-pill xbox-back">Back</span> ボタン／<span
+                      class="xbox-btn xbox-bumper">LB</span> +
+                    <span class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-b">B</span>
+                    ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-back">Back</span> 键／<span
+                      class="xbox-btn xbox-bumper">LB</span> +
+                    <span class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-b">B</span>
+                    键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1478,14 +1771,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Esc]</kbd>（無字時）／<kbd>[Alt]</kbd> +
-                    <kbd>[X]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Esc</kbd>（無字時）／<kbd>Alt</kbd> +
+                    <kbd>X</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Esc</kbd>（when empty） / <kbd>Alt</kbd> +
                     <kbd>X</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Esc]</kbd>（未入力時）／<kbd>[Alt]</kbd> +
-                    <kbd>[X]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Esc]</kbd>（无字时）／<kbd>[Alt]</kbd> +
-                    <kbd>[X]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Esc</kbd>（未入力時）／<kbd>Alt</kbd> +
+                    <kbd>X</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Esc</kbd>（无字时）／<kbd>Alt</kbd> +
+                    <kbd>X</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1508,10 +1801,10 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Start 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>Start Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Start ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Start 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-pill xbox-start">Start</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-pill xbox-start">Start</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-pill xbox-start">Start</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-start">Start</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1520,10 +1813,10 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd>（無字時）</span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd>（無字時）</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd>（when empty）</span>
-                  <span class="lang-ja" lang="ja"><kbd>[Enter]</kbd>（未入力時）</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Enter]</kbd>（无字时）</span>
+                  <span class="lang-ja" lang="ja"><kbd>Enter</kbd>（未入力時）</span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd>（无字时）</span>
                 </td>
               </tr>
               <tr>
@@ -1546,10 +1839,10 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Y 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>Y Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Y ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Y 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-round xbox-y">Y</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-y">Y</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-y">Y</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1558,14 +1851,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[F10]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[M]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>F10</kbd>／<kbd>Alt</kbd> +
+                    <kbd>M</kbd></span>
                   <span class="lang-en" lang="en"><kbd>F10</kbd> / <kbd>Alt</kbd> +
                     <kbd>M</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[F10]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[M]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[F10]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[M]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>F10</kbd>／<kbd>Alt</kbd> +
+                    <kbd>M</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>F10</kbd>／<kbd>Alt</kbd> +
+                    <kbd>M</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1588,14 +1881,15 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[視圖鍵（View）]</kbd> +
-                    <kbd>[↑]</kbd>／<kbd>[↓]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>View Button</kbd> + <kbd>↑</kbd> /
-                    <kbd>↓</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[ビュー ボタン]</kbd> +
-                    <kbd>[↑]</kbd>／<kbd>[↓]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[视图键（View）]</kbd> +
-                    <kbd>[↑]</kbd>／<kbd>[↓]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-pill xbox-view">View</span> 視圖鍵 +
+                    <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-pill xbox-view">View</span> Button + <span
+                      class="xbox-btn xbox-dpad">↑</span> /
+                    <span class="xbox-btn xbox-dpad">↓</span></span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-pill xbox-view">View</span> ボタン +
+                    <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-view">View</span> 视图键 +
+                    <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1604,13 +1898,13 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Alt]</kbd> +
-                    <kbd>[↑]</kbd>／<kbd>[↓]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Alt</kbd> +
+                    <kbd>↑</kbd>／<kbd>↓</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Alt]</kbd> +
-                    <kbd>[↑]</kbd>／<kbd>[↓]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Alt]</kbd> +
-                    <kbd>[↑]</kbd>／<kbd>[↓]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Alt</kbd> +
+                    <kbd>↑</kbd>／<kbd>↓</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> +
+                    <kbd>↑</kbd>／<kbd>↓</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1633,14 +1927,14 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[視圖鍵（View）]</kbd> + <kbd>[X
-                      鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>View Button</kbd> + <kbd>X
-                      Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[ビュー ボタン]</kbd> + <kbd>[X
-                      ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[视图键（View）]</kbd> + <kbd>[X
-                      键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-pill xbox-view">View</span> 視圖鍵 +
+                    <span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-pill xbox-view">View</span> Button + <span
+                      class="xbox-btn xbox-round xbox-x">X</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-pill xbox-view">View</span> ボタン + <span
+                      class="xbox-btn xbox-round xbox-x">X</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-view">View</span> 视图键 +
+                    <span class="xbox-btn xbox-round xbox-x">X</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1649,10 +1943,10 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Alt]</kbd> + <kbd>[0]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>0</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Alt]</kbd> + <kbd>[0]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Alt]</kbd> + <kbd>[0]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Alt</kbd> + <kbd>0</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1675,10 +1969,14 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[LB]</kbd>／<kbd>[右搖桿]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>LB</kbd> / <kbd>Right Stick</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[LB]</kbd>／<kbd>[右スティック]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[LB]</kbd>／<kbd>[右摇杆]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-bumper">LB</span>／<span
+                      class="xbox-btn xbox-stick">R</span> 右搖桿</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-bumper">LB</span> / <span
+                      class="xbox-btn xbox-stick">R</span> Right Stick</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-bumper">LB</span>／<span
+                      class="xbox-btn xbox-stick">R</span> 右スティック</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-bumper">LB</span>／<span
+                      class="xbox-btn xbox-stick">R</span> 右摇杆</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1687,14 +1985,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Ctrl]</kbd>／<kbd>[Shift]</kbd> +
-                    <kbd>[←]</kbd>／<kbd>[→]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Ctrl</kbd>／<kbd>Shift</kbd> +
+                    <kbd>←</kbd>／<kbd>→</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Ctrl</kbd> / <kbd>Shift</kbd> + <kbd>←</kbd> /
                     <kbd>→</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Ctrl]</kbd>／<kbd>[Shift]</kbd> +
-                    <kbd>[←]</kbd>／<kbd>[→]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Ctrl]</kbd>／<kbd>[Shift]</kbd> +
-                    <kbd>[←]</kbd>／<kbd>[→]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Ctrl</kbd>／<kbd>Shift</kbd> +
+                    <kbd>←</kbd>／<kbd>→</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Ctrl</kbd>／<kbd>Shift</kbd> +
+                    <kbd>←</kbd>／<kbd>→</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -1717,14 +2015,18 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[LB]</kbd> + <kbd>[RB]</kbd> + <kbd>[X
-                      鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>LB</kbd> + <kbd>RB</kbd> + <kbd>X
-                      Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[LB]</kbd> + <kbd>[RB]</kbd> + <kbd>[X
-                      ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[LB]</kbd> + <kbd>[RB]</kbd> + <kbd>[X
-                      键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
+                    鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
+                    Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
+                    ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
+                    键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1733,10 +2035,10 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Alt]</kbd> + <kbd>[F4]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Alt]</kbd> + <kbd>[F4]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Alt]</kbd> + <kbd>[F4]</kbd></span>
+                  <span class="lang-ja" lang="ja"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
                 </td>
               </tr>
             </tbody>
@@ -1798,10 +2100,10 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Y 鍵]</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>Y Button</kbd></span>
-                  <span class="lang-ja" lang="ja"><kbd>[Y ボタン]</kbd></span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Y 键]</kbd></span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-round xbox-y">Y</span> 鍵</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-y">Y</span> Button</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-y">Y</span> ボタン</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1810,15 +2112,15 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant">僅於複製按鈕上按下滑鼠右鍵／<kbd>[F10]</kbd>／<kbd>[Alt]</kbd>
-                    + <kbd>[M]</kbd>（輸入框右鍵為系統預設選單）</span>
+                  <span class="lang-zh" lang="zh-Hant">僅於複製按鈕上按下滑鼠右鍵／<kbd>F10</kbd>／<kbd>Alt</kbd>
+                    + <kbd>M</kbd>（輸入框右鍵為系統預設選單）</span>
                   <span class="lang-en" lang="en">Right Click (on Copy button only) / <kbd>F10</kbd> /
                     <kbd>Alt</kbd> + <kbd>M</kbd> (Right click on input box shows Windows default
                     menu)</span>
-                  <span class="lang-ja" lang="ja">コピー ボタン上で右クリックのみ／<kbd>[F10]</kbd>／<kbd>[Alt]</kbd> +
-                    <kbd>[M]</kbd>（入力欄の右クリックは標準メニュー）</span>
-                  <span class="lang-sc" lang="zh-Hans">仅在复制按钮上按鼠标右键／<kbd>[F10]</kbd>／<kbd>[Alt]</kbd>
-                    + <kbd>[M]</kbd>（输入框右键为系统默认菜单）</span>
+                  <span class="lang-ja" lang="ja">コピー ボタン上で右クリックのみ／<kbd>F10</kbd>／<kbd>Alt</kbd> +
+                    <kbd>M</kbd>（入力欄の右クリックは標準メニュー）</span>
+                  <span class="lang-sc" lang="zh-Hans">仅在复制按钮上按鼠标右键／<kbd>F10</kbd>／<kbd>Alt</kbd>
+                    + <kbd>M</kbd>（输入框右键为系统默认菜单）</span>
                 </td>
               </tr>
               <tr>
@@ -1841,14 +2143,18 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>/<kbd>[↓]</kbd> 移動<br><kbd>[A
-                      鍵]</kbd> 執行<br><kbd>[B 鍵]</kbd> 關閉</span>
-                  <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Move<br><kbd>A
-                      Button</kbd> Select<br><kbd>B Button</kbd> Close</span>
-                  <span class="lang-ja" lang="ja"><kbd>[↑]</kbd>/<kbd>[↓]</kbd> 移動<br><kbd>[A
-                      ボタン]</kbd> 決定<br><kbd>[B ボタン]</kbd> 閉じる</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[↑]</kbd>/<kbd>[↓]</kbd> 移动<br><kbd>[A
-                      键]</kbd> 执行<br><kbd>[B 键]</kbd> 关闭</span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 移動<br><span class="xbox-btn xbox-round xbox-a">A</span> 鍵
+                    執行<br><span class="xbox-btn xbox-round xbox-b">B</span> 鍵 關閉</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Move<br><span class="xbox-btn xbox-round xbox-a">A</span>
+                    Button Select<br><span class="xbox-btn xbox-round xbox-b">B</span> Button Close</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 移動<br><span class="xbox-btn xbox-round xbox-a">A</span> ボタン
+                    決定<br><span class="xbox-btn xbox-round xbox-b">B</span> ボタン 閉じる</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 移动<br><span class="xbox-btn xbox-round xbox-a">A</span> 键
+                    执行<br><span class="xbox-btn xbox-round xbox-b">B</span> 键 关闭</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1857,12 +2163,12 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd> 執行<br><kbd>[Esc]</kbd>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd> 執行<br><kbd>Esc</kbd>
                     關閉</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> Select<br><kbd>Esc</kbd>
                     Close</span>
-                  <span class="lang-ja" lang="ja"><kbd>[Enter]</kbd> 決定<br><kbd>[Esc]</kbd> 閉じる</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Enter]</kbd> 执行<br><kbd>[Esc]</kbd>
+                  <span class="lang-ja" lang="ja"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd> 閉じる</span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 执行<br><kbd>Esc</kbd>
                     关闭</span>
                 </td>
               </tr>
@@ -1886,21 +2192,44 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    調整<br><kbd>[←]</kbd>／<kbd>[→]</kbd>（或 <kbd>[LB]</kbd> + 方向鍵）移動<br><kbd>[右搖桿]</kbd>
-                    虛擬選取<br><kbd>[A]</kbd>／<kbd>[Start]</kbd> 確認<br><kbd>[B]</kbd>／<kbd>[Back]</kbd>
-                    取消<br><kbd>[X]</kbd> 退格<br><kbd>[Y]</kbd> 重設</span>
-                  <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Adjust<br><kbd>←</kbd>/<kbd>→</kbd> (or
-                    <kbd>LB</kbd> + D-pad) Move<br><kbd>RS</kbd> Virtual Selection<br><kbd>A</kbd>/<kbd>Start</kbd>
-                    Confirm<br><kbd>B</kbd>/<kbd>Back</kbd> Cancel<br><kbd>X</kbd> Backspace<br><kbd>Y</kbd>
-                    Reset</span>
-                  <span class="lang-ja" lang="ja"><kbd>[↑]</kbd>／<kbd>[↓]</kbd> 調整<br><kbd>[←]</kbd>／<kbd>[→]</kbd>（或
-                    <kbd>[LB]</kbd> + D-pad）移動<br><kbd>[右スティック]</kbd> 仮想選択<br><kbd>[A]</kbd>／<kbd>[Start]</kbd>
-                    決定<br><kbd>[B]</kbd>／<kbd>[Back]</kbd> キャンセル<br><kbd>[X]</kbd> バックスペース<br><kbd>[Y]</kbd> リセット</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    调整<br><kbd>[←]</kbd>／<kbd>[→]</kbd>（或 <kbd>[LB]</kbd> + 方向键）移动<br><kbd>[右摇杆]</kbd>
-                    虚拟选取<br><kbd>[A]</kbd>／<kbd>[Start]</kbd> 确认<br><kbd>[B]</kbd>／<kbd>[Back]</kbd>
-                    取消<br><kbd>[X]</kbd> 退格<br><kbd>[Y]</kbd> 重置</span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    調整<br><span class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>（或 <span
+                      class="xbox-btn xbox-bumper">LB</span> + 方向鍵）移動<br><span class="xbox-btn xbox-stick">R</span> 右搖桿
+                    虛擬選取<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 確定<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    取消<br><span class="xbox-btn xbox-round xbox-x">X</span> 退格<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 重設為預設值</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Adjust<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> (or
+                    <span class="xbox-btn xbox-bumper">LB</span> + D-pad) Move<br><span
+                      class="xbox-btn xbox-stick">R</span> Virtual Selection<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> OK<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Cancel<br><span class="xbox-btn xbox-round xbox-x">X</span> Backspace<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> Reset to Default</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span> 調整<br><span class="xbox-btn xbox-dpad">←</span>／<span
+                      class="xbox-btn xbox-dpad">→</span>（或
+                    <span class="xbox-btn xbox-bumper">LB</span> + D-pad）移動<br><span
+                      class="xbox-btn xbox-stick">R</span> 右スティック 仮想選択<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 確定<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    キャンセル<br><span class="xbox-btn xbox-round xbox-x">X</span> バックスペース<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 既定値にリセット</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    调整<br><span class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>（或 <span
+                      class="xbox-btn xbox-bumper">LB</span> + 方向键）移动<br><span class="xbox-btn xbox-stick">R</span> 右摇杆
+                    虚拟选取<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 确定<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    取消<br><span class="xbox-btn xbox-round xbox-x">X</span> 退格<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 重置为默认值</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1909,14 +2238,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd> 確認<br><kbd>[Esc]</kbd> 取消<br><kbd>[Alt]</kbd>
-                    + <kbd>[Y]</kbd> 重設</span>
-                  <span class="lang-en" lang="en"><kbd>Enter</kbd> Confirm<br><kbd>Esc</kbd>
-                    Cancel<br><kbd>Alt</kbd> + <kbd>Y</kbd> Reset</span>
-                  <span class="lang-ja" lang="ja"><kbd>[Enter]</kbd> 決定<br><kbd>[Esc]</kbd>
-                    キャンセル<br><kbd>[Alt]</kbd> + <kbd>[Y]</kbd> リセット</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Enter]</kbd> 确认<br><kbd>[Esc]</kbd>
-                    取消<br><kbd>[Alt]</kbd> + <kbd>[Y]</kbd> 重置</span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd> 取消<br><kbd>Alt</kbd>
+                    + <kbd>Y</kbd> 重設為預設值</span>
+                  <span class="lang-en" lang="en"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd>
+                    Cancel<br><kbd>Alt</kbd> + <kbd>Y</kbd> Reset to Default</span>
+                  <span class="lang-ja" lang="ja"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd>
+                    キャンセル<br><kbd>Alt</kbd> + <kbd>Y</kbd> 既定値にリセット</span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 确定<br><kbd>Esc</kbd>
+                    取消<br><kbd>Alt</kbd> + <kbd>Y</kbd> 重置为默认值</span>
                 </td>
               </tr>
               <tr>
@@ -1939,16 +2268,34 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    捲動<br><kbd>[LT]</kbd>／<kbd>[RT]</kbd>
-                    翻頁<br><kbd>[A]</kbd>／<kbd>[B]</kbd>／<kbd>[Start]</kbd>／<kbd>[Back]</kbd> 關閉</span>
-                  <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Scroll<br><kbd>LT</kbd>/<kbd>RT</kbd> Page
-                    Up/Down<br><kbd>A</kbd>/<kbd>B</kbd>/<kbd>Start</kbd>/<kbd>Back</kbd> Close</span>
-                  <span class="lang-ja" lang="ja"><kbd>[↑]</kbd>／<kbd>[↓]</kbd> スクロール<br><kbd>[LT]</kbd>／<kbd>[RT]</kbd>
-                    ページ切替<br><kbd>[A]</kbd>／<kbd>[B]</kbd>／<kbd>[Start]</kbd>／<kbd>[Back]</kbd> 閉じる</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    滚动<br><kbd>[LT]</kbd>／<kbd>[RT]</kbd>
-                    翻页<br><kbd>[A]</kbd>／<kbd>[B]</kbd>／<kbd>[Start]</kbd>／<kbd>[Back]</kbd> 关闭</span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    捲動<br><span class="xbox-btn xbox-trigger">LT</span>／<span class="xbox-btn xbox-trigger">RT</span>
+                    翻頁<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>／<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 關閉</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Scroll<br><span class="xbox-btn xbox-trigger">LT</span>/<span
+                      class="xbox-btn xbox-trigger">RT</span> Page
+                    Up/Down<br><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> Close</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span> スクロール<br><span class="xbox-btn xbox-trigger">LT</span>／<span
+                      class="xbox-btn xbox-trigger">RT</span>
+                    ページ切替<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>／<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 閉じる</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    滚动<br><span class="xbox-btn xbox-trigger">LT</span>／<span class="xbox-btn xbox-trigger">RT</span>
+                    翻页<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>／<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 关闭</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -1957,14 +2304,14 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    捲動<br><kbd>[PgUp]</kbd>／<kbd>[PgDn]</kbd> 翻頁<br><kbd>[F1]</kbd>／<kbd>[Esc]</kbd> 關閉</span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>↑</kbd>／<kbd>↓</kbd>
+                    捲動<br><kbd>PgUp</kbd>／<kbd>PgDn</kbd> 翻頁<br><kbd>F1</kbd>／<kbd>Esc</kbd> 關閉</span>
                   <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Scroll<br><kbd>PgUp</kbd>/<kbd>PgDn</kbd>
                     Page Up/Down<br><kbd>F1</kbd>/<kbd>Esc</kbd> Close</span>
-                  <span class="lang-ja" lang="ja"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    スクロール<br><kbd>[PgUp]</kbd>／<kbd>[PgDn]</kbd> ページ切替<br><kbd>[F1]</kbd>／<kbd>[Esc]</kbd> 閉じる</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    滚动<br><kbd>[PgUp]</kbd>／<kbd>[PgDn]</kbd> 翻页<br><kbd>[F1]</kbd>／<kbd>[Esc]</kbd> 关闭</span>
+                  <span class="lang-ja" lang="ja"><kbd>↑</kbd>／<kbd>↓</kbd>
+                    スクロール<br><kbd>PgUp</kbd>／<kbd>PgDn</kbd> ページ切替<br><kbd>F1</kbd>／<kbd>Esc</kbd> 閉じる</span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>↑</kbd>／<kbd>↓</kbd>
+                    滚动<br><kbd>PgUp</kbd>／<kbd>PgDn</kbd> 翻页<br><kbd>F1</kbd>／<kbd>Esc</kbd> 关闭</span>
                 </td>
               </tr>
               <tr>
@@ -1987,18 +2334,40 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    切換／導覽<br><kbd>[←]</kbd>／<kbd>[→]</kbd> 排序／換焦點<br><kbd>[A]</kbd>／<kbd>[Start]</kbd>
-                    插入<br><kbd>[B]</kbd>／<kbd>[Back]</kbd> 關閉<br><kbd>[X]</kbd> 刪除<br><kbd>[Y]</kbd> 新增</span>
-                  <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Switch/Nav<br><kbd>←</kbd>/<kbd>→</kbd>
-                    Reorder/Focus<br><kbd>A</kbd>/<kbd>Start</kbd> Insert<br><kbd>B</kbd>/<kbd>Back</kbd>
-                    Close<br><kbd>X</kbd> Delete<br><kbd>Y</kbd> Add</span>
-                  <span class="lang-ja" lang="ja"><kbd>[↑]</kbd>／<kbd>[↓]</kbd> 選択／移動<br><kbd>[←]</kbd>／<kbd>[→]</kbd>
-                    並べ替え／移動<br><kbd>[A]</kbd>／<kbd>[Start]</kbd> 挿入<br><kbd>[B]</kbd>／<kbd>[Back]</kbd>
-                    閉じる<br><kbd>[X]</kbd> 削除<br><kbd>[Y]</kbd> 追加</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    切换／导航<br><kbd>[←]</kbd>／<kbd>[→]</kbd> 排序／换焦点<br><kbd>[A]</kbd>／<kbd>[Start]</kbd>
-                    插入<br><kbd>[B]</kbd>／<kbd>[Back]</kbd> 关闭<br><kbd>[X]</kbd> 删除<br><kbd>[Y]</kbd> 新增</span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    切換／導覽<br><span class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>
+                    排序／換焦點<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>
+                    插入<br><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 關閉<br><span
+                      class="xbox-btn xbox-round xbox-x">X</span> 刪除<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 添加</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Switch/Nav<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span>
+                    Reorder/Focus<br><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> Insert<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Close<br><span class="xbox-btn xbox-round xbox-x">X</span> Delete<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> Add</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span> 選択／移動<br><span class="xbox-btn xbox-dpad">←</span>／<span
+                      class="xbox-btn xbox-dpad">→</span>
+                    並べ替え／移動<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 挿入<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>／<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    閉じる<br><span class="xbox-btn xbox-round xbox-x">X</span> 削除<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 追加</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    切换／导航<br><span class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>
+                    排序／换焦点<br><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>
+                    插入<br><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 关闭<br><span
+                      class="xbox-btn xbox-round xbox-x">X</span> 删除<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 添加</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -2007,18 +2376,18 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd> 插入／確定<br><kbd>[Esc]</kbd>
-                    關閉<br><kbd>[Delete]</kbd> 刪除<br><kbd>[Alt]</kbd> + <kbd>[Y]</kbd> 新增<br><kbd>[Alt]</kbd> +
-                    <kbd>[E]</kbd> 編輯</span>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd> 插入／確定<br><kbd>Esc</kbd>
+                    關閉<br><kbd>Delete</kbd> 刪除<br><kbd>Alt</kbd> + <kbd>Y</kbd> 添加<br><kbd>Alt</kbd> +
+                    <kbd>E</kbd> 編輯</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> Insert/Confirm<br><kbd>Esc</kbd>
                     Close<br><kbd>Delete</kbd> Delete<br><kbd>Alt</kbd> + <kbd>Y</kbd> Add<br><kbd>Alt</kbd> +
                     <kbd>E</kbd> Edit</span>
-                  <span class="lang-ja" lang="ja"><kbd>[Enter]</kbd> 挿入／決定<br><kbd>[Esc]</kbd>
-                    閉じる<br><kbd>[Delete]</kbd> 削除<br><kbd>[Alt]</kbd> + <kbd>[Y]</kbd> 追加<br><kbd>[Alt]</kbd> +
-                    <kbd>[E]</kbd> 編集</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Enter]</kbd> 插入／确定<br><kbd>[Esc]</kbd>
-                    关闭<br><kbd>[Delete]</kbd> 删除<br><kbd>[Alt]</kbd> + <kbd>[Y]</kbd> 新增<br><kbd>[Alt]</kbd> +
-                    <kbd>[E]</kbd> 编辑</span>
+                  <span class="lang-ja" lang="ja"><kbd>Enter</kbd> 挿入／決定<br><kbd>Esc</kbd>
+                    閉じる<br><kbd>Delete</kbd> 削除<br><kbd>Alt</kbd> + <kbd>Y</kbd> 追加<br><kbd>Alt</kbd> +
+                    <kbd>E</kbd> 編集</span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 插入／确定<br><kbd>Esc</kbd>
+                    关闭<br><kbd>Delete</kbd> 删除<br><kbd>Alt</kbd> + <kbd>Y</kbd> 添加<br><kbd>Alt</kbd> +
+                    <kbd>E</kbd> 编辑</span>
                 </td>
               </tr>
               <tr>
@@ -2041,18 +2410,38 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    切換焦點<br><kbd>[←]</kbd>／<kbd>[→]</kbd> 移動游標<br><kbd>[右搖桿]</kbd> 虛擬選取<br><kbd>[A]</kbd>
-                    確定<br><kbd>[B]</kbd> 清空<br><kbd>[Back]</kbd> 取消<br><kbd>[Start]</kbd> 鍵盤</span>
-                  <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Focus<br><kbd>←</kbd>/<kbd>→</kbd>
-                    Move<br><kbd>RS</kbd> Selection<br><kbd>A</kbd> Confirm<br><kbd>B</kbd> Clear<br><kbd>Back</kbd>
-                    Cancel<br><kbd>Start</kbd> Keyboard</span>
-                  <span class="lang-ja" lang="ja"><kbd>[↑]</kbd>／<kbd>[↓]</kbd> フォーカス<br><kbd>[←]</kbd>／<kbd>[→]</kbd>
-                    移動<br><kbd>[右スティック]</kbd> 選択<br><kbd>[A]</kbd> 決定<br><kbd>[B]</kbd> クリア<br><kbd>[Back]</kbd>
-                    キャンセル<br><kbd>[Start]</kbd> キーボード</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[↑]</kbd>／<kbd>[↓]</kbd>
-                    切换焦点<br><kbd>[←]</kbd>／<kbd>[→]</kbd> 移动游标<br><kbd>[右摇杆]</kbd> 虚拟选取<br><kbd>[A]</kbd>
-                    确定<br><kbd>[B]</kbd> 清空<br><kbd>[Back]</kbd> 取消<br><kbd>[Start]</kbd> 键盘</span>
+                  <span class="lang-zh" lang="zh-Hant"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    切換焦點<br><span class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>
+                    移動游標<br><span class="xbox-btn xbox-stick">R</span> 右搖桿 虛擬選取<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>
+                    確定<br><span class="xbox-btn xbox-round xbox-b">B</span> 清空<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 取消<br><span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 鍵盤</span>
+                  <span class="lang-en" lang="en"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Focus<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span>
+                    Move<br><span class="xbox-btn xbox-stick">R</span> Selection<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span> Confirm<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span> Clear<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Cancel<br><span class="xbox-btn xbox-pill xbox-start">Start</span> Keyboard</span>
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span> フォーカス<br><span class="xbox-btn xbox-dpad">←</span>／<span
+                      class="xbox-btn xbox-dpad">→</span>
+                    移動<br><span class="xbox-btn xbox-stick">R</span> 右スティック 選択<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span> 決定<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span> クリア<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span>
+                    キャンセル<br><span class="xbox-btn xbox-pill xbox-start">Start</span> キーボード</span>
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
+                      class="xbox-btn xbox-dpad">↓</span>
+                    切换焦点<br><span class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>
+                    移动游标<br><span class="xbox-btn xbox-stick">R</span> 右摇杆 虚拟选取<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>
+                    确定<br><span class="xbox-btn xbox-round xbox-b">B</span> 清空<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 取消<br><span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 键盘</span>
                 </td>
                 <td>
                   <span class="mobile-label">
@@ -2061,15 +2450,15 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
-                  <span class="lang-zh" lang="zh-Hant"><kbd>[Enter]</kbd> 確定<br><kbd>[Esc]</kbd>
-                    取消<br><kbd>[Alt]</kbd> + <kbd>[A]</kbd> 儲存<br><kbd>[Shift]</kbd> + <kbd>[Enter]</kbd> 換行</span>
-                  <span class="lang-en" lang="en"><kbd>Enter</kbd> Confirm<br><kbd>Esc</kbd>
+                  <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd>
+                    取消<br><kbd>Alt</kbd> + <kbd>A</kbd> 儲存<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 換行</span>
+                  <span class="lang-en" lang="en"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd>
                     Cancel<br><kbd>Alt</kbd> + <kbd>A</kbd> Save<br><kbd>Shift</kbd> + <kbd>Enter</kbd> Line
                     Break</span>
-                  <span class="lang-ja" lang="ja"><kbd>[Enter]</kbd> 決定<br><kbd>[Esc]</kbd>
-                    キャンセル<br><kbd>[Alt]</kbd> + <kbd>[A]</kbd> 保存<br><kbd>[Shift]</kbd> + <kbd>[Enter]</kbd> 改行</span>
-                  <span class="lang-sc" lang="zh-Hans"><kbd>[Enter]</kbd> 确定<br><kbd>[Esc]</kbd>
-                    取消<br><kbd>[Alt]</kbd> + <kbd>[A]</kbd> 保存<br><kbd>[Shift]</kbd> + <kbd>[Enter]</kbd> 换行</span>
+                  <span class="lang-ja" lang="ja"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd>
+                    キャンセル<br><kbd>Alt</kbd> + <kbd>A</kbd> 保存<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 改行</span>
+                  <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 确定<br><kbd>Esc</kbd>
+                    取消<br><kbd>Alt</kbd> + <kbd>A</kbd> 保存<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 换行</span>
                 </td>
               </tr>
             </tbody>
