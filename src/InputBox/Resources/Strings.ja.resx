@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -784,7 +784,7 @@ Alt + 0	ウィンドウの透明度をリセット（100%）
 Alt + P	プライバシーモードを切り替え
 F10／Alt + M	機能メニューを開く
 Ctrl + M	テキスト入力欄にジャンプ
-Ctrl + Alt + Shift + I	アプリを表示／非表示（グローバル）</value>
+{0}	アプリを表示／非表示（グローバル）</value>
     <comment>ヘルプダイアログ内のキーボードショートカット表のデータ行。タブ区切り形式：キー{tab}操作、1行1項目。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

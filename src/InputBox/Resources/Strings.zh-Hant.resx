@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -784,7 +784,7 @@ Alt + 0	重設視窗透明度（100%）
 Alt + P	切換隱私模式
 F10／Alt + M	開啟功能選單
 Ctrl + M	跳至文字輸入框
-Ctrl + Alt + Shift + I	顯示／隱藏輸入框（全域）</value>
+{0}	顯示／隱藏輸入框（全域）</value>
     <comment>說明對話框中鍵盤快速鍵表格的資料列，以 Tab 分隔欄位：按鍵{tab}功能，每行一列。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

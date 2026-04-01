@@ -1,6 +1,7 @@
 using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Input;
+using InputBox.Core.Services;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -354,7 +355,12 @@ internal sealed class HelpDialog : Form
             base.OnHandleCreated(e);
 
             ApplyFont();
-            PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, Strings.Help_Keyboard_Rows);
+
+            string keyboardRows = string.Format(
+                Strings.Help_Keyboard_Rows,
+                GlobalHotKeyService.GetHotKeyDisplayString(" + "));
+
+            PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, keyboardRows);
             PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
             BindGamepadEvents();
             UpdateButtonMinimumSize();

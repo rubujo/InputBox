@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -784,7 +784,7 @@ Alt + 0	Reset window opacity (100%)
 Alt + P	Toggle privacy mode
 F10 / Alt + M	Open feature menu
 Ctrl + M	Jump to text input
-Ctrl + Alt + Shift + I	Show / Hide InputBox (Global)</value>
+{0}	Show / Hide InputBox (Global)</value>
     <comment>Tab-separated rows for the keyboard shortcut table in the Help dialog. Format: Key{tab}Action. One row per line.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
