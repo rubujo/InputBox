@@ -1181,7 +1181,8 @@ internal sealed class NumericInputDialog : Form
                 }
             }
 
-            if (!SystemInformation.UIEffectsEnabled)
+            if (!SystemInformation.UIEffectsEnabled ||
+                !AppSettings.Current.EnableAnimatedVisualAlerts)
             {
                 await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
 
@@ -1493,7 +1494,7 @@ internal sealed class NumericInputDialog : Form
                 formH = Math.Clamp(naturalH, desiredMinHeight, finalMaxH);
 
             MinimumSize = new Size(Math.Min(desiredMinWidth, maxFitW), desiredMinHeight);
-            
+
             Size = new Size(formW, formH);
 
             // 佈局擴張後，執行智慧定位檢查。
@@ -2237,19 +2238,8 @@ internal sealed class NumericInputDialog : Form
             description,
             font,
             boldFont,
-            _cts?.Token ?? CancellationToken.None);
-
-        if (onFocusStateChanged != null)
-        {
-            btn.MouseEnter += (s, e) =>
-            {
-                if (ActiveForm == this) onFocusStateChanged(true);
-            };
-            btn.MouseLeave += (s, e) => onFocusStateChanged(btn.Focused);
-            btn.GotFocus += (s, e) => onFocusStateChanged(true);
-            btn.LostFocus += (s, e) => onFocusStateChanged(
-                btn.ClientRectangle.Contains(btn.PointToClient(Cursor.Position)));
-        }
+            _cts?.Token ?? CancellationToken.None,
+            onFocusStateChanged);
 
         return btn;
     }

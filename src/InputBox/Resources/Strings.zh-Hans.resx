@@ -707,6 +707,22 @@
     <value>已停用播报中断，所有消息将完整依序播报。</value>
     <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
   </data>
+  <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
+    <value>动画式视觉警示 (&amp;V)</value>
+    <comment>右键菜单项，切换警示与验证状态是否使用动画式视觉提示。</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
+    <value>允许 1 赫兹动画式视觉警示。停用后改用单次静态脉冲，对光敏感用户更安全。</value>
+    <comment>「动画式视觉警示」切换菜单项的无障碍描述。</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
+    <value>已启用动画式视觉警示。</value>
+    <comment>开启「动画式视觉警示」设置时播放的无障碍播报消息。</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
+    <value>已停用动画式视觉警示，警示将改用单次静态脉冲。</value>
+    <comment>关闭「动画式视觉警示」设置时播放的无障碍播报消息。</comment>
+  </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>帮助</value>
     <comment>打开帮助对话框的右键菜单项（WCAG 3.3.5）。</comment>

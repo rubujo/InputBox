@@ -929,7 +929,8 @@ internal sealed class PhraseEditDialog : Form
                 }
             }
 
-            if (!SystemInformation.UIEffectsEnabled)
+            if (!SystemInformation.UIEffectsEnabled ||
+                !AppSettings.Current.EnableAnimatedVisualAlerts)
             {
                 await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
 

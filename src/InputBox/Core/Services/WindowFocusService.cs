@@ -145,16 +145,23 @@ public class WindowFocusService
             return;
         }
 
+        // 若系統層級關閉 UI 特效，避免持續閃爍，僅做一次提醒。
+        if (!SystemInformation.UIEffectsEnabled)
+        {
+            User32.FlashWindow(hwnd, true);
+
+            return;
+        }
+
         // 先執行一次簡單版本的 FlashWindow 作為觸發引導。
         User32.FlashWindow(hwnd, true);
 
-        // 使用更詳盡的 FlashWindowEx 進行持續閃爍。
+        // 使用更詳盡的 FlashWindowEx 進行有限次數閃爍。
         User32.FlashWindowInfo flashInfo = new()
         {
             Hwnd = hwnd,
-            Flags = User32.FlashWindowFlags.All |
-                    User32.FlashWindowFlags.TimerNoForeground,
-            Count = uint.MaxValue,
+            Flags = User32.FlashWindowFlags.All,
+            Count = AppSettings.TaskbarFlashSafeCount,
             Timeout = 0,
             // 核心修正：手動計算結構大小。
             // 在 64 位元環境下，uint(4) + nint(8) + uint(4) + uint(4) + uint(4) = 24，

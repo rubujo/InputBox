@@ -1220,7 +1220,8 @@ public partial class MainForm
             // 嚴格遵守光敏性癲癇防護與使用者偏好：
             // 若使用者在系統層級關閉了動畫效果（UIEffectsEnabled 為 false），
             // 則不進行循環閃爍，改為一次性的「長脈衝（Static Pulse）」回饋。
-            if (!SystemInformation.UIEffectsEnabled)
+            if (!SystemInformation.UIEffectsEnabled ||
+                !AppSettings.Current.EnableAnimatedVisualAlerts)
             {
                 await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
 
@@ -1428,6 +1429,11 @@ public partial class MainForm
         TBInput.ReadOnly = false;
         TBInput.PlaceholderText = Strings.Pht_TBInput;
         TBInput.AccessibleName = Strings.A11y_TBInputName;
+        TBInput.AccessibleDescription =
+            string.IsNullOrWhiteSpace(_tbInputAccessibleDescriptionBeforeCapture) ?
+                Strings.A11y_TBInputDesc :
+                _tbInputAccessibleDescriptionBeforeCapture;
+        _tbInputAccessibleDescriptionBeforeCapture = null;
         TBInput.ImeMode = ImeMode.On;
 
         UpdateBorderColor(TBInput.Focused);

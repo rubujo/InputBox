@@ -191,7 +191,7 @@ public static class ButtonEyeTrackerExtensions
                 state.IsHovered)
             {
                 StartAnimationFeedback(btn);
-            }   
+            }
             else
             {
                 ApplyStrongVisual(btn);
@@ -221,7 +221,7 @@ public static class ButtonEyeTrackerExtensions
 
     /// <summary>
     /// 滑鼠進入按鈕區域時啟動懸停回饋，
-    /// 並在非焦點狀態下套用強視覺狀態以提供即時的視覺反饋，
+    /// 並透過焦點狀態回呼讓外部 UI 可同步更新提示或邊框狀態，
     /// 提升眼動儀使用者的互動體驗
     /// </summary>
     /// <param name="sender">事件觸發的按鈕</param>
@@ -247,7 +247,7 @@ public static class ButtonEyeTrackerExtensions
 
     /// <summary>
     /// 滑鼠離開按鈕區域時停止懸停回饋，
-    /// 並在非焦點狀態下重置強視覺狀態以恢復按鈕預設外觀，
+    /// 並透過焦點狀態回呼讓外部 UI 邏輯可依目前焦點狀態還原提示，
     /// 確保視覺反饋與使用者互動保持一致，
     /// 避免誤導眼動儀使用者的視線追蹤與互動判斷
     /// </summary>

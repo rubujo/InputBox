@@ -54,6 +54,12 @@ public class AppSettings
     /// </summary>
     public const int PhotoSafeFrequencyMs = 1000;
 
+    /// <summary>
+    /// 工作列閃爍的安全上限次數
+    /// <para>避免使用無限閃爍造成持續性視覺刺激與操作疲勞。</para>
+    /// </summary>
+    public const uint TaskbarFlashSafeCount = 3;
+
     #endregion
 
     #region 進階系統與效能參數
@@ -289,6 +295,21 @@ public class AppSettings
     {
         get => _a11yInterruptEnabled;
         set => _a11yInterruptEnabled = value;
+    }
+
+    /// <summary>
+    /// 是否啟用動畫式視覺警示
+    /// <para>預設關閉以優先保護光敏感使用者；關閉時改為一次性靜態脈衝。</para>
+    /// </summary>
+    private volatile bool _enableAnimatedVisualAlerts = false;
+
+    /// <summary>
+    /// 是否啟用動畫式視覺警示
+    /// </summary>
+    public bool EnableAnimatedVisualAlerts
+    {
+        get => _enableAnimatedVisualAlerts;
+        set => _enableAnimatedVisualAlerts = value;
     }
 
     /// <summary>

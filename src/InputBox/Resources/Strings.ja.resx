@@ -707,6 +707,22 @@
     <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
     <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
   </data>
+  <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
+    <value>アニメーション視覚警告 (&amp;V)</value>
+    <comment>警告や検証状態でアニメーション視覚通知を使うかどうかを切り替えるコンテキストメニュー項目です。</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
+    <value>1 ヘルツのアニメーション視覚警告を許可します。無効にすると、光に敏感なユーザーにより安全な単発の静的パルスを使用します。</value>
+    <comment>アニメーション視覚警告トグルメニュー項目のアクセシブルな説明。</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
+    <value>アニメーション視覚警告を有効にしました。</value>
+    <comment>アニメーション視覚警告設定をオンにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
+    <value>アニメーション視覚警告を無効にしました。警告は単発の静的パルスになります。</value>
+    <comment>アニメーション視覚警告設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>ヘルプ</value>
     <comment>ヘルプダイアログを開くコンテキストメニュー項目（WCAG 3.3.5）。</comment>

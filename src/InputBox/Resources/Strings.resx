@@ -707,6 +707,22 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Interrupt announcements disabled. All messages will be announced in full.</value>
     <comment>Screen reader announcement played when the interrupt-announcements setting is turned off.</comment>
   </data>
+  <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
+    <value>Animated Visual Alerts (&amp;V)</value>
+    <comment>Context menu item that toggles animated visual alerts for warnings and validation states.</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
+    <value>Allow 1 hertz animated visual alerts. Disable to use a single static pulse, which is safer for light-sensitive users.</value>
+    <comment>Accessible description for the animated visual alerts toggle menu item.</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
+    <value>Animated visual alerts enabled.</value>
+    <comment>Screen reader announcement played when animated visual alerts are enabled.</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
+    <value>Animated visual alerts disabled. Warnings will use a single static pulse.</value>
+    <comment>Screen reader announcement played when animated visual alerts are disabled.</comment>
+  </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>Help</value>
     <comment>Context menu item that opens the help dialog (WCAG 3.3.5).</comment>

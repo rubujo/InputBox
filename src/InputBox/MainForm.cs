@@ -95,6 +95,11 @@ public partial class MainForm : Form
     private volatile int _isCapturingHotkey = 0;
 
     /// <summary>
+    /// 進入快速鍵擷取模式前的輸入框描述快取（用於對稱還原 A11y 狀態）
+    /// </summary>
+    private string? _tbInputAccessibleDescriptionBeforeCapture;
+
+    /// <summary>
     /// 用於管理視窗生命週期內所有非同步任務的取消權杖來源
     /// </summary>
     private CancellationTokenSource? _formCts = new();
@@ -123,6 +128,11 @@ public partial class MainForm : Form
     /// 允許中斷廣播選單項
     /// </summary>
     private ToolStripMenuItem? _tsmiA11yInterrupt;
+
+    /// <summary>
+    /// 動畫式視覺警示選單項
+    /// </summary>
+    private ToolStripMenuItem? _tsmiAnimatedVisualAlerts;
 
     /// <summary>
     /// 片語子選單項

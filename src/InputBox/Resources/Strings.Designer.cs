@@ -79,6 +79,24 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Animated visual alerts disabled. Warnings will use a single static pulse. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_AnimatedVisualAlerts_Off {
+            get {
+                return ResourceManager.GetString("A11y_AnimatedVisualAlerts_Off", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Animated visual alerts enabled. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_AnimatedVisualAlerts_On {
+            get {
+                return ResourceManager.GetString("A11y_AnimatedVisualAlerts_On", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Background task error: {0} 的當地語系化字串。
         /// </summary>
         internal static string A11y_Background_Error {
@@ -1140,6 +1158,24 @@ namespace InputBox.Resources {
         internal static string Menu_A11yInterrupt_Desc {
             get {
                 return ResourceManager.GetString("Menu_A11yInterrupt_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Animated Visual Alerts (&amp;V) 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_AnimatedVisualAlerts {
+            get {
+                return ResourceManager.GetString("Menu_AnimatedVisualAlerts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Allow 1 hertz animated visual alerts. Disable to use a single static pulse, which is safer for light-sensitive users. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_AnimatedVisualAlerts_Desc {
+            get {
+                return ResourceManager.GetString("Menu_AnimatedVisualAlerts_Desc", resourceCulture);
             }
         }
 

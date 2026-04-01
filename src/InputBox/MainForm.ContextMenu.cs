@@ -144,6 +144,32 @@ public partial class MainForm
             }
         };
 
+        // 動畫式視覺警示。
+        _tsmiAnimatedVisualAlerts = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_AnimatedVisualAlerts, 'V'))
+        {
+            CheckOnClick = true,
+            Checked = AppSettings.Current.EnableAnimatedVisualAlerts,
+            AccessibleName = Strings.Menu_AnimatedVisualAlerts,
+            AccessibleDescription = Strings.Menu_AnimatedVisualAlerts_Desc
+        };
+
+        _tsmiAnimatedVisualAlerts.CheckedChanged += (s, e) =>
+        {
+            try
+            {
+                AppSettings.Current.EnableAnimatedVisualAlerts = _tsmiAnimatedVisualAlerts.Checked;
+                AppSettings.Save();
+
+                AnnounceA11y(AppSettings.Current.EnableAnimatedVisualAlerts ?
+                    Strings.A11y_AnimatedVisualAlerts_On :
+                    Strings.A11y_AnimatedVisualAlerts_Off);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _tsmiAnimatedVisualAlerts.CheckedChanged 失敗：{ex.Message}");
+            }
+        };
+
         // 快速鍵設定子選單。
         ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'T'))
         {
@@ -268,26 +294,23 @@ public partial class MainForm
                 TBInput.ReadOnly = true;
 
                 // 更新無障礙名稱與描述。
+                // 先快取目前描述，確保退出擷取模式時可對稱還原。
+                _tbInputAccessibleDescriptionBeforeCapture = TBInput.AccessibleDescription;
                 TBInput.AccessibleName = Strings.Msg_PressAnyKey;
                 TBInput.AccessibleDescription = Strings.A11y_Capture_Esc_Cancel;
 
-                // 形狀變化。加粗邊框 4 像素（非顏色提示）。
-                PInputHost.Padding = new Padding(7);
-
+                // Zero-Jitter：擷取模式不改變 Padding，僅透過顏色提示狀態。
                 // 按鈕文字提示與狀態變更。
                 BtnCopy.Enabled = false;
                 BtnCopy.Text = "...";
 
-                // 3. 邊框顏色變化（兼顧高對比）。
+                // 邊框顏色變化（兼顧高對比）。
                 PInputHost.BackColor = SystemInformation.HighContrast ?
                     SystemColors.HighlightText :
                     Color.Orange;
 
                 // 關閉輸入法。
                 TBInput.ImeMode = ImeMode.Disable;
-
-                // 暫時移除選單，防止在擷取模式下開啟選單導致衝突。
-                TBInput.ContextMenuStrip = null;
 
                 _cmsInput?.Close();
 
@@ -1029,6 +1052,7 @@ public partial class MainForm
 
         _cmsInput.Items.Add(_tsmiPrivacyMode);
         _cmsInput.Items.Add(_tsmiA11yInterrupt);
+        _cmsInput.Items.Add(_tsmiAnimatedVisualAlerts);
         _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(_tsmiPhrases);
         _cmsInput.Items.Add(new ToolStripSeparator());
