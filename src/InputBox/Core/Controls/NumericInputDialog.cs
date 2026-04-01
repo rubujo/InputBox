@@ -1463,39 +1463,41 @@ internal sealed class NumericInputDialog : Form
             UpdateButtonConstraints(_btnMinus, scale);
             UpdateButtonConstraints(_btnReset, scale);
 
-            // 使用 SizeFromClientSize 進行精確測量。
-            // 確保 MinimumSize 包含標題列與邊框，防止內容在高 DPI 或不同視窗風格下被裁剪。
-            Size minClientSize = new((int)(450 * scale), (int)(250 * scale));
+            // 改用內容偏好尺寸作為基準。
+            _tlpGrid?.PerformLayout();
 
-            Size desiredMinWindowSize = SizeFromClientSize(minClientSize);
+            Size contentPref = _tlpGrid?.GetPreferredSize(Size.Empty) ??
+                new((int)(450 * scale), (int)(250 * scale));
 
             Rectangle workArea = Screen.GetWorkingArea(this);
-            int maxFitW = Math.Max(1, workArea.Width - 40),
-                maxFitH = Math.Max(1, workArea.Height - 40);
 
-            Size clampedMinWindowSize = new(
-                Math.Min(desiredMinWindowSize.Width, maxFitW),
-                Math.Min(desiredMinWindowSize.Height, maxFitH));
+            // 計算邊框與標題列所需的額外空間（比照 HelpDialog.cs）。
+            int frameW = SystemInformation.FrameBorderSize.Width * 2,
+                frameH = SystemInformation.FrameBorderSize.Height * 2,
+                captionH = SystemInformation.CaptionHeight;
 
-            MinimumSize = clampedMinWindowSize;
+            // 視窗寬度：內容寬度 + 表單 Padding + 框架。
+            int formW = contentPref.Width + Padding.Horizontal + frameW + 8,
+                desiredMinWidth = (int)(450 * scale),
+                maxFitW = Math.Max(1, workArea.Width - 40);
 
-            // 如果目前尺寸超出可視區或低於測量地板，則強制修正。
-            if (Width < MinimumSize.Width ||
-                Height < MinimumSize.Height ||
-                Width > maxFitW ||
-                Height > maxFitH)
-            {
+            formW = Math.Clamp(formW, desiredMinWidth, maxFitW);
+
+            // 視窗高度：內容高度 + 表單 Padding + 標題列 + 框架。
+            // 上限設為可用高度的 45%，確保在手持裝置（如 ROG Ally）開啟 OSK 時仍能完整顯示。
+            int naturalH = contentPref.Height + Padding.Vertical + captionH + frameH + 8,
+                maxH = Math.Max(320, (int)(workArea.Height * 0.45f)),
+                desiredMinHeight = (int)(300 * scale),
                 // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
-                int finalMaxW = Math.Max(MinimumSize.Width, maxFitW),
-                    finalMaxH = Math.Max(MinimumSize.Height, maxFitH);
+                finalMaxH = Math.Max(desiredMinHeight, maxH),
+                formH = Math.Clamp(naturalH, desiredMinHeight, finalMaxH);
 
-                Size = new Size(
-                    Math.Clamp(Width, MinimumSize.Width, finalMaxW),
-                    Math.Clamp(Height, MinimumSize.Height, finalMaxH));
+            MinimumSize = new Size(Math.Min(desiredMinWidth, maxFitW), desiredMinHeight);
+            
+            Size = new Size(formW, formH);
 
-                // 佈局擴張後，執行智慧定位檢查。
-                ApplySmartPosition();
-            }
+            // 佈局擴張後，執行智慧定位檢查。
+            ApplySmartPosition();
 
             // 高對比模式下強制 100% 不透明度。
             if (SystemInformation.HighContrast)
