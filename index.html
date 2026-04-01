@@ -403,13 +403,13 @@
     }
 
     .cta-button:hover,
-    .cta-button:focus {
-      transform: scale(1.05);
+    .cta-button:focus-visible {
       box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      border-color: #ffda44;
     }
 
     .cta-button.secondary:hover,
-    .cta-button.secondary:focus {
+    .cta-button.secondary:focus-visible {
       background-color: rgba(255, 255, 255, 0.15);
       border-color: #ffda44;
       color: #ffffff;
@@ -559,7 +559,6 @@
     }
 
     .feature-card:hover {
-      transform: translateY(-8px);
       box-shadow: var(--card-shadow-hover);
       border-color: var(--focus-ring);
     }
@@ -715,39 +714,20 @@
       text-decoration: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       border: 3px solid #ffffff;
-      transition: background-color 0.3s, transform 0.3s, opacity 0.3s, outline-offset 0.2s;
+      transition: background-color 0.3s, box-shadow 0.3s, outline-offset 0.2s;
 
       /*
-       * 瀏覽器相容性退避方案 (Compatibility Fallback):
-       * 對於不支援 Scroll-Driven Animations 的瀏覽器 (Firefox/Safari) 預設顯示按鈕。
+       * 跨瀏覽器穩定方案：固定顯示按鈕，避免依賴實驗性 Scroll-Driven Animations。
        */
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      will-change: transform, opacity;
       backface-visibility: hidden;
-    }
-
-    /*
-     * 現代瀏覽器漸進式增強 (Progressive Enhancement):
-     * 僅在支援 animation-timeline 的環境下才執行自動隱藏與捲動顯現邏輯。
-     */
-    @supports (animation-timeline: scroll()) {
-      .back-to-top {
-        /*
-         * 效能優化：利用 opacity: 0 配合 Scroll Animation 達成漸顯效果，
-         * 並完全使用 3D Transform 確保 Compositor 執行。
-         */
-        opacity: 0;
-        animation: show-back-to-top linear both;
-        animation-timeline: scroll();
-        animation-range: 150px 400px;
-      }
     }
 
     .back-to-top:hover {
       background-color: var(--link-color);
-      transform: translateY(-5px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
     }
 
     .back-to-top:focus-visible {
@@ -779,49 +759,87 @@
     }
 
     /*
-     * ========== 10. 導覽列捲動監聽 (CSS Scrollspy, A11y AAA) ==========
-     * 使用 view-timeline 與 logical OR 達成零 JS 之狀態跟隨
+     * ========== 10. 導覽列狀態退化方案 (Anchor-based Active State, A11y AAA) ==========
+     * 預設高亮第一個項目；支援 :has 的瀏覽器會在錨點跳轉後切換對應狀態。
      */
-    body {
-      timeline-scope:
-        --section-about,
-        --section-handheld,
-        --section-usage,
-        --section-usage-advanced,
-        --section-spec,
-        --section-vibration,
-        --section-faq;
+    nav.main-nav a.nav-default-active {
+      background-color: rgba(128, 128, 128, 0.15);
+      text-decoration: underline;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 4px;
     }
 
-    #about {
-      view-timeline: --section-about block;
+    @supports selector(body:has(#about:target)) {
+      @supports not (animation-timeline: view()) {
+        body:has(main :target) nav.main-nav a.nav-default-active {
+          background-color: transparent;
+          text-decoration: none;
+        }
+
+        body:has(#about:target) nav.main-nav a[href="#about"],
+        body:has(#handheld:target) nav.main-nav a[href="#handheld"],
+        body:has(#usage:target) nav.main-nav a[href="#usage"],
+        body:has(#usage-advanced:target) nav.main-nav a[href="#usage"],
+        body:has(#spec:target) nav.main-nav a[href="#spec"],
+        body:has(#vibration:target) nav.main-nav a[href="#vibration"],
+        body:has(#faq:target) nav.main-nav a[href="#faq"] {
+          background-color: rgba(128, 128, 128, 0.15);
+          text-decoration: underline;
+          text-decoration-thickness: 3px;
+          text-underline-offset: 4px;
+        }
+      }
     }
 
-    #handheld {
-      view-timeline: --section-handheld block;
-    }
-
-    #usage {
-      view-timeline: --section-usage block;
-    }
-
-    #usage-advanced {
-      view-timeline: --section-usage-advanced block;
-    }
-
-    #spec {
-      view-timeline: --section-spec block;
-    }
-
-    #vibration {
-      view-timeline: --section-vibration block;
-    }
-
-    #faq {
-      view-timeline: --section-faq block;
-    }
-
+    /*
+     * 支援 Scroll-Driven Animations 的瀏覽器使用真正的 Scrollspy。
+     * 不支援者會自動退回上方 Anchor-based 模式。
+     */
     @supports (animation-timeline: view()) {
+      body {
+        timeline-scope:
+          --section-about,
+          --section-handheld,
+          --section-usage,
+          --section-usage-advanced,
+          --section-spec,
+          --section-vibration,
+          --section-faq;
+      }
+
+      #about {
+        view-timeline: --section-about block;
+      }
+
+      #handheld {
+        view-timeline: --section-handheld block;
+      }
+
+      #usage {
+        view-timeline: --section-usage block;
+      }
+
+      #usage-advanced {
+        view-timeline: --section-usage-advanced block;
+      }
+
+      #spec {
+        view-timeline: --section-spec block;
+      }
+
+      #vibration {
+        view-timeline: --section-vibration block;
+      }
+
+      #faq {
+        view-timeline: --section-faq block;
+      }
+
+      nav.main-nav a.nav-default-active {
+        background-color: transparent;
+        text-decoration: none;
+      }
+
       nav.main-nav a[href="#about"] {
         animation-timeline: --section-about;
       }
@@ -830,7 +848,6 @@
         animation-timeline: --section-handheld;
       }
 
-      /* #usage 區塊同時監聽 #usage 與 #usage-advanced 兩個片段 */
       nav.main-nav a[href="#usage"] {
         animation-timeline: --section-usage, --section-usage-advanced;
       }
@@ -851,11 +868,9 @@
         animation-name: spy-active;
         animation-fill-mode: none;
         animation-timing-function: linear;
-        /* 從進入螢幕到完全離開螢幕均觸發 (等同於 cover 0% cover 100%) */
         animation-range: cover;
       }
 
-      /* 顯式定義兩組動畫狀態對應兩個 timeline */
       nav.main-nav a[href="#usage"] {
         animation-name: spy-active, spy-active;
         animation-fill-mode: none, none;
@@ -875,9 +890,7 @@
 
       @media (prefers-reduced-motion: reduce) {
         nav.main-nav a {
-          /* 覆寫全域預設，確保 Scroll-driven timing function 不被短時間強制縮短而失效 */
           animation-duration: auto !important;
-          transition-duration: 0.01ms !important;
         }
       }
     }
@@ -1109,6 +1122,61 @@
     }
 
     /*
+     * 低階 Android 效能檔位：優先維持流暢度，降低 GPU 合成與濾鏡成本。
+     */
+    @media (max-width: 768px),
+    (hover: none) and (pointer: coarse) {
+      body {
+        scroll-behavior: auto;
+      }
+
+      .header-glow,
+      header::before,
+      header::after {
+        display: none;
+        animation: none !important;
+        filter: none !important;
+      }
+
+      .requirement-list,
+      .lang-switcher,
+      nav.main-nav {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+
+      .cta-button,
+      .cta-button.secondary,
+      .feature-card,
+      .footer-notice,
+      .back-to-top {
+        box-shadow: none;
+      }
+
+      .cta-button,
+      .cta-button.secondary,
+      .feature-card,
+      .back-to-top,
+      .lang-switcher label,
+      nav.main-nav a {
+        transition: none;
+      }
+
+      @supports (animation-timeline: view()) {
+        nav.main-nav a {
+          animation: none !important;
+        }
+
+        nav.main-nav a.nav-default-active {
+          background-color: rgba(128, 128, 128, 0.15);
+          text-decoration: underline;
+          text-decoration-thickness: 3px;
+          text-underline-offset: 4px;
+        }
+      }
+    }
+
+    /*
      * ========== @media print ==========
      * 針對列印介面進行黑白化與隱藏多餘導航列的最佳化
      */
@@ -1271,8 +1339,8 @@
         </li>
         <li>
           <span class="lang-zh" lang="zh-Hant">需配合 Windows 11 內建輸入法（微軟注音、微軟倉頡或速成）使用</span>
-          <span class="lang-en" lang="en">Requires Windows 11 built-in IMEs（Microsoft Bopomofo, Changjie, or
-            Quick）.</span>
+          <span class="lang-en" lang="en">Requires Windows 11 built-in IMEs (Microsoft Bopomofo, Changjie, or
+            Quick).</span>
           <span class="lang-ja" lang="ja">Windows 11 標準 IME（注音、倉頡、速成）と併用する必要があります。</span>
           <span class="lang-sc" lang="zh-Hans">需配合 Windows 11 内置输入法（微软注音、微软仓颉或速成）使用</span>
         </li>
@@ -1324,7 +1392,7 @@
       <span class="lang-sc" lang="zh-Hans">主要导航链接</span>
     </span>
     <ul>
-      <li><a href="#about">
+      <li><a href="#about" class="nav-default-active">
           <span class="lang-zh" lang="zh-Hant">功能特色 ✨<span class="visually-hidden">（目前頁面）</span></span>
           <span class="lang-en" lang="en">Key Features ✨<span class="visually-hidden"> (Current)</span></span>
           <span class="lang-ja" lang="ja">主な特徴 ✨<span class="visually-hidden">（現在のページ）</span></span>
@@ -1345,8 +1413,8 @@
       <li><a href="#spec">
           <span class="lang-zh" lang="zh-Hant">要求聲明 📋</span>
           <span class="lang-en" lang="en">Specifications 📋</span>
-          <span class="lang-ja" lang="ja">要求声明 📋</span>
-          <span class="lang-sc" lang="zh-Hans">要求声明 📋</span>
+          <span class="lang-ja" lang="ja">動作要件 📋</span>
+          <span class="lang-sc" lang="zh-Hans">运行要求 📋</span>
         </a></li>
       <li><a href="#vibration">
           <span class="lang-zh" lang="zh-Hant">震動回饋說明 📳</span>
@@ -1477,7 +1545,7 @@
             input or select text correctly. This application ensures a smooth social experience across both
             Windows desktop and Xbox full-screen experience.</span>
           <span class="lang-ja" lang="ja">Windows タッチ キーボードの使用時に、文字入力や変換確定が正常に動作しない問題を解決します。Windows デスクトップや Xbox
-            全画面エクスペリエンスにおいても、スムーズなチャット體驗を提供します。</span>
+            全画面エクスペリエンスにおいても、スムーズなチャット体験を提供します。</span>
           <span class="lang-sc" lang="zh-Hans">针对玩家在使用 Windows
             触摸键盘时，不论是在 Windows 桌面或是 Xbox 全屏体验下，常遇到无法正常输出或选取文字的痛点进行优化，让社交体验更加流畅。</span>
         </p>
@@ -1512,7 +1580,7 @@
                 RB）即可快速完成輸入。</span>
               <span class="lang-en" lang="en">The application automatically copies text to the clipboard.
                 Once back in FINAL FANTASY XIV (Traditional Chinese Version), players can simply use the
-                game's built-in controller shortcut（LB + RB） to paste and complete the input.</span>
+                game's built-in controller shortcut (LB + RB) to paste and complete the input.</span>
               <span class="lang-ja" lang="ja">本アプリケーションはテキストを自動的にクリップボードにコピーします。『FINAL FANTASY XIV
                 繁体字中国語版』に戻った後、ゲーム標準のコントローラー用ペーストショートカット（LB + RB）を使用するだけで入力を完了できます。</span>
               <span class="lang-sc" lang="zh-Hans">本应用程序会自动将文字复制至剪贴簿。玩家返回《FINAL FANTASY XIV 繁体中文版》后，只需使用游戏内置的控制器粘贴组合键（LB
@@ -1776,7 +1844,7 @@
                   </span>
                   <span class="lang-zh" lang="zh-Hant"><kbd>Esc</kbd>（無字時）／<kbd>Alt</kbd> +
                     <kbd>X</kbd></span>
-                  <span class="lang-en" lang="en"><kbd>Esc</kbd>（when empty） / <kbd>Alt</kbd> +
+                  <span class="lang-en" lang="en"><kbd>Esc</kbd> (when empty) / <kbd>Alt</kbd> +
                     <kbd>X</kbd></span>
                   <span class="lang-ja" lang="ja"><kbd>Esc</kbd>（未入力時）／<kbd>Alt</kbd> +
                     <kbd>X</kbd></span>
@@ -1817,7 +1885,7 @@
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
                   <span class="lang-zh" lang="zh-Hant"><kbd>Enter</kbd>（無字時）</span>
-                  <span class="lang-en" lang="en"><kbd>Enter</kbd>（when empty）</span>
+                  <span class="lang-en" lang="en"><kbd>Enter</kbd> (when empty)</span>
                   <span class="lang-ja" lang="ja"><kbd>Enter</kbd>（未入力時）</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd>（无字时）</span>
                 </td>
@@ -2475,8 +2543,8 @@
         <h2>
           <span class="lang-zh" lang="zh-Hant">要求聲明 📋</span>
           <span class="lang-en" lang="en">Specifications 📋</span>
-          <span class="lang-ja" lang="ja">要求声明 📋</span>
-          <span class="lang-sc" lang="zh-Hans">要求声明 📋</span>
+          <span class="lang-ja" lang="ja">動作要件 📋</span>
+          <span class="lang-sc" lang="zh-Hans">运行要求 📋</span>
         </h2>
         <div class="feature-grid">
           <div class="feature-card">
@@ -2519,8 +2587,8 @@
             <p>
               <span class="lang-zh" lang="zh-Hant">支援 XInput 或 GameInput 相容之控制器（如 ROG Ally X、Xbox
                 控制器等）。</span>
-              <span class="lang-en" lang="en">Supports XInput or GameInput controllers（such as ROG Ally X,
-                Xbox controllers, etc.）.</span>
+              <span class="lang-en" lang="en">Supports XInput or GameInput controllers (such as ROG Ally X,
+                Xbox controllers, etc.).</span>
               <span class="lang-ja" lang="ja">XInput または GameInput 準拠のコントローラー（ROG Ally X、Xbox
                 コントローラーなど）。</span>
               <span class="lang-sc" lang="zh-Hans">支持 XInput 或 GameInput 兼容之控制器（如 ROG Ally X、Xbox
@@ -2531,8 +2599,8 @@
             <h3>
               <span class="lang-zh" lang="zh-Hant">安全性聲明 🛡️</span>
               <span class="lang-en" lang="en">Safety Statement 🛡️</span>
-              <span class="lang-ja" lang="ja">安全声明 🛡️</span>
-              <span class="lang-sc" lang="zh-Hans">安全性声明 🛡️</span>
+              <span class="lang-ja" lang="ja">安全性に関する声明 🛡️</span>
+              <span class="lang-sc" lang="zh-Hans">安全声明 🛡️</span>
             </h3>
             <p>
               <span class="lang-zh" lang="zh-Hant">不讀取遊戲記憶體、不攔截網路封包、不模擬按鍵輸入到遊戲。</span>
@@ -2581,7 +2649,7 @@
               <span class="lang-zh" lang="zh-Hant">文字成功複製到剪貼簿、或成功切換回目標視窗時觸發。</span>
               <span class="lang-en" lang="en">Triggered when text is copied to clipboard or window switch
                 is successful.</span>
-              <span class="lang-ja" lang="ja">クリップボードへのコピー成功時、または窓の切り替え成功時に発生。</span>
+              <span class="lang-ja" lang="ja">クリップボードへのコピー成功時、またはウィンドウの切り替え成功時に発生。</span>
               <span class="lang-sc" lang="zh-Hans">文字成功复制到剪贴簿、或成功切换回目标窗口时触发。</span>
             </p>
           </div>
@@ -2703,6 +2771,25 @@
                 <kbd>%LocalAppData%\InputBox\Logs\</kbd>。您可以查看此文件以进行初步排查。</span>
             </p>
           </div>
+          <div class="feature-card">
+            <h3>
+              <span class="lang-zh" lang="zh-Hant">視覺警示與主題套用 🎛️</span>
+              <span class="lang-en" lang="en">Visual Alerts & Theme Apply 🎛️</span>
+              <span class="lang-ja" lang="ja">視覚警示とテーマ適用 🎛️</span>
+              <span class="lang-sc" lang="zh-Hans">视觉警示与主题套用 🎛️</span>
+            </h3>
+            <p>
+              <span class="lang-zh"
+                lang="zh-Hant">右鍵選單可切換「動畫式視覺警示」（預設關閉）。若系統主題已變更，請由右鍵選單執行「套用系統主題」並重新啟動程式，以完整套用新配色。</span>
+              <span class="lang-en" lang="en">You can toggle "Animated Visual Alerts" from the context menu (off by
+                default). If the system theme has changed, use "Apply System Theme" from the context menu and restart
+                the app to fully apply the new colors.</span>
+              <span class="lang-ja"
+                lang="ja">右クリックメニューで「アニメーション視覚警告」を切り替えできます（既定はオフ）。システムテーマが変更された場合は、右クリックメニューの「システムテーマを適用」を実行し、アプリを再起動して新しい配色を完全に反映してください。</span>
+              <span class="lang-sc"
+                lang="zh-Hans">右键菜单可切换「动画式视觉警示」（默认关闭）。若系统主题已变更，请通过右键菜单执行「应用系统主题」并重启程序，以完整套用新配色。</span>
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -2772,6 +2859,14 @@
           <span class="lang-ja" lang="ja">本アプリケーションには、それぞれのライセンスに基づいたサードパーティ コンポーネントが含まれています。</span>
           <span class="lang-sc" lang="zh-Hans">本应用程序包含以下第三方组件，其权利归原作者所有并遵循各自授权：</span>
         </p>
+        <p>
+          <span class="lang-zh" lang="zh-Hant">本應用程式採自包含部署（self-contained）發佈。以下第三方元件不屬於 CC0 授權範圍，並依其各自授權條款提供。</span>
+          <span class="lang-en" lang="en">This application is distributed in self-contained mode. The third-party
+            components below are NOT covered by CC0 and are provided under their own licenses.</span>
+          <span class="lang-ja" lang="ja">本アプリケーションは self-contained 形式で配布されます。以下のサードパーティ コンポーネントは CC0
+            の対象外であり、それぞれのライセンスに従います。</span>
+          <span class="lang-sc" lang="zh-Hans">本应用程序采用 self-contained 形式发布。以下第三方组件不属于 CC0 授权范围，并依其各自授权条款提供。</span>
+        </p>
         <p class="footer-license-links">
           <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener">.NET Runtime（MIT）</a> |
           <a href="https://github.com/dotnet/winforms" target="_blank" rel="noopener">WinForms（MIT）</a> |
@@ -2779,7 +2874,32 @@
           <a href="https://github.com/Cephy314/UsbVendorsLibrary" target="_blank"
             rel="noopener">UsbVendorsLibrary（MIT）</a> |
           <a href="http://www.linux-usb.org/usb-ids.html" target="_blank" rel="noopener">USB ID
-            Database（3-clause BSD）</a>
+            Database（Dual-License）</a>
+        </p>
+        <p>
+          <span class="lang-zh" lang="zh-Hant">本專案透過 UsbVendorsLibrary 使用 USB ID Database（usb.ids）。該資料庫採雙重授權（<a
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener">GNU General Public License（第
+              2 版或更新版本）</a>／<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
+              rel="noopener">3-clause BSD License</a>）；本專案隨附發佈採用 3-clause BSD 條款。完整版權與授權文字請參閱發佈檔內的
+            <strong>ThirdPartyNotices.txt</strong> 與 <strong>usb_ids_LICENSE.txt</strong>。</span>
+          <span class="lang-en" lang="en">This project uses USB ID Database (usb.ids) via UsbVendorsLibrary. The
+            database is dual-licensed under <a href="https://opensource.org/license/GPL-2.0" target="_blank"
+              rel="noopener">GNU General Public License (version 2 or later)</a> and the <a
+              href="https://opensource.org/license/bsd-3-clause" target="_blank" rel="noopener">3-clause BSD
+              License</a>; this project ships it under the 3-clause BSD terms. For full notices and license texts, see
+            <strong>ThirdPartyNotices.txt</strong> and <strong>usb_ids_LICENSE.txt</strong> in the release
+            package.</span>
+          <span class="lang-ja" lang="ja">本プロジェクトは UsbVendorsLibrary を通じて USB ID Database（usb.ids）を利用しています。同データベースは <a
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener">GNU General Public
+              License（Version 2 以降）</a> と <a href="https://opensource.org/license/bsd-3-clause" target="_blank"
+              rel="noopener">3-clause BSD License</a> のデュアルライセンスで提供され、本プロジェクトの同梱配布は 3-clause BSD
+            条項を採用します。完全な通知とライセンス本文は、配布物内の <strong>ThirdPartyNotices.txt</strong> と <strong>usb_ids_LICENSE.txt</strong>
+            を参照してください。</span>
+          <span class="lang-sc" lang="zh-Hans">本项目通过 UsbVendorsLibrary 使用 USB ID Database（usb.ids）。该数据库采用双重授权（<a
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener">GNU General Public License（第
+              2 版或更新版本）</a>／<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
+              rel="noopener">3-clause BSD License</a>）；本项目随附发布采用 3-clause BSD 条款。完整版权与授权文本请参阅发布包内的
+            <strong>ThirdPartyNotices.txt</strong> 与 <strong>usb_ids_LICENSE.txt</strong>。</span>
         </p>
       </div>
     </div>

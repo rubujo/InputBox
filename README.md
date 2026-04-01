@@ -20,5 +20,7 @@
 ## 維護說明
 
 - 本分支以靜態頁面為主，首頁檔案為 `index.html`。
+- 規範入口文件為 `ENGINEERING_GUIDELINES.md`，其下連結 `docs/engineering/` 原子化規範。
 - README 僅作為倉庫說明文件，不屬於最終 Pages 發佈內容。
+- 第三方函式庫清單與授權內容請以 `main` 分支 `README.md` 為權威來源，本分支內容須與其同步。
 - 更新網站文案時，請以首頁內容為準，README 只保留摘要與入口資訊。
