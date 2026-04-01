@@ -8,7 +8,6 @@ using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.Media;
 using System.Runtime.CompilerServices;
 
@@ -86,16 +85,6 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 按鈕視覺狀態追蹤
     /// </summary>
-    private sealed class ButtonVisualState
-    {
-        public long AnimId;
-        public float DwellProgress;
-        public bool IsHovered;
-        public bool IsPressed;
-        public string BaseDescription = string.Empty;
-    }
-
-    private readonly Dictionary<Button, ButtonVisualState> _btnStates = [];
 
     /// <summary>
     /// 使用者輸入的片語名稱
@@ -111,6 +100,16 @@ internal sealed class PhraseEditDialog : Form
     /// 右搖桿選取錨點
     /// </summary>
     private int? _rsSelectionAnchor;
+
+    /// <summary>
+    /// 動畫警示執行緒安全旗標
+    /// </summary>
+    private int _isFlashing = 0;
+
+    /// <summary>
+    /// 用於中斷動畫的專屬 Token 來源
+    /// </summary>
+    private CancellationTokenSource? _alertCts;
 
     /// <summary>
     /// 已套用的 DPI 快取，避免重複計算最小寬度
@@ -316,8 +315,6 @@ internal sealed class PhraseEditDialog : Form
             Margin = new Padding(8, 0, 0, 0)
         };
         _btnCancel.FlatAppearance.BorderSize = 0;
-        _btnStates[_btnCancel] = new ButtonVisualState { BaseDescription = Strings.Phrase_A11y_Btn_Cancel_Desc };
-        WireButtonEvents(_btnCancel);
 
         _btnOk = new Button()
         {
@@ -335,7 +332,6 @@ internal sealed class PhraseEditDialog : Form
             Margin = new Padding(8, 0, 0, 0)
         };
         _btnOk.FlatAppearance.BorderSize = 0;
-        _btnStates[_btnOk] = new ButtonVisualState { BaseDescription = Strings.Phrase_A11y_Btn_Confirm_Desc };
         _btnOk.Click += (s, e) =>
         {
             try
@@ -347,7 +343,6 @@ internal sealed class PhraseEditDialog : Form
                 Debug.WriteLine($"[片語編輯] _btnOk.Click 失敗：{ex.Message}");
             }
         };
-        WireButtonEvents(_btnOk);
 
         flpBtns.Controls.Add(_btnOk);
         flpBtns.Controls.Add(_btnCancel);
@@ -408,6 +403,18 @@ internal sealed class PhraseEditDialog : Form
 
         // 從共享快取取得 Bold 字型。
         _boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
+
+        _btnOk.AttachEyeTrackerFeedback(
+            baseDescription: Strings.Phrase_A11y_Btn_Confirm_Desc,
+            regularFont: _a11yFont,
+            boldFont: _boldFont,
+            formCt: _cts?.Token ?? CancellationToken.None);
+
+        _btnCancel.AttachEyeTrackerFeedback(
+            baseDescription: Strings.Phrase_A11y_Btn_Cancel_Desc,
+            regularFont: _a11yFont,
+            boldFont: _boldFont,
+            formCt: _cts?.Token ?? CancellationToken.None);
 
         // 將建構子中建立的私有字體替換為共享快取字體，防止 GDI Handle 洩漏。
         // 使用 2.0x 倍率取得 28pt 大字型（與主視窗 TBInput 對齊）。
@@ -842,41 +849,137 @@ internal sealed class PhraseEditDialog : Form
 
     private async Task FlashValidationCueAsync(TextBox target)
     {
+        if (target.IsDisposed ||
+            !IsHandleCreated ||
+            Interlocked.CompareExchange(ref _isFlashing, 1, 0) != 0)
+        {
+            return;
+        }
+
+        // 先建立新 CTS 的本地引用，再原子交換出舊實例，最後從本地引用取 Token。
+        // 此模式防止「Exchange 後、Token 取用前」另一執行緒將欄位置 null 引發 NullReferenceException。
+        CancellationTokenSource newAlertCts = CancellationTokenSource
+            .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
+
+        Interlocked.Exchange(ref _alertCts, newAlertCts)?.CancelAndDispose();
+
+        CancellationToken token = newAlertCts.Token;
+
         try
         {
-            CancellationToken token = _cts?.Token ?? CancellationToken.None;
+            bool isDark = target.IsDarkModeActive();
 
-            for (int i = 0; i < 2; i++)
+            // 決定警示色。
+            Color alertColor = SystemInformation.HighContrast ?
+                SystemColors.Highlight :
+                (isDark ? Color.Firebrick : Color.DarkOrange);
+
+            void ApplyAlertVisuals(float intensity)
             {
-                await this.SafeInvokeAsync(() =>
+                if (target.IsDisposed ||
+                    !IsHandleCreated)
                 {
-                    if (target.IsDisposed)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    if (SystemInformation.HighContrast)
-                    {
-                        target.BackColor = SystemColors.Highlight;
-                        target.ForeColor = SystemColors.HighlightText;
-                        return;
-                    }
+                if (SystemInformation.HighContrast)
+                {
+                    bool isAlert = intensity > 0.5f;
 
-                    bool isDark = target.IsDarkModeActive();
+                    Color hcBack = isAlert ?
+                            alertColor :
+                            SystemColors.Window,
+                        hcFore = isAlert ?
+                            SystemColors.HighlightText :
+                            SystemColors.WindowText;
 
-                    target.BackColor = isDark ?
-                        Color.Firebrick :
-                        Color.DarkOrange;
-                    target.ForeColor = isDark ?
+                    target.BackColor = hcBack;
+                    target.ForeColor = hcFore;
+                }
+                else
+                {
+                    Color pureBase = isDark ?
                         Color.White :
                         Color.Black;
-                });
 
-                await Task.Delay(120, token);
+                    int rN = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
+                        gN = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
+                        bN = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
 
-                await this.SafeInvokeAsync(() =>
+                    Color flashColor = Color.FromArgb(255, rN, gN, bN);
+
+                    // WCAG 相對亮度精確切換閾值（crossover L≈0.1791）
+                    static float FLin(int c)
+                    {
+                        float f = c / 255f;
+
+                        return f <= 0.04045f ?
+                            f / 12.92f :
+                            MathF.Pow((f + 0.055f) / 1.055f, 2.4f);
+                    }
+
+                    Color flashFore = (0.2126f * FLin(flashColor.R) +
+                            0.7152f * FLin(flashColor.G) +
+                            0.0722f * FLin(flashColor.B)) > 0.1791f ?
+                        Color.Black :
+                        Color.White;
+
+                    target.BackColor = flashColor;
+                    target.ForeColor = flashFore;
+                }
+            }
+
+            if (!SystemInformation.UIEffectsEnabled)
+            {
+                await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
+
+                await Task.Delay(800, token);
+
+                return;
+            }
+
+            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
+
+            long startTime = Stopwatch.GetTimestamp();
+
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
+
+                double elapsedMs = (double)elapsedTicks / Stopwatch.Frequency * 1000.0;
+
+                if (elapsedMs >= AppSettings.PhotoSafeFrequencyMs)
                 {
-                    if (target.IsDisposed)
+                    break;
+                }
+
+                double angle = elapsedMs / AppSettings.PhotoSafeFrequencyMs * 2.0 * Math.PI - (Math.PI / 2.0);
+
+                float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
+
+                await this.SafeInvokeAsync(() => ApplyAlertVisuals(intensity));
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 正常取消。
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] FlashValidationCueAsync 失敗：{ex.Message}");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _isFlashing, 0);
+            Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
+
+            // 確保 UI 狀態還原。
+            this.SafeInvoke(() =>
+            {
+                try
+                {
+                    if (target.IsDisposed ||
+                        !IsHandleCreated)
                     {
                         return;
                     }
@@ -889,15 +992,12 @@ internal sealed class PhraseEditDialog : Form
                     {
                         ResetInputBoxVisual(target);
                     }
-                });
-
-                await Task.Delay(120, token);
-            }
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[片語編輯] FlashValidationCueAsync 失敗：{ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語編輯] FlashValidationCueAsync UI還原失敗: {ex.Message}");
+                }
+            });
         }
     }
 
@@ -1304,57 +1404,6 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 為按鈕綁定完整 A11y 事件（Paint、Focus、Hover、Pressed）
-    /// </summary>
-    private void WireButtonEvents(Button btn)
-    {
-        btn.Paint += Btn_Paint;
-
-        btn.GotFocus += (s, e) => ApplyStrongVisual(btn);
-
-        btn.LostFocus += (s, e) =>
-        {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st)) st.IsPressed = false;
-            StopFeedback(btn);
-        };
-
-        btn.MouseEnter += (s, e) =>
-        {
-            if (ActiveForm != this) return;
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st)) st.IsHovered = true;
-            StartAnimationFeedback(btn);
-        };
-
-        btn.MouseLeave += (s, e) =>
-        {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st))
-            {
-                st.IsHovered = false;
-                st.IsPressed = false;
-            }
-            StopFeedback(btn);
-        };
-
-        btn.MouseDown += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left && _btnStates.TryGetValue(btn, out ButtonVisualState? st))
-            {
-                st.IsPressed = true;
-                StartAnimationFeedback(btn);
-            }
-        };
-
-        btn.MouseUp += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left && _btnStates.TryGetValue(btn, out ButtonVisualState? st))
-            {
-                st.IsPressed = false;
-                StartAnimationFeedback(btn);
-            }
-        };
-    }
-
-    /// <summary>
     /// 更新按鈕最小尺寸（抗抖動 + WCAG 2.5.5 AAA 44×44）
     /// </summary>
     private void UpdateButtonMinimumSizes()
@@ -1387,242 +1436,6 @@ internal sealed class PhraseEditDialog : Form
         catch (Exception ex)
         {
             Debug.WriteLine($"[片語編輯] UpdateSingleButtonMinimumSize 失敗：{ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 套用焦點反轉強視覺（Bold + 反轉色 + Pressed 琥珀色）
-    /// </summary>
-    private void ApplyStrongVisual(Button btn)
-    {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st)) return;
-
-        Interlocked.Increment(ref st.AnimId);
-        st.DwellProgress = 0f;
-
-        if (SystemInformation.HighContrast)
-        {
-            btn.BackColor = SystemColors.Highlight;
-            btn.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            bool isDark = this.IsDarkModeActive();
-
-            if (st.IsPressed)
-            {
-                btn.BackColor = isDark ?
-                    Color.FromArgb(255, 200, 120) :
-                    Color.FromArgb(28, 28, 28);
-                btn.ForeColor = isDark ?
-                    Color.Black :
-                    Color.White;
-            }
-            else
-            {
-                btn.BackColor = isDark ? Color.White : Color.Black;
-                btn.ForeColor = isDark ? Color.Black : Color.White;
-            }
-        }
-
-        Font? bold = _boldFont;
-        if (bold != null && !ReferenceEquals(btn.Font, bold))
-        {
-            btn.Font = bold;
-        }
-
-        btn.AccessibleDescription = st.IsPressed ?
-            $"{st.BaseDescription} ({Strings.A11y_State_Pressed})" :
-            $"{st.BaseDescription} ({Strings.A11y_State_Focused})";
-
-        btn.Invalidate();
-    }
-
-    /// <summary>
-    /// 啟動 Dwell 動畫回饋
-    /// </summary>
-    private void StartAnimationFeedback(Button btn)
-    {
-        if (btn.IsDisposed || !btn.Enabled) return;
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st)) return;
-
-        if (st.IsPressed || (btn.Focused && !st.IsHovered))
-        {
-            ApplyStrongVisual(btn);
-            return;
-        }
-
-        long currentId = Interlocked.Increment(ref st.AnimId);
-        st.DwellProgress = 0f;
-
-        if (SystemInformation.HighContrast)
-        {
-            btn.BackColor = SystemColors.HotTrack;
-            btn.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            bool isDark = this.IsDarkModeActive();
-
-            btn.BackColor = isDark ?
-                Color.FromArgb(60, 60, 60) :
-                Color.FromArgb(220, 220, 220);
-            btn.ForeColor = isDark ?
-                Color.White :
-                Color.Black;
-        }
-
-        Font? regular = _a11yFont;
-        if (regular != null && !ReferenceEquals(btn.Font, regular))
-        {
-            btn.Font = regular;
-        }
-
-        btn.AccessibleDescription = $"{st.BaseDescription} ({Strings.A11y_State_Hover})";
-
-        btn.Invalidate();
-
-        CancellationToken ct = _cts?.Token ?? CancellationToken.None;
-
-        btn.RunDwellAnimationAsync(
-            id: currentId,
-            animationIdGetter: () => Interlocked.Read(ref st.AnimId),
-            progressSetter: p => st.DwellProgress = p,
-            durationMs: 1000,
-            ct: ct
-        ).SafeFireAndForget();
-    }
-
-    /// <summary>
-    /// 停止回饋
-    /// </summary>
-    private void StopFeedback(Button btn)
-    {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st)) return;
-
-        Interlocked.Increment(ref st.AnimId);
-        st.DwellProgress = 0f;
-
-        if (btn.Focused)
-        {
-            ApplyStrongVisual(btn);
-            return;
-        }
-
-        if (st.IsHovered)
-        {
-            StartAnimationFeedback(btn);
-            return;
-        }
-
-        btn.BackColor = Color.Empty;
-        btn.ForeColor = Color.Empty;
-
-        Font? regular = _a11yFont;
-        if (regular != null && !ReferenceEquals(btn.Font, regular))
-        {
-            btn.Font = regular;
-        }
-
-        btn.AccessibleDescription = st.BaseDescription;
-
-        btn.Invalidate();
-    }
-
-    /// <summary>
-    /// 自訂按鈕繪製：基礎邊框 → 焦點／懸停邊框 → Pressed 內緣框 → Dwell 進度條
-    /// </summary>
-    private void Btn_Paint(object? sender, PaintEventArgs e)
-    {
-        if (sender is not Button btn) return;
-
-        try
-        {
-            _btnStates.TryGetValue(btn, out ButtonVisualState? st);
-
-            Graphics g = e.Graphics;
-            float scale = btn.DeviceDpi / AppSettings.BaseDpi;
-            bool isDark = btn.IsDarkModeActive(),
-                 isFocused = btn.Focused,
-                 isHoveredOrDwell = (st?.IsHovered ?? false) || (st?.DwellProgress ?? 0f) > 0f;
-
-            // 停用態：統一使用共用非色彩提示（虛線邊框 + 斜線）。
-            if (btn.TryDrawDisabledButtonCue(g, isDark, scale))
-            {
-                return;
-            }
-
-            // isDefault：AcceptButton 在焦點位於非按鈕控制項時顯示焦點色邊框。
-            bool isDefault = ReferenceEquals(AcceptButton, btn) &&
-                ActiveControl is not Button &&
-                btn.Enabled;
-
-            // 第一層：基礎邊框。
-            if (!isFocused && !isHoveredOrDwell && !isDefault)
-            {
-                btn.DrawButtonBaseBorder(g, isDark, scale);
-            }
-
-            // 第二層：焦點／懸停邊框。
-            bool isStrongVisual = (st?.IsPressed ?? false) ||
-                (isFocused && !(st?.IsHovered ?? false));
-
-            if (isFocused || isHoveredOrDwell || isDefault)
-            {
-
-                Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
-
-                btn.DrawButtonInteractiveBorder(
-                    g,
-                    borderColor,
-                    scale,
-                    out int inset,
-                    out int borderThickness);
-
-                // Pressed 內緣框。
-                if (!SystemInformation.HighContrast && (st?.IsPressed ?? false))
-                {
-                    btn.DrawPressedInnerCue(g, scale, inset, borderThickness);
-                }
-            }
-
-            // 第三層：Dwell 進度條。
-            float progress = st?.DwellProgress ?? 0f;
-
-            if (progress > 0f && !(st?.IsPressed ?? false))
-            {
-                int barH = (int)(6 * scale),
-                    barW = (int)(btn.Width * progress);
-
-                if (barW > 0)
-                {
-                    Rectangle barRect = new(0, btn.Height - barH, barW, barH);
-
-                    if (SystemInformation.HighContrast)
-                    {
-                        using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
-                        g.FillRectangle(barBrush, barRect);
-                    }
-                    else
-                    {
-                        Color baseColor = isDark ? Color.LimeGreen : Color.Green,
-                              hatchColor = isDark ? Color.DarkGreen : Color.PaleGreen;
-
-                        using Brush bgBrush = new SolidBrush(baseColor);
-                        using Brush hatchBrush = new HatchBrush(
-                            HatchStyle.BackwardDiagonal,
-                            hatchColor,
-                            Color.Transparent);
-
-                        g.FillRectangle(bgBrush, barRect);
-                        g.FillRectangle(hatchBrush, barRect);
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[片語編輯] Button Paint 失敗：{ex.Message}");
         }
     }
 
@@ -1685,7 +1498,7 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 依 DPI 更新最小寬度，讓片語名稱/內容輸入框有更充足的可視範圍。
+    /// 依 DPI 更新最小尺寸，讓片語名稱/內容輸入框有更充足的可視範圍。
     /// </summary>
     private void UpdateMinimumSize()
     {
@@ -1704,7 +1517,7 @@ internal sealed class PhraseEditDialog : Form
 
         Rectangle workArea = Screen.GetWorkingArea(this);
 
-        // 小尺寸螢幕保護：保留 40px 邊界，避免高縮放下最小寬度超出可視區。
+        // 小尺寸螢幕保護：保留 40px 邊界，避免高縮放下最小尺寸超出可視區。
         int maxFitWidth = Math.Max(1, workArea.Width - 40),
             maxFitHeight = Math.Max(1, workArea.Height - 40),
             // 正常情況至少保留 320px 的可編輯寬度；若工作區本身更窄，則以工作區上限為準。
@@ -1712,20 +1525,34 @@ internal sealed class PhraseEditDialog : Form
                 Math.Clamp(desiredMinWidth, 320, maxFitWidth) :
                 maxFitWidth;
 
-        MinimumSize = new Size(minWidth, 0);
+        // 高度基準：加入非客戶區（標題列＋邊框）保護，防止極端 DPI 下視窗超出工作區。
+        int nonClientH = Height - ClientSize.Height;
 
-        if (Width < minWidth)
+        if (nonClientH <= 0)
         {
-            Width = minWidth;
-        }
-        else if (Width > maxFitWidth)
-        {
-            Width = maxFitWidth;
+            nonClientH = SystemInformation.CaptionHeight +
+                SystemInformation.FrameBorderSize.Height * 2;
         }
 
-        if (Height > maxFitHeight)
+        int desiredMinHeight = (int)(300 * scale),
+            minH = Math.Min(desiredMinHeight, maxFitHeight);
+
+        MinimumSize = new Size(minWidth, minH);
+
+        if (Width < minWidth ||
+            Height < minH ||
+            Width > maxFitWidth ||
+            Height > maxFitHeight)
         {
-            Height = maxFitHeight;
+            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
+            int finalMaxW = Math.Max(minWidth, maxFitWidth),
+                finalMaxH = Math.Max(minH, maxFitHeight);
+
+            Size = new Size(
+                Math.Clamp(Width, minWidth, finalMaxW),
+                Math.Clamp(Height, minH, finalMaxH));
+
+            ApplySmartPosition();
         }
     }
 

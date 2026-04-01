@@ -7,7 +7,6 @@ using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.Media;
 using System.Runtime.CompilerServices;
 
@@ -18,7 +17,7 @@ partial class DesignerBlocker { };
 
 /// <summary>
 /// 片語管理對話框
-/// <para>提供片語的新增、編輯、刪除、排序功能，支援遊戲控制器操作、深色/淺色模式與無障礙。</para>
+/// <para>提供片語的新增、編輯、刪除、排序功能，支援遊戲控制器操作、深色／淺色模式與無障礙。</para>
 /// </summary>
 internal sealed class PhraseManagerDialog : Form
 {
@@ -113,21 +112,9 @@ internal sealed class PhraseManagerDialog : Form
     private Font? _boldFont;
 
     /// <summary>
-    /// 按鈕視覺狀態追蹤（每個按鈕獨立的動畫序號、進度、懸停與按壓狀態）
+    /// 已套用的 DPI 快取，避免重複計算最小尺寸
     /// </summary>
-    private sealed class ButtonVisualState
-    {
-        public long AnimId;
-        public float DwellProgress;
-        public bool IsHovered;
-        public bool IsPressed;
-        public string BaseDescription = string.Empty;
-    }
-
-    /// <summary>
-    /// 每個按鈕各自的視覺狀態
-    /// </summary>
-    private readonly Dictionary<Button, ButtonVisualState> _btnStates = [];
+    private float _lastAppliedDpi;
 
     /// <summary>
     /// 對話框的結果：使用者選取要插入的片語內容（null 表示未選取）
@@ -359,48 +346,15 @@ internal sealed class PhraseManagerDialog : Form
             Margin = new Padding(4, 8, 0, 0)
         };
         _btnClose.FlatAppearance.BorderSize = 0;
-        _btnStates[_btnClose] = new ButtonVisualState { BaseDescription = Strings.Phrase_A11y_Btn_Close_Desc };
         _btnClose.Click += (s, e) =>
         {
-            try { Close(); }
-            catch (Exception ex) { Debug.WriteLine($"[片語] Close 失敗：{ex.Message}"); }
-        };
-        _btnClose.Paint += ActionButton_Paint;
-        _btnClose.GotFocus += (s, e) => ApplyStrongVisual(_btnClose);
-        _btnClose.LostFocus += (s, e) =>
-        {
-            if (_btnStates.TryGetValue(_btnClose, out ButtonVisualState? st)) st.IsPressed = false;
-            StopFeedback(_btnClose);
-        };
-        _btnClose.MouseEnter += (s, e) =>
-        {
-            if (ActiveForm != this) return;
-            if (_btnStates.TryGetValue(_btnClose, out ButtonVisualState? st)) st.IsHovered = true;
-            StartAnimationFeedback(_btnClose);
-        };
-        _btnClose.MouseLeave += (s, e) =>
-        {
-            if (_btnStates.TryGetValue(_btnClose, out ButtonVisualState? st))
+            try
             {
-                st.IsHovered = false;
-                st.IsPressed = false;
+                Close();
             }
-            StopFeedback(_btnClose);
-        };
-        _btnClose.MouseDown += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left && _btnStates.TryGetValue(_btnClose, out ButtonVisualState? st))
+            catch (Exception ex)
             {
-                st.IsPressed = true;
-                StartAnimationFeedback(_btnClose);
-            }
-        };
-        _btnClose.MouseUp += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left && _btnStates.TryGetValue(_btnClose, out ButtonVisualState? st))
-            {
-                st.IsPressed = false;
-                StartAnimationFeedback(_btnClose);
+                Debug.WriteLine($"[片語] Close 失敗：{ex.Message}");
             }
         };
 
@@ -449,12 +403,24 @@ internal sealed class PhraseManagerDialog : Form
 
                     await this.SafeInvokeAsync(() =>
                     {
-                        try { GamepadController?.Resume(); }
-                        catch (Exception ex) { Debug.WriteLine($"[片語] Resume 失敗：{ex.Message}"); }
+                        try
+                        {
+                            GamepadController?.Resume();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[片語] Resume 失敗：{ex.Message}");
+                        }
                     });
                 }
-                catch (OperationCanceledException) { }
-                catch (Exception ex) { Debug.WriteLine($"[片語] Activated 失敗：{ex.Message}"); }
+                catch (OperationCanceledException)
+                {
+
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語] Activated 失敗：{ex.Message}");
+                }
             },
             _cts?.Token ?? CancellationToken.None)
             .SafeFireAndForget();
@@ -473,11 +439,20 @@ internal sealed class PhraseManagerDialog : Form
                         return;
                     }
 
-                    try { GamepadController?.Pause(); }
-                    catch (Exception ex) { Debug.WriteLine($"[片語] Pause 失敗：{ex.Message}"); }
+                    try
+                    {
+                        GamepadController?.Pause();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[片語] Pause 失敗：{ex.Message}");
+                    }
                 });
             }
-            catch (Exception ex) { Debug.WriteLine($"[片語] Deactivate 失敗：{ex.Message}"); }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[片語] Deactivate 失敗：{ex.Message}");
+            }
         };
     }
 
@@ -576,9 +551,11 @@ internal sealed class PhraseManagerDialog : Form
 
         if (msg.Msg == WM_KEYDOWN)
         {
-            Keys key = keyData & Keys.KeyCode;
+            Keys key = keyData &
+                Keys.KeyCode;
 
-            if (key == Keys.F1 || key == Keys.Escape)
+            if (key == Keys.F1 ||
+                key == Keys.Escape)
             {
                 Close();
 
@@ -654,14 +631,16 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void UpdateButtonStates()
     {
-        bool hasSelection = _lstPhrases.SelectedIndex >= 0;
-        bool canAdd = _phraseService.Count < PhraseService.MaxPhraseCount;
+        bool hasSelection = _lstPhrases.SelectedIndex >= 0,
+            canAdd = _phraseService.Count < PhraseService.MaxPhraseCount;
 
         _btnAdd.Enabled = canAdd;
         _btnEdit.Enabled = hasSelection;
         _btnDelete.Enabled = hasSelection;
-        _btnMoveUp.Enabled = hasSelection && _lstPhrases.SelectedIndex > 0;
-        _btnMoveDown.Enabled = hasSelection && _lstPhrases.SelectedIndex < _lstPhrases.Items.Count - 1;
+        _btnMoveUp.Enabled = hasSelection &&
+            _lstPhrases.SelectedIndex > 0;
+        _btnMoveDown.Enabled = hasSelection &&
+            _lstPhrases.SelectedIndex < _lstPhrases.Items.Count - 1;
 
         UpdatePhraseCountHint();
     }
@@ -671,7 +650,8 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void UpdatePhraseCountHint()
     {
-        if (_lblPhraseCount == null || _lblPhraseCount.IsDisposed)
+        if (_lblPhraseCount == null ||
+            _lblPhraseCount.IsDisposed)
         {
             return;
         }
@@ -813,7 +793,7 @@ internal sealed class PhraseManagerDialog : Form
             // 子對話框關閉後重新訂閱控制器事件。
             SubscribeGamepadEvents();
 
-            // 防止 Owner/Child 失焦競態導致控制器殘留在 Pause 狀態。
+            // 防止 Owner／Child 失焦競態導致控制器殘留在 Pause 狀態。
             if (ActiveForm == this)
             {
                 try
@@ -889,9 +869,9 @@ internal sealed class PhraseManagerDialog : Form
             return;
         }
 
-        bool success = direction < 0
-            ? _phraseService.MoveUp(idx)
-            : _phraseService.MoveDown(idx);
+        bool success = direction < 0 ?
+            _phraseService.MoveUp(idx) :
+            _phraseService.MoveDown(idx);
 
         if (success)
         {
@@ -956,9 +936,9 @@ internal sealed class PhraseManagerDialog : Form
 
             if (_lstPhrases.Items.Count > 0)
             {
-                int newIdx = _lstPhrases.SelectedIndex <= 0
-                    ? _lstPhrases.Items.Count - 1
-                    : _lstPhrases.SelectedIndex - 1;
+                int newIdx = _lstPhrases.SelectedIndex <= 0 ?
+                    _lstPhrases.Items.Count - 1 :
+                    _lstPhrases.SelectedIndex - 1;
 
                 _lstPhrases.SelectedIndex = newIdx;
 
@@ -969,7 +949,10 @@ internal sealed class PhraseManagerDialog : Form
                     .SafeFireAndForget();
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleUp 失敗：{ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleUp 失敗：{ex.Message}");
+        }
     });
 
     private void HandleDown() => this.SafeInvoke(() =>
@@ -980,14 +963,15 @@ internal sealed class PhraseManagerDialog : Form
             if (IsButtonAreaFocused())
             {
                 CycleFocus(forward: true);
+
                 return;
             }
 
             if (_lstPhrases.Items.Count > 0)
             {
-                int newIdx = _lstPhrases.SelectedIndex >= _lstPhrases.Items.Count - 1
-                    ? 0
-                    : _lstPhrases.SelectedIndex + 1;
+                int newIdx = _lstPhrases.SelectedIndex >= _lstPhrases.Items.Count - 1 ?
+                    0 :
+                    _lstPhrases.SelectedIndex + 1;
 
                 _lstPhrases.SelectedIndex = newIdx;
 
@@ -998,7 +982,10 @@ internal sealed class PhraseManagerDialog : Form
                     .SafeFireAndForget();
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleDown 失敗：{ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleDown 失敗：{ex.Message}");
+        }
     });
 
     private void HandleGamepadA() => this.SafeInvoke(() =>
@@ -1006,11 +993,13 @@ internal sealed class PhraseManagerDialog : Form
         try
         {
             // 如果焦點在按鈕上，執行該按鈕的動作。
-            if (TryGetFocusedButton(out Button? focusedBtn) && focusedBtn is { Enabled: true })
+            if (TryGetFocusedButton(out Button? focusedBtn) &&
+                focusedBtn is { Enabled: true })
             {
                 focusedBtn.PerformClick();
             }
-            else if (_lstPhrases.Focused && _lstPhrases.SelectedIndex >= 0)
+            else if (_lstPhrases.Focused &&
+            _lstPhrases.SelectedIndex >= 0)
             {
                 InsertSelectedPhrase();
             }
@@ -1019,25 +1008,46 @@ internal sealed class PhraseManagerDialog : Form
                 AddPhrase();
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleGamepadA 失敗：{ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleGamepadA 失敗：{ex.Message}");
+        }
     });
 
     private void HandleClose() => this.SafeInvoke(() =>
     {
-        try { Close(); }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleClose 失敗：{ex.Message}"); }
+        try
+        {
+            Close();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleClose 失敗：{ex.Message}");
+        }
     });
 
     private void HandleDelete() => this.SafeInvoke(() =>
     {
-        try { DeleteSelectedPhrase(); }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleDelete 失敗：{ex.Message}"); }
+        try
+        {
+            DeleteSelectedPhrase();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleDelete 失敗：{ex.Message}");
+        }
     });
 
     private void HandleAdd() => this.SafeInvoke(() =>
     {
-        try { AddPhrase(); }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleAdd 失敗：{ex.Message}"); }
+        try
+        {
+            AddPhrase();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleAdd 失敗：{ex.Message}");
+        }
     });
 
     private void HandleMoveUp() => this.SafeInvoke(() =>
@@ -1055,9 +1065,10 @@ internal sealed class PhraseManagerDialog : Form
 
                     if (_lstPhrases.SelectedIndex < phrases.Count)
                     {
-                        AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
-                            Strings.Phrase_A11y_Selected_PrivacySafe :
-                            string.Format(Strings.Phrase_A11y_Selected, phrases[_lstPhrases.SelectedIndex].Name),
+                        AnnounceA11y(
+                            AppSettings.Current.IsPrivacyMode ?
+                                Strings.Phrase_A11y_Selected_PrivacySafe :
+                                string.Format(Strings.Phrase_A11y_Selected, phrases[_lstPhrases.SelectedIndex].Name),
                             interrupt: true);
                     }
                 }
@@ -1073,7 +1084,10 @@ internal sealed class PhraseManagerDialog : Form
 
             MoveSelectedPhrase(-1);
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleMoveUp 失敗：{ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandleMoveUp 失敗：{ex.Message}");
+        }
     });
 
     private void HandleMoveDown() => this.SafeInvoke(() =>
@@ -1081,50 +1095,33 @@ internal sealed class PhraseManagerDialog : Form
         try
         {
             // 右方向鍵：由清單進入右側按鈕區；若已在按鈕區則向後循環。
-            if (_lstPhrases.Focused || _lstPhrases.ContainsFocus)
+            if (_lstPhrases.Focused ||
+            _lstPhrases.ContainsFocus)
             {
                 FocusFirstActionButtonOrClose();
+
                 return;
             }
 
             if (IsButtonAreaFocused())
             {
                 CycleFocus(forward: true);
+
                 return;
             }
 
             MoveSelectedPhrase(1);
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleMoveDown 失敗：{ex.Message}"); }
-    });
-
-    /// <summary>
-    /// LT：焦點切換至上一個可用控制項（清單↔按鈕循環）
-    /// </summary>
-    private void HandleFocusPrev() => this.SafeInvoke(() =>
-    {
-        try
+        catch (Exception ex)
         {
-            CycleFocus(forward: false);
+            Debug.WriteLine($"[片語] HandleMoveDown 失敗：{ex.Message}");
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleFocusPrev 失敗：{ex.Message}"); }
-    });
-
-    /// <summary>
-    /// RT：焦點切換至下一個可用控制項（清單↔按鈕循環）
-    /// </summary>
-    private void HandleFocusNext() => this.SafeInvoke(() =>
-    {
-        try
-        {
-            CycleFocus(forward: true);
-        }
-        catch (Exception ex) { Debug.WriteLine($"[片語] HandleFocusNext 失敗：{ex.Message}"); }
     });
 
     /// <summary>
     /// 在清單與按鈕之間循環焦點
     /// </summary>
+    /// <param name="forward">是否向前循環焦點</param>
     private void CycleFocus(bool forward)
     {
         // 建立焦點順序：清單 → 各按鈕（依面板順序）→ 關閉按鈕。
@@ -1132,7 +1129,9 @@ internal sealed class PhraseManagerDialog : Form
 
         foreach (Control ctrl in _flpButtons.Controls)
         {
-            if (ctrl is Button btn && btn.Enabled && btn.Visible)
+            if (ctrl is Button btn &&
+                btn.Enabled &&
+                btn.Visible)
             {
                 focusOrder.Add(btn);
             }
@@ -1143,16 +1142,21 @@ internal sealed class PhraseManagerDialog : Form
             focusOrder.Add(_btnClose);
         }
 
-        if (focusOrder.Count == 0) return;
+        if (focusOrder.Count == 0)
+        {
+            return;
+        }
 
         // 找到目前焦點在列表中的位置。
         int currentIdx = -1;
 
         for (int i = 0; i < focusOrder.Count; i++)
         {
-            if (focusOrder[i].Focused || focusOrder[i].ContainsFocus)
+            if (focusOrder[i].Focused ||
+                focusOrder[i].ContainsFocus)
             {
                 currentIdx = i;
+
                 break;
             }
         }
@@ -1161,13 +1165,15 @@ internal sealed class PhraseManagerDialog : Form
 
         if (currentIdx < 0)
         {
-            nextIdx = forward ? 0 : focusOrder.Count - 1;
+            nextIdx = forward ?
+                0 :
+                focusOrder.Count - 1;
         }
         else
         {
-            nextIdx = forward
-                ? (currentIdx + 1) % focusOrder.Count
-                : (currentIdx - 1 + focusOrder.Count) % focusOrder.Count;
+            nextIdx = forward ?
+                (currentIdx + 1) % focusOrder.Count :
+                (currentIdx - 1 + focusOrder.Count) % focusOrder.Count;
         }
 
         focusOrder[nextIdx].Focus();
@@ -1189,22 +1195,27 @@ internal sealed class PhraseManagerDialog : Form
 
     private bool TryGetFocusedButton(out Button? focusedBtn)
     {
-        if (_btnClose.Focused || _btnClose.ContainsFocus)
+        if (_btnClose.Focused ||
+            _btnClose.ContainsFocus)
         {
             focusedBtn = _btnClose;
+
             return true;
         }
 
         foreach (Control ctrl in _flpButtons.Controls)
         {
-            if (ctrl is Button btn && (btn.Focused || btn.ContainsFocus))
+            if (ctrl is Button btn &&
+                (btn.Focused || btn.ContainsFocus))
             {
                 focusedBtn = btn;
+
                 return true;
             }
         }
 
         focusedBtn = null;
+
         return false;
     }
 
@@ -1214,9 +1225,12 @@ internal sealed class PhraseManagerDialog : Form
     {
         foreach (Control ctrl in _flpButtons.Controls)
         {
-            if (ctrl is Button btn && btn.Enabled && btn.Visible)
+            if (ctrl is Button btn &&
+                btn.Enabled &&
+                btn.Visible)
             {
                 btn.Focus();
+
                 AnnounceA11y(btn.AccessibleName ?? btn.Text, interrupt: true);
 
                 FeedbackService.VibrateAsync(
@@ -1229,9 +1243,11 @@ internal sealed class PhraseManagerDialog : Form
             }
         }
 
-        if (_btnClose.Enabled && _btnClose.Visible)
+        if (_btnClose.Enabled &&
+            _btnClose.Visible)
         {
             _btnClose.Focus();
+
             AnnounceA11y(_btnClose.AccessibleName ?? _btnClose.Text, interrupt: true);
 
             FeedbackService.VibrateAsync(
@@ -1281,7 +1297,6 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.LeftRepeat += HandleMoveUp;
                 _gamepadController.RightPressed += HandleMoveDown;
                 _gamepadController.RightRepeat += HandleMoveDown;
-                // LT/RT bindings removed: focus cycling handled via D-Pad / Tab
                 _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
             }
         }
@@ -1311,7 +1326,6 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.LeftRepeat -= HandleMoveUp;
                 _gamepadController.RightPressed -= HandleMoveDown;
                 _gamepadController.RightRepeat -= HandleMoveDown;
-                // LT/RT bindings removed: no unsubscription required here
                 _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
             }
         }
@@ -1325,10 +1339,18 @@ internal sealed class PhraseManagerDialog : Form
 
     #region 視覺與佈局
 
+
     /// <summary>
-    /// 建立動作按鈕（含完整 A11y 事件綁定）
+    /// 建立動作按鈕
     /// </summary>
-    private Button CreateActionButton(string text, string a11yDesc, char mnemonic)
+    /// <param name="text">按鈕文字</param>
+    /// <param name="a11yDesc">輔助功能描述</param>
+    /// <param name="mnemonic">快捷鍵字元</param>
+    /// <returns>Button</returns>
+    private static Button CreateActionButton(
+        string text,
+        string a11yDesc,
+        char mnemonic)
     {
         Button btn = new()
         {
@@ -1345,58 +1367,14 @@ internal sealed class PhraseManagerDialog : Form
         };
         btn.FlatAppearance.BorderSize = 0;
 
-        _btnStates[btn] = new ButtonVisualState { BaseDescription = a11yDesc };
-
-        btn.Paint += ActionButton_Paint;
-
-        btn.GotFocus += (s, e) => ApplyStrongVisual(btn);
-
-        btn.LostFocus += (s, e) =>
-        {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st)) st.IsPressed = false;
-            StopFeedback(btn);
-        };
-
-        btn.MouseEnter += (s, e) =>
-        {
-            if (ActiveForm != this) return;
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st)) st.IsHovered = true;
-            StartAnimationFeedback(btn);
-        };
-
-        btn.MouseLeave += (s, e) =>
-        {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st))
-            {
-                st.IsHovered = false;
-                st.IsPressed = false;
-            }
-            StopFeedback(btn);
-        };
-
-        btn.MouseDown += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left && _btnStates.TryGetValue(btn, out ButtonVisualState? st))
-            {
-                st.IsPressed = true;
-                StartAnimationFeedback(btn);
-            }
-        };
-
-        btn.MouseUp += (s, e) =>
-        {
-            if (e.Button == MouseButtons.Left && _btnStates.TryGetValue(btn, out ButtonVisualState? st))
-            {
-                st.IsPressed = false;
-                StartAnimationFeedback(btn);
-            }
-        };
+        // 暫存 base description 到 Tag 供後續 AttachEyeTrackerFeedback 使用。
+        btn.Tag = a11yDesc;
 
         return btn;
     }
 
     /// <summary>
-    /// 套用字型（Regular + Bold）
+    /// 套用字型（Regular + Bold）並掛載眼動儀擴充
     /// </summary>
     private void ApplyFont()
     {
@@ -1404,6 +1382,7 @@ internal sealed class PhraseManagerDialog : Form
         _boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
 
         Font = _a11yFont;
+
         _lstPhrases.Font = _a11yFont;
 
         foreach (Control ctrl in _flpButtons.Controls)
@@ -1411,10 +1390,20 @@ internal sealed class PhraseManagerDialog : Form
             if (ctrl is Button btn)
             {
                 btn.Font = _a11yFont;
+                btn.AttachEyeTrackerFeedback(
+                    baseDescription: btn.Tag?.ToString() ?? string.Empty,
+                    regularFont: _a11yFont,
+                    boldFont: _boldFont,
+                    formCt: _cts?.Token ?? CancellationToken.None);
             }
         }
 
         _btnClose.Font = _a11yFont;
+        _btnClose.AttachEyeTrackerFeedback(
+            baseDescription: Strings.Phrase_A11y_Btn_Close_Desc,
+            regularFont: _a11yFont,
+            boldFont: _boldFont,
+            formCt: _cts?.Token ?? CancellationToken.None);
     }
 
     /// <summary>
@@ -1440,17 +1429,20 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (btn.IsDisposed) return;
+            if (btn.IsDisposed)
+            {
+                return;
+            }
 
             btn.MinimumSize = Size.Empty;
 
             Font boldFont = _boldFont ?? MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
+
             Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
 
             // WCAG 2.5.5 AAA：44×44 邏輯像素最小觸控目標。
-            int wcagMin = (int)(44 * scale);
-
-            int minW = Math.Max(wcagMin, boldTextSize.Width + (int)(24 * scale)),
+            int wcagMin = (int)(44 * scale),
+                minW = Math.Max(wcagMin, boldTextSize.Width + (int)(24 * scale)),
                 minH = Math.Max(wcagMin, boldTextSize.Height + (int)(16 * scale));
 
             btn.MinimumSize = new Size(minW, minH);
@@ -1466,7 +1458,16 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void UpdateMinimumSize()
     {
-        float scale = DeviceDpi / AppSettings.BaseDpi;
+        float currentDpi = DeviceDpi;
+
+        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        {
+            return;
+        }
+
+        _lastAppliedDpi = currentDpi;
+
+        float scale = currentDpi / AppSettings.BaseDpi;
 
         // 加上非客戶區（標題列＋邊框）高度，MinimumSize 是外框尺寸。
         // OnHandleCreated 時 Height == ClientSize.Height（非客戶區尚未就緒），
@@ -1536,7 +1537,8 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated || IsDisposed)
+        if (!IsHandleCreated ||
+            IsDisposed)
         {
             return;
         }
@@ -1549,258 +1551,6 @@ internal sealed class PhraseManagerDialog : Form
         if (x != Left || y != Top)
         {
             Location = new Point(x, y);
-        }
-    }
-
-    /// <summary>
-    /// 套用焦點反轉強視覺（Bold + 反轉色 + Pressed 琥珀色）
-    /// </summary>
-    private void ApplyStrongVisual(Button btn)
-    {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st)) return;
-
-        // 打斷目前動畫。
-        Interlocked.Increment(ref st.AnimId);
-        st.DwellProgress = 0f;
-
-        if (SystemInformation.HighContrast)
-        {
-            btn.BackColor = SystemColors.Highlight;
-            btn.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            bool isDark = this.IsDarkModeActive();
-
-            if (st.IsPressed)
-            {
-                // 琥珀色（Pressed）：ΔL*≥13，Tritanopia 安全。
-                btn.BackColor = isDark ?
-                    Color.FromArgb(255, 200, 120) :
-                    Color.FromArgb(28, 28, 28);
-                btn.ForeColor = isDark ?
-                    Color.Black :
-                    Color.White;
-            }
-            else
-            {
-                btn.BackColor = isDark ? Color.White : Color.Black;
-                btn.ForeColor = isDark ? Color.Black : Color.White;
-            }
-        }
-
-        // 加粗字型。
-        Font? bold = _boldFont;
-        if (bold != null && !ReferenceEquals(btn.Font, bold))
-        {
-            btn.Font = bold;
-        }
-
-        // 更新 AccessibleDescription 狀態後綴。
-        btn.AccessibleDescription = st.IsPressed ?
-            $"{st.BaseDescription} ({Strings.A11y_State_Pressed})" :
-            $"{st.BaseDescription} ({Strings.A11y_State_Focused})";
-
-        btn.Invalidate();
-    }
-
-    /// <summary>
-    /// 啟動 Dwell 動畫回饋（懸停或按壓時）
-    /// </summary>
-    private void StartAnimationFeedback(Button btn)
-    {
-        if (btn.IsDisposed || !btn.Enabled) return;
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st)) return;
-
-        // 分離式回饋原則：按壓中或「鍵盤焦點且非懸停」→ 強烈靜態視覺。
-        if (st.IsPressed || (btn.Focused && !st.IsHovered))
-        {
-            ApplyStrongVisual(btn);
-            return;
-        }
-
-        long currentId = Interlocked.Increment(ref st.AnimId);
-        st.DwellProgress = 0f;
-
-        // 溫和懸停視覺。
-        if (SystemInformation.HighContrast)
-        {
-            btn.BackColor = SystemColors.HotTrack;
-            btn.ForeColor = SystemColors.HighlightText;
-        }
-        else
-        {
-            bool isDark = this.IsDarkModeActive();
-
-            btn.BackColor = isDark ?
-                Color.FromArgb(60, 60, 60) :
-                Color.FromArgb(220, 220, 220);
-            btn.ForeColor = isDark ?
-                Color.White :
-                Color.Black;
-        }
-
-        // 不加粗：維持一般字體。
-        Font? regular = _a11yFont;
-        if (regular != null && !ReferenceEquals(btn.Font, regular))
-        {
-            btn.Font = regular;
-        }
-
-        btn.AccessibleDescription = $"{st.BaseDescription} ({Strings.A11y_State_Hover})";
-
-        btn.Invalidate();
-
-        CancellationToken ct = _cts?.Token ?? CancellationToken.None;
-
-        btn.RunDwellAnimationAsync(
-            id: currentId,
-            animationIdGetter: () => Interlocked.Read(ref st.AnimId),
-            progressSetter: p => st.DwellProgress = p,
-            durationMs: 1000,
-            ct: ct
-        ).SafeFireAndForget();
-    }
-
-    /// <summary>
-    /// 停止回饋：恢復預設外觀或依焦點／懸停狀態調整
-    /// </summary>
-    private void StopFeedback(Button btn)
-    {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st)) return;
-
-        Interlocked.Increment(ref st.AnimId);
-        st.DwellProgress = 0f;
-
-        // 滑鼠移出但仍具備鍵盤焦點 → 強烈靜態高亮。
-        if (btn.Focused)
-        {
-            ApplyStrongVisual(btn);
-            return;
-        }
-
-        if (st.IsHovered)
-        {
-            StartAnimationFeedback(btn);
-            return;
-        }
-
-        // 恢復預設（由主題引擎決定）。
-        btn.BackColor = Color.Empty;
-        btn.ForeColor = Color.Empty;
-
-        Font? regular = _a11yFont;
-        if (regular != null && !ReferenceEquals(btn.Font, regular))
-        {
-            btn.Font = regular;
-        }
-
-        btn.AccessibleDescription = st.BaseDescription;
-
-        btn.Invalidate();
-    }
-
-    /// <summary>
-    /// 自訂按鈕繪製：基礎邊框 → 焦點／懸停邊框 → Pressed 內緣框 → Dwell 進度條
-    /// </summary>
-    private void ActionButton_Paint(object? sender, PaintEventArgs e)
-    {
-        if (sender is not Button btn)
-        {
-            return;
-        }
-
-        try
-        {
-            _btnStates.TryGetValue(btn, out ButtonVisualState? st);
-
-            Graphics g = e.Graphics;
-
-            float scale = btn.DeviceDpi / AppSettings.BaseDpi;
-
-            bool isDark = btn.IsDarkModeActive(),
-                 isFocused = btn.Focused,
-                 isHoveredOrDwell = (st?.IsHovered ?? false) || (st?.DwellProgress ?? 0f) > 0f;
-
-            // 停用態：統一使用共用非色彩提示（虛線邊框 + 斜線）。
-            if (btn.TryDrawDisabledButtonCue(g, isDark, scale))
-            {
-                return;
-            }
-
-            // 第一層：基礎邊框（非焦點、非懸停時繪製，確保靜態辨識度）。
-            if (!isFocused &&
-                !isHoveredOrDwell)
-            {
-                btn.DrawButtonBaseBorder(g, isDark, scale);
-            }
-
-            // 第二層：焦點／懸停邊框（3px，情境感知色）。
-            bool isStrongVisual = (st?.IsPressed ?? false) ||
-                (isFocused && !(st?.IsHovered ?? false));
-
-            if (isFocused ||
-                isHoveredOrDwell)
-            {
-
-                Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
-
-                btn.DrawButtonInteractiveBorder(
-                    g,
-                    borderColor,
-                    scale,
-                    out int inset,
-                    out int borderThickness);
-
-                // Pressed 內緣框（非顏色線索，支援全類型色弱）。
-                if (!SystemInformation.HighContrast && (st?.IsPressed ?? false))
-                {
-                    btn.DrawPressedInnerCue(g, scale, inset, borderThickness);
-                }
-            }
-
-            // 第三層：Dwell 進度條（懸停中且非按壓狀態）。
-            float progress = st?.DwellProgress ?? 0f;
-
-            if (progress > 0f && !(st?.IsPressed ?? false))
-            {
-                int barH = (int)(6 * scale),
-                    barW = (int)(btn.Width * progress);
-
-                if (barW > 0)
-                {
-                    Rectangle barRect = new(0, btn.Height - barH, barW, barH);
-
-                    if (SystemInformation.HighContrast)
-                    {
-                        using Brush barBrush = new SolidBrush(SystemColors.HighlightText);
-
-                        g.FillRectangle(barBrush, barRect);
-                    }
-                    else
-                    {
-                        Color baseColor = isDark ?
-                                Color.LimeGreen :
-                                Color.Green,
-                            hatchColor = isDark ?
-                                Color.DarkGreen :
-                                Color.PaleGreen;
-
-                        using Brush bgBrush = new SolidBrush(baseColor);
-                        using Brush hatchBrush = new HatchBrush(
-                            HatchStyle.BackwardDiagonal,
-                            hatchColor,
-                            Color.Transparent);
-
-                        g.FillRectangle(bgBrush, barRect);
-                        g.FillRectangle(hatchBrush, barRect);
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[片語] Button Paint 失敗：{ex.Message}");
         }
     }
 
@@ -1883,7 +1633,10 @@ internal sealed class PhraseManagerDialog : Form
                             _announcer.Announce(message, interrupt && AppSettings.Current.A11yInterruptEnabled));
                     }
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+
+                }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[片語] A11y 廣播失敗：{ex.Message}");

@@ -1,21 +1,24 @@
 <Solution>
+  <Folder Name="/方案項目/.agents/" />
+  <Folder Name="/方案項目/.agents/skills/" />
   <Folder Name="/方案項目/.agents/skills/inputbox-dev/">
-    <File Path="SKILL.md" />
+    <File Path=".agents/skills/inputbox-dev/SKILL.md" />
   </Folder>
   <Folder Name="/方案項目/.github/">
-    <File Path="copilot-instructions.md" />
+    <File Path=".github/copilot-instructions.md" />
   </Folder>
   <Folder Name="/方案項目/.github/workflows/">
     <File Path=".github/workflows/ci.yml" />
     <File Path=".github/workflows/release.yml" />
   </Folder>
+  <Folder Name="/方案項目/docs/" />
   <Folder Name="/方案項目/docs/engineering/">
-    <File Path="a11y-safety.md" />
-    <File Path="core-engineering.md" />
-    <File Path="environment.md" />
-    <File Path="gamepad-api.md" />
-    <File Path="git-commit-safety.md" />
-    <File Path="localization.md" />
+    <File Path="docs/engineering/a11y-safety.md" />
+    <File Path="docs/engineering/core-engineering.md" />
+    <File Path="docs/engineering/environment.md" />
+    <File Path="docs/engineering/gamepad-api.md" />
+    <File Path="docs/engineering/git-commit-safety.md" />
+    <File Path="docs/engineering/localization.md" />
   </Folder>
   <Folder Name="/方案項目/">
     <File Path=".editorconfig" />

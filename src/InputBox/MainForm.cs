@@ -1,4 +1,4 @@
-﻿using InputBox.Core.Configuration;
+using InputBox.Core.Configuration;
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
@@ -218,31 +218,6 @@ public partial class MainForm : Form
     private int _lastCaretHeight = -1;
 
     /// <summary>
-    /// 快取的原始邊距（用於懸停零邊距策略）
-    /// </summary>
-    private Padding _originalBtnPadding;
-
-    /// <summary>
-    /// 注視進度（0.0 ~ 1.0）
-    /// </summary>
-    private float _dwellProgress = 0f;
-
-    /// <summary>
-    /// 是否正被注視中
-    /// </summary>
-    private bool _isBtnHovered = false;
-
-    /// <summary>
-    /// 複製按鈕是否處於滑鼠按壓中
-    /// </summary>
-    private bool _isBtnPressed = false;
-
-    /// <summary>
-    /// 目前按鈕動畫的序號（用於處理中止與競爭）
-    /// </summary>
-    private long _animationId = 0;
-
-    /// <summary>
     /// 冷卻旗標，防止在短時間內重複觸發按鈕動作（例如連續點擊或快速鍵）
     /// </summary>
     private bool _isActionCooldown = false;
@@ -313,10 +288,6 @@ public partial class MainForm : Form
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
         TBInput.MaxLength = AppSettings.MaxHistoryEntryLength;
 
-        // 為 BtnCopy 補齊按壓狀態追蹤，對齊其他對話框的 Pressed 視覺模型。
-        BtnCopy.MouseDown += BtnCopy_MouseDown;
-        BtnCopy.MouseUp += BtnCopy_MouseUp;
-
         // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>
         {
@@ -378,17 +349,7 @@ public partial class MainForm : Form
                 // 清除 UI 視覺殘留。
                 // 確保視窗在背景或被對話框遮擋時，不會殘留 Hover 的灰底或 Focus 的邊框。
 
-                // 1. 強制清除按鈕的 Hover 或 Focus 視覺殘留。
-                _isBtnHovered = false;
-                _isBtnPressed = false;
-
-                if (BtnCopy != null && !BtnCopy.IsDisposed)
-                {
-                    // 強制洗掉所有的顏色、粗體與邊框。
-                    RestoreButtonDefaultStyle(force: true);
-                }
-
-                // 2. 清除輸入框的視覺殘留。
+                // 清除輸入框的視覺殘留。
                 if (TBInput != null &&
                     !TBInput.IsDisposed &&
                     !TBInput.Focused)
@@ -985,8 +946,10 @@ public partial class MainForm : Form
             BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
             BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
 
-            // 還原視覺樣式（顏色與粗細）。
-            RestoreButtonDefaultStyle();
+            // 還原視覺樣式：由擴充方法統一重置進度條並檢測視線接合。
+            BtnCopy.BackColor = Color.Empty;
+            BtnCopy.ForeColor = Color.Empty;
+            BtnCopy.Invalidate();
 
             // 最後重新啟用按鈕。
             BtnCopy.Enabled = true;

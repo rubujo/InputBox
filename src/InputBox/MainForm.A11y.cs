@@ -1,4 +1,4 @@
-﻿using InputBox.Core.Configuration;
+using InputBox.Core.Configuration;
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Services;
@@ -103,26 +103,37 @@ public partial class MainForm
         TBInput.Font = _inputFont;
 
         // 更新按鈕字體。
-        // 如果目前按鈕沒有焦點也沒有懸停，立即同步字體。
-        if (!BtnCopy.Focused &&
-            !_isBtnHovered)
+        if (!IsSharedFont(BtnCopy.Font))
         {
-            if (!IsSharedFont(BtnCopy.Font))
-            {
-                AddFontToTrashCan(BtnCopy.Font);
-            }
-
-            BtnCopy.Font = A11yFont;
+            AddFontToTrashCan(BtnCopy.Font);
         }
-        else if (BtnCopy.Focused)
-        {
-            if (!IsSharedFont(BtnCopy.Font))
-            {
-                AddFontToTrashCan(BtnCopy.Font);
-            }
 
-            BtnCopy.Font = BoldBtnFont;
-        }
+        BtnCopy.Font = BtnCopy.Focused ?
+            BoldBtnFont :
+            A11yFont;
+
+        // 透過擴充方法統一管理按鈕的無障礙字型與眼動儀視覺回饋。
+        // onFocusStateChanged 回呼：當按鈕焦點或懸停狀態改變時，
+        // 連動清除輸入框的視覺焦點狀態（原 BtnCopy_Leave 中的 TBInput 清理邏輯）。
+        BtnCopy.AttachEyeTrackerFeedback(
+            Strings.A11y_BtnCopyName,
+            A11yFont,
+            BoldBtnFont,
+            _formCts?.Token ?? CancellationToken.None,
+            onFocusStateChanged: (isActive) =>
+            {
+                if (!isActive &&
+                    TBInput != null &&
+                    !TBInput.IsDisposed &&
+                    !TBInput.Focused)
+                {
+                    UpdateBorderColor(false);
+
+                    TBInput.BackColor = Color.Empty;
+                    TBInput.ForeColor = Color.Empty;
+                }
+            }
+        );
 
         // 確保標題快取與在地化字串同步。
         UpdateTitlePrefix();

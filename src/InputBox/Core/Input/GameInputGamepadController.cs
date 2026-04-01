@@ -1,4 +1,4 @@
-﻿using GameInputDotNet;
+using GameInputDotNet;
 using GameInputDotNet.Interop.Enums;
 using GameInputDotNet.Interop.Structs;
 using GameInputDotNet.States;
@@ -445,8 +445,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         // 解除 Callback 註冊。
-        _readingCallbackReg?.Dispose();
-        _readingCallbackReg = null;
+        Interlocked.Exchange(ref _readingCallbackReg, null)?.Dispose();
 
         // 清空事件佇列。
         _readingQueue.Clear();
@@ -466,8 +465,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void SetupReadingCallback()
     {
-        _readingCallbackReg?.Dispose();
-        _readingCallbackReg = null;
+        Interlocked.Exchange(ref _readingCallbackReg, null)?.Dispose();
 
         _readingQueue.Clear();
 

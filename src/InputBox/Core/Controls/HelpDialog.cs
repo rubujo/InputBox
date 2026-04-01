@@ -1,4 +1,4 @@
-﻿using InputBox.Core.Configuration;
+using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Input;
 using InputBox.Resources;
@@ -60,6 +60,11 @@ internal sealed class HelpDialog : Form
     private readonly Panel _pnlFooter;
 
     /// <summary>
+    /// 已套用的 DPI 快取，避免重複計算最小尺寸
+    /// </summary>
+    private float _lastAppliedDpi;
+
+    /// <summary>
     /// 初始化說明對話框
     /// </summary>
     public HelpDialog()
@@ -111,7 +116,8 @@ internal sealed class HelpDialog : Form
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             AccessibleName = Strings.Help_A11y_Keyboard_Group,
             AccessibleDescription = Strings.Help_A11y_Keyboard_Group_Desc,
-            AccessibleRole = AccessibleRole.Grouping
+            AccessibleRole = AccessibleRole.Grouping,
+            Padding = new Padding(0, 0, 0, 4)
         };
 
         _tlpKeyboard = CreateTablePanel();
@@ -131,7 +137,8 @@ internal sealed class HelpDialog : Form
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             AccessibleName = Strings.Help_A11y_Gamepad_Group,
             AccessibleDescription = Strings.Help_A11y_Gamepad_Group_Desc,
-            AccessibleRole = AccessibleRole.Grouping
+            AccessibleRole = AccessibleRole.Grouping,
+            Padding = new Padding(0, 0, 0, 4)
         };
 
         _tlpGamepad = CreateTablePanel();
@@ -143,6 +150,8 @@ internal sealed class HelpDialog : Form
         {
             Dock = DockStyle.Fill,
             AutoScroll = true,
+            AutoScrollMargin = new Size(0, 16),
+            Margin = Padding.Empty
         };
         _pnlScroll.Controls.Add(_tlpContent);
 
@@ -152,6 +161,7 @@ internal sealed class HelpDialog : Form
             Text = Strings.Help_Btn_Close,
             AutoSize = true,
             Anchor = AnchorStyles.Right,
+            Margin = Padding.Empty, // 移除預設外距避免被底部面板裁切
             FlatStyle = FlatStyle.Flat,
             AccessibleName = Strings.Help_Btn_Close,
             AccessibleRole = AccessibleRole.PushButton,
@@ -234,7 +244,8 @@ internal sealed class HelpDialog : Form
 
         _pnlFooter = new Panel()
         {
-            Dock = DockStyle.Bottom,
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
             Height = 44,
             Padding = new Padding(8, 6, 8, 6),
         };
@@ -253,10 +264,22 @@ internal sealed class HelpDialog : Form
 
         CancelButton = _btnClose;
 
-        // Dock=Bottom 必須比 Dock=Fill 先加入 Controls，
-        // 才能正確佔據底部空間，讓 Fill 面板填滿剩餘區域。
-        Controls.Add(_pnlScroll);
-        Controls.Add(_pnlFooter);
+        // 使用 Root TableLayoutPanel 徹底解決 WinForms Docking 重疊與高度被 Margin 吃掉的問題。
+        TableLayoutPanel tlpRoot = new()
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            Margin = Padding.Empty
+        };
+        tlpRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        tlpRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        tlpRoot.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        tlpRoot.Controls.Add(_pnlScroll, 0, 0);
+        tlpRoot.Controls.Add(_pnlFooter, 0, 1);
+
+        Controls.Add(tlpRoot);
 
         // 應用程式切回前景時恢復控制器輪詢（防止 alt-tab 後控制器停滯）。
         // 加入 50ms 延遲確保系統焦點切換完成後再呼叫 Resume，與 NumericInputDialog 一致。
@@ -430,8 +453,8 @@ internal sealed class HelpDialog : Form
 
     /// <summary>
     /// 在 ProcessDialogKey（方向鍵焦點導航）之前攔截，確保 ↑↓ 可捲動內容面板。
-    /// PageUp/Down/Home/End 由 OnKeyDown 處理（不受 ProcessDialogKey 干擾）。
-    /// F1 / Esc 由 <see cref="OnKeyDown"/> 處理。
+    /// PageUp／Down／Home／End 由 OnKeyDown 處理（不受 ProcessDialogKey 干擾）。
+    /// F1／Esc 由 <see cref="OnKeyDown"/> 處理。
     /// </summary>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
@@ -711,6 +734,15 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private void UpdateMinimumSize()
     {
+        float currentDpi = DeviceDpi;
+
+        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        {
+            return;
+        }
+
+        _lastAppliedDpi = currentDpi;
+
         Rectangle workArea = Screen.GetWorkingArea(this);
 
         // 強制完成一次版面計算，以取得正確的偏好尺寸。
@@ -722,6 +754,7 @@ internal sealed class HelpDialog : Form
 
         // 計算邊框與裝飾所需的額外空間。
         int frameW = SystemInformation.FrameBorderSize.Width * 2,
+            frameH = SystemInformation.FrameBorderSize.Height * 2,
             captionH = SystemInformation.CaptionHeight,
             scrollBarW = SystemInformation.VerticalScrollBarWidth,
             // 已由 UpdateFooterHeight() 動態計算。
@@ -738,7 +771,7 @@ internal sealed class HelpDialog : Form
 
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
         // 上限設為可用高度的 45%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）開啟 OSK 時仍能完整顯示。
-        int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameW + 8,
+        int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameH + 8,
             maxH = Math.Max(320, (int)(workArea.Height * 0.45f)),
             desiredMinHeight = (int)(300 * scale),
             // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
@@ -756,9 +789,10 @@ internal sealed class HelpDialog : Form
     {
         float scale = DeviceDpi / AppSettings.BaseDpi;
 
-        // 取得按鈕在目前字型下的偏好高度，加上上方 Padding（8px × scale）與邊距（4px × scale）。
+        // 取得按鈕在目前字型下的偏好高度，加上 Panel 所需的上下留白（自動 DPI 縮放值）
+        // 因為已將按鈕的 Margin 設為 Empty，我們只需要考慮 _pnlFooter 的垂直 Padding
         int btnPrefH = _btnClose.GetPreferredSize(Size.Empty).Height,
-            needed = btnPrefH + (int)(12 * scale),
+            needed = btnPrefH + _pnlFooter.Padding.Vertical,
             // 基準高度同樣隨 DPI 縮放，確保在高解析度下不顯得過於緊縮。
             baseline = (int)(44 * scale);
 

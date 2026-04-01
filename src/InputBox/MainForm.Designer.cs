@@ -1,4 +1,4 @@
-﻿namespace InputBox;
+namespace InputBox;
 
 partial class MainForm
 {
@@ -106,11 +106,6 @@ partial class MainForm
         BtnCopy.Text = "複製到剪貼簿 (&A)";
         BtnCopy.UseVisualStyleBackColor = true;
         BtnCopy.Click += BtnCopy_Click;
-        BtnCopy.Paint += BtnCopy_Paint;
-        BtnCopy.Enter += BtnCopy_Enter;
-        BtnCopy.Leave += BtnCopy_Leave;
-        BtnCopy.MouseEnter += BtnCopy_MouseEnter;
-        BtnCopy.MouseLeave += BtnCopy_MouseLeave;
         //
         // MainForm
         //
