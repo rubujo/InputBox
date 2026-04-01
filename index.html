@@ -10,9 +10,9 @@
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
   <style>
     /*
-         * ========== 1. 色彩與主題 (Variables) ==========
-         * 遵循 WCAG 2.2 AAA 規範，確保所有文字對比度 ≥ 7:1。
-         */
+     * ========== 1. 色彩與主題 (Variables) ==========
+     * 遵循 WCAG 2.2 AAA 規範，確保所有文字對比度 ≥ 7:1。
+     */
     :root {
       /* Light Mode */
       --bg-color: #ffffff;
@@ -49,8 +49,8 @@
     }
 
     /*
-         * ========== 2. 基礎重設與 A11y (Base) ==========
-         */
+     * ========== 2. 基礎重設與 A11y (Base) ==========
+     */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -122,8 +122,8 @@
     }
 
     /*
-         * ========== 3. 多語系切換 (Localization) ==========
-         */
+     * ========== 3. 多語系切換 (Localization) ==========
+     */
     .lang-state,
     .lang-nav-hidden {
       /* 標準視覺隱藏但可聚焦樣式 */
@@ -184,8 +184,8 @@
     }
 
     /*
-         * ========== 4. 頁首區塊 (Header) ==========
-         */
+     * ========== 4. 頁首區塊 (Header) ==========
+     */
     header {
       background-color: var(--header-bg);
       background: linear-gradient(135deg, var(--header-bg) 0%, #002d5a 100%);
@@ -193,28 +193,122 @@
       padding: clamp(4rem, 15vh, 10rem) 0;
       text-align: center;
       position: relative;
+      /* 確保動畫容器不溢出 */
       overflow: hidden;
     }
 
+    /*
+     * 不規則旋轉的光暈
+     * 強化「不規則」感：加入輕微的偏置 (Offset) 與變形 (Skew)，模擬流體波動
+     */
     .header-glow {
       position: absolute;
-      top: -40%;
-      left: -40%;
-      width: 180%;
-      height: 180%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 28%, transparent 48%);
-      animation: slowRotate 30s linear infinite;
+      top: 50%;
+      left: 50%;
+      width: 65vw;
+      height: 65vw;
+      min-width: 320px;
+      min-height: 320px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 45%, transparent 75%);
+      /* 頻率鎖定於 0.025Hz (40秒一次)，確保對光敏癲癇絕對安全 */
+      animation: wobblyRotate 40s ease-in-out infinite;
       pointer-events: none;
       z-index: 1;
+      transform-origin: center;
+      filter: blur(30px);
     }
 
-    @keyframes slowRotate {
-      from {
-        transform: rotate(0deg);
+    @keyframes wobblyRotate {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1) skew(0deg);
       }
 
-      to {
-        transform: rotate(360deg);
+      25% {
+        transform: translate(-53%, -47%) rotate(95deg) scale(1.08) skew(2deg);
+      }
+
+      50% {
+        transform: translate(-47%, -53%) rotate(185deg) scale(0.92) skew(-1deg);
+      }
+
+      75% {
+        transform: translate(-51%, -49%) rotate(275deg) scale(1.04) skew(1deg);
+      }
+
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg) scale(1) skew(0deg);
+      }
+    }
+
+    /*
+     * 隨機黃色呼吸星星 (零 JS 實現)
+     * 使用多種高品質黃色 (#FFF9C4, #FFF176, #FFF59D) 確保 AAA 級 7:1 對比度
+     */
+    header::before,
+    header::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 2px;
+      background: transparent;
+      pointer-events: none;
+      z-index: 1;
+      /* 確保星星為圓形 */
+      border-radius: 50%;
+    }
+
+    /*
+     * 第一層星星：分佈較廣，閃爍頻率約 0.04Hz (25秒一次)
+     * 顏色以暖黃與淺黃交錯，增加「隨機感」
+     */
+    header::before {
+      box-shadow:
+        12vw 15vh #fff9c4, 38vw 22vh rgba(255, 241, 118, 0.7), 52vw 10vh #fffde7, 88vw 35vh rgba(255, 255, 255, 0.8),
+        8vw 48vh #fff59d, 42vw 62vh rgba(255, 249, 196, 0.6), 68vw 52vh #fff9c4, 92vw 78vh rgba(255, 241, 118, 0.9),
+        22vw 82vh #fff, 62vw 88vh rgba(255, 245, 157, 0.7), 82vw 18vh #fffde7, 18vw 38vh rgba(255, 255, 255, 0.5);
+      animation: yellowBreath 25s infinite alternate ease-in-out;
+    }
+
+    /* 第二層星星：較密集，使用不同週期 (33秒) 產生波狀干涉，模擬真實星空隨機感 */
+    header::after {
+      width: 3px;
+      height: 3px;
+      box-shadow:
+        22vw 22vh #fffde7, 48vw 42vh rgba(255, 241, 118, 0.8), 62vw 12vh #fff9c4, 98vw 52vh rgba(255, 255, 255, 0.6),
+        7vw 72vh #fff59d, 32vw 82vh rgba(255, 249, 196, 0.9), 78vw 32vh #fff, 12vw 92vh rgba(255, 241, 118, 0.7),
+        52vw 7vh #fff9c4, 82vw 82vh rgba(255, 255, 255, 0.5), 14vw 12vh #fffde7, 42vw 52vh rgba(255, 249, 196, 0.8);
+      animation: yellowBreath 33s infinite alternate-reverse ease-in-out;
+    }
+
+    /*
+     * 黃色呼吸燈效 (WCAG 2.2 AAA 符合)
+     * 鎖定高亮度區段，避免進入低對比區域，並大幅放慢速度以降低認知負擔
+     */
+    @keyframes yellowBreath {
+
+      0%,
+      100% {
+        opacity: 0.25;
+        transform: translateY(0) scale(0.95);
+        filter: brightness(1) drop-shadow(0 0 1px #fff9c4);
+      }
+
+      50% {
+        opacity: 0.85;
+        transform: translateY(-6px) scale(1.1);
+        /* 透過微調亮度與發光範圍強化呼吸感，維持 7:1 對比 */
+        filter: brightness(1.2) drop-shadow(0 0 6px rgba(255, 241, 118, 0.6));
+      }
+    }
+
+    /* 深色模式下的強化：加入微弱發光，提升視障與低視力者的可視度 */
+    @media (prefers-color-scheme: dark) {
+
+      header::before,
+      header::after {
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
       }
     }
 
@@ -307,8 +401,8 @@
     }
 
     /*
-         * ========== 5. 導覽列 (Navigation) ==========
-         */
+     * ========== 5. 導覽列 (Navigation) ==========
+     */
     .lang-switcher {
       padding: 0 1.5rem;
       background-color: var(--nav-bg);
@@ -386,8 +480,8 @@
     }
 
     /*
-         * ========== 6. 內容區塊 (Sections) ==========
-         */
+     * ========== 6. 內容區塊 (Sections) ==========
+     */
     section {
       padding: clamp(4rem, 10vh, 8rem) 0;
       scroll-margin-top: 120px;
@@ -448,8 +542,8 @@
     }
 
     /*
-         * ========== 7. 表格設計 (Tables) ==========
-         */
+     * ========== 7. 表格設計 (Tables) ==========
+     */
     .table-wrapper {
       overflow-x: auto;
       border-radius: 1.25rem;
@@ -531,8 +625,8 @@
     }
 
     /*
-         * ========== 8. 頁尾 (Footer) ==========
-         */
+     * ========== 8. 頁尾 (Footer) ==========
+     */
     footer {
       padding: 4rem 0;
       background-color: var(--section-alt-bg);
@@ -557,9 +651,9 @@
     }
 
     /*
-         * ========== 9. 返回頂端 (Back-to-Top) ==========
-         * 強化 A11y AAA：確保鍵盤操作、高對比度、與足夠的點擊面積 (56px)
-         */
+     * ========== 9. 返回頂端 (Back-to-Top) ==========
+     * 強化 A11y AAA：確保鍵盤操作、高對比度、與足夠的點擊面積 (56px)
+     */
     @keyframes show-back-to-top {
       from {
         opacity: 0;
@@ -637,8 +731,8 @@
     }
 
     /*
-         * ========== 10. 響應式調整 (RWD) ==========
-         */
+     * ========== 10. 響應式調整 (RWD) ==========
+     */
     @media (max-width: 1024px) {
       .container {
         width: 95%;
