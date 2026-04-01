@@ -216,6 +216,7 @@
       z-index: 1;
       transform-origin: center;
       filter: blur(30px);
+      will-change: transform;
     }
 
     @keyframes wobblyRotate {
@@ -269,6 +270,7 @@
         8vw 48vh #fff59d, 42vw 62vh rgba(255, 249, 196, 0.6), 68vw 52vh #fff9c4, 92vw 78vh rgba(255, 241, 118, 0.9),
         22vw 82vh #fff, 62vw 88vh rgba(255, 245, 157, 0.7), 82vw 18vh #fffde7, 18vw 38vh rgba(255, 255, 255, 0.5);
       animation: yellowBreath 25s infinite alternate ease-in-out;
+      will-change: transform, opacity;
     }
 
     /* 第二層星星：較密集，使用不同週期 (33秒) 產生波狀干涉，模擬真實星空隨機感 */
@@ -280,6 +282,7 @@
         7vw 72vh #fff59d, 32vw 82vh rgba(255, 249, 196, 0.9), 78vw 32vh #fff, 12vw 92vh rgba(255, 241, 118, 0.7),
         52vw 7vh #fff9c4, 82vw 82vh rgba(255, 255, 255, 0.5), 14vw 12vh #fffde7, 42vw 52vh rgba(255, 249, 196, 0.8);
       animation: yellowBreath 33s infinite alternate-reverse ease-in-out;
+      will-change: transform, opacity;
     }
 
     /*
@@ -292,14 +295,11 @@
       100% {
         opacity: 0.25;
         transform: translateY(0) scale(0.95);
-        filter: brightness(1) drop-shadow(0 0 1px #fff9c4);
       }
 
       50% {
         opacity: 0.85;
         transform: translateY(-6px) scale(1.1);
-        /* 透過微調亮度與發光範圍強化呼吸感，維持 7:1 對比 */
-        filter: brightness(1.2) drop-shadow(0 0 6px rgba(255, 241, 118, 0.6));
       }
     }
 
@@ -658,12 +658,14 @@
       from {
         opacity: 0;
         transform: translateY(20px) scale(0.8);
+        visibility: hidden;
         pointer-events: none;
       }
 
       to {
         opacity: 1;
         transform: translateY(0) scale(1);
+        visibility: visible;
         pointer-events: auto;
       }
     }
@@ -695,6 +697,7 @@
       animation: show-back-to-top linear both;
       animation-timeline: scroll();
       animation-range: 150px 400px;
+      will-change: transform, opacity;
     }
 
     .back-to-top:hover {
