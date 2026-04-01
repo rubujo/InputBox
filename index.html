@@ -687,11 +687,13 @@
      */
     @keyframes show-back-to-top {
       from {
+        visibility: hidden;
         opacity: 0;
-        transform: translate3d(0, 20px, 0) scale(0.8);
+        transform: translate3d(0, 24px, 0) scale(0.88);
       }
 
       to {
+        visibility: visible;
         opacity: 1;
         transform: translate3d(0, 0, 0) scale(1);
       }
@@ -716,13 +718,24 @@
       border: 3px solid #ffffff;
       transition: background-color 0.3s, box-shadow 0.3s, outline-offset 0.2s;
 
-      /*
-       * 跨瀏覽器穩定方案：固定顯示按鈕，避免依賴實驗性 Scroll-Driven Animations。
-       */
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
+      /* 預設隱藏，避免初始載入時常駐於畫面。 */
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate3d(0, 24px, 0) scale(0.88);
       backface-visibility: hidden;
+    }
+
+    @supports (animation-timeline: scroll()) {
+      .back-to-top {
+        pointer-events: auto;
+        animation-name: show-back-to-top;
+        animation-duration: 1ms;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root block);
+        animation-range: 180px 420px;
+      }
     }
 
     .back-to-top:hover {
@@ -734,8 +747,10 @@
       outline: 5px solid var(--focus-ring);
       outline-offset: 8px;
       opacity: 1 !important;
-      /* 鍵盤聚焦時強制顯示 */
+      visibility: visible !important;
       pointer-events: auto !important;
+      transform: translate3d(0, 0, 0) scale(1) !important;
+      /* 鍵盤聚焦時強制顯示 */
     }
 
     .back-to-top span.arrow {
