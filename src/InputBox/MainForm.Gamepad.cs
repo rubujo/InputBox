@@ -43,751 +43,24 @@ public partial class MainForm
 
             _inputContext = new FormInputContext(this);
 
-            // 快取目前的設定快照，確保初始化過程中的參數一致性。
             AppSettings config = AppSettings.Current;
+            GamepadRepeatSettings gamepadRepeatSettings = CreateRepeatSettings(config);
 
-            // 建立 GamepadRepeatSettings。
-            GamepadRepeatSettings gamepadRepeatSettings = new()
-            {
-                InitialDelayFrames = config.RepeatInitialDelayFrames,
-                IntervalFrames = config.RepeatIntervalFrames
-            };
-
-            // 根據設定嘗試建立遊戲控制器實作。
-            if (config.GamepadProviderType == AppSettings.GamepadProvider.GameInput)
-            {
-                try
-                {
-                    // 嘗試初始化 GameInput。
-                    GameInputGamepadController controller = await GameInputGamepadController.CreateAsync(
-                        _inputContext,
-                        gamepadRepeatSettings);
-
-                    if (IsDisposed)
-                    {
-                        controller.Dispose();
-
-                        return;
-                    }
-
-                    _gamepadController = controller;
-                }
-                catch (Exception ex)
-                {
-                    LoggerService.LogException(ex, "GameInput 初始化失敗，嘗試退避至 XInput");
-
-                    Debug.WriteLine($"[控制器] GameInput 初始化失敗，嘗試退避至 XInput：{ex.Message}");
-
-                    // 告知使用者已切換至相容模式。
-                    AnnounceA11y(Strings.A11y_Gamepad_Fallback);
-
-                    // 退避至 XInput。
-                    CreateXInputController(gamepadRepeatSettings);
-                }
-            }
-            else
-            {
-                // 預設使用 XInput 實作。
-                CreateXInputController(gamepadRepeatSettings);
-            }
+            await InitializeConfiguredControllerAsync(config, gamepadRepeatSettings);
 
             if (_gamepadController != null)
             {
                 // 捕獲目前的控制器實例，確保 Lambda 內部存取的安全性。
                 IGamepadController controller = _gamepadController;
 
-                // 當控制器連線狀態改變時進行廣播。
-                controller.ConnectionChanged += (isConnected) =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        try
-                        {
-                            UpdateTitle();
+                GamepadEventBinder eventBinder = new();
 
-                            // 防止重複廣播相同的連線狀態。
-                            if (_lastGamepadConnectedState == isConnected)
-                            {
-                                return;
-                            }
-
-                            _lastGamepadConnectedState = isConnected;
-
-                            // 多模態回饋（Multi-Modal Feedback）：
-                            // 確保視障、聽障、視聽雙障的使用者皆能透過至少一種通道感知狀態變更。
-
-                            // 1. 語音廣播（視障通道）。
-                            string msg = isConnected ?
-                                string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName) :
-                                string.Format(Strings.A11y_Gamepad_Disconnected, controller.DeviceName);
-
-                            AnnounceA11y(msg);
-
-                            // 2. 系統音效（聽覺通道，尊重使用者的系統音效設定）。
-                            FeedbackService.PlaySound(
-                                isConnected ? SystemSounds.Asterisk : SystemSounds.Exclamation);
-
-                            // 3. 觸覺回饋（體感通道，僅連線時——斷線時控制器已離線無法震動）。
-                            //    對視聽雙障的使用者而言，這是唯一能感知「控制器已被識別」的通道。
-                            //    VibrateAsync 內部已檢查 EnableVibration 設定與 GlobalIntensityMultiplier。
-                            if (isConnected)
-                            {
-                                CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
-
-                                FeedbackService.VibrateAsync(
-                                    controller,
-                                    VibrationPatterns.ControllerConnected,
-                                    ct).SafeFireAndForget();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"[控制器] ConnectionChanged 處理失敗：{ex.Message}");
-                        }
-                    });
-                };
+                GamepadEventBinder.Bind(controller, CreateGamepadBindingMap(controller));
 
                 // 補償初始連線狀態：GameInput 的 CreateAsync 工廠模式會在訂閱者附加前
                 // 就完成設備偵測並觸發 ConnectionChanged，導致初始事件遺失。
                 // 在此統一檢查，確保兩種 API 後端（XInput／GameInput）行為一致。
-                if (controller.IsConnected && _lastGamepadConnectedState != true)
-                {
-                    _lastGamepadConnectedState = true;
-
-                    UpdateTitle();
-
-                    AnnounceA11y(
-                        string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName));
-
-                    FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-                    CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
-
-                    FeedbackService.VibrateAsync(
-                        controller,
-                        VibrationPatterns.ControllerConnected,
-                        ct).SafeFireAndForget();
-                }
-
-                // 控制器事件綁定。
-                controller.BackPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        // 按下時重置旗標。
-                        _isBackUsedAsModifier = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-
-                controller.BackReleased += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Cancel"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
-                        if (_isBackUsedAsModifier)
-                        {
-                            _isBackUsedAsModifier = false;
-
-                            return;
-                        }
-
-                        HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[控制器] BackReleased 處理失敗：{ex.Message}");
-                    }
-                });
-
-                controller.UpPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Up"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        // 組合鍵：Back + Up 增加不透明度（5%）。
-                        if (controller.IsBackHeld)
-                        {
-                            _isBackUsedAsModifier = true;
-
-                            AdjustOpacity(0.05f);
-
-                            return;
-                        }
-
-                        NavigateHistory(-1);
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.DownPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Down"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        // 組合鍵：Back + Down 減少不透明度（5%）。
-                        if (controller.IsBackHeld)
-                        {
-                            _isBackUsedAsModifier = true;
-
-                            AdjustOpacity(-0.05f);
-
-                            return;
-                        }
-
-                        NavigateHistory(+1);
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.UpRepeat += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Up"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        // 組合鍵連發。
-                        if (controller.IsBackHeld)
-                        {
-                            _isBackUsedAsModifier = true;
-
-                            AdjustOpacity(0.05f);
-
-                            return;
-                        }
-
-                        NavigateHistory(-1);
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.DownRepeat += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Down"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        // 組合鍵連發。
-                        if (controller.IsBackHeld)
-                        {
-                            _isBackUsedAsModifier = true;
-
-                            AdjustOpacity(-0.05f);
-
-                            return;
-                        }
-
-                        NavigateHistory(+1);
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.LeftPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Left"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        MoveCursorLeft();
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.LeftRepeat += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Left"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        MoveCursorLeft();
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.RightPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Right"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        MoveCursorRight();
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] RightPressed 處理失敗：{ex.Message}");
-                    }
-                });
-                controller.RightRepeat += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Right"))
-                        {
-                            return;
-                        }
-
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        MoveCursorRight();
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-
-                controller.StartPressed += () =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        try
-                        {
-                            if (HandleContextMenuGamepadInput("Confirm"))
-                            {
-                                return;
-                            }
-
-                            if (ActiveForm != this ||
-                                _isCapturingHotkey != 0)
-                            {
-                                return;
-                            }
-
-                            // Start 鍵統一作為「開啟觸控鍵盤」入口，
-                            // 即使 TBInput 已有文字也可叫出鍵盤進行修正。
-                            ShowTouchKeyboard();
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                            Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                        }
-                    });
-                };
-
-                controller.APressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (HandleContextMenuGamepadInput("Confirm"))
-                        {
-                            return;
-                        }
-
-                        // 檢查是否在擷取快速鍵模式或非作用中視窗。
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        ExecuteConfirmAction();
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-
-                controller.BPressed += () =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        try
-                        {
-                            if (HandleContextMenuGamepadInput("Cancel"))
-                            {
-                                return;
-                            }
-
-                            // 按鍵擷取模式下的取消處理。
-                            if (_isCapturingHotkey != 0)
-                            {
-                                RestoreUIFromCaptureMode();
-
-                                // 告知擷取已取消。
-                                AnnounceA11y(Strings.A11y_Capture_Cancelled);
-
-                                // 播放警告音。
-                                FeedbackService.PlaySound(SystemSounds.Beep);
-
-                                return;
-                            }
-
-                            if (ActiveForm != this)
-                            {
-                                return;
-                            }
-
-                            if (controller.IsLeftShoulderHeld &&
-                                controller.IsRightShoulderHeld)
-                            {
-                                HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-                            }
-                            else
-                            {
-                                // B 鍵僅負責「清空文字」。
-                                // 若已是空的，則僅發送錯誤震動提示，不執行返回，以防連點誤觸導致視窗意外關閉。
-                                if (string.IsNullOrEmpty(TBInput.Text))
-                                {
-                                    FeedbackService.PlaySound(SystemSounds.Beep);
-
-                                    VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-
-                                    return;
-                                }
-
-                                ClearInput();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                            Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                        }
-                    });
-                };
-
-                controller.YPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        if (ActiveForm != this ||
-                            _isCapturingHotkey != 0)
-                        {
-                            return;
-                        }
-
-                        if (_cmsInput != null &&
-                            !_cmsInput.Visible)
-                        {
-                            // 在文字方塊下方開啟選單。
-                            _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
-
-                            // 選取第一個有效的項目。
-                            foreach (ToolStripItem item in _cmsInput.Items)
-                            {
-                                if (item.Enabled &&
-                                    item.Visible &&
-                                    item is not ToolStripSeparator)
-                                {
-                                    item.Select();
-
-                                    // 開啟選單時立即報讀首個項目的名稱與描述。
-                                    string? name = item.AccessibleName ?? item.Text,
-                                        desc = item.AccessibleDescription;
-
-                                    if (item is ToolStripMenuItem mi &&
-                                        mi.CheckOnClick)
-                                    {
-                                        string status = mi.Checked ?
-                                            Strings.A11y_Checked :
-                                            Strings.A11y_Unchecked;
-
-                                        name = $"{name}, {status}";
-                                    }
-
-                                    string announcement = string.IsNullOrEmpty(desc) ?
-                                        (name ?? string.Empty) :
-                                        $"{name}. {desc}";
-
-                                    if (!string.IsNullOrEmpty(announcement))
-                                    {
-                                        AnnounceA11y(announcement, interrupt: true);
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                        Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                    }
-                });
-
-                // 右搖桿文字選取實作。
-                controller.RSLeftPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        ExpandSelection(-1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[控制器] RSLeftPressed 失敗：{ex.Message}");
-                    }
-                });
-                controller.RSLeftRepeat += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        ExpandSelection(-1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[控制器] RSLeftRepeat 失敗：{ex.Message}");
-                    }
-                });
-                controller.RSRightPressed += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        ExpandSelection(1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[控制器] RSRightPressed 失敗：{ex.Message}");
-                    }
-                });
-                controller.RSRightRepeat += () => this.SafeInvoke(() =>
-                {
-                    try
-                    {
-                        ExpandSelection(1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[控制器] RSRightRepeat 失敗：{ex.Message}");
-                    }
-                });
-
-                controller.XPressed += () =>
-                {
-                    this.SafeInvoke(() =>
-                    {
-                        try
-                        {
-                            // 選單開啟時 X 鍵不執行刪除，除非有特殊需求。
-                            if (_cmsInput != null &&
-                                _cmsInput.Visible)
-                            {
-                                return;
-                            }
-
-                            if (ActiveForm != this ||
-                                _isCapturingHotkey != 0)
-                            {
-                                return;
-                            }
-
-                            // 組合鍵：LB + RB + X 直接結束應用程式。
-                            if (controller.IsLeftShoulderHeld &&
-                                controller.IsRightShoulderHeld)
-                            {
-                                // 告知使用者正在關閉程式。
-                                AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
-
-                                this.SafeInvoke(Close);
-
-                                return;
-                            }
-
-                            // 組合鍵：Back + X 重設透明度（100%）。
-                            if (controller.IsBackHeld)
-                            {
-                                _isBackUsedAsModifier = true;
-
-                                ResetOpacity();
-
-                                return;
-                            }
-
-                            // 增加唯讀檢查，防止在擷取模式或其他唯讀狀態下修改文字。
-                            if (TBInput == null ||
-                                TBInput.IsDisposed)
-                            {
-                                return;
-                            }
-
-                            if (TBInput.ReadOnly)
-                            {
-                                FeedbackService.PlaySound(SystemSounds.Beep);
-
-                                VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-
-                                return;
-                            }
-
-                            if (TBInput.SelectionLength > 0)
-                            {
-                                // 如果有選取範圍，直接刪除選取的文字。
-                                int len = TBInput.SelectionLength;
-
-                                string deletedSelection = TBInput.SelectedText;
-
-                                TBInput.SelectedText = string.Empty;
-
-                                // 如果刪除內容太長，報讀字數而非內容。
-                                if (len > 10)
-                                {
-                                    AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, len));
-                                }
-                                else if (AppSettings.Current.IsPrivacyMode)
-                                {
-                                    AnnounceA11y(len > 1 ?
-                                        string.Format(Strings.A11y_Delete_Multiple, len) :
-                                        Strings.A11y_Delete_Char_PrivacySafe);
-                                }
-                                else
-                                {
-                                    AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedSelection));
-                                }
-                            }
-                            else if (TBInput.SelectionStart > 0)
-                            {
-                                // 如果沒有選取且游標不在最前面，刪除前一個字元。
-                                int position = TBInput.SelectionStart;
-
-                                char deletedChar = TBInput.Text[position - 1];
-
-                                TBInput.Select(position - 1, 1);
-                                TBInput.SelectedText = string.Empty;
-
-                                AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
-                                    Strings.A11y_Delete_Char_PrivacySafe :
-                                    string.Format(Strings.A11y_Delete_Char, deletedChar));
-                            }
-                            else
-                            {
-                                // 撞牆（游標在最前面且沒選取文字）。
-                                FeedbackService.PlaySound(SystemSounds.Beep);
-
-                                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-                                AnnounceA11y(Strings.A11y_Cannot_Delete);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerService.LogException(ex, "[控制器] 事件處理失敗");
-
-                            Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
-                        }
-                    });
-                };
+                HandleInitialControllerConnectionState(controller);
             }
 
             UpdateTitle();
@@ -812,6 +85,138 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 由設定快照建立控制器連發設定
+    /// </summary>
+    /// <param name="config">目前應用程式設定快照。</param>
+    /// <returns>控制器連發設定。</returns>
+    private static GamepadRepeatSettings CreateRepeatSettings(AppSettings config)
+    {
+        // 建立 GamepadRepeatSettings。
+        return new GamepadRepeatSettings
+        {
+            InitialDelayFrames = config.RepeatInitialDelayFrames,
+            IntervalFrames = config.RepeatIntervalFrames
+        };
+    }
+
+    /// <summary>
+    /// 建立控制器事件與 MainForm 行為的對映表
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    /// <returns>事件對映資料。</returns>
+    private GamepadEventBinder.BindingMap CreateGamepadBindingMap(IGamepadController controller)
+    {
+        return new GamepadEventBinder.BindingMap(
+            OnConnectionChanged: CreateConnectionChangedHandler(controller),
+            OnBackPressed: CreateSafeGamepadActionHandler(() =>
+            {
+                // 按下時重置旗標。
+                _isBackUsedAsModifier = false;
+            }),
+            OnBackReleased: CreateDebugOnlyGamepadActionHandler(
+                HandleBackReleasedAction,
+                "BackReleased",
+                "處理失敗"),
+            OnUpPressed: CreateSafeGamepadActionHandler(
+                () => HandleVerticalGamepadInput(controller, "Up", +0.05f, -1)),
+            OnDownPressed: CreateSafeGamepadActionHandler(
+                () => HandleVerticalGamepadInput(controller, "Down", -0.05f, +1)),
+            OnUpRepeat: CreateSafeGamepadActionHandler(
+                () => HandleVerticalGamepadInput(controller, "Up", +0.05f, -1)),
+            OnDownRepeat: CreateSafeGamepadActionHandler(
+                () => HandleVerticalGamepadInput(controller, "Down", -0.05f, +1)),
+            OnLeftPressed: CreateSafeGamepadActionHandler(
+                () => HandleHorizontalGamepadInput("Left", MoveCursorLeft)),
+            OnLeftRepeat: CreateSafeGamepadActionHandler(
+                () => HandleHorizontalGamepadInput("Left", MoveCursorLeft)),
+            OnRightPressed: CreateSafeGamepadActionHandler(
+                () => HandleHorizontalGamepadInput("Right", MoveCursorRight),
+                "RightPressed"),
+            OnRightRepeat: CreateSafeGamepadActionHandler(
+                () => HandleHorizontalGamepadInput("Right", MoveCursorRight)),
+            OnStartPressed: CreateSafeGamepadActionHandler(
+                ExecuteGamepadShowKeyboardIfAllowed),
+            OnAPressed: CreateSafeGamepadActionHandler(
+                ExecuteGamepadConfirmIfAllowed),
+            OnBPressed: CreateSafeGamepadActionHandler(
+                () => HandleBButtonAction(controller)),
+            OnYPressed: CreateSafeGamepadActionHandler(
+                OpenContextMenuFromGamepadIfAllowed),
+            OnRSLeftPressed: CreateRightStickSelectionHandler(-1, "RSLeftPressed"),
+            OnRSLeftRepeat: CreateRightStickSelectionHandler(-1, "RSLeftRepeat"),
+            OnRSRightPressed: CreateRightStickSelectionHandler(1, "RSRightPressed"),
+            OnRSRightRepeat: CreateRightStickSelectionHandler(1, "RSRightRepeat"),
+            OnXPressed: CreateSafeGamepadActionHandler(
+                () => HandleXButtonAction(controller)));
+    }
+
+    /// <summary>
+    /// 依目前設定初始化控制器後端（GameInput 或 XInput）
+    /// </summary>
+    /// <param name="config">目前應用程式設定快照。</param>
+    /// <param name="gamepadRepeatSettings">控制器連發設定。</param>
+    /// <returns>非同步作業。</returns>
+    private async Task InitializeConfiguredControllerAsync(AppSettings config, GamepadRepeatSettings gamepadRepeatSettings)
+    {
+        // 根據設定嘗試建立遊戲控制器實作。
+        if (config.GamepadProviderType == AppSettings.GamepadProvider.GameInput)
+        {
+            await TryInitializeGameInputControllerAsync(gamepadRepeatSettings);
+
+            return;
+        }
+
+        // 預設使用 XInput 實作。
+        CreateXInputController(gamepadRepeatSettings);
+    }
+
+    /// <summary>
+    /// 嘗試初始化 GameInput；失敗時退避至 XInput
+    /// </summary>
+    /// <param name="gamepadRepeatSettings">控制器連發設定。</param>
+    /// <returns>非同步作業。</returns>
+    private async Task TryInitializeGameInputControllerAsync(GamepadRepeatSettings gamepadRepeatSettings)
+    {
+        try
+        {
+            IInputContext? inputContext = _inputContext;
+
+            if (inputContext == null)
+            {
+                CreateXInputController(gamepadRepeatSettings);
+
+                return;
+            }
+
+            // 嘗試初始化 GameInput。
+            GameInputGamepadController controller = await GameInputGamepadController.CreateAsync(
+                inputContext,
+                gamepadRepeatSettings);
+
+            if (IsDisposed)
+            {
+                controller.Dispose();
+
+                return;
+            }
+
+            _gamepadController = controller;
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "GameInput 初始化失敗，嘗試退避至 XInput");
+
+            Debug.WriteLine($"[控制器] GameInput 初始化失敗，嘗試退避至 XInput：{ex.Message}");
+
+            // 告知使用者已切換至相容模式。
+            AnnounceA11y(Strings.A11y_Gamepad_Fallback);
+
+            // 退避至 XInput。
+            CreateXInputController(gamepadRepeatSettings);
+        }
+    }
+
+    /// <summary>
     /// 處理右鍵選單的控制器輸入
     /// </summary>
     /// <param name="action">動作名稱</param>
@@ -829,109 +234,153 @@ public partial class MainForm
         switch (action)
         {
             case "Up":
-                NavigateToolStrip(activeTs, false);
+                NavigateToolStrip(activeTs, forward: false);
 
                 return true;
             case "Down":
-                NavigateToolStrip(activeTs, true);
+                NavigateToolStrip(activeTs, forward: true);
 
                 return true;
             case "Left":
-                {
-                    // 如果在子選單中，關閉子選單。
-                    if (activeTs is ToolStripDropDown dropDown &&
-                        dropDown.OwnerItem != null)
-                    {
-                        dropDown.Close();
+                // 如果在子選單中，關閉子選單。
+                _ = TryCloseActiveSubmenu(activeTs);
 
-                        return true;
-                    }
-
-                    return true;
-                }
+                return true;
             case "Right":
-                // 遍歷當前活動選單項目。
-                foreach (ToolStripItem item in activeTs.Items)
-                {
-                    // 如果目前選取的項目擁有子選單，則開啟它並進入。
-                    if (item.Selected &&
-                        item is ToolStripMenuItem tsmi &&
-                        tsmi.HasDropDownItems)
-                    {
-                        // A11y：在進入子選單前，先告知目前的選單層級。
-                        AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, tsmi.AccessibleName ?? tsmi.Text), interrupt: true);
-
-                        // 展開子選單。
-                        tsmi.ShowDropDown();
-
-                        // 自動將焦點導向子選單內的第一個有效項目，提升導覽效率。
-                        if (tsmi.DropDown.Items.Count > 0)
-                        {
-                            NavigateToolStrip(tsmi.DropDown, forward: true);
-                        }
-
-                        return true;
-                    }
-                }
+                HandleContextMenuRightAction(activeTs);
 
                 return true;
             case "Confirm":
-                // 遍歷當前活動選單項目，找出目前被選取的項。
-                foreach (ToolStripItem item in activeTs.Items)
-                {
-                    if (item.Selected)
-                    {
-                        // 邏輯最佳化：若點擊的是含有子選單的項目（如語系切換或進階設定），
-                        // A 鍵（Confirm）的行為應改為「展開並自動進入子選單」以提升操作流暢度。
-                        if (item is ToolStripMenuItem tsmi &&
-                            tsmi.HasDropDownItems)
-                        {
-                            // A11y：在進入子選單前，先告知目前的選單層級。
-                            AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, tsmi.AccessibleName ?? tsmi.Text), interrupt: true);
-
-                            // 展開子選單。
-                            tsmi.ShowDropDown();
-
-                            // 展開後立即將焦點（Select）導向子選單內的第一個有效項目。
-                            // NavigateToolStrip 內部會自動跳過分隔線並同步處理 A11y 資訊播報與震動反饋。
-                            if (tsmi.DropDown.Items.Count > 0)
-                            {
-                                NavigateToolStrip(tsmi.DropDown, forward: true);
-                            }
-                        }
-                        else
-                        {
-                            // 對於一般功能項目，執行點擊動作（通常會伴隨選單自動關閉）。
-                            item.PerformClick();
-                        }
-
-                        return true;
-                    }
-                }
+                HandleContextMenuConfirmAction(activeTs);
 
                 return true;
             case "Cancel":
-                {
-                    // 判斷：如果是活躍的子選單，B 鍵的行為改為「關閉子選單（退回上一層）」。
-                    if (activeTs is ToolStripDropDown dropDown &&
-                        dropDown.OwnerItem != null)
-                    {
-                        // A11y：告知已關閉子選單並退回上一層。
-                        AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Exit, dropDown.OwnerItem.AccessibleName ?? dropDown.OwnerItem.Text), interrupt: true);
+                HandleContextMenuCancelAction(activeTs);
 
-                        dropDown.Close();
-                    }
-                    else
-                    {
-                        // 如果已經在最外層的主選單，就直接關閉整個右鍵選單
-                        _cmsInput?.Close();
-                    }
-
-                    return true;
-                }
+                return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 取得目前 ToolStrip 中被選取的項目
+    /// </summary>
+    /// <param name="activeTs">目前活躍的選單。</param>
+    /// <returns>被選取的項目；若無則回傳 null。</returns>
+    private static ToolStripItem? GetSelectedToolStripItem(ToolStrip activeTs)
+    {
+        foreach (ToolStripItem item in activeTs.Items)
+        {
+            if (item.Selected)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 處理選單 Right 動作（嘗試展開子選單）
+    /// </summary>
+    /// <param name="activeTs">目前活躍的選單。</param>
+    private void HandleContextMenuRightAction(ToolStrip activeTs)
+    {
+        if (GetSelectedToolStripItem(activeTs) is ToolStripItem selectedForRight)
+        {
+            // 如果目前選取的項目擁有子選單，則開啟它並進入。
+            _ = TryEnterSubmenu(selectedForRight);
+        }
+    }
+
+    /// <summary>
+    /// 處理選單 Confirm 動作（展開子選單或執行項目）
+    /// </summary>
+    /// <param name="activeTs">目前活躍的選單。</param>
+    private void HandleContextMenuConfirmAction(ToolStrip activeTs)
+    {
+        if (GetSelectedToolStripItem(activeTs) is not ToolStripItem selectedForConfirm)
+        {
+            return;
+        }
+
+        // 邏輯最佳化：若點擊的是含有子選單的項目（如語系切換或進階設定），
+        // A 鍵（Confirm）的行為應改為「展開並自動進入子選單」以提升操作流暢度。
+        if (!TryEnterSubmenu(selectedForConfirm))
+        {
+            // 對於一般功能項目，執行點擊動作（通常會伴隨選單自動關閉）。
+            selectedForConfirm.PerformClick();
+        }
+    }
+
+    /// <summary>
+    /// 嘗試展開指定選單項目的子選單
+    /// </summary>
+    /// <param name="item">目標選單項目。</param>
+    /// <returns>若成功展開子選單則回傳 true。</returns>
+    private bool TryEnterSubmenu(ToolStripItem item)
+    {
+        if (item is not ToolStripMenuItem tsmi ||
+            !tsmi.HasDropDownItems)
+        {
+            return false;
+        }
+
+        // A11y：在進入子選單前，先告知目前的選單層級。
+        AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, tsmi.AccessibleName ?? tsmi.Text), interrupt: true);
+
+        // 展開子選單。
+        tsmi.ShowDropDown();
+
+        // 展開後立即將焦點導向子選單內的第一個有效項目。
+        if (tsmi.DropDown.Items.Count > 0)
+        {
+            NavigateToolStrip(tsmi.DropDown, forward: true);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 處理選單 Cancel 動作（優先退回上一層，否則關閉主選單）
+    /// </summary>
+    /// <param name="activeTs">目前活躍的選單。</param>
+    private void HandleContextMenuCancelAction(ToolStrip activeTs)
+    {
+        // 判斷：如果是活躍的子選單，B 鍵的行為改為「關閉子選單（退回上一層）」。
+        if (TryCloseActiveSubmenu(activeTs, announceExit: true))
+        {
+            return;
+        }
+
+        // 如果已經在最外層的主選單，就直接關閉整個右鍵選單。
+        _cmsInput?.Close();
+    }
+
+    /// <summary>
+    /// 嘗試關閉目前活躍子選單
+    /// </summary>
+    /// <param name="activeTs">目前活躍的選單。</param>
+    /// <param name="announceExit">是否播報離開子選單訊息。</param>
+    /// <returns>若成功關閉子選單則回傳 true。</returns>
+    private bool TryCloseActiveSubmenu(ToolStrip activeTs, bool announceExit = false)
+    {
+        if (activeTs is not ToolStripDropDown dropDown ||
+            dropDown.OwnerItem == null)
+        {
+            return false;
+        }
+
+        if (announceExit)
+        {
+            // A11y：告知已關閉子選單並退回上一層。
+            AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Exit, dropDown.OwnerItem.AccessibleName ?? dropDown.OwnerItem.Text), interrupt: true);
+        }
+
+        dropDown.Close();
+
+        return true;
     }
 
     /// <summary>
@@ -980,17 +429,7 @@ public partial class MainForm
             return;
         }
 
-        ToolStripItem? current = null;
-
-        foreach (ToolStripItem item in ts.Items)
-        {
-            if (item.Selected)
-            {
-                current = item;
-
-                break;
-            }
-        }
+        ToolStripItem? current = GetSelectedToolStripItem(ts);
 
         int index = current != null ?
             ts.Items.IndexOf(current) :
@@ -1046,6 +485,139 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 判斷目前是否應抑制控制器輸入（非作用中或擷取模式）。
+    /// </summary>
+    /// <returns>若應抑制控制器輸入則回傳 true。</returns>
+    private bool IsGamepadInputSuppressed()
+    {
+        return ActiveForm != this ||
+               _inputState.IsHotkeyCaptureActive;
+    }
+
+    /// <summary>
+    /// 判斷指定控制器動作是否應略過。
+    /// </summary>
+    /// <param name="action">控制器動作名稱。</param>
+    /// <returns>若應略過該動作則回傳 true。</returns>
+    private bool ShouldSkipGamepadAction(string action)
+    {
+        return HandleContextMenuGamepadInput(action) ||
+               IsGamepadInputSuppressed();
+    }
+
+    /// <summary>
+    /// 建立控制器連線變更事件處理委派
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    /// <returns>連線狀態變更事件處理委派。</returns>
+    private Action<bool> CreateConnectionChangedHandler(IGamepadController controller)
+    {
+        return isConnected =>
+        {
+            HandleControllerConnectionChanged(controller, isConnected);
+        };
+    }
+
+    /// <summary>
+    /// 處理 Back 釋放行為（必要時返回前景視窗）
+    /// </summary>
+    private void HandleBackReleasedAction()
+    {
+        if (ShouldSkipGamepadAction("Cancel"))
+        {
+            return;
+        }
+
+        // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
+        if (_isBackUsedAsModifier)
+        {
+            _isBackUsedAsModifier = false;
+
+            return;
+        }
+
+        HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 補償控制器初始連線狀態遺失事件
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    private void HandleInitialControllerConnectionState(IGamepadController controller)
+    {
+        if (!controller.IsConnected ||
+            _lastGamepadConnectedState == true)
+        {
+            return;
+        }
+
+        _lastGamepadConnectedState = true;
+
+        UpdateTitle();
+
+        AnnounceA11y(
+            string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName));
+
+        FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+        CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
+
+        FeedbackService.VibrateAsync(
+            controller,
+            VibrationPatterns.ControllerConnected,
+            ct).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 處理控制器連線狀態變更並提供多模態回饋
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    /// <param name="isConnected">新的連線狀態。</param>
+    private void HandleControllerConnectionChanged(IGamepadController controller, bool isConnected)
+    {
+        this.SafeInvoke(() =>
+        {
+            try
+            {
+                UpdateTitle();
+
+                // 防止重複廣播相同的連線狀態。
+                if (_lastGamepadConnectedState == isConnected)
+                {
+                    return;
+                }
+
+                _lastGamepadConnectedState = isConnected;
+
+                // 多模態回饋（Multi-Modal Feedback）：
+                // 確保視障、聽障、視聽雙障的使用者皆能透過至少一種通道感知狀態變更。
+                string msg = isConnected ?
+                    string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName) :
+                    string.Format(Strings.A11y_Gamepad_Disconnected, controller.DeviceName);
+
+                AnnounceA11y(msg);
+
+                FeedbackService.PlaySound(
+                    isConnected ? SystemSounds.Asterisk : SystemSounds.Exclamation);
+
+                if (isConnected)
+                {
+                    CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
+
+                    FeedbackService.VibrateAsync(
+                        controller,
+                        VibrationPatterns.ControllerConnected,
+                        ct).SafeFireAndForget();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[控制器] ConnectionChanged 處理失敗：{ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
     /// 執行確認操作（共用於 A 鍵與 Start 鍵）
     /// </summary>
     private void ExecuteConfirmAction()
@@ -1063,6 +635,375 @@ public partial class MainForm
         }
 
         BtnCopy.PerformClick();
+    }
+
+    /// <summary>
+    /// 在允許條件下執行控制器確認行為。
+    /// </summary>
+    private void ExecuteGamepadConfirmIfAllowed()
+    {
+        if (ShouldSkipGamepadAction("Confirm"))
+        {
+            return;
+        }
+
+        ExecuteConfirmAction();
+    }
+
+    /// <summary>
+    /// 在允許條件下以控制器開啟觸控鍵盤
+    /// </summary>
+    private void ExecuteGamepadShowKeyboardIfAllowed()
+    {
+        if (ShouldSkipGamepadAction("Confirm"))
+        {
+            return;
+        }
+
+        // Start 鍵統一作為「開啟觸控鍵盤」入口，
+        // 即使 TBInput 已有文字也可叫出鍵盤進行修正。
+        ShowTouchKeyboard();
+    }
+
+    /// <summary>
+    /// 處理垂直方向輸入（歷程導覽或透明度調整）
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    /// <param name="action">控制器動作名稱。</param>
+    /// <param name="opacityDelta">透明度調整幅度。</param>
+    /// <param name="historyDirection">歷程導覽方向。</param>
+    private void HandleVerticalGamepadInput(
+        IGamepadController controller,
+        string action,
+        float opacityDelta,
+        int historyDirection)
+    {
+        if (ShouldSkipGamepadAction(action))
+        {
+            return;
+        }
+
+        // 組合鍵（含連發）：Back + Up／Down 調整透明度。
+        if (controller.IsBackHeld)
+        {
+            _isBackUsedAsModifier = true;
+
+            AdjustOpacity(opacityDelta);
+
+            return;
+        }
+
+        NavigateHistory(historyDirection);
+    }
+
+    /// <summary>
+    /// 處理水平方向輸入
+    /// </summary>
+    /// <param name="action">控制器動作名稱。</param>
+    /// <param name="moveAction">實際移動游標的動作。</param>
+    private void HandleHorizontalGamepadInput(string action, Action moveAction)
+    {
+        if (ShouldSkipGamepadAction(action))
+        {
+            return;
+        }
+
+        moveAction();
+    }
+
+    /// <summary>
+    /// 處理 B 鍵行為（取消、返回或清空）
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    private void HandleBButtonAction(IGamepadController controller)
+    {
+        if (HandleContextMenuGamepadInput("Cancel"))
+        {
+            return;
+        }
+
+        if (TryCancelCaptureModeByBButton())
+        {
+            return;
+        }
+
+        if (ActiveForm != this)
+        {
+            return;
+        }
+
+        if (controller.IsLeftShoulderHeld &&
+            controller.IsRightShoulderHeld)
+        {
+            HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
+
+            return;
+        }
+
+        ClearInputByBButton();
+    }
+
+    /// <summary>
+    /// 處理 X 鍵行為（刪除、透明度重設或關閉程式）
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    private void HandleXButtonAction(IGamepadController controller)
+    {
+        // 選單開啟時 X 鍵不執行刪除，除非有特殊需求。
+        if (_cmsInput != null &&
+            _cmsInput.Visible)
+        {
+            return;
+        }
+
+        if (ActiveForm != this ||
+            _inputState.IsHotkeyCaptureActive)
+        {
+            return;
+        }
+
+        // 組合鍵：LB + RB + X 直接結束應用程式。
+        if (controller.IsLeftShoulderHeld &&
+            controller.IsRightShoulderHeld)
+        {
+            // 告知使用者正在關閉程式。
+            AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
+
+            this.SafeInvoke(Close);
+
+            return;
+        }
+
+        // 組合鍵：Back + X 重設透明度（100%）。
+        if (controller.IsBackHeld)
+        {
+            _isBackUsedAsModifier = true;
+
+            ResetOpacity();
+
+            return;
+        }
+
+        // 增加唯讀檢查，防止在擷取模式或其他唯讀狀態下修改文字。
+        if (TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        if (TBInput.ReadOnly)
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+
+            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+            return;
+        }
+
+        if (TBInput.SelectionLength > 0)
+        {
+            // 如果有選取範圍，直接刪除選取的文字。
+            int len = TBInput.SelectionLength;
+
+            string deletedSelection = TBInput.SelectedText;
+
+            TBInput.SelectedText = string.Empty;
+
+            // 如果刪除內容太長，報讀字數而非內容。
+            if (len > 10)
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Delete_Multiple, len));
+            }
+            else if (AppSettings.Current.IsPrivacyMode)
+            {
+                AnnounceA11y(len > 1 ?
+                    string.Format(Strings.A11y_Delete_Multiple, len) :
+                    Strings.A11y_Delete_Char_PrivacySafe);
+            }
+            else
+            {
+                AnnounceA11y(string.Format(Strings.A11y_Delete_Char, deletedSelection));
+            }
+
+            return;
+        }
+
+        if (TBInput.SelectionStart > 0)
+        {
+            // 如果沒有選取且游標不在最前面，刪除前一個字元。
+            int position = TBInput.SelectionStart;
+
+            char deletedChar = TBInput.Text[position - 1];
+
+            TBInput.Select(position - 1, 1);
+            TBInput.SelectedText = string.Empty;
+
+            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+                Strings.A11y_Delete_Char_PrivacySafe :
+                string.Format(Strings.A11y_Delete_Char, deletedChar));
+
+            return;
+        }
+
+        // 撞牆（游標在最前面且沒選取文字）。
+        FeedbackService.PlaySound(SystemSounds.Beep);
+
+        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+        AnnounceA11y(Strings.A11y_Cannot_Delete);
+    }
+
+    /// <summary>
+    /// 嘗試以 B 鍵取消快速鍵擷取模式
+    /// </summary>
+    /// <returns>若已處理擷取模式取消則回傳 true。</returns>
+    private bool TryCancelCaptureModeByBButton()
+    {
+        // 按鍵擷取模式下的取消處理。
+        if (!_inputState.IsHotkeyCaptureActive)
+        {
+            return false;
+        }
+
+        RestoreUIFromCaptureMode();
+
+        // 告知擷取已取消。
+        AnnounceA11y(Strings.A11y_Capture_Cancelled);
+
+        // 播放警告音。
+        FeedbackService.PlaySound(SystemSounds.Beep);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 處理 B 鍵觸發的清空輸入流程
+    /// </summary>
+    private void ClearInputByBButton()
+    {
+        // B 鍵僅負責「清空文字」。
+        // 若已是空的，則僅發送錯誤震動提示，不執行返回，以防連點誤觸導致視窗意外關閉。
+        if (string.IsNullOrEmpty(TBInput.Text))
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+
+            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+            return;
+        }
+
+        ClearInput();
+    }
+
+    /// <summary>
+    /// 在允許條件下以控制器開啟右鍵選單
+    /// </summary>
+    private void OpenContextMenuFromGamepadIfAllowed()
+    {
+        if (IsGamepadInputSuppressed() ||
+            _cmsInput == null ||
+            _cmsInput.Visible)
+        {
+            return;
+        }
+
+        // 在文字方塊下方開啟選單。
+        _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
+
+        SelectFirstVisibleMenuItemAndAnnounce(_cmsInput);
+
+        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 處理右搖桿文字選取輸入
+    /// </summary>
+    /// <param name="direction">選取方向（-1 左、1 右）。</param>
+    private void HandleRightStickSelectionInput(int direction)
+    {
+        ExpandSelection(direction);
+    }
+
+    /// <summary>
+    /// 建立右搖桿選取事件處理委派。
+    /// </summary>
+    /// <param name="direction">選取方向（-1 左、1 右）。</param>
+    /// <param name="actionName">動作名稱（用於除錯輸出）。</param>
+    /// <returns>包裝後的事件處理委派。</returns>
+    private Action CreateRightStickSelectionHandler(int direction, string actionName)
+    {
+        return CreateDebugOnlyGamepadActionHandler(
+            () => HandleRightStickSelectionInput(direction),
+            actionName,
+            "失敗");
+    }
+
+    /// <summary>
+    /// 建立僅輸出 Debug 訊息的控制器事件處理包裝器。
+    /// </summary>
+    /// <param name="action">實際要執行的動作。</param>
+    /// <param name="actionName">動作名稱（用於除錯輸出）。</param>
+    /// <param name="failureLabel">失敗標籤文字。</param>
+    /// <returns>包裝後的事件處理委派。</returns>
+    private Action CreateDebugOnlyGamepadActionHandler(Action action, string actionName, string failureLabel)
+    {
+        return () => this.SafeInvoke(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[控制器] {actionName} {failureLabel}：{ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// 建立具例外保護與統一記錄的控制器事件處理包裝器
+    /// </summary>
+    /// <param name="action">實際要執行的動作。</param>
+    /// <param name="actionName">可選動作名稱（用於除錯輸出）。</param>
+    /// <returns>包裝後的事件處理委派。</returns>
+    private Action CreateSafeGamepadActionHandler(Action action, string? actionName = null)
+    {
+        return () => this.SafeInvoke(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "[控制器] 事件處理失敗");
+
+                if (!string.IsNullOrEmpty(actionName))
+                {
+                    Debug.WriteLine($"[控制器] {actionName} 處理失敗：{ex.Message}");
+
+                    return;
+                }
+
+                Debug.WriteLine($"[控制器] 處理失敗：{ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// 選取第一個可操作選單項目並播報其資訊
+    /// </summary>
+    /// <param name="menu">目標右鍵選單。</param>
+    private void SelectFirstVisibleMenuItemAndAnnounce(ContextMenuStrip menu)
+    {
+        if (ContextMenuBuilder.TrySelectFirstVisibleItem(
+            menu,
+            Strings.A11y_Checked,
+            Strings.A11y_Unchecked,
+            out string announcement))
+        {
+            AnnounceA11y(announcement, interrupt: true);
+        }
     }
 
     /// <summary>
@@ -1187,7 +1128,7 @@ public partial class MainForm
     private void ExpandSelection(int direction)
     {
         if (ActiveForm != this ||
-            _isCapturingHotkey != 0 ||
+            _inputState.IsHotkeyCaptureActive ||
             TBInput == null ||
             TBInput.IsDisposed)
         {

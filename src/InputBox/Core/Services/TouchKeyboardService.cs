@@ -1,4 +1,4 @@
-using InputBox.Core.Extensions;
+﻿using InputBox.Core.Extensions;
 using InputBox.Core.Interop;
 using InputBox.Core.Utilities;
 using System.ComponentModel;

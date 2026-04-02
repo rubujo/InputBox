@@ -1,10 +1,11 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -14,11 +15,6 @@ namespace InputBox;
 
 public partial class MainForm : Form
 {
-    /// <summary>
-    /// 字體回收桶緊急清理門檻（字體數量超過此值時立即全部清除）
-    /// </summary>
-    private const int FontTrashCanEmergencyThreshold = 50;
-
     /// <summary>
     /// 標題快取同步鎖
     /// </summary>
@@ -55,14 +51,9 @@ public partial class MainForm : Form
     private IGamepadController? _gamepadController;
 
     /// <summary>
-    /// 是否正在切換回先前的前景視窗
+    /// 表單輸入狀態管理器（集中管理原子旗標）
     /// </summary>
-    private volatile int _isReturning;
-
-    /// <summary>
-    /// 是否正在顯示觸控式鍵盤
-    /// </summary>
-    private volatile int _isShowingTouchKeyboard;
+    private readonly FormInputStateManager _inputState = new();
 
     /// <summary>
     /// 輸入框標籤（用於 A11y 關聯）
@@ -78,21 +69,6 @@ public partial class MainForm : Form
     /// 記錄上一次開啟觸控式鍵盤的時間點，用於防抖
     /// </summary>
     private DateTime _lastTouchKeyboardOpened = DateTime.MinValue;
-
-    /// <summary>
-    /// 是否正在閃爍（用於防止重複觸發閃爍效果）
-    /// </summary>
-    private volatile int _isFlashing = 0;
-
-    /// <summary>
-    /// 是否正在處理 Activated 事件（防止焦點競爭）
-    /// </summary>
-    private volatile int _isProcessingActivated = 0;
-
-    /// <summary>
-    /// 是否正在擷取快速鍵（原子旗標：0=否, 1=是）
-    /// </summary>
-    private volatile int _isCapturingHotkey = 0;
 
     /// <summary>
     /// 進入快速鍵擷取模式前的輸入框描述快取（用於對稱還原 A11y 狀態）
@@ -145,39 +121,9 @@ public partial class MainForm : Form
     private bool? _lastGamepadConnectedState;
 
     /// <summary>
-    /// 待回收的舊字體資源池（防止跨視窗引用時發生 ObjectDisposedException）
-    /// </summary>
-    private static readonly List<Font> _fontTrashCan = [];
-
-    /// <summary>
-    /// 回收桶專用鎖（用於保護靜態字體回收池）
-    /// </summary>
-    private static readonly Lock _trashCanLock = new();
-
-    /// <summary>
-    /// 全域共享的 A11y 標準字型快取（依據 DPI 儲存，支援 PerMonitorV2）
-    /// </summary>
-    private static readonly Dictionary<int, Font> _regularFontCache = [];
-
-    /// <summary>
-    /// 全域共享的 A11y 標準字型快取鎖（用於保護靜態字型快取）
-    /// </summary>
-    private static readonly Lock _regularFontCacheLock = new();
-
-    /// <summary>
-    /// 全域共享的 A11y 加粗字型快取（依據 DPI 儲存，支援 PerMonitorV2）
-    /// </summary>
-    private static readonly Dictionary<int, Font> _boldFontCache = [];
-
-    /// <summary>
-    /// 全域共享的 A11y 加粗字型快取鎖（用於保護靜態字型快取）
-    /// </summary>
-    private static readonly Lock _boldFontCacheLock = new();
-
-    /// <summary>
     /// 統一放大的 A11y 字型（實例引用）
     /// </summary>
-    private Font A11yFont => GetSharedA11yFont(
+    private Font A11yFont => FontResourceManager.GetSharedA11yFont(
         DeviceDpi,
         FontStyle.Regular,
         BtnCopy?.Font?.FontFamily);
@@ -185,7 +131,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 快取的加粗字型（實例引用）
     /// </summary>
-    private Font BoldBtnFont => GetSharedA11yFont(
+    private Font BoldBtnFont => FontResourceManager.GetSharedA11yFont(
         DeviceDpi,
         FontStyle.Bold,
         BtnCopy?.Font?.FontFamily);
@@ -233,13 +179,13 @@ public partial class MainForm : Form
     private bool _isActionCooldown = false;
 
     /// <summary>
-    /// 記錄最後一個獲得焦點或被選取的選單項目，用於對話框關閉後的焦點還原。
+    /// 記錄最後一個獲得焦點或被選取的選單項目，用於對話框關閉後的焦點還原
     /// </summary>
     private ToolStripItem? _lastFocusedMenuItem = null;
 
     /// <summary>
-    /// 右搖桿虛擬選取的起點錨點。
-    /// 當目前沒有選取範圍時，此值為 null。
+    /// 右搖桿虛擬選取的起點錨點
+    /// 當目前沒有選取範圍時，此值為 null
     /// </summary>
     private int? _rsSelectionAnchor = null;
 
@@ -346,7 +292,7 @@ public partial class MainForm : Form
         base.OnDeactivate(e);
 
         // 如果是因為正在呼叫觸控小鍵盤而失去焦點，則不進行任何處理（保留視覺狀態與控制器輪詢）。
-        if (_isShowingTouchKeyboard != 0)
+        if (_inputState.IsShowingTouchKeyboard)
         {
             return;
         }
@@ -408,11 +354,10 @@ public partial class MainForm : Form
         // 立即發出全域取消訊號，中止所有 UI 相關的非同步任務，並處置控制代碼。
         Interlocked.Exchange(ref _formCts, null)?.CancelAndDispose();
 
-        // 停止 A11y 背景工作者。
-        // 先標記 Writer 完成，並取消對應的 CTS 以強行中斷 Delay。
-        _a11yChannel?.Writer.TryComplete();
+        // 停止 A11y 廣播服務。
+        AnnouncementService? announcementService = Interlocked.Exchange(ref _announcementService, null);
 
-        Interlocked.Exchange(ref _a11yCts, null)?.CancelAndDispose();
+        announcementService?.Dispose();
 
         // 非同步硬體緊急清理。
         // 將同步的硬體 I/O 操作（如 XInput 設定）移至背景執行，防止阻塞 UI 執行緒導致關閉停頓。
@@ -467,8 +412,8 @@ public partial class MainForm : Form
         // 原子化清除輸入框字型參考（共用字型不呼叫 Dispose）。
         Interlocked.Exchange(ref _inputFont, null);
 
-        // 確保所有旗標正確歸零。
-        Interlocked.Exchange(ref _isCapturingHotkey, 0);
+        // 確保快速鍵擷取旗標正確歸零。
+        _inputState.EndHotkeyCapture();
 
         // 解除靜態委派，防止記憶體洩漏。
         Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
@@ -488,219 +433,202 @@ public partial class MainForm : Form
     /// </remarks>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
-        if (_isCapturingHotkey != 0)
+        if (HandleCaptureModeCmdKey(keyData))
         {
-            Keys key = keyData & Keys.KeyCode;
+            return true;
+        }
 
-            if (key == Keys.Escape)
+        if (HandleGlobalCmdKey(keyData))
+        {
+            return true;
+        }
+
+        InputBoxCmdResult inputBoxResult = HandleInputBoxCmdKey(keyData);
+
+        if (inputBoxResult == InputBoxCmdResult.Handled)
+        {
+            return true;
+        }
+
+        if (inputBoxResult == InputBoxCmdResult.ForwardToBase)
+        {
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
+    /// <summary>
+    /// 處理快速鍵擷取模式下的命令鍵
+    /// </summary>
+    /// <param name="keyData">目前命令鍵組合。</param>
+    /// <returns>若命令鍵已處理則回傳 true。</returns>
+    private bool HandleCaptureModeCmdKey(Keys keyData)
+    {
+        if (!_inputState.IsHotkeyCaptureActive)
+        {
+            return false;
+        }
+
+        Keys key = keyData & Keys.KeyCode;
+
+        if (key == Keys.Escape)
+        {
+            RestoreUIFromCaptureMode();
+
+            AnnounceA11y(Strings.A11y_Capture_Cancelled);
+
+            FeedbackService.PlaySound(SystemSounds.Beep);
+
+            return true;
+        }
+
+        if (key != Keys.ControlKey &&
+            key != Keys.ShiftKey &&
+            key != Keys.Menu &&
+            key != Keys.LWin &&
+            key != Keys.RWin &&
+            key != Keys.None &&
+            key != Keys.ProcessKey)
+        {
+            string oldKey = AppSettings.Current.HotKeyKey;
+            AppSettings.Current.HotKeyKey = key.ToString();
+
+            if (RegisterHotKeyInternal())
             {
+                AppSettings.Save();
+
                 RestoreUIFromCaptureMode();
 
-                AnnounceA11y(Strings.A11y_Capture_Cancelled);
+                string fullHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
 
-                FeedbackService.PlaySound(SystemSounds.Beep);
+                UpdateTitle($"{Strings.Msg_HotkeyUpdated}: {fullHotkeyStr}");
 
-                return true;
-            }
+                BtnCopy.Enabled = false;
+                BtnCopy.Text = Strings.Msg_HotkeyUpdated;
 
-            if (key != Keys.ControlKey &&
-                key != Keys.ShiftKey &&
-                key != Keys.Menu &&
-                key != Keys.LWin &&
-                key != Keys.RWin &&
-                key != Keys.None &&
-                key != Keys.ProcessKey)
-            {
-                string oldKey = AppSettings.Current.HotKeyKey;
-
-                AppSettings.Current.HotKeyKey = key.ToString();
-
-                if (RegisterHotKeyInternal())
-                {
-                    AppSettings.Save();
-
-                    // 使用統一的方法還原 UI 狀態。
-                    RestoreUIFromCaptureMode();
-
-                    string fullHotkeyStr = GlobalHotKeyService.GetHotKeyDisplayString();
-
-                    // 調用帶參數的 UpdateTitle 以顯示更新成功狀態，同時保留快速鍵資訊。
-                    UpdateTitle($"{Strings.Msg_HotkeyUpdated}: {fullHotkeyStr}");
-
-                    BtnCopy.Enabled = false;
-                    BtnCopy.Text = Strings.Msg_HotkeyUpdated;
-
-                    // 延後播報（1200ms），確保在視窗標題變更引發的語音中斷結束後再進行播報。
-                    async Task DelayedAnnounce()
-                    {
-                        try
-                        {
-                            await Task.Delay(
-                                1200,
-                                _formCts?.Token ?? CancellationToken.None);
-
-                            if (IsDisposed)
-                            {
-                                return;
-                            }
-
-                            AnnounceA11y(string.Format(Strings.A11y_Hotkey_Captured, fullHotkeyStr));
-                        }
-                        catch (OperationCanceledException)
-                        {
-
-                        }
-                    }
-
-                    DelayedAnnounce().SafeFireAndForget();
-
-                    FeedbackService.PlaySound(SystemSounds.Asterisk);
-                }
-                else
-                {
-                    AppSettings.Current.HotKeyKey = oldKey;
-
-                    RegisterHotKeyInternal();
-
-                    // 發生錯誤，仍需還原 UI。
-                    RestoreUIFromCaptureMode();
-
-                    // 調用帶參數的 UpdateTitle 以顯示錯誤狀態，同時保留快速鍵資訊。
-                    UpdateTitle(Strings.Err_Title);
-
-                    BtnCopy.Enabled = false;
-                    BtnCopy.Text = Strings.Err_Title;
-
-                    AnnounceA11y(Strings.Err_HotkeyRegFail_Brief);
-
-                    FeedbackService.PlaySound(SystemSounds.Hand);
-                }
-
-                _ = ResetButtonStateAsync();
-
-                Task.Run(async () =>
+                async Task DelayedAnnounce()
                 {
                     try
                     {
                         await Task.Delay(
-                            1500,
+                            1200,
                             _formCts?.Token ?? CancellationToken.None);
 
-                        this.SafeInvoke(() =>
+                        if (IsDisposed)
                         {
-                            if (IsDisposed)
-                            {
-                                return;
-                            }
+                            return;
+                        }
 
-                            UpdateTitle();
-                        });
+                        AnnounceA11y(string.Format(Strings.A11y_Hotkey_Captured, fullHotkeyStr));
                     }
                     catch (OperationCanceledException)
                     {
 
                     }
+                }
 
-                },
-                _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
+                DelayedAnnounce().SafeFireAndForget();
 
-                return true;
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
+            }
+            else
+            {
+                AppSettings.Current.HotKeyKey = oldKey;
+
+                RegisterHotKeyInternal();
+
+                RestoreUIFromCaptureMode();
+
+                UpdateTitle(Strings.Err_Title);
+
+                BtnCopy.Enabled = false;
+                BtnCopy.Text = Strings.Err_Title;
+
+                AnnounceA11y(Strings.Err_HotkeyRegFail_Brief);
+
+                FeedbackService.PlaySound(SystemSounds.Hand);
             }
 
-            // 當使用者只按住修飾鍵（尚未按下主要按鍵）時，執行防抖播報。
-            string strA11yMsg = $"{Strings.Msg_PressAnyKey} ({Strings.A11y_Capture_Esc_Cancel})";
+            _ = ResetButtonStateAsync();
 
-            // 避免在按住修飾鍵期間重複播報相同內容。
-            AnnounceA11y(strA11yMsg, interrupt: true);
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(
+                        1500,
+                        _formCts?.Token ?? CancellationToken.None);
 
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+                    this.SafeInvoke(() =>
+                    {
+                        if (IsDisposed)
+                        {
+                            return;
+                        }
+
+                        UpdateTitle();
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
+
+            },
+            _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
 
             return true;
         }
 
-        // 僅精確攔截我們自定義的視窗級快速鍵，其餘按鍵（如 Alt + A 助記鍵）放行回基底類別處理。
-        switch (keyData)
+        string strA11yMsg = $"{Strings.Msg_PressAnyKey} ({Strings.A11y_Capture_Esc_Cancel})";
+
+        AnnounceA11y(strA11yMsg, interrupt: true);
+
+        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+
+        return true;
+    }
+
+    /// <summary>
+    /// 處理全域命令鍵分派。
+    /// </summary>
+    /// <param name="keyData">目前命令鍵組合。</param>
+    /// <returns>若命令鍵已處理則回傳 true。</returns>
+    private bool HandleGlobalCmdKey(Keys keyData)
+    {
+        if (!CmdKeyDispatcher.TryHandleGlobal(
+            keyData,
+            onReturnPreviousWindow: () => HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget(),
+            onAdjustOpacity: AdjustOpacity,
+            onResetOpacity: ResetOpacity,
+            onTogglePrivacyMode: TogglePrivacyMode,
+            onShowContextMenu: () => this.SafeInvoke(ShowContextMenuAtInput),
+            canFocusInput: () => TBInput.CanFocus,
+            onFocusInput: () => TBInput.Focus(),
+            onAnnounceSkipNav: () => AnnounceA11y(Strings.A11y_SkipNav_JumpToInput)))
         {
-            // Alt + B：不複製直接返回前一個視窗（與遊戲控制器 LB + RB + B 對等）。
-            case Keys.Alt | Keys.B:
-                HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
-
-                // 攔截，不向下傳遞。
-                return true;
-
-            // Alt + Up：增加不透明度（與遊戲控制器 Back + Up 對等）。
-            case Keys.Alt | Keys.Up:
-                AdjustOpacity(0.05f);
-
-                return true;
-
-            // Alt + Down：減少不透明度（與遊戲控制器 Back + Down 對等）。
-            case Keys.Alt | Keys.Down:
-                AdjustOpacity(-0.05f);
-
-                return true;
-
-            // Alt + 0：將不透明度重設為 100%（與遊戲控制器 Back + X 對等）。
-            // 使用數字 0 是為了避開 Alt + R 常見的助記鍵衝突，且符合重設縮放比例的語意慣例。
-            case Keys.Alt | Keys.D0:
-                ResetOpacity();
-                return true;
-
-            // Alt + P：切換隱私模式（與遊戲控制器暫無直接對等，用於快速切換）。
-            case Keys.Alt | Keys.P:
-                TogglePrivacyMode();
-
-                return true;
-
-            // F10：Windows 標準選單鍵（攔截以對應自定義播報選單）。
-            case Keys.F10:
-            // Alt + M：助記符選單鍵（Menu），對標 Alt + B（Back）。
-            case Keys.Alt | Keys.M:
-                this.SafeInvoke(ShowContextMenuAtInput);
-
-                return true;
-
-            // Ctrl + M：跳至主要輸入框（WCAG 2.4.1 略過導覽）。
-            case Keys.Control | Keys.M:
-                if (TBInput.CanFocus)
-                {
-                    TBInput.Focus();
-
-                    AnnounceA11y(Strings.A11y_SkipNav_JumpToInput);
-                }
-
-                return true;
+            return false;
         }
 
-        if (ActiveControl == TBInput)
-        {
-            if (keyData == Keys.Enter)
-            {
-                if (string.IsNullOrWhiteSpace(TBInput.Text))
-                {
-                    ShowTouchKeyboard();
-                }
-                else
-                {
-                    BtnCopy.PerformClick();
-                }
+        return true;
+    }
 
-                return true;
-            }
-
-            if (keyData == (Keys.Enter | Keys.Shift))
-            {
-                // 告知使用者已換行。
-                AnnounceA11y(Strings.A11y_New_Line);
-
-                // 物理回饋。
-                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-                return base.ProcessCmdKey(ref msg, keyData);
-            }
-        }
-
-        return base.ProcessCmdKey(ref msg, keyData);
+    /// <summary>
+    /// 處理輸入框焦點相關命令鍵分派。
+    /// </summary>
+    /// <param name="keyData">目前命令鍵組合。</param>
+    /// <returns>輸入框命令鍵處理結果。</returns>
+    private InputBoxCmdResult HandleInputBoxCmdKey(Keys keyData)
+    {
+        return CmdKeyDispatcher.HandleInputBox(
+            keyData,
+            ActiveControl,
+            TBInput,
+            onShowTouchKeyboard: ShowTouchKeyboard,
+            onConfirm: BtnCopy.PerformClick,
+            onAnnounceNewLine: () => AnnounceA11y(Strings.A11y_New_Line),
+            onVibrateCursorMove: () => VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget());
     }
 
     protected override void OnMove(EventArgs e)
@@ -842,63 +770,9 @@ public partial class MainForm : Form
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated ||
-            IsDisposed)
-        {
-            return;
-        }
-
-        // 強制同步 Win32 座標狀態。
-        Update();
-
-        Screen screen = Screen.FromControl(this);
-
-        Rectangle workArea = screen.WorkingArea;
-
-        int newX = Location.X,
-            newY = Location.Y;
-
-        bool adjusted = false;
-
-        // 檢查右邊界。
-        if (newX + Width > workArea.Right)
-        {
-            newX = workArea.Right - Width;
-
-            adjusted = true;
-        }
-
-        // 檢查左邊界。
-        if (newX < workArea.Left)
-        {
-            newX = workArea.Left;
-
-            adjusted = true;
-        }
-
-        // 檢查下邊界。
-        if (newY + Height > workArea.Bottom)
-        {
-            newY = workArea.Bottom - Height;
-
-            adjusted = true;
-        }
-
-        // 檢查上邊界。
-        if (newY < workArea.Top)
-        {
-            newY = workArea.Top;
-
-            adjusted = true;
-        }
-
-        if (adjusted)
-        {
-            Location = new Point(newX, newY);
-
-            // 告知使用者視窗已修正位置。
-            AnnounceA11y(Strings.A11y_SnapBack);
-        }
+        InputBoxLayoutManager.ApplySmartPosition(
+            this,
+            () => AnnounceA11y(Strings.A11y_SnapBack));
     }
 
     /// <summary>
@@ -906,25 +780,11 @@ public partial class MainForm : Form
     /// </summary>
     private void UpdateMinimumSize()
     {
-        float currentDpi = DeviceDpi;
-
-        // 防抖：如果 DPI 沒有實質變動，則跳過計算。
-        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
-        {
-            return;
-        }
-
-        _lastAppliedDpi = currentDpi;
-
-        // 此處不再執行昂貴的 ApplyLocalization，而是僅更新佈局約束。
-        // 這樣能避免 DPI 變更（如螢幕拖曳）時導致按鈕文字被意外重置。
-        UpdateLayoutConstraints();
-
-        // 高對比模式下強制 100% 不透明度，確保絕對符合無障礙可讀性規範。
-        if (SystemInformation.HighContrast)
-        {
-            UpdateOpacity();
-        }
+        _lastAppliedDpi = InputBoxLayoutManager.UpdateMinimumSize(
+            DeviceDpi,
+            _lastAppliedDpi,
+            UpdateLayoutConstraints,
+            UpdateOpacity);
     }
 
     /// <summary>
@@ -1033,57 +893,7 @@ public partial class MainForm : Form
     /// <param name="font">Font</param>
     public static void AddFontToTrashCan(Font font)
     {
-        if (font == null)
-        {
-            return;
-        }
-
-        lock (_trashCanLock)
-        {
-            _fontTrashCan.Add(font);
-
-            // 防護機制：若回收桶堆積超過門檻，立即執行一次緊急清理。
-            // 這種情境通常發生在極端 DPI 切換或長時間執行的環境中。
-            if (_fontTrashCan.Count > FontTrashCanEmergencyThreshold)
-            {
-                foreach (Font f in _fontTrashCan)
-                {
-                    try
-                    {
-                        f.Dispose();
-                    }
-                    catch
-                    {
-
-                    }
-                }
-
-                _fontTrashCan.Clear();
-            }
-
-            // 啟動延遲清理任務，避免字體堆積引發 GDI 資源洩漏。
-            // 等待足夠長的時間（例如 2 秒），確保所有進行中的重繪事件都已結束，不再使用該字體。
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(2000);
-
-                    lock (_trashCanLock)
-                    {
-                        if (_fontTrashCan.Contains(font))
-                        {
-                            font.Dispose();
-                            _fontTrashCan.Remove(font);
-                        }
-                    }
-                }
-                catch
-                {
-                    // 忽略背景清理的任何錯誤。
-                }
-            }).SafeFireAndForget();
-        }
+        FontResourceManager.AddFontToTrashCan(font);
     }
 
     /// <summary>
@@ -1116,30 +926,7 @@ public partial class MainForm : Form
     /// <returns>若為共享字體則傳回 true</returns>
     private static bool IsSharedFont(Font font)
     {
-        if (font == null)
-        {
-            return false;
-        }
-
-        // 檢查一般字型快取。
-        lock (_regularFontCacheLock)
-        {
-            if (_regularFontCache.ContainsValue(font))
-            {
-                return true;
-            }
-        }
-
-        // 檢查加粗字型快取。
-        lock (_boldFontCacheLock)
-        {
-            if (_boldFontCache.ContainsValue(font))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return FontResourceManager.IsSharedFont(font);
     }
 
     /// <summary>
@@ -1156,36 +943,7 @@ public partial class MainForm : Form
         FontFamily? family = null,
         float sizeMultiplier = 1.0f)
     {
-        // 根據樣式選擇對應的快取池與鎖。
-        Dictionary<int, Font> cache = style.HasFlag(FontStyle.Bold) ?
-            _boldFontCache :
-            _regularFontCache;
-
-        Lock cacheLock = style.HasFlag(FontStyle.Bold) ?
-            _boldFontCacheLock :
-            _regularFontCacheLock;
-
-        // 生成唯一的快取金鑰：結合 DPI 與倍率（以千分之一精度映射至整數）。
-        int cacheKey = (int)(dpi * sizeMultiplier * 1000);
-
-        lock (cacheLock)
-        {
-            if (!cache.TryGetValue(cacheKey, out Font? font))
-            {
-                // 基準尺寸為 14pt。
-                const float baseA11ySize = 14.0f;
-
-                float finalSize = baseA11ySize * sizeMultiplier * (dpi / AppSettings.BaseDpi);
-
-                family ??= FontFamily.GenericSansSerif;
-
-                font = new Font(family, finalSize, style);
-
-                cache[cacheKey] = font;
-            }
-
-            return font;
-        }
+        return FontResourceManager.GetSharedA11yFont(dpi, style, family, sizeMultiplier);
     }
 
     /// <summary>
@@ -1193,56 +951,6 @@ public partial class MainForm : Form
     /// </summary>
     public static void DisposeCaches()
     {
-        lock (_regularFontCacheLock)
-        {
-            foreach (Font font in _regularFontCache.Values)
-            {
-                try
-                {
-                    font.Dispose();
-                }
-                catch
-                {
-
-                }
-            }
-
-            _regularFontCache.Clear();
-        }
-
-        lock (_boldFontCacheLock)
-        {
-            foreach (Font font in _boldFontCache.Values)
-            {
-                try
-                {
-                    font.Dispose();
-                }
-                catch
-                {
-
-                }
-            }
-
-            _boldFontCache.Clear();
-        }
-
-        // 清理回收桶中剩餘的字體。
-        lock (_trashCanLock)
-        {
-            foreach (Font font in _fontTrashCan)
-            {
-                try
-                {
-                    font.Dispose();
-                }
-                catch
-                {
-
-                }
-            }
-
-            _fontTrashCan.Clear();
-        }
+        FontResourceManager.DisposeCaches();
     }
 }

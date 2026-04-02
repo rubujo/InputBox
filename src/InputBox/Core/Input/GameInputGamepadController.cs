@@ -1,4 +1,4 @@
-using GameInputDotNet;
+﻿using GameInputDotNet;
 using GameInputDotNet.Interop.Enums;
 using GameInputDotNet.Interop.Structs;
 using GameInputDotNet.States;
@@ -782,13 +782,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private bool IsStateIdle(GamepadStateSnapshot state)
     {
         return _previousState != null &&
-            state.Buttons == 0 && _previousState.Buttons == 0 &&
-            Math.Abs(state.LeftThumbstickX) < AppSettings.GameInputIdleThreshold &&
-            Math.Abs(state.LeftThumbstickY) < AppSettings.GameInputIdleThreshold &&
-            Math.Abs(state.RightThumbstickX) < AppSettings.GameInputIdleThreshold &&
-            Math.Abs(state.RightThumbstickY) < AppSettings.GameInputIdleThreshold &&
-            state.LeftTrigger < AppSettings.GameInputIdleThreshold &&
-            state.RightTrigger < AppSettings.GameInputIdleThreshold;
+            state.Buttons == 0 &&
+            _previousState.Buttons == 0 &&
+            GamepadSignalEvaluator.IsIdle(
+                hasButtons: false,
+                leftTrigger: state.LeftTrigger,
+                rightTrigger: state.RightTrigger,
+                leftThumbX: state.LeftThumbstickX,
+                leftThumbY: state.LeftThumbstickY,
+                rightThumbX: state.RightThumbstickX,
+                rightThumbY: state.RightThumbstickY,
+                threshold: AppSettings.GameInputIdleThreshold);
     }
 
     /// <summary>
@@ -982,13 +986,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     if (state != null)
                     {
                         // 若其他控制器有明顯的動作（按下任何按鈕、推動搖桿或按板機），則切換過去。
-                        if (state.Buttons != 0 ||
-                            state.LeftTrigger > AppSettings.GameInputActiveThreshold ||
-                            state.RightTrigger > AppSettings.GameInputActiveThreshold ||
-                            Math.Abs(state.LeftThumbstickX) > AppSettings.GameInputActiveThreshold ||
-                            Math.Abs(state.LeftThumbstickY) > AppSettings.GameInputActiveThreshold ||
-                            Math.Abs(state.RightThumbstickX) > AppSettings.GameInputActiveThreshold ||
-                            Math.Abs(state.RightThumbstickY) > AppSettings.GameInputActiveThreshold)
+                        if (GamepadSignalEvaluator.IsActive(
+                            hasButtons: state.Buttons != 0,
+                            leftTrigger: state.LeftTrigger,
+                            rightTrigger: state.RightTrigger,
+                            leftThumbX: state.LeftThumbstickX,
+                            leftThumbY: state.LeftThumbstickY,
+                            rightThumbX: state.RightThumbstickX,
+                            rightThumbY: state.RightThumbstickY,
+                            threshold: AppSettings.GameInputActiveThreshold))
                         {
                             // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
                             ResetHoldStates();
@@ -1146,25 +1152,34 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             wasDown = _hasPreviousState &&
                 _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadDown);
 
-        int thresholdLeft = wasLeft ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
-            thresholdRight = wasRight ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
-            thresholdUp = wasUp ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
-            thresholdDown = wasDown ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter;
+        int horizontalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
+            thumbLX,
+            wasLeft,
+            wasRight,
+            config.ThumbDeadzoneEnter,
+            config.ThumbDeadzoneExit);
 
-        if (thumbLX < -thresholdLeft)
+        if (horizontalDirection < 0)
         {
             currentButtons |= GameInputGamepadButtons.DPadLeft;
         }
-        else if (thumbLX > thresholdRight)
+        else if (horizontalDirection > 0)
         {
             currentButtons |= GameInputGamepadButtons.DPadRight;
         }
 
-        if (thumbLY < -thresholdDown)
+        int verticalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
+            thumbLY,
+            wasDown,
+            wasUp,
+            config.ThumbDeadzoneEnter,
+            config.ThumbDeadzoneExit);
+
+        if (verticalDirection < 0)
         {
             currentButtons |= GameInputGamepadButtons.DPadDown;
         }
-        else if (thumbLY > thresholdUp)
+        else if (verticalDirection > 0)
         {
             currentButtons |= GameInputGamepadButtons.DPadUp;
         }
@@ -1185,6 +1200,35 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _previousProcessedButtons :
             0;
 
+        static bool HasFlag(GameInputGamepadButtons source, GameInputGamepadButtons flag)
+        {
+            return source.HasFlag(flag);
+        }
+
+        static void DetectRising(
+            GameInputGamepadButtons current,
+            GameInputGamepadButtons previous,
+            GameInputGamepadButtons flag,
+            Action? action)
+        {
+            if (HasFlag(current, flag) && !HasFlag(previous, flag))
+            {
+                action?.Invoke();
+            }
+        }
+
+        static void DetectReleased(
+            GameInputGamepadButtons current,
+            GameInputGamepadButtons previous,
+            GameInputGamepadButtons flag,
+            Action? action)
+        {
+            if (!HasFlag(current, flag) && HasFlag(previous, flag))
+            {
+                action?.Invoke();
+            }
+        }
+
         // 更新按住狀態（使用 GameInput 原生旗標）。
         IsLeftShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.LeftShoulder);
         IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
@@ -1194,92 +1238,28 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         IsRightTriggerHeld = currentState.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         // 偵測按下事件。
-        if (currentButtons.HasFlag(GameInputGamepadButtons.DPadUp) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.DPadUp))
-        {
-            UpPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.DPadDown) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.DPadDown))
-        {
-            DownPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.DPadLeft) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.DPadLeft))
-        {
-            LeftPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.DPadRight) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.DPadRight))
-        {
-            RightPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.Menu) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.Menu))
-        {
-            StartPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.View) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.View))
-        {
-            BackPressed?.Invoke();
-        }
-
-        if (!currentButtons.HasFlag(GameInputGamepadButtons.View) &&
-            prevButtons.HasFlag(GameInputGamepadButtons.View))
-        {
-            BackReleased?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.A) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.A))
-        {
-            APressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.B) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.B))
-        {
-            BPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.X) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.X))
-        {
-            XPressed?.Invoke();
-        }
-
-        if (currentButtons.HasFlag(GameInputGamepadButtons.Y) &&
-            !prevButtons.HasFlag(GameInputGamepadButtons.Y))
-        {
-            YPressed?.Invoke();
-        }
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadUp, UpPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadDown, DownPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadLeft, LeftPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadRight, RightPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Menu, StartPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.View, BackPressed);
+        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.View, BackReleased);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.A, APressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.B, BPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.X, XPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Y, YPressed);
 
         // 處理右搖桿（RS）虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
-        float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
-              exitThreshold = config.ThumbDeadzoneExit / 32768f,
-              thresholdLeft = _rsRepeatDirection == -1 ?
-                exitThreshold :
+        float enterThreshold = config.ThumbDeadzoneEnter / 32768f;
+        float exitThreshold = config.ThumbDeadzoneExit / 32768f;
+
+        int curRsDir = GamepadDeadzoneHysteresis.ResolveDirection(
+                currentState.RightThumbstickX,
+                _rsRepeatDirection == -1,
+                _rsRepeatDirection == 1,
                 enterThreshold,
-              thresholdRight = _rsRepeatDirection == 1 ?
-                exitThreshold :
-                enterThreshold;
-
-        int curRsDir = 0;
-
-        if (currentState.RightThumbstickX < -thresholdLeft)
-        {
-            curRsDir = -1;
-        }
-        else if (currentState.RightThumbstickX > thresholdRight)
-        {
-            curRsDir = 1;
-        }
+                exitThreshold);
 
         // 偵測正緣觸發。
         if (curRsDir == -1 &&
@@ -1335,82 +1315,49 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             buttons.HasFlag(GameInputGamepadButtons.DPadDown) ? GameInputGamepadButtons.DPadDown :
             null;
 
-        if (currentDir == null)
+        if (GamepadRepeatStateMachine.AdvanceDirectionRepeat(
+                currentDir,
+                ref _repeatDirection,
+                ref _repeatCounter,
+                ref _currentRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
         {
-            _repeatCounter = 0;
-            _repeatDirection = null;
-            _currentRepeatInterval = 0;
-        }
-        else if (_repeatDirection != currentDir)
-        {
-            _repeatCounter = 0;
-            _repeatDirection = currentDir;
-
-            // 初始觸發後，設定第一次連發所需的固定延遲。
-            _currentRepeatInterval = config.RepeatInitialDelayFrames;
-        }
-        else
-        {
-            _repeatCounter++;
-
-            // 當達到目前動態計算的閾值時觸發。
-            if (_repeatCounter >= _currentRepeatInterval)
+            if (currentDir == GameInputGamepadButtons.DPadLeft)
             {
-                if (currentDir == GameInputGamepadButtons.DPadLeft)
-                {
-                    LeftRepeat?.Invoke();
-                }
-                else if (currentDir == GameInputGamepadButtons.DPadRight)
-                {
-                    RightRepeat?.Invoke();
-                }
-                else if (currentDir == GameInputGamepadButtons.DPadUp)
-                {
-                    UpRepeat?.Invoke();
-                }
-                else if (currentDir == GameInputGamepadButtons.DPadDown)
-                {
-                    DownRepeat?.Invoke();
-                }
-
-                // 觸發後，重置計數器並設定下一次連發的固定間隔。
-                _repeatCounter = 0;
-                _currentRepeatInterval = config.RepeatIntervalFrames;
+                LeftRepeat?.Invoke();
+            }
+            else if (currentDir == GameInputGamepadButtons.DPadRight)
+            {
+                RightRepeat?.Invoke();
+            }
+            else if (currentDir == GameInputGamepadButtons.DPadUp)
+            {
+                UpRepeat?.Invoke();
+            }
+            else if (currentDir == GameInputGamepadButtons.DPadDown)
+            {
+                DownRepeat?.Invoke();
             }
         }
 
         // 2. 處理右搖桿（RS）重複輸入。
         int rsDir = _rsRepeatDirection;
 
-        if (rsDir == 0)
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                rsDir != 0,
+                ref _rsRepeatCounter,
+                ref _currentRSRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
         {
-            _rsRepeatCounter = 0;
-            _currentRSRepeatInterval = 0;
-        }
-        else
-        {
-            if (_rsRepeatCounter == 0 && _currentRSRepeatInterval == 0)
+            if (rsDir == -1)
             {
-                // 第一次進入連發判定，設定初始固定延遲。
-                _currentRSRepeatInterval = config.RepeatInitialDelayFrames;
+                RSLeftRepeat?.Invoke();
             }
-
-            _rsRepeatCounter++;
-
-            if (_rsRepeatCounter >= _currentRSRepeatInterval)
+            else if (rsDir == 1)
             {
-                if (rsDir == -1)
-                {
-                    RSLeftRepeat?.Invoke();
-                }
-                else if (rsDir == 1)
-                {
-                    RSRightRepeat?.Invoke();
-                }
-
-                // 重置並設定下一個固定間隔。
-                _rsRepeatCounter = 0;
-                _currentRSRepeatInterval = config.RepeatIntervalFrames;
+                RSRightRepeat?.Invoke();
             }
         }
     }

@@ -26,7 +26,11 @@ public partial class MainForm
     // 僅在分頁按鈕觸發的「下一次」子選單重開時保留目前頁碼。
     // 一般使用者重新開啟子選單時，會回到第 1 頁，符合常見使用習慣。
     private bool _keepPhrasePageOnNextOpen;
-    private readonly List<PhraseService.PhraseEntry> _recentPhrases = [];
+
+    /// <summary>
+    /// 片語插入流程處理器（含最近使用片語管理）。
+    /// </summary>
+    private PhraseInsertionHandler? _phraseInsertionHandler;
 
     /// <summary>
     /// 選單項目中繼資料，支援 A11y 動態描述生成。
@@ -46,21 +50,23 @@ public partial class MainForm
     /// </summary>
     private void InitializeContextMenu()
     {
-        _cmsInput ??= new ContextMenuStrip
-        {
-            AccessibleName = Strings.A11y_ContextMenu_Name,
-            AccessibleDescription = Strings.A11y_ContextMenu_Desc
-        };
+        _phraseInsertionHandler ??= new PhraseInsertionHandler(
+            TBInput,
+            _phraseService,
+            AnnounceA11y,
+            RecentPhraseLimitLarge);
 
-        // 動態加入主題變更重啟提示。
-        if (IsThemeUpdatePending)
-        {
-            ToolStripMenuItem tsmiRestart = new()
-            {
-                Text = $"{Strings.App_ThemePending_Suffix} {Strings.Menu_ApplyThemeRestart}",
-                AccessibleName = Strings.Menu_ApplyThemeRestart
-            };
-            tsmiRestart.Click += (s, e) =>
+        _cmsInput = ContextMenuBuilder.EnsureRoot(
+            _cmsInput,
+            Strings.A11y_ContextMenu_Name,
+            Strings.A11y_ContextMenu_Desc);
+
+        ContextMenuBuilder.EnsureRestartItem(
+            _cmsInput,
+            IsThemeUpdatePending,
+            Strings.App_ThemePending_Suffix,
+            Strings.Menu_ApplyThemeRestart,
+            () =>
             {
                 try
                 {
@@ -70,11 +76,7 @@ public partial class MainForm
                 {
                     Debug.WriteLine($"[選單] tsmiRestart.Click 失敗：{ex.Message}");
                 }
-            };
-
-            _cmsInput.Items.Add(tsmiRestart);
-            _cmsInput.Items.Add(new ToolStripSeparator());
-        }
+            });
 
         // 隱私模式。
         _tsmiPrivacyMode = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_PrivacyMode, 'P'))
@@ -279,7 +281,7 @@ public partial class MainForm
         {
             try
             {
-                Interlocked.Exchange(ref _isCapturingHotkey, 1);
+                _inputState.BeginHotkeyCapture();
 
                 // 標題列提示（統一由 UpdateTitle 處理，確保包含快速鍵資訊）。
                 UpdateTitle();
@@ -1072,20 +1074,12 @@ public partial class MainForm
             if (_cmsInput != null)
             {
                 // 在重新整理時，若有待處理變更則動態注入重啟選項。
-                if (IsThemeUpdatePending &&
-                    !_cmsInput.Items.Cast<ToolStripItem>().Any(n => n.AccessibleName == Strings.Menu_ApplyThemeRestart))
-                {
-                    ToolStripMenuItem tsmiRestart = new()
-                    {
-                        Text = $"{Strings.App_ThemePending_Suffix} {Strings.Menu_ApplyThemeRestart}",
-                        AccessibleName = Strings.Menu_ApplyThemeRestart
-                    };
-                    tsmiRestart.Click += (s, e) => AskForRestart();
-
-                    // 插入選單最前端。
-                    _cmsInput.Items.Insert(0, tsmiRestart);
-                    _cmsInput.Items.Insert(1, new ToolStripSeparator());
-                }
+                ContextMenuBuilder.EnsureRestartItem(
+                    _cmsInput,
+                    IsThemeUpdatePending,
+                    Strings.App_ThemePending_Suffix,
+                    Strings.Menu_ApplyThemeRestart,
+                    AskForRestart);
 
 
                 foreach (ToolStripItem item in _cmsInput.Items)
@@ -1100,7 +1094,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 遞迴更新選單項目標籤。
+    /// 遞迴更新選單項目標籤
     /// </summary>
     /// <param name="parent">父選單項</param>
     private static void RefreshMenuText(ToolStripMenuItem parent)
@@ -1259,34 +1253,13 @@ public partial class MainForm
             // 在文字方塊下方開啟選單。
             _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
 
-            // 選取第一個有效的項目。
-            foreach (ToolStripItem item in _cmsInput.Items)
+            if (ContextMenuBuilder.TrySelectFirstVisibleItem(
+                _cmsInput,
+                Strings.A11y_Checked,
+                Strings.A11y_Unchecked,
+                out string announcement))
             {
-                if (item.Enabled &&
-                    item.Visible &&
-                    item is not ToolStripSeparator)
-                {
-                    item.Select();
-
-                    // 播報首個項目的名稱與描述。
-                    // 優先使用 AccessibleName 以獲得包含狀態的完整標籤。
-                    string name = item.AccessibleName ??
-                            item.Text ??
-                            string.Empty,
-                        desc = item.AccessibleDescription ??
-                        string.Empty;
-
-                    string announcement = string.IsNullOrEmpty(desc) ?
-                        name :
-                        $"{name}. {desc}";
-
-                    if (!string.IsNullOrEmpty(announcement))
-                    {
-                        AnnounceA11y(announcement, interrupt: true);
-                    }
-
-                    break;
-                }
+                AnnounceA11y(announcement, interrupt: true);
             }
 
             VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
@@ -1306,30 +1279,34 @@ public partial class MainForm
         _tsmiPhrases.DropDownItems.Clear();
 
         IReadOnlyList<PhraseService.PhraseEntry> phrases = _phraseService.Phrases;
-        int recentLimit = GetRecentPhraseDisplayLimit();
-        int pageSize = GetPhraseMenuPageSize();
+
+        int recentLimit = GetRecentPhraseDisplayLimit(),
+            pageSize = GetPhraseMenuPageSize();
 
         if (_tsmiPhrases.DropDown is ToolStripDropDownMenu dropDownMenu)
         {
             Rectangle workArea = Screen.GetWorkingArea(this);
+
             dropDownMenu.MaximumSize = new Size(0, (int)(workArea.Height * 0.55f));
         }
 
         // 同步清理已不存在於主片語清單的最近使用快取。
-        _recentPhrases.RemoveAll(r => !phrases.Any(p => p.Name == r.Name && p.Content == r.Content));
+        _phraseInsertionHandler?.PruneRecent(phrases);
 
-        if (_recentPhrases.Count > 0)
+        IReadOnlyList<PhraseService.PhraseEntry> recentPhrases = _phraseInsertionHandler?.RecentPhrases ?? [];
+
+        if (recentPhrases.Count > 0)
         {
-            foreach (PhraseService.PhraseEntry recent in _recentPhrases.Take(recentLimit))
+            foreach (PhraseService.PhraseEntry recent in recentPhrases.Take(recentLimit))
             {
                 PhraseService.PhraseEntry snapshot = recent;
 
                 ToolStripMenuItem recentItem = new($"★ {snapshot.Name}")
                 {
                     AccessibleName = snapshot.Name,
-                    AccessibleDescription = snapshot.Content.Length > 50
-                        ? $"{snapshot.Content[..50]}…"
-                        : snapshot.Content
+                    AccessibleDescription = snapshot.Content.Length > 50 ?
+                        $"{snapshot.Content[..50]}…" :
+                        snapshot.Content
                 };
                 recentItem.Click += (s, e) =>
                 {
@@ -1522,71 +1499,27 @@ public partial class MainForm
     /// <param name="entry">片語項目</param>
     private void InsertPhraseContent(PhraseService.PhraseEntry entry)
     {
-        if (TBInput == null || TBInput.IsDisposed)
+        if (_phraseInsertionHandler == null)
         {
-            return;
-        }
+            _phraseInsertionHandler = new PhraseInsertionHandler(
+                TBInput,
+                _phraseService,
+                AnnounceA11y,
+                RecentPhraseLimitLarge);
 
-        int selectionStart = TBInput.SelectionStart;
-
-        // 若有選取的文字，取代之；否則在游標處插入。
-        if (TBInput.SelectionLength > 0)
-        {
-            TBInput.SelectedText = entry.Content;
-        }
-        else
-        {
-            string text = TBInput.Text;
-
-            TBInput.Text = text.Insert(selectionStart, entry.Content);
-            TBInput.SelectionStart = selectionStart + entry.Content.Length;
-        }
-
-        TBInput.Focus();
-
-        if (!string.IsNullOrEmpty(entry.Name))
-        {
-            AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
-                Strings.Phrase_A11y_Inserted_PrivacySafe :
-                string.Format(Strings.Phrase_A11y_Inserted, entry.Name));
-        }
-
-        RegisterRecentPhrase(entry);
-    }
-
-    private void RegisterRecentPhrase(PhraseService.PhraseEntry entry)
-    {
-        PhraseService.PhraseEntry normalized = entry;
-
-        // 從片語管理對話框插入時名稱可能為空，嘗試回查正式名稱。
-        if (string.IsNullOrEmpty(normalized.Name) && !string.IsNullOrEmpty(normalized.Content))
-        {
-            IReadOnlyList<PhraseService.PhraseEntry> phrases = _phraseService.Phrases;
-
-            PhraseService.PhraseEntry? resolved = phrases.FirstOrDefault(p => p.Content == normalized.Content);
-
-            if (resolved != null)
+            if (_phraseInsertionHandler == null)
             {
-                normalized = resolved;
+                return;
             }
         }
 
-        if (string.IsNullOrEmpty(normalized.Name) || string.IsNullOrEmpty(normalized.Content))
-        {
-            return;
-        }
-
-        _recentPhrases.RemoveAll(p => p.Name == normalized.Name && p.Content == normalized.Content);
-        _recentPhrases.Insert(0, normalized);
-
-        int maxRecent = RecentPhraseLimitLarge;
-
-        if (_recentPhrases.Count > maxRecent)
-        {
-            _recentPhrases.RemoveRange(maxRecent, _recentPhrases.Count - maxRecent);
-        }
+        _phraseInsertionHandler.InsertPhraseContent(entry);
     }
 
+    /// <summary>
+    /// 取得片語子選單的分頁大小，根據螢幕高度調整以適應不同解析度的顯示空間
+    /// </summary>
+    /// <returns>分頁大小</returns>
     private int GetPhraseMenuPageSize()
     {
         int screenHeight = Screen.GetWorkingArea(this).Height;
@@ -1604,6 +1537,10 @@ public partial class MainForm
         return PhraseMenuPageSizeLarge;
     }
 
+    /// <summary>
+    /// 取得最近使用片語的顯示限制，根據螢幕高度調整以適應不同解析度的顯示空間
+    /// </summary>
+    /// <returns>顯示限制</returns>
     private int GetRecentPhraseDisplayLimit()
     {
         int screenHeight = Screen.GetWorkingArea(this).Height;
@@ -1653,7 +1590,8 @@ public partial class MainForm
         {
             try
             {
-                if (IsDisposed || !IsHandleCreated)
+                if (IsDisposed ||
+                !IsHandleCreated)
                 {
                     return;
                 }
@@ -1668,5 +1606,4 @@ public partial class MainForm
             }
         });
     }
-
 }

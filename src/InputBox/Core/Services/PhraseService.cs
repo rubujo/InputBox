@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace InputBox.Core.Services;
 
 /// <summary>
-/// 片語管理服務，負責片語的載入、儲存與 CRUD 操作。
+/// 片語管理服務，負責片語的載入、儲存與 CRUD 操作
 /// <para>片語持久化至 %AppData%\InputBox\phrases.json。</para>
 /// </summary>
 internal sealed class PhraseService

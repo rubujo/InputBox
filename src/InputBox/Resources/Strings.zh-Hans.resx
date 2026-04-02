@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -779,8 +779,6 @@
     <value>Esc	清除文字 / 返回前一个窗口（已空时）
   Enter	复制并返回前一个窗口（或打开键盘）
   Alt + A	功能等同 Enter
-  Alt + C	功能等同 Esc（清除文字）
-  Alt + X	功能等同 Alt + B
   Shift + Enter	换行
   F1	打开帮助对话框
   ↑ / ↓	浏览历史记录

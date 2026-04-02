@@ -1,15 +1,18 @@
 namespace InputBox.Core.Utilities;
 
 /// <summary>
-/// 提供基於高斯分佈（常態分佈）的隨機數產生器。
-/// 用於系統操作的自然緩衝延遲，改善 A11y 音訊避讓與 UI 執行緒排程穩定性。
+/// 提供基於高斯分佈（常態分佈）的隨機數產生器
+/// 用於系統操作的自然緩衝延遲，改善 A11y 音訊避讓與 UI 執行緒排程穩定性
 /// </summary>
 internal static class GaussianDelayHelper
 {
+    /// <summary>
+    /// 隨機數生成器實例
+    /// </summary>
     private static readonly Random _rng = new();
 
     /// <summary>
-    /// 產生符合高斯分佈的隨機值。
+    /// 產生符合高斯分佈的隨機值
     /// </summary>
     /// <param name="mean">期望的平均值（μ）</param>
     /// <param name="standardDeviation">標準差（σ），代表波動幅度。建議設為平均值的 15%~20%</param>
@@ -31,7 +34,7 @@ internal static class GaussianDelayHelper
     }
 
     /// <summary>
-    /// 產生符合人類反應特徵的毫秒延遲。
+    /// 產生符合人類反應特徵的毫秒延遲
     /// </summary>
     /// <param name="baseDelay">基礎延遲（毫秒）</param>
     /// <param name="jitterRange">抖動範圍（毫秒）</param>

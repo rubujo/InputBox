@@ -4,7 +4,7 @@ using Microsoft.Win32;
 namespace InputBox.Core.Utilities;
 
 /// <summary>
-/// 通用方法
+/// 系統相關的輔助方法
 /// </summary>
 public static partial class SystemHelper
 {

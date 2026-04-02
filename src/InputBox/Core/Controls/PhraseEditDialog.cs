@@ -1,9 +1,10 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -153,7 +154,6 @@ internal sealed class PhraseEditDialog : Form
                 _gamepadController.RSLeftRepeat += HandleRSLeft;
                 _gamepadController.RSRightPressed += HandleRSRight;
                 _gamepadController.RSRightRepeat += HandleRSRight;
-                // LT/RT bindings removed: use D-Pad / Tab for navigation
                 _gamepadController.ConnectionChanged += HandleConnectionChanged;
             }
         }
@@ -355,7 +355,7 @@ internal sealed class PhraseEditDialog : Form
 
         Controls.Add(tlp);
 
-        // 啟用/停用時控制器暫停/恢復。
+        // 啟用／停用時控制器暫停／恢復。
         Activated += (s, e) =>
         {
             Task.Run(async () =>
@@ -370,12 +370,24 @@ internal sealed class PhraseEditDialog : Form
 
                     await this.SafeInvokeAsync(() =>
                     {
-                        try { GamepadController?.Resume(); }
-                        catch (Exception ex) { Debug.WriteLine($"[片語編輯] Resume 失敗: {ex.Message}"); }
+                        try
+                        {
+                            GamepadController?.Resume();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[片語編輯] Resume 失敗: {ex.Message}");
+                        }
                     });
                 }
-                catch (OperationCanceledException) { }
-                catch (Exception ex) { Debug.WriteLine($"[片語編輯] Activated 失敗: {ex.Message}"); }
+                catch (OperationCanceledException)
+                {
+
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語編輯] Activated 失敗: {ex.Message}");
+                }
             },
             _cts?.Token ?? CancellationToken.None)
             .SafeFireAndForget();
@@ -387,14 +399,21 @@ internal sealed class PhraseEditDialog : Form
             {
                 this.SafeBeginInvoke(() =>
                 {
-                    try { GamepadController?.Pause(); }
-                    catch (Exception ex) { Debug.WriteLine($"[片語編輯] Pause 失敗: {ex.Message}"); }
+                    try
+                    {
+                        GamepadController?.Pause();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[片語編輯] Pause 失敗: {ex.Message}");
+                    }
                 });
             }
-            catch (Exception ex) { Debug.WriteLine($"[片語編輯] Deactivate 失敗: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[片語編輯] Deactivate 失敗: {ex.Message}");
+            }
         };
-
-        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
     }
 
     protected override void OnShown(EventArgs e)
@@ -439,18 +458,26 @@ internal sealed class PhraseEditDialog : Form
         ApplyInputBoxStrongVisual(_txtName);
     }
 
+    /// <summary>
+    /// 建立控制項 Handle 後套用最小尺寸、系統事件訂閱與初始定位。
+    /// </summary>
+    /// <param name="e">控制項事件參數。</param>
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
 
         UpdateMinimumSize();
 
-        this.SafeBeginInvoke(() =>
-        {
-            ApplySmartPosition();
-        });
+        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+
+        this.SafeBeginInvoke(ApplySmartPosition);
     }
 
+    /// <summary>
+    /// DPI 變更時重新量測按鈕尺寸與對話框最小尺寸。
+    /// </summary>
+    /// <param name="e">DPI 變更事件參數。</param>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
         base.OnDpiChanged(e);
@@ -463,6 +490,10 @@ internal sealed class PhraseEditDialog : Form
         });
     }
 
+    /// <summary>
+    /// 使用者結束調整視窗大小後重新套用智慧定位。
+    /// </summary>
+    /// <param name="e">事件參數。</param>
     protected override void OnResizeEnd(EventArgs e)
     {
         base.OnResizeEnd(e);
@@ -470,6 +501,12 @@ internal sealed class PhraseEditDialog : Form
         ApplySmartPosition();
     }
 
+    /// <summary>
+    /// 處理命令鍵
+    /// </summary>
+    /// <param name="msg">訊息參數。</param>
+    /// <param name="keyData">按鍵資料。</param>
+    /// <returns>是否已處理按鍵。</returns>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
         if (ActiveControl is TextBox tb)
@@ -509,6 +546,10 @@ internal sealed class PhraseEditDialog : Form
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
+    /// <summary>
+    /// 關閉對話框時解除事件訂閱並釋放暫用資源
+    /// </summary>
+    /// <param name="e">表單關閉事件參數。</param>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         try
@@ -534,6 +575,27 @@ internal sealed class PhraseEditDialog : Form
         base.OnFormClosing(e);
     }
 
+    /// <summary>
+    /// Handle 銷毀時確保解除靜態系統事件訂閱
+    /// </summary>
+    /// <param name="e">控制項事件參數。</param>
+    protected override void OnHandleDestroyed(EventArgs e)
+    {
+        try
+        {
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        }
+        finally
+        {
+            base.OnHandleDestroyed(e);
+        }
+    }
+
+    /// <summary>
+    /// 系統偏好設定變更時同步更新按鈕尺寸、最小尺寸與焦點視覺
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">系統偏好設定事件參數。</param>
     private void SystemEvents_UserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
     {
         try
@@ -544,6 +606,10 @@ internal sealed class PhraseEditDialog : Form
             {
                 this.SafeInvoke(() =>
                 {
+                    UpdateButtonMinimumSizes();
+                    UpdateMinimumSize(forceRecalculate: true);
+                    ApplySmartPosition();
+
                     _btnOk.Invalidate();
                     _btnCancel.Invalidate();
 
@@ -563,7 +629,7 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// A 鍵：按鈕 → PerformClick；輸入框為空時開啟觸控鍵盤；其餘情境走確認驗證。
+    /// A 鍵：按鈕 → PerformClick；輸入框為空時開啟觸控鍵盤；其餘情境走確認驗證
     /// </summary>
     private void HandleGamepadA() => this.SafeInvoke(() =>
     {
@@ -576,15 +642,20 @@ internal sealed class PhraseEditDialog : Form
             }
 
             TextBox? tb = GetActiveTextBox() ?? _txtName;
+
             if (tb != null && string.IsNullOrWhiteSpace(tb.Text))
             {
                 ShowTouchKeyboard(tb);
+
                 return;
             }
 
             HandleConfirm();
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleGamepadA 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleGamepadA 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -595,11 +666,18 @@ internal sealed class PhraseEditDialog : Form
         try
         {
             TextBox? tb = GetActiveTextBox() ?? _txtName;
+
             ShowTouchKeyboard(tb);
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleOpenTouchKeyboardFromGamepad 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleOpenTouchKeyboardFromGamepad 失敗: {ex.Message}");
+        }
     });
 
+    /// <summary>
+    /// 驗證片語名稱與內容，驗證通過時以 OK 關閉對話框
+    /// </summary>
     private void HandleConfirm() => this.SafeInvoke(() =>
     {
         try
@@ -621,23 +699,34 @@ internal sealed class PhraseEditDialog : Form
             }
 
             DialogResult = DialogResult.OK;
+
             Close();
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] Confirm 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] Confirm 失敗: {ex.Message}");
+        }
     });
 
+    /// <summary>
+    /// 以取消結果關閉對話框
+    /// </summary>
     private void HandleCancel() => this.SafeInvoke(() =>
     {
         try
         {
             DialogResult = DialogResult.Cancel;
+
             Close();
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] Cancel 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] Cancel 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
-    /// B 鍵：若焦點在輸入框且有內容則優先清空；否則執行取消。
+    /// B 鍵：若焦點在輸入框且有內容則優先清空；否則執行取消
     /// </summary>
     private void HandleBackOrClear() => this.SafeInvoke(() =>
     {
@@ -650,7 +739,9 @@ internal sealed class PhraseEditDialog : Form
                 if (tb.SelectionLength > 0)
                 {
                     tb.SelectedText = string.Empty;
+
                     _rsSelectionAnchor = null;
+
                     AnnounceA11y(Strings.Msg_InputCleared, interrupt: true);
 
                     FeedbackService.VibrateAsync(
@@ -665,7 +756,9 @@ internal sealed class PhraseEditDialog : Form
                 if (!string.IsNullOrEmpty(tb.Text))
                 {
                     tb.Clear();
+
                     _rsSelectionAnchor = null;
+
                     AnnounceA11y(Strings.Msg_InputCleared, interrupt: true);
 
                     FeedbackService.VibrateAsync(
@@ -754,6 +847,11 @@ internal sealed class PhraseEditDialog : Form
         return null;
     }
 
+    /// <summary>
+    /// 輸入框取得焦點時套用強化焦點視覺
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件參數。</param>
     private void HandleInputBoxEnter(object? sender, EventArgs e)
     {
         try
@@ -769,6 +867,11 @@ internal sealed class PhraseEditDialog : Form
         }
     }
 
+    /// <summary>
+    /// 輸入框失去焦點時還原一般視覺樣式
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件參數。</param>
     private void HandleInputBoxLeave(object? sender, EventArgs e)
     {
         try
@@ -785,7 +888,7 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 套用與主輸入框一致的強視覺焦點樣式（高對比優先，其次主題感知反轉）。
+    /// 套用與主輸入框一致的強視覺焦點樣式（高對比優先，其次主題感知反轉）
     /// </summary>
     private static void ApplyInputBoxStrongVisual(TextBox tb)
     {
@@ -816,6 +919,10 @@ internal sealed class PhraseEditDialog : Form
         }
     }
 
+    /// <summary>
+    /// 還原輸入框為系統預設背景與前景色
+    /// </summary>
+    /// <param name="tb">目標輸入框。</param>
     private static void ResetInputBoxVisual(TextBox tb)
     {
         if (tb.IsDisposed)
@@ -827,6 +934,11 @@ internal sealed class PhraseEditDialog : Form
         tb.ForeColor = Color.Empty;
     }
 
+    /// <summary>
+    /// 針對驗證失敗的輸入框提供焦點、音效、震動與視覺提示
+    /// </summary>
+    /// <param name="target">驗證失敗的輸入框。</param>
+    /// <param name="message">要播報的錯誤訊息。</param>
     private void NotifyValidationFailure(TextBox target, string message)
     {
         if (target.CanFocus && !target.Focused)
@@ -847,6 +959,11 @@ internal sealed class PhraseEditDialog : Form
         FlashValidationCueAsync(target).SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 暫時閃爍輸入框以提供驗證失敗的視覺提示
+    /// </summary>
+    /// <param name="target">要閃爍提示的輸入框。</param>
+    /// <returns>非同步作業。</returns>
     private async Task FlashValidationCueAsync(TextBox target)
     {
         if (target.IsDisposed ||
@@ -1002,6 +1119,12 @@ internal sealed class PhraseEditDialog : Form
         }
     }
 
+    /// <summary>
+    /// 從資源檔取得片語文字，若失敗則回傳後備文字
+    /// </summary>
+    /// <param name="key">資源鍵值。</param>
+    /// <param name="fallback">找不到資源時使用的後備文字。</param>
+    /// <returns>資源文字或後備文字。</returns>
     private static string GetPhraseTextOrFallback(string key, string fallback)
     {
         try
@@ -1022,11 +1145,16 @@ internal sealed class PhraseEditDialog : Form
         try
         {
             TextBox? tb = GetActiveTextBox();
-            if (tb == null) return;
+
+            if (tb == null)
+            {
+                return;
+            }
 
             bool hasSelection = tb.SelectionLength > 0;
 
-            if (hasSelection || tb.SelectionStart > 0)
+            if (hasSelection ||
+                tb.SelectionStart > 0)
             {
                 if (hasSelection)
                 {
@@ -1060,7 +1188,10 @@ internal sealed class PhraseEditDialog : Form
                     .SafeFireAndForget();
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleLeft 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleLeft 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1071,7 +1202,11 @@ internal sealed class PhraseEditDialog : Form
         try
         {
             TextBox? tb = GetActiveTextBox();
-            if (tb == null) return;
+
+            if (tb == null)
+            {
+                return;
+            }
 
             bool hasSelection = tb.SelectionLength > 0;
 
@@ -1110,7 +1245,10 @@ internal sealed class PhraseEditDialog : Form
                     .SafeFireAndForget();
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleRight 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleRight 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1143,7 +1281,10 @@ internal sealed class PhraseEditDialog : Form
                 _cts?.Token ?? CancellationToken.None)
                 .SafeFireAndForget();
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleFieldPrev 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleFieldPrev 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1176,7 +1317,10 @@ internal sealed class PhraseEditDialog : Form
                 _cts?.Token ?? CancellationToken.None)
                 .SafeFireAndForget();
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleFieldNext 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleFieldNext 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1187,7 +1331,12 @@ internal sealed class PhraseEditDialog : Form
         try
         {
             TextBox? tb = GetActiveTextBox();
-            if (tb == null || tb.ReadOnly) return;
+
+            if (tb == null ||
+                tb.ReadOnly)
+            {
+                return;
+            }
 
             if (tb.SelectionLength > 0)
             {
@@ -1211,7 +1360,10 @@ internal sealed class PhraseEditDialog : Form
                     .SafeFireAndForget();
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleBackspace 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleBackspace 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1223,7 +1375,10 @@ internal sealed class PhraseEditDialog : Form
         {
             ExpandSelection(-1);
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleRSLeft 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleRSLeft 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1235,7 +1390,10 @@ internal sealed class PhraseEditDialog : Form
         {
             ExpandSelection(1);
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleRSRight 失敗: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] HandleRSRight 失敗: {ex.Message}");
+        }
     });
 
     /// <summary>
@@ -1246,10 +1404,15 @@ internal sealed class PhraseEditDialog : Form
         try
         {
             TextBox? tb = GetActiveTextBox();
-            if (tb == null) return;
+
+            if (tb == null)
+            {
+                return;
+            }
 
             // 在游標位置附近顯示內建右鍵選單。
             Point caretPos = tb.GetPositionFromCharIndex(tb.SelectionStart);
+
             tb.ContextMenuStrip?.Show(tb, caretPos);
 
             // TextBox 沒有 ContextMenuStrip 時，透過模擬 Shift+F10 觸發原生選單。
@@ -1258,57 +1421,10 @@ internal sealed class PhraseEditDialog : Form
                 User32.SendMessage(tb.Handle, 0x007B, tb.Handle, unchecked((nint)0xFFFFFFFF));
             }
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleOpenContextMenu 失敗: {ex.Message}"); }
-    });
-
-    /// <summary>
-    /// LT：在按鈕之間向左導覽（OK ← Cancel），若在 TextBox 則跳至按鈕區
-    /// </summary>
-    private void HandleLTNav() => this.SafeInvoke(() =>
-    {
-        try
+        catch (Exception ex)
         {
-            if (_btnCancel.Focused)
-            {
-                _btnOk.Focus();
-            }
-            else
-            {
-                _btnOk.Focus();
-            }
-
-            FeedbackService.VibrateAsync(
-                _gamepadController,
-                VibrationPatterns.CursorMove,
-                _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
+            Debug.WriteLine($"[片語編輯] HandleOpenContextMenu 失敗: {ex.Message}");
         }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleLTNav 失敗: {ex.Message}"); }
-    });
-
-    /// <summary>
-    /// RT：在按鈕之間向右導覽（OK → Cancel），若在 TextBox 則跳至按鈕區
-    /// </summary>
-    private void HandleRTNav() => this.SafeInvoke(() =>
-    {
-        try
-        {
-            if (_btnOk.Focused)
-            {
-                _btnCancel.Focus();
-            }
-            else
-            {
-                _btnCancel.Focus();
-            }
-
-            FeedbackService.VibrateAsync(
-                _gamepadController,
-                VibrationPatterns.CursorMove,
-                _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
-        }
-        catch (Exception ex) { Debug.WriteLine($"[片語編輯] HandleRTNav 失敗: {ex.Message}"); }
     });
 
     /// <summary>
@@ -1317,7 +1433,11 @@ internal sealed class PhraseEditDialog : Form
     private void ExpandSelection(int direction)
     {
         TextBox? tb = GetActiveTextBox();
-        if (tb == null) return;
+
+        if (tb == null)
+        {
+            return;
+        }
 
         if (tb.SelectionLength == 0 ||
             _rsSelectionAnchor == null ||
@@ -1327,14 +1447,13 @@ internal sealed class PhraseEditDialog : Form
             _rsSelectionAnchor = tb.SelectionStart;
         }
 
-        int anchor = _rsSelectionAnchor.Value;
+        int anchor = _rsSelectionAnchor.Value,
+            caret = (tb.SelectionStart == anchor) ?
+                (anchor + tb.SelectionLength) :
+                tb.SelectionStart;
 
-        int caret = (tb.SelectionStart == anchor)
-            ? (anchor + tb.SelectionLength)
-            : tb.SelectionStart;
-
-        int safeDirection = Math.Sign(direction);
-        int newCaret = Math.Clamp(caret + safeDirection, 0, tb.TextLength);
+        int safeDirection = Math.Sign(direction),
+            newCaret = Math.Clamp(caret + safeDirection, 0, tb.TextLength);
 
         if (newCaret == caret)
         {
@@ -1357,6 +1476,10 @@ internal sealed class PhraseEditDialog : Form
             .SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 控制器重新連線後恢復輪詢狀態。
+    /// </summary>
+    /// <param name="connected">新的控制器連線狀態。</param>
     private void HandleConnectionChanged(bool connected)
     {
         try
@@ -1372,6 +1495,9 @@ internal sealed class PhraseEditDialog : Form
         }
     }
 
+    /// <summary>
+    /// 解除目前片語編輯對話框所綁定的控制器事件
+    /// </summary>
     private void UnsubscribeGamepadEvents()
     {
         try
@@ -1394,7 +1520,6 @@ internal sealed class PhraseEditDialog : Form
                 _gamepadController.RSLeftRepeat -= HandleRSLeft;
                 _gamepadController.RSRightPressed -= HandleRSRight;
                 _gamepadController.RSRightRepeat -= HandleRSRight;
-                // LT/RT bindings removed: no unsubscription required here
                 _gamepadController.ConnectionChanged -= HandleConnectionChanged;
             }
         }
@@ -1415,6 +1540,11 @@ internal sealed class PhraseEditDialog : Form
         UpdateSingleButtonMinimumSize(_btnCancel, scale);
     }
 
+    /// <summary>
+    /// 更新單一按鈕的最小尺寸，避免焦點加粗造成版面抖動
+    /// </summary>
+    /// <param name="btn">目標按鈕。</param>
+    /// <param name="scale">目前 DPI 縮放比例。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateSingleButtonMinimumSize(Button btn, float scale)
     {
@@ -1422,17 +1552,9 @@ internal sealed class PhraseEditDialog : Form
         {
             if (btn.IsDisposed) return;
 
-            btn.MinimumSize = Size.Empty;
-
             Font boldFont = _boldFont ?? MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
-            Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
 
-            int wcagMin = (int)(44 * scale);
-
-            int minW = Math.Max(wcagMin, boldTextSize.Width + (int)(24 * scale)),
-                minH = Math.Max(wcagMin, boldTextSize.Height + (int)(16 * scale));
-
-            btn.MinimumSize = new Size(minW, minH);
+            DialogLayoutHelper.UpdateButtonMinimumSize(btn, boldFont, scale, 44, 44, 24, 16);
         }
         catch (Exception ex)
         {
@@ -1468,7 +1590,7 @@ internal sealed class PhraseEditDialog : Form
             }
         }
 
-        // 本地備援。
+        // 本地備援
         long currentId = Interlocked.Increment(ref _a11yDebounceId);
 
         Task.Run(async () =>
@@ -1499,18 +1621,16 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 依 DPI 更新最小尺寸，讓片語名稱/內容輸入框有更充足的可視範圍。
+    /// 依 DPI 更新最小尺寸，讓片語名稱／內容輸入框有更充足的可視範圍
     /// </summary>
-    private void UpdateMinimumSize()
+    private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         float currentDpi = DeviceDpi;
 
-        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        if (!DialogLayoutHelper.TryBeginDpiLayout(currentDpi, ref _lastAppliedDpi, forceRecalculate))
         {
             return;
         }
-
-        _lastAppliedDpi = currentDpi;
 
         float scale = currentDpi / AppSettings.BaseDpi;
 
@@ -1519,64 +1639,28 @@ internal sealed class PhraseEditDialog : Form
         Rectangle workArea = Screen.GetWorkingArea(this);
 
         // 小尺寸螢幕保護：保留 40px 邊界，避免高縮放下最小尺寸超出可視區。
-        int maxFitWidth = Math.Max(1, workArea.Width - 40),
-            maxFitHeight = Math.Max(1, workArea.Height - 40),
+        (int maxFitWidth, int maxFitHeight) = DialogLayoutHelper.GetMaxFitSize(workArea);
+
+        int
             // 正常情況至少保留 320px 的可編輯寬度；若工作區本身更窄，則以工作區上限為準。
             minWidth = maxFitWidth >= 320 ?
                 Math.Clamp(desiredMinWidth, 320, maxFitWidth) :
                 maxFitWidth;
 
-        // 高度基準：加入非客戶區（標題列＋邊框）保護，防止極端 DPI 下視窗超出工作區。
-        int nonClientH = Height - ClientSize.Height;
-
-        if (nonClientH <= 0)
-        {
-            nonClientH = SystemInformation.CaptionHeight +
-                SystemInformation.FrameBorderSize.Height * 2;
-        }
-
         int desiredMinHeight = (int)(300 * scale),
             minH = Math.Min(desiredMinHeight, maxFitHeight);
 
-        MinimumSize = new Size(minWidth, minH);
-
-        if (Width < minWidth ||
-            Height < minH ||
-            Width > maxFitWidth ||
-            Height > maxFitHeight)
-        {
-            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
-            int finalMaxW = Math.Max(minWidth, maxFitWidth),
-                finalMaxH = Math.Max(minH, maxFitHeight);
-
-            Size = new Size(
-                Math.Clamp(Width, minWidth, finalMaxW),
-                Math.Clamp(Height, minH, finalMaxH));
-
-            ApplySmartPosition();
-        }
+        DialogLayoutHelper.ClampFormSize(this, minWidth, minH, maxFitWidth, maxFitHeight, ApplySmartPosition);
     }
 
     /// <summary>
-    /// 保持對話框位於目前螢幕可視範圍內。
+    /// 保持對話框位於目前螢幕可視範圍內
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated ||
-            IsDisposed)
+        if (InputBoxLayoutManager.TryGetClampedLocation(this, out Point clampedLocation))
         {
-            return;
-        }
-
-        Rectangle workArea = Screen.GetWorkingArea(this);
-
-        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width)),
-            y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
-
-        if (x != Left ||
-            y != Top)
-        {
-            Location = new Point(x, y);
+            Location = clampedLocation;
         }
     }
 }

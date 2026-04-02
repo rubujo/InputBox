@@ -1,7 +1,13 @@
 ###############################################################################
-# Set default behavior to automatically normalize line endings.
+# Set default behavior to automatically normalize line endings to CRLF.
 ###############################################################################
-* text=auto
+* text=auto eol=crlf
+
+###############################################################################
+# Explicit text rules for project files.
+###############################################################################
+*.cs text eol=crlf
+*.resx text eol=crlf
 
 ###############################################################################
 # Set default behavior for command prompt diff.

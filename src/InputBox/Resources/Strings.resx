@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -779,8 +779,6 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Esc	Clear input / Return to previous window (if empty)
 Enter	Copy to clipboard and return (or open OSK)
 Alt + A	Same as Enter
-Alt + C	Same as Esc (Clear input)
-Alt + X	Same as Alt + B
 Shift + Enter	Insert a new line
 F1	Open this Help dialog
 ↑ / ↓	Navigate history

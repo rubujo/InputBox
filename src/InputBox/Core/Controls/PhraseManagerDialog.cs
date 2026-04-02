@@ -1,8 +1,9 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -566,6 +567,10 @@ internal sealed class PhraseManagerDialog : Form
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
+    /// <summary>
+    /// 關閉片語管理對話框時解除事件訂閱並釋放暫用資源。
+    /// </summary>
+    /// <param name="e">表單關閉事件參數。</param>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         try
@@ -585,6 +590,22 @@ internal sealed class PhraseManagerDialog : Form
         }
 
         base.OnFormClosing(e);
+    }
+
+    /// <summary>
+    /// Handle 銷毀時解除靜態系統事件訂閱，避免遺留參考。
+    /// </summary>
+    /// <param name="e">控制項事件參數。</param>
+    protected override void OnHandleDestroyed(EventArgs e)
+    {
+        try
+        {
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        }
+        finally
+        {
+            base.OnHandleDestroyed(e);
+        }
     }
 
     #region 清單操作
@@ -923,6 +944,9 @@ internal sealed class PhraseManagerDialog : Form
 
     #region 控制器事件處理
 
+    /// <summary>
+    /// 控制器向上輸入時在清單項目或按鈕焦點之間移動。
+    /// </summary>
     private void HandleUp() => this.SafeInvoke(() =>
     {
         try
@@ -955,6 +979,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器向下輸入時在清單項目或按鈕焦點之間移動。
+    /// </summary>
     private void HandleDown() => this.SafeInvoke(() =>
     {
         try
@@ -988,6 +1015,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器 A 鍵依目前焦點執行按鈕、插入片語或新增片語。
+    /// </summary>
     private void HandleGamepadA() => this.SafeInvoke(() =>
     {
         try
@@ -1014,6 +1044,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器取消動作時關閉片語管理對話框。
+    /// </summary>
     private void HandleClose() => this.SafeInvoke(() =>
     {
         try
@@ -1026,6 +1059,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器刪除動作時移除目前選取的片語。
+    /// </summary>
     private void HandleDelete() => this.SafeInvoke(() =>
     {
         try
@@ -1038,6 +1074,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器新增動作時開啟片語建立流程。
+    /// </summary>
     private void HandleAdd() => this.SafeInvoke(() =>
     {
         try
@@ -1050,6 +1089,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器左向輸入時回到清單或將片語上移。
+    /// </summary>
     private void HandleMoveUp() => this.SafeInvoke(() =>
     {
         try
@@ -1090,6 +1132,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     });
 
+    /// <summary>
+    /// 控制器右向輸入時進入按鈕區或將片語下移。
+    /// </summary>
     private void HandleMoveDown() => this.SafeInvoke(() =>
     {
         try
@@ -1193,6 +1238,11 @@ internal sealed class PhraseManagerDialog : Form
             .SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 嘗試找出目前在按鈕區取得焦點的按鈕。
+    /// </summary>
+    /// <param name="focusedBtn">輸出的焦點按鈕。</param>
+    /// <returns>若找到焦點按鈕則回傳 true。</returns>
     private bool TryGetFocusedButton(out Button? focusedBtn)
     {
         if (_btnClose.Focused ||
@@ -1219,8 +1269,15 @@ internal sealed class PhraseManagerDialog : Form
         return false;
     }
 
+    /// <summary>
+    /// 判斷目前焦點是否位於按鈕區。
+    /// </summary>
+    /// <returns>若按鈕區有焦點則回傳 true。</returns>
     private bool IsButtonAreaFocused() => TryGetFocusedButton(out _);
 
+    /// <summary>
+    /// 將焦點移至第一個可用動作按鈕，否則移至關閉按鈕。
+    /// </summary>
     private void FocusFirstActionButtonOrClose()
     {
         foreach (Control ctrl in _flpButtons.Controls)
@@ -1258,6 +1315,10 @@ internal sealed class PhraseManagerDialog : Form
         }
     }
 
+    /// <summary>
+    /// 控制器連線狀態變更時更新恢復狀態並播報結果。
+    /// </summary>
+    /// <param name="connected">新的控制器連線狀態。</param>
     private void HandleGamepadConnectionChanged(bool connected)
     {
         try
@@ -1277,6 +1338,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     }
 
+    /// <summary>
+    /// 訂閱片語管理對話框使用的控制器事件。
+    /// </summary>
     private void SubscribeGamepadEvents()
     {
         try
@@ -1306,6 +1370,9 @@ internal sealed class PhraseManagerDialog : Form
         }
     }
 
+    /// <summary>
+    /// 解除片語管理對話框使用的控制器事件。
+    /// </summary>
     private void UnsubscribeGamepadEvents()
     {
         try
@@ -1433,19 +1500,9 @@ internal sealed class PhraseManagerDialog : Form
             {
                 return;
             }
-
-            btn.MinimumSize = Size.Empty;
-
             Font boldFont = _boldFont ?? MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
 
-            Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
-
-            // WCAG 2.5.5 AAA：44×44 邏輯像素最小觸控目標。
-            int wcagMin = (int)(44 * scale),
-                minW = Math.Max(wcagMin, boldTextSize.Width + (int)(24 * scale)),
-                minH = Math.Max(wcagMin, boldTextSize.Height + (int)(16 * scale));
-
-            btn.MinimumSize = new Size(minW, minH);
+            DialogLayoutHelper.UpdateButtonMinimumSize(btn, boldFont, scale, 44, 44, 24, 16);
         }
         catch (Exception ex)
         {
@@ -1456,29 +1513,21 @@ internal sealed class PhraseManagerDialog : Form
     /// <summary>
     /// 更新最小尺寸（依按鈕面板實際內容高度動態計算）
     /// </summary>
-    private void UpdateMinimumSize()
+    private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         float currentDpi = DeviceDpi;
 
-        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        if (!DialogLayoutHelper.TryBeginDpiLayout(currentDpi, ref _lastAppliedDpi, forceRecalculate))
         {
             return;
         }
-
-        _lastAppliedDpi = currentDpi;
 
         float scale = currentDpi / AppSettings.BaseDpi;
 
         // 加上非客戶區（標題列＋邊框）高度，MinimumSize 是外框尺寸。
         // OnHandleCreated 時 Height == ClientSize.Height（非客戶區尚未就緒），
         // 故以 SystemInformation 估算作為最低保底值。
-        int nonClientH = Height - ClientSize.Height;
-
-        if (nonClientH <= 0)
-        {
-            nonClientH = SystemInformation.CaptionHeight +
-                SystemInformation.FrameBorderSize.Height * 2;
-        }
+        int nonClientH = DialogLayoutHelper.GetEstimatedNonClientHeight(this);
 
         // 以主版面實際偏好尺寸作為基準，避免最後一顆按鈕在 row 0 被裁切。
         _tlpMain.PerformLayout();
@@ -1494,27 +1543,12 @@ internal sealed class PhraseManagerDialog : Form
 
         Rectangle workArea = Screen.GetWorkingArea(this);
 
-        int maxFitW = Math.Max(1, workArea.Width - 40),
-            maxFitH = Math.Max(1, workArea.Height - 40);
+        (int maxFitW, int maxFitH) = DialogLayoutHelper.GetMaxFitSize(workArea);
 
         minW = Math.Min(minW, maxFitW);
         minH = Math.Min(minH, maxFitH);
 
-        MinimumSize = new Size(minW, minH);
-
-        if (Width < minW ||
-            Height < minH ||
-            Width > maxFitW ||
-            Height > maxFitH)
-        {
-            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
-            int finalMaxW = Math.Max(minW, maxFitW),
-                finalMaxH = Math.Max(minH, maxFitH);
-
-            Size = new Size(
-                Math.Clamp(Width, minW, finalMaxW),
-                Math.Clamp(Height, minH, finalMaxH));
-        }
+        DialogLayoutHelper.ClampFormSize(this, minW, minH, maxFitW, maxFitH);
     }
 
     /// <summary>
@@ -1537,20 +1571,9 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated ||
-            IsDisposed)
+        if (InputBoxLayoutManager.TryGetClampedLocation(this, out Point clampedLocation))
         {
-            return;
-        }
-
-        Rectangle workArea = Screen.GetWorkingArea(this);
-
-        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width)),
-            y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
-
-        if (x != Left || y != Top)
-        {
-            Location = new Point(x, y);
+            Location = clampedLocation;
         }
     }
 
@@ -1567,6 +1590,11 @@ internal sealed class PhraseManagerDialog : Form
         _btnClose.Invalidate();
     }
 
+    /// <summary>
+    /// 系統偏好設定變更時同步更新尺寸、定位與按鈕視覺。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">系統偏好設定事件參數。</param>
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
         try
@@ -1579,7 +1607,8 @@ internal sealed class PhraseManagerDialog : Form
                 {
                     try
                     {
-                        UpdateMinimumSize();
+                        UpdateButtonMinimumSizes();
+                        UpdateMinimumSize(forceRecalculate: true);
                         ApplySmartPosition();
                         InvalidateAllButtons();
                     }

@@ -1,12 +1,12 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Input;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 
 namespace InputBox.Core.Controls;
 
@@ -101,10 +101,14 @@ internal sealed class HelpDialog : Form
             RowCount = 4
         };
         _tlpContent.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // keyboard heading
-        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // keyboard table
-        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad heading
-        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // gamepad table
+        // keyboard heading。
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        // keyboard table。
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        // gamepad heading。
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        // gamepad table。
+        _tlpContent.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         // 鍵盤快速鍵區段。
         Label lblKeyboardHeading = CreateSectionHeading(Strings.Help_Section_Keyboard);
@@ -662,16 +666,14 @@ internal sealed class HelpDialog : Form
     /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸
     /// 確保捲動條只在真正需要時出現，且關閉按鈕永遠可見
     /// </summary>
-    private void UpdateMinimumSize()
+    private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         float currentDpi = DeviceDpi;
 
-        if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+        if (!DialogLayoutHelper.TryBeginDpiLayout(currentDpi, ref _lastAppliedDpi, forceRecalculate))
         {
             return;
         }
-
-        _lastAppliedDpi = currentDpi;
 
         Rectangle workArea = Screen.GetWorkingArea(this);
 
@@ -696,8 +698,10 @@ internal sealed class HelpDialog : Form
 
         int desiredMinWidth = (int)(BaseDialogMinWidth * scale);
 
+        (int maxFitWidth, _) = DialogLayoutHelper.GetMaxFitSize(workArea);
+
         formW = Math.Max(formW, desiredMinWidth);
-        formW = Math.Min(formW, workArea.Width - 40);
+        formW = Math.Min(formW, maxFitWidth);
 
         // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
         // 上限設為可用高度的 45%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）開啟 OSK 時仍能完整顯示。
@@ -734,24 +738,17 @@ internal sealed class HelpDialog : Form
     /// </summary>
     private void ApplySmartPosition()
     {
-        if (!IsHandleCreated ||
-            IsDisposed)
+        if (InputBoxLayoutManager.TryGetClampedLocation(this, out Point clampedLocation))
         {
-            return;
-        }
-
-        Rectangle workArea = Screen.GetWorkingArea(this);
-
-        int x = Math.Max(workArea.Left, Math.Min(Left, workArea.Right - Width)),
-            y = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
-
-        if (x != Left ||
-            y != Top)
-        {
-            Location = new Point(x, y);
+            Location = clampedLocation;
         }
     }
 
+    /// <summary>
+    /// 系統偏好設定變更時重新量測按鈕、頁尾與對話框尺寸
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">系統偏好設定事件參數。</param>
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
         try
@@ -766,7 +763,7 @@ internal sealed class HelpDialog : Form
                     {
                         UpdateButtonMinimumSize();
                         UpdateFooterHeight();
-                        UpdateMinimumSize();
+                        UpdateMinimumSize(forceRecalculate: true);
                         ApplySmartPosition();
 
                         _btnClose.Invalidate();
@@ -851,7 +848,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 控制器 LS 下／D-pad 下：向下捲動內容面板（行捲動）。
+    /// 控制器 LS 下／D-pad 下：向下捲動內容面板（行捲動）
     /// </summary>
     private void OnGamepadScrollDown()
     {
@@ -965,10 +962,9 @@ internal sealed class HelpDialog : Form
         int maxW = (int)Math.Ceiling(Math.Max(regularSize.Width, boldSize.Width)) +
                 _btnClose.Padding.Horizontal + 12,
             maxH = (int)Math.Ceiling(Math.Max(regularSize.Height, boldSize.Height)) +
-                _btnClose.Padding.Vertical + 6;
-
-        // 強制套用 WCAG 2.5.5 AAA 觸控目標尺寸下限（44×44 邏輯像素，隨 DPI 等比縮放）。
-        int a11yMin = (int)Math.Ceiling(44.0 * DeviceDpi / AppSettings.BaseDpi);
+                _btnClose.Padding.Vertical + 6,
+            // 強制套用 WCAG 2.5.5 AAA 觸控目標尺寸下限（44×44 邏輯像素，隨 DPI 等比縮放）。
+            a11yMin = (int)Math.Ceiling(44.0 * DeviceDpi / AppSettings.BaseDpi);
 
         maxW = Math.Max(maxW, a11yMin);
         maxH = Math.Max(maxH, a11yMin);

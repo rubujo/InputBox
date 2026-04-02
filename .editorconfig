@@ -1,6 +1,16 @@
 # 如果要從更高的目錄繼承 .editorconfig 設定，請移除以下行
 root = true
 
+# 所有文字檔預設
+[*]
+charset = utf-8
+end_of_line = crlf
+
+# RESX 資源檔
+[*.resx]
+charset = utf-8-bom
+end_of_line = crlf
+
 # C# 檔案
 [*.cs]
 
@@ -14,6 +24,7 @@ tab_width = 4
 # 新行喜好設定
 end_of_line = crlf
 insert_final_newline = false
+charset = utf-8-bom
 
 #### .NET 程式碼動作 ####
 

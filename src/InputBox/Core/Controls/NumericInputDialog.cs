@@ -1,9 +1,10 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -1267,7 +1268,9 @@ internal sealed class NumericInputDialog : Form
             return;
         }
 
-        if (Owner is MainForm mainForm)
+        MainForm? mainForm = GetOwnerMainForm();
+
+        if (mainForm != null)
         {
             mainForm.AnnounceA11y(message, interrupt);
         }
@@ -1303,6 +1306,12 @@ internal sealed class NumericInputDialog : Form
             .SafeFireAndForget();
         }
     }
+
+    /// <summary>
+    /// 取得目前對話框所屬的主視窗
+    /// </summary>
+    /// <returns>若 Owner 為 <see cref="MainForm"/> 則回傳該實例，否則為 null。</returns>
+    private MainForm? GetOwnerMainForm() => Owner as MainForm;
 
     /// <summary>
     /// 更新控制項焦點狀態的視覺表現
@@ -1447,12 +1456,10 @@ internal sealed class NumericInputDialog : Form
         {
             float currentDpi = DeviceDpi;
 
-            if (Math.Abs(_lastAppliedDpi - currentDpi) < 0.01f)
+            if (!DialogLayoutHelper.TryBeginDpiLayout(currentDpi, ref _lastAppliedDpi))
             {
                 return;
             }
-
-            _lastAppliedDpi = currentDpi;
 
             float scale = currentDpi / AppSettings.BaseDpi;
 
@@ -1475,12 +1482,11 @@ internal sealed class NumericInputDialog : Form
             // 計算邊框與標題列所需的額外空間（比照 HelpDialog.cs）。
             int frameW = SystemInformation.FrameBorderSize.Width * 2,
                 frameH = SystemInformation.FrameBorderSize.Height * 2,
-                captionH = SystemInformation.CaptionHeight;
-
-            // 視窗寬度：內容寬度 + 表單 Padding + 框架。
-            int formW = contentPref.Width + Padding.Horizontal + frameW + 8,
+                captionH = SystemInformation.CaptionHeight,
+                // 視窗寬度：內容寬度 + 表單 Padding + 框架。
+                formW = contentPref.Width + Padding.Horizontal + frameW + 8,
                 desiredMinWidth = (int)(450 * scale),
-                maxFitW = Math.Max(1, workArea.Width - 40);
+                maxFitW = DialogLayoutHelper.GetMaxFitSize(workArea).MaxFitWidth;
 
             formW = Math.Clamp(formW, desiredMinWidth, maxFitW);
 
@@ -1527,20 +1533,11 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            // 重置 MinimumSize 以便重新測量。
-            btn.MinimumSize = Size.Empty;
-
             // 取得專屬於此視窗 DPI 的 Bold 字體實例。
             Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, btn.Font.FontFamily);
 
             // 眼動儀友善：抗抖動寬度鎖定（Anti-Jitter Lock）。
-            // 使用 TextRenderer 預先測量 Bold 狀態下的文字寬度，並將其鎖定為 MinimumSize。
-            Size boldTextSize = TextRenderer.MeasureText(btn.Text, boldFont);
-
-            int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),
-                baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
-
-            btn.MinimumSize = new Size(baseMinWidth, baseMinHeight);
+            DialogLayoutHelper.UpdateButtonMinimumSize(btn, boldFont, scale, 120, 60, 32, 24);
         }
         catch (Exception ex)
         {
@@ -1567,54 +1564,12 @@ internal sealed class NumericInputDialog : Form
                 // 強制同步最新的實體佈局尺寸（關鍵：確保 Width／Height 是縮放後的真實值）。
                 PerformLayout();
 
-                // 以對話框中心點所在的螢幕為準。
-                Screen screen = Screen.FromControl(this);
-
-                Rectangle workArea = screen.WorkingArea;
-
-                int newX = Location.X,
-                    newY = Location.Y;
-
-                bool adjusted = false;
-
-                // 檢查右邊界。
-                if (newX + Width > workArea.Right)
+                if (InputBoxLayoutManager.TryGetClampedLocation(this, out Point clampedLocation))
                 {
-                    newX = workArea.Right - Width;
-
-                    adjusted = true;
-                }
-
-                // 檢查左邊界。
-                if (newX < workArea.Left)
-                {
-                    newX = workArea.Left;
-
-                    adjusted = true;
-                }
-
-                // 檢查下邊界。
-                if (newY + Height > workArea.Bottom)
-                {
-                    newY = workArea.Bottom - Height;
-
-                    adjusted = true;
-                }
-
-                // 檢查上邊界。
-                if (newY < workArea.Top)
-                {
-                    newY = workArea.Top;
-
-                    adjusted = true;
-                }
-
-                if (adjusted)
-                {
-                    Location = new Point(newX, newY);
+                    Location = clampedLocation;
 
                     // 告知使用者視窗已修正位置。
-                    (Owner as MainForm)?.AnnounceA11y(Strings.A11y_SnapBack);
+                    AnnounceA11y(Strings.A11y_SnapBack);
                 }
             }
             catch (Exception ex)
@@ -2069,10 +2024,9 @@ internal sealed class NumericInputDialog : Form
             try
             {
                 // 協調 LiveRegion：當彈出對話框時，暫時停用主視窗的廣播器 LiveSetting，防止訊息干擾。
-                if (Owner is MainForm mainForm)
-                {
-                    mainForm.SetA11yLiveSetting(AutomationLiveSetting.Off);
-                }
+                MainForm? mainForm = GetOwnerMainForm();
+
+                mainForm?.SetA11yLiveSetting(AutomationLiveSetting.Off);
 
                 // 強化 Context 播報：包含提示文字、目前值與有效範圍。
                 string contextMessage = $"{lblPrompt.Text} {string.Format(Strings.A11y_Value_Range_Desc, Value, minimum, maximum)}";
@@ -2171,16 +2125,15 @@ internal sealed class NumericInputDialog : Form
         {
             try
             {
-                if (Owner is MainForm mainForm)
-                {
-                    mainForm.SetA11yLiveSetting(AutomationLiveSetting.Polite);
-                }
+                MainForm? mainForm = GetOwnerMainForm();
+
+                mainForm?.SetA11yLiveSetting(AutomationLiveSetting.Polite);
 
                 UnsubscribeGamepadEvents();
 
                 if (DialogResult == DialogResult.Cancel)
                 {
-                    (Owner as MainForm)?.AnnounceA11y(Strings.A11y_Cancelled);
+                    AnnounceA11y(Strings.A11y_Cancelled);
                 }
             }
             catch (Exception ex)

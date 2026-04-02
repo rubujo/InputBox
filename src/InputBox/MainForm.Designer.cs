@@ -1,4 +1,4 @@
-namespace InputBox;
+﻿namespace InputBox;
 
 partial class MainForm
 {

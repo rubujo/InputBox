@@ -515,22 +515,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
 
             // 處理右搖桿虛擬按键偵測（使用 Hysteresis 邏輯以對抗漂移）。
-            int thresholdLeft = _rsRepeatDirection == -1 ?
-                    config.ThumbDeadzoneExit :
-                    config.ThumbDeadzoneEnter,
-                thresholdRight = _rsRepeatDirection == 1 ?
-                    config.ThumbDeadzoneExit :
-                    config.ThumbDeadzoneEnter,
-                currentRsDir = 0;
-
-            if (currentState.Gamepad.ThumbRightX < -thresholdLeft)
-            {
-                currentRsDir = -1;
-            }
-            else if (currentState.Gamepad.ThumbRightX > thresholdRight)
-            {
-                currentRsDir = 1;
-            }
+            int currentRsDir = GamepadDeadzoneHysteresis.ResolveDirection(
+                currentState.Gamepad.ThumbRightX,
+                _rsRepeatDirection == -1,
+                _rsRepeatDirection == 1,
+                config.ThumbDeadzoneEnter,
+                config.ThumbDeadzoneExit);
 
             // 偵測正緣觸發（使用「進入本區塊前」的舊方向進行比對）。
             if (currentRsDir == -1 &&
@@ -598,13 +588,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
             if (XInput.XInputGetState(i, out XInput.XInputState state) == 0)
             {
                 // 若其他控制器有明顯動作（按下按鈕、扳機超過閾值、搖桿超過活動閾值）。
-                if (state.Gamepad.Buttons != 0 ||
-                    state.Gamepad.LeftTrigger > AppSettings.XInputTriggerThreshold ||
-                    state.Gamepad.RightTrigger > AppSettings.XInputTriggerThreshold ||
-                    Math.Abs(state.Gamepad.ThumbLeftX) > AppSettings.XInputActiveThumbstickThreshold ||
-                    Math.Abs(state.Gamepad.ThumbLeftY) > AppSettings.XInputActiveThumbstickThreshold ||
-                    Math.Abs(state.Gamepad.ThumbRightX) > AppSettings.XInputActiveThumbstickThreshold ||
-                    Math.Abs(state.Gamepad.ThumbRightY) > AppSettings.XInputActiveThumbstickThreshold)
+                if (GamepadSignalEvaluator.IsActive(
+                    state.Gamepad.Buttons != 0,
+                    state.Gamepad.LeftTrigger,
+                    state.Gamepad.RightTrigger,
+                    state.Gamepad.ThumbLeftX,
+                    state.Gamepad.ThumbLeftY,
+                    state.Gamepad.ThumbRightX,
+                    state.Gamepad.ThumbRightY,
+                    AppSettings.XInputTriggerThreshold,
+                    AppSettings.XInputActiveThumbstickThreshold))
                 {
                     // 重置原本的按鍵狀態，避免按住的按鍵殘留。
                     ResetHoldStates();
@@ -640,85 +633,49 @@ internal sealed partial class XInputGamepadController : IGamepadController
             state.Has(XInput.GamepadButton.DpadDown) ? XInput.GamepadButton.DpadDown :
             null;
 
-        if (gbCurrentDirection is null)
+        if (GamepadRepeatStateMachine.AdvanceDirectionRepeat(
+                gbCurrentDirection,
+                ref _repeatDirection,
+                ref _repeatCounter,
+                ref _currentRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
         {
-            _repeatCounter = 0;
-            _repeatDirection = null;
-            _currentRepeatInterval = 0;
-        }
-        else if (_repeatDirection != gbCurrentDirection)
-        {
-            _repeatCounter = 0;
-            _repeatDirection = gbCurrentDirection;
-
-            // 初始觸發後，設定第一次連發所需的固定延遲。
-            _currentRepeatInterval = config.RepeatInitialDelayFrames;
-        }
-        else
-        {
-            _repeatCounter++;
-
-            // 當達到目前動態計算的閾值時觸發。
-            if (_repeatCounter >= _currentRepeatInterval)
+            if (gbCurrentDirection == XInput.GamepadButton.DpadLeft)
             {
-                if (gbCurrentDirection == XInput.GamepadButton.DpadLeft)
-                {
-                    LeftRepeat?.Invoke();
-                }
-                else if (gbCurrentDirection == XInput.GamepadButton.DpadRight)
-                {
-                    RightRepeat?.Invoke();
-                }
-                else if (gbCurrentDirection == XInput.GamepadButton.DpadUp)
-                {
-                    UpRepeat?.Invoke();
-                }
-                else if (gbCurrentDirection == XInput.GamepadButton.DpadDown)
-                {
-                    DownRepeat?.Invoke();
-                }
-
-                // 觸發後，重置計數器並設定下一次連發的固定間隔。
-                _repeatCounter = 0;
-
-                // 設定為重複間隔模式。
-                _currentRepeatInterval = config.RepeatIntervalFrames;
+                LeftRepeat?.Invoke();
+            }
+            else if (gbCurrentDirection == XInput.GamepadButton.DpadRight)
+            {
+                RightRepeat?.Invoke();
+            }
+            else if (gbCurrentDirection == XInput.GamepadButton.DpadUp)
+            {
+                UpRepeat?.Invoke();
+            }
+            else if (gbCurrentDirection == XInput.GamepadButton.DpadDown)
+            {
+                DownRepeat?.Invoke();
             }
         }
 
         // 處理右搖桿（RS）重複輸入。
         int rsDir = _rsRepeatDirection;
 
-        if (rsDir == 0)
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                rsDir != 0,
+                ref _rsRepeatCounter,
+                ref _currentRSRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
         {
-            _rsRepeatCounter = 0;
-            _currentRSRepeatInterval = 0;
-        }
-        else
-        {
-            if (_rsRepeatCounter == 0 &&
-                _currentRSRepeatInterval == 0)
+            if (rsDir == -1)
             {
-                // 第一次進入連發判定，設定初始固定延遲。
-                _currentRSRepeatInterval = config.RepeatInitialDelayFrames;
+                RSLeftRepeat?.Invoke();
             }
-
-            _rsRepeatCounter++;
-
-            if (_rsRepeatCounter >= _currentRSRepeatInterval)
+            else if (rsDir == 1)
             {
-                if (rsDir == -1)
-                {
-                    RSLeftRepeat?.Invoke();
-                }
-                else if (rsDir == 1)
-                {
-                    RSRightRepeat?.Invoke();
-                }
-
-                // 重置並設定下一個固定間隔。
-                _rsRepeatCounter = 0;
-                _currentRSRepeatInterval = config.RepeatIntervalFrames;
+                RSRightRepeat?.Invoke();
             }
         }
     }
@@ -800,33 +757,37 @@ internal sealed partial class XInputGamepadController : IGamepadController
             wasUp = previousState.Has(XInput.GamepadButton.DpadUp),
             wasDown = previousState.Has(XInput.GamepadButton.DpadDown);
 
-        // 決定閾值：
-        // - 如果原本是 ON，使用較低的 Exit 閾值（讓它更容易保持 ON，不容易斷）。
-        // - 如果原本是 OFF，使用較高的 Enter 閾值（需要推得夠深才觸發）。
-        int thresholdLeft = wasLeft ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
-            thresholdRight = wasRight ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
-            thresholdUp = wasUp ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter,
-            thresholdDown = wasDown ? config.ThumbDeadzoneExit : config.ThumbDeadzoneEnter;
+        int horizontalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
+            currentState.Gamepad.ThumbLeftX,
+            wasLeft,
+            wasRight,
+            config.ThumbDeadzoneEnter,
+            config.ThumbDeadzoneExit);
 
-        // 處理 X 軸（左右）。
-        if (currentState.Gamepad.ThumbLeftX < -thresholdLeft)
+        if (horizontalDirection < 0)
         {
             // 搖桿向左 -> 視為按下 D-Pad Left。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadLeft;
         }
-        else if (currentState.Gamepad.ThumbLeftX > thresholdRight)
+        else if (horizontalDirection > 0)
         {
             // 搖桿向右 -> 視為按下 D-Pad Right。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadRight;
         }
 
-        // 處理 Y 軸（上下）。
-        if (currentState.Gamepad.ThumbLeftY < -thresholdDown)
+        int verticalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
+            currentState.Gamepad.ThumbLeftY,
+            wasDown,
+            wasUp,
+            config.ThumbDeadzoneEnter,
+            config.ThumbDeadzoneExit);
+
+        if (verticalDirection < 0)
         {
             // 搖桿向下 -> 視為按下 D-Pad Down。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadDown;
         }
-        else if (currentState.Gamepad.ThumbLeftY > thresholdUp)
+        else if (verticalDirection > 0)
         {
             // 搖桿向上 -> 視為按下 D-Pad Up。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadUp;

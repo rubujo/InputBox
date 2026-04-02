@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
