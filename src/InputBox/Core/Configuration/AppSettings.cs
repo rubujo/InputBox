@@ -787,9 +787,9 @@ public class AppSettings
                     File.Delete(strTempPath);
                 }
             }
-            catch
+            catch (Exception cleanupEx)
             {
-                // 忽略清理錯誤。
+                Debug.WriteLine($"暫存檔清理失敗，已忽略：{cleanupEx.Message}");
             }
         }
     }

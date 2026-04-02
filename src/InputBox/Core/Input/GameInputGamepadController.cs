@@ -500,6 +500,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "GameInput 註冊 ReadingCallback 失敗");
+
                 Debug.WriteLine($"GameInput 註冊 ReadingCallback 失敗：{ex.Message}");
             }
         }
@@ -553,6 +555,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "GameInput 在背景執行緒初始化失敗");
+
             Debug.WriteLine($"GameInput 在背景執行緒初始化失敗：{ex.Message}");
 
             // 若系統不支援，通知 CreateAsync 丟出例外以觸發退避邏輯
@@ -852,6 +856,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "GameInput 裝置狀態更新發生錯誤");
+
                     Debug.WriteLine($"[GameInput] 裝置狀態更新發生錯誤，嘗試清理：{ex.Message}");
 
                     // 確保即使發生例外，COM 物件的釋放也不會被延遲。
@@ -907,6 +913,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "GameInput 加入新裝置時發生錯誤");
+
                     Debug.WriteLine($"[GameInput] 加入新裝置時發生錯誤，已釋放：{ex.Message}");
                     newDev.Dispose();
                 }

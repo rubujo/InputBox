@@ -497,6 +497,8 @@ public partial class MainForm
         {
             // 捕捉所有異常，包括 ExternalException 和其他可能的錯誤。
 
+            LoggerService.LogException(ex, "PerformCopyAsync 剪貼簿操作失敗");
+
             FeedbackService.PlaySound(SystemSounds.Hand);
 
             await VibrateAsync(VibrationPatterns.ActionFail);

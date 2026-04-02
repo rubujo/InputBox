@@ -67,6 +67,8 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "控制器系統初始化失敗");
+
             Debug.WriteLine($"[控制器] 控制器系統初始化失敗：{ex.Message}");
 
             AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
@@ -612,6 +614,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "HandleControllerConnectionChanged 處理失敗");
+
                 Debug.WriteLine($"[控制器] ConnectionChanged 處理失敗：{ex.Message}");
             }
         });

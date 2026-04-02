@@ -226,6 +226,8 @@ internal sealed class PhraseManagerDialog : Form
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "PhraseManagerDialog.SelectedIndexChanged 失敗");
+
                 Debug.WriteLine($"[片語] SelectedIndexChanged 失敗：{ex.Message}");
             }
         };
@@ -237,6 +239,8 @@ internal sealed class PhraseManagerDialog : Form
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "PhraseManagerDialog.DoubleClick 失敗");
+
                 Debug.WriteLine($"[片語] DoubleClick 失敗：{ex.Message}");
             }
         };
@@ -261,6 +265,8 @@ internal sealed class PhraseManagerDialog : Form
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "PhraseManagerDialog.KeyDown 失敗");
+
                 Debug.WriteLine($"[片語] KeyDown 失敗：{ex.Message}");
             }
         };
@@ -268,7 +274,7 @@ internal sealed class PhraseManagerDialog : Form
         _tlpMain.Controls.Add(_lstPhrases, 0, 0);
         _tlpMain.SetRowSpan(_lstPhrases, 1);
 
-        // 右側按鈕列（Grouping）：補齊 Name/Description/Role，與其他對話框一致。
+        // 右側按鈕列（Grouping）：補齊 Name／Description／Role，與其他對話框一致。
         _flpButtons = new FlowLayoutPanel()
         {
             FlowDirection = FlowDirection.TopDown,
@@ -286,40 +292,80 @@ internal sealed class PhraseManagerDialog : Form
         _btnAdd.TabIndex = 1;
         _btnAdd.Click += (s, e) =>
         {
-            try { AddPhrase(); }
-            catch (Exception ex) { Debug.WriteLine($"[片語] Add 失敗：{ex.Message}"); }
+            try
+            {
+                AddPhrase();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "PhraseManagerDialog.AddPhrase 失敗");
+
+                Debug.WriteLine($"[片語] Add 失敗：{ex.Message}");
+            }
         };
 
         _btnEdit = CreateActionButton(Strings.Phrase_Btn_Edit, Strings.Phrase_A11y_Btn_Edit_Desc, 'E');
         _btnEdit.TabIndex = 2;
         _btnEdit.Click += (s, e) =>
         {
-            try { EditSelectedPhrase(); }
-            catch (Exception ex) { Debug.WriteLine($"[片語] Edit 失敗：{ex.Message}"); }
+            try
+            {
+                EditSelectedPhrase();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "PhraseManagerDialog.EditSelectedPhrase 失敗");
+
+                Debug.WriteLine($"[片語] Edit 失敗：{ex.Message}");
+            }
         };
 
         _btnDelete = CreateActionButton(Strings.Phrase_Btn_Delete, Strings.Phrase_A11y_Btn_Delete_Desc, 'X');
         _btnDelete.TabIndex = 3;
         _btnDelete.Click += (s, e) =>
         {
-            try { DeleteSelectedPhrase(); }
-            catch (Exception ex) { Debug.WriteLine($"[片語] Delete 失敗：{ex.Message}"); }
+            try
+            {
+                DeleteSelectedPhrase();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "PhraseManagerDialog.DeleteSelectedPhrase 失敗");
+
+                Debug.WriteLine($"[片語] Delete 失敗：{ex.Message}");
+            }
         };
 
         _btnMoveUp = CreateActionButton(Strings.Phrase_Btn_MoveUp, Strings.Phrase_A11y_Btn_MoveUp_Desc, 'U');
         _btnMoveUp.TabIndex = 4;
         _btnMoveUp.Click += (s, e) =>
         {
-            try { MoveSelectedPhrase(-1); }
-            catch (Exception ex) { Debug.WriteLine($"[片語] MoveUp 失敗：{ex.Message}"); }
+            try
+            {
+                MoveSelectedPhrase(-1);
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "PhraseManagerDialog.MoveUp 失敗");
+
+                Debug.WriteLine($"[片語] MoveUp 失敗：{ex.Message}");
+            }
         };
 
         _btnMoveDown = CreateActionButton(Strings.Phrase_Btn_MoveDown, Strings.Phrase_A11y_Btn_MoveDown_Desc, 'W');
         _btnMoveDown.TabIndex = 5;
         _btnMoveDown.Click += (s, e) =>
         {
-            try { MoveSelectedPhrase(1); }
-            catch (Exception ex) { Debug.WriteLine($"[片語] MoveDown 失敗：{ex.Message}"); }
+            try
+            {
+                MoveSelectedPhrase(1);
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "PhraseManagerDialog.MoveDown 失敗");
+
+                Debug.WriteLine($"[片語] MoveDown 失敗：{ex.Message}");
+            }
         };
 
         _flpButtons.Controls.Add(_btnAdd);
@@ -355,6 +401,8 @@ internal sealed class PhraseManagerDialog : Form
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "PhraseManagerDialog.Close 失敗");
+
                 Debug.WriteLine($"[片語] Close 失敗：{ex.Message}");
             }
         };
@@ -389,7 +437,7 @@ internal sealed class PhraseManagerDialog : Form
 
         UpdatePhraseCountHint();
 
-        // 應用程式焦點切換：暫停/恢復控制器。
+        // 應用程式焦點切換：暫停／恢復控制器。
         Activated += (s, e) =>
         {
             Task.Run(async () =>
@@ -410,6 +458,8 @@ internal sealed class PhraseManagerDialog : Form
                         }
                         catch (Exception ex)
                         {
+                            LoggerService.LogException(ex, "PhraseManagerDialog.Resume 控制器失敗");
+
                             Debug.WriteLine($"[片語] Resume 失敗：{ex.Message}");
                         }
                     });
@@ -446,12 +496,16 @@ internal sealed class PhraseManagerDialog : Form
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "PhraseManagerDialog.Pause 控制器失敗");
+
                         Debug.WriteLine($"[片語] Pause 失敗：{ex.Message}");
                     }
                 });
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "PhraseManagerDialog.Deactivate 失敗");
+
                 Debug.WriteLine($"[片語] Deactivate 失敗：{ex.Message}");
             }
         };
@@ -478,6 +532,8 @@ internal sealed class PhraseManagerDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "PhraseManagerDialog.OnHandleCreated 延遲邏輯失敗");
+
                     Debug.WriteLine($"[片語] OnHandleCreated 延遲邏輯失敗：{ex.Message}");
                 }
             });
@@ -487,6 +543,8 @@ internal sealed class PhraseManagerDialog : Form
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "PhraseManagerDialog.OnHandleCreated 失敗");
+
             Debug.WriteLine($"[片語] OnHandleCreated 失敗：{ex.Message}");
         }
     }
@@ -509,12 +567,16 @@ internal sealed class PhraseManagerDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "PhraseManagerDialog.OnDpiChanged 延遲邏輯失敗");
+
                     Debug.WriteLine($"[片語] OnDpiChanged 失敗：{ex.Message}");
                 }
             });
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "PhraseManagerDialog.OnDpiChanged 失敗");
+
             Debug.WriteLine($"[片語] OnDpiChanged 失敗：{ex.Message}");
         }
     }
@@ -586,6 +648,8 @@ internal sealed class PhraseManagerDialog : Form
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "PhraseManagerDialog.OnFormClosing 失敗");
+
             Debug.WriteLine($"[片語] OnFormClosing 失敗：{ex.Message}");
         }
 
@@ -746,7 +810,7 @@ internal sealed class PhraseManagerDialog : Form
             // 子對話框關閉後重新訂閱控制器事件。
             SubscribeGamepadEvents();
 
-            // 防止 Owner/Child 失焦競態導致控制器殘留在 Pause 狀態。
+            // 防止 Owner／Child 失焦競態導致控制器殘留在 Pause 狀態。
             if (ActiveForm == this)
             {
                 try
@@ -945,7 +1009,7 @@ internal sealed class PhraseManagerDialog : Form
     #region 控制器事件處理
 
     /// <summary>
-    /// 控制器向上輸入時在清單項目或按鈕焦點之間移動。
+    /// 控制器向上輸入時在清單項目或按鈕焦點之間移動
     /// </summary>
     private void HandleUp() => this.SafeInvoke(() =>
     {
@@ -980,7 +1044,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器向下輸入時在清單項目或按鈕焦點之間移動。
+    /// 控制器向下輸入時在清單項目或按鈕焦點之間移動
     /// </summary>
     private void HandleDown() => this.SafeInvoke(() =>
     {
@@ -1016,7 +1080,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器 A 鍵依目前焦點執行按鈕、插入片語或新增片語。
+    /// 控制器 A 鍵依目前焦點執行按鈕、插入片語或新增片語
     /// </summary>
     private void HandleGamepadA() => this.SafeInvoke(() =>
     {
@@ -1045,7 +1109,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器取消動作時關閉片語管理對話框。
+    /// 控制器取消動作時關閉片語管理對話框
     /// </summary>
     private void HandleClose() => this.SafeInvoke(() =>
     {
@@ -1060,7 +1124,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器刪除動作時移除目前選取的片語。
+    /// 控制器刪除動作時移除目前選取的片語
     /// </summary>
     private void HandleDelete() => this.SafeInvoke(() =>
     {
@@ -1075,7 +1139,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器新增動作時開啟片語建立流程。
+    /// 控制器新增動作時開啟片語建立流程
     /// </summary>
     private void HandleAdd() => this.SafeInvoke(() =>
     {
@@ -1090,7 +1154,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器左向輸入時回到清單或將片語上移。
+    /// 控制器左向輸入時回到清單或將片語上移
     /// </summary>
     private void HandleMoveUp() => this.SafeInvoke(() =>
     {
@@ -1133,7 +1197,7 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
-    /// 控制器右向輸入時進入按鈕區或將片語下移。
+    /// 控制器右向輸入時進入按鈕區或將片語下移
     /// </summary>
     private void HandleMoveDown() => this.SafeInvoke(() =>
     {
@@ -1141,7 +1205,7 @@ internal sealed class PhraseManagerDialog : Form
         {
             // 右方向鍵：由清單進入右側按鈕區；若已在按鈕區則向後循環。
             if (_lstPhrases.Focused ||
-            _lstPhrases.ContainsFocus)
+                _lstPhrases.ContainsFocus)
             {
                 FocusFirstActionButtonOrClose();
 
@@ -1239,7 +1303,7 @@ internal sealed class PhraseManagerDialog : Form
     }
 
     /// <summary>
-    /// 嘗試找出目前在按鈕區取得焦點的按鈕。
+    /// 嘗試找出目前在按鈕區取得焦點的按鈕
     /// </summary>
     /// <param name="focusedBtn">輸出的焦點按鈕。</param>
     /// <returns>若找到焦點按鈕則回傳 true。</returns>
@@ -1270,7 +1334,7 @@ internal sealed class PhraseManagerDialog : Form
     }
 
     /// <summary>
-    /// 判斷目前焦點是否位於按鈕區。
+    /// 判斷目前焦點是否位於按鈕區
     /// </summary>
     /// <returns>若按鈕區有焦點則回傳 true。</returns>
     private bool IsButtonAreaFocused() => TryGetFocusedButton(out _);
@@ -1316,7 +1380,7 @@ internal sealed class PhraseManagerDialog : Form
     }
 
     /// <summary>
-    /// 控制器連線狀態變更時更新恢復狀態並播報結果。
+    /// 控制器連線狀態變更時更新恢復狀態並播報結果
     /// </summary>
     /// <param name="connected">新的控制器連線狀態。</param>
     private void HandleGamepadConnectionChanged(bool connected)
@@ -1339,7 +1403,7 @@ internal sealed class PhraseManagerDialog : Form
     }
 
     /// <summary>
-    /// 訂閱片語管理對話框使用的控制器事件。
+    /// 訂閱片語管理對話框使用的控制器事件
     /// </summary>
     private void SubscribeGamepadEvents()
     {
@@ -1371,7 +1435,7 @@ internal sealed class PhraseManagerDialog : Form
     }
 
     /// <summary>
-    /// 解除片語管理對話框使用的控制器事件。
+    /// 解除片語管理對話框使用的控制器事件
     /// </summary>
     private void UnsubscribeGamepadEvents()
     {

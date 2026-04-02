@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using InputBox.Core.Services;
+using System.Diagnostics;
 
 namespace InputBox.Core.Input;
 
@@ -76,6 +77,8 @@ internal sealed class FormInputContext : IInputContext, IDisposable
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "FormInputContext.OnFormStateChanged 處理失敗");
+
             Debug.WriteLine($"[事件] Form 狀態變更處理失敗：{ex.Message}");
         }
     }
@@ -93,6 +96,8 @@ internal sealed class FormInputContext : IInputContext, IDisposable
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "FormInputContext.OnApplicationIdle 處理失敗");
+
             Debug.WriteLine($"[事件] ApplicationIdle處理失敗：{ex.Message}");
         }
     }
@@ -110,6 +115,8 @@ internal sealed class FormInputContext : IInputContext, IDisposable
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "FormInputContext.OnFormClosed 處理失敗");
+
             Debug.WriteLine($"[事件] FormClosed處理失敗：{ex.Message}");
         }
     }
@@ -158,9 +165,9 @@ internal sealed class FormInputContext : IInputContext, IDisposable
             _form.SizeChanged -= OnFormStateChanged;
             _form.FormClosed -= OnFormClosed;
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略解除訂閱時的任何異常（通常發生在 Form 已處置時）。
+            Debug.WriteLine($"表單事件解除訂閱失敗，已忽略：{ex.Message}");
         }
 
         // 解除閒置訂閱。
@@ -170,9 +177,9 @@ internal sealed class FormInputContext : IInputContext, IDisposable
         {
             Application.Idle -= OnApplicationIdle;
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略解除訂閱時的任何異常（通常發生在 App 已經關閉時）。
+            Debug.WriteLine($"閒置事件解除訂閱失敗，已忽略：{ex.Message}");
         }
     }
 }

@@ -259,6 +259,8 @@ internal sealed class HelpDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "HelpDialog.Activated 恢復控制器失敗");
+
                     Debug.WriteLine($"[說明] Activated 恢復控制器失敗：{ex.Message}");
                 }
             },
@@ -291,8 +293,9 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 視窗建立完成後套用字型、填入資料列、計算最小尺寸。
+    /// 視窗建立完成後套用字型、填入資料列、計算最小尺寸
     /// </summary>
+    /// <param name="e">EventArgs</param>
     protected override void OnHandleCreated(EventArgs e)
     {
         try
@@ -321,6 +324,8 @@ internal sealed class HelpDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "HelpDialog.OnHandleCreated 延遲邏輯失敗");
+
                     Debug.WriteLine($"[說明] OnHandleCreated 延遲邏輯失敗：{ex.Message}");
                 }
             });
@@ -331,13 +336,17 @@ internal sealed class HelpDialog : Form
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "HelpDialog.OnHandleCreated 失敗");
+
             Debug.WriteLine($"[說明] OnHandleCreated 失敗：{ex.Message}");
         }
     }
 
+
     /// <summary>
-    /// DPI 變更時重新套用字型並更新最小尺寸。
+    /// DPI 變更時重新套用字型並更新最小尺寸
     /// </summary>
+    /// <param name="e">DpiChangedEventArgs</param>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
         try
@@ -358,19 +367,24 @@ internal sealed class HelpDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "HelpDialog.OnDpiChanged 延遲邏輯失敗");
+
                     Debug.WriteLine($"[說明] OnDpiChanged 延遲邏輯失敗：{ex.Message}");
                 }
             });
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "HelpDialog.OnDpiChanged 失敗");
+
             Debug.WriteLine($"[說明] OnDpiChanged 失敗：{ex.Message}");
         }
     }
 
     /// <summary>
-    /// 視窗顯示後執行智慧定位。
+    /// 視窗顯示後執行智慧定位
     /// </summary>
+    /// <param name="e">EventArgs</param>
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -393,8 +407,9 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 視窗大小改變後重新定位。
+    /// 視窗大小改變後重新定位
     /// </summary>
+    /// <param name="e">EventArgs</param>
     protected override void OnResizeEnd(EventArgs e)
     {
         base.OnResizeEnd(e);
@@ -407,6 +422,9 @@ internal sealed class HelpDialog : Form
     /// PageUp／Down／Home／End 由 OnKeyDown 處理（不受 ProcessDialogKey 干擾）。
     /// F1／Esc 由 <see cref="OnKeyDown"/> 處理。
     /// </summary>
+    /// <param name="msg">Message 結構，包含鍵盤訊息</param>
+    /// <param name="keyData">按鍵資料</param>
+    /// <returns>如果處理了按鍵，返回 true；否則返回 false</returns>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
         const int WM_KEYDOWN = 0x0100;
@@ -602,7 +620,11 @@ internal sealed class HelpDialog : Form
     /// <param name="colHeader">第一欄標題（按鍵／按鈕）</param>
     /// <param name="actionHeader">第二欄標題（功能）</param>
     /// <param name="rowData">Tab 分隔的資料列字串，換行區隔各列</param>
-    private static void PopulateTable(TableLayoutPanel table, string colHeader, string actionHeader, string rowData)
+    private static void PopulateTable(
+        TableLayoutPanel table,
+        string colHeader,
+        string actionHeader,
+        string rowData)
     {
         table.Controls.Clear();
         table.RowStyles.Clear();

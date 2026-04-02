@@ -74,6 +74,8 @@ public partial class MainForm
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "tsmiRestart.Click 失敗");
+
                     Debug.WriteLine($"[選單] tsmiRestart.Click 失敗：{ex.Message}");
                 }
             });
@@ -116,6 +118,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "隱私模式設定變更失敗");
+
                 Debug.WriteLine($"[選單] _tsmiPrivacyMode.CheckedChanged 失敗：{ex.Message}");
             }
         };
@@ -142,6 +146,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "廣播中斷設定變更失敗");
+
                 Debug.WriteLine($"[選單] _tsmiA11yInterrupt.CheckedChanged 失敗：{ex.Message}");
             }
         };
@@ -168,6 +174,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "視覺警示設定變更失敗");
+
                 Debug.WriteLine($"[選單] _tsmiAnimatedVisualAlerts.CheckedChanged 失敗：{ex.Message}");
             }
         };
@@ -324,6 +332,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "擷取主要按鍵失敗");
+
                 Debug.WriteLine($"[選單] tsmiCaptureKey.Click 失敗：{ex.Message}");
             }
         };
@@ -428,6 +438,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "視窗不透明度設定失敗");
+
                 Debug.WriteLine($"[選單] tsmiSetOpacity.Click 失敗：{ex.Message}");
             }
         };
@@ -447,6 +459,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "重設不透明度失敗");
+
                 Debug.WriteLine($"[選單] tsmiResetOpacity.Click 失敗：{ex.Message}");
             }
         };
@@ -503,6 +517,8 @@ public partial class MainForm
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, $"數值設定 [{label}] 失敗");
+
                     Debug.WriteLine($"[選單] {label} 設定失敗：{ex.Message}");
                 }
             };
@@ -564,6 +580,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "重設視窗操作設定失敗");
+
                 Debug.WriteLine($"[選單] tsmiResetWinOps.Click 失敗：{ex.Message}");
             }
         };
@@ -606,6 +624,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "震動啟用設定變更失敗");
+
                 Debug.WriteLine($"[選單] tsmiVibEnable.CheckedChanged 失敗：{ex.Message}");
             }
         };
@@ -646,6 +666,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "震動強度設定失敗");
+
                 Debug.WriteLine($"[選單] tsmiIntensity.Click 失敗：{ex.Message}");
             }
         };
@@ -679,6 +701,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "重設回饋設定失敗");
+
                 Debug.WriteLine($"[選單] tsmiResetFeedback.Click 失敗：{ex.Message}");
             }
         };
@@ -754,6 +778,8 @@ public partial class MainForm
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, $"GameInput Provider [{provider}] 選取失敗");
+
                     Debug.WriteLine($"[選單] {provider} 選取失敗：{ex.Message}");
                 }
             };
@@ -786,6 +812,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "重設 GameInput Provider 失敗");
+
                 Debug.WriteLine($"[選單] tsmiResetProvider.Click 失敗：{ex.Message}");
             }
         };
@@ -869,6 +897,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "重設控制器設定失敗");
+
                 Debug.WriteLine($"[選單] tsmiResetGamepad.Click 失敗：{ex.Message}");
             }
         };
@@ -902,6 +932,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "歷程容量設定失敗");
+
                 Debug.WriteLine($"[選單] tsmiCap.Click 失敗：{ex.Message}");
             }
         };
@@ -1028,6 +1060,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "片語子選單重建失敗");
+
                 Debug.WriteLine($"[選單] _tsmiPhrases.DropDownOpening 失敗：{ex.Message}");
             }
         };
@@ -1317,6 +1351,8 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "最近片語插入失敗");
+
                         Debug.WriteLine($"[選單] 最近片語插入失敗：{ex.Message}");
                     }
                 };
@@ -1427,6 +1463,8 @@ public partial class MainForm
                     }
                     catch (Exception ex)
                     {
+                        LoggerService.LogException(ex, "片語插入失敗");
+
                         Debug.WriteLine($"[選單] 片語插入失敗：{ex.Message}");
                     }
                 };
@@ -1450,6 +1488,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "開啟片語管理對話框失敗");
+
                 Debug.WriteLine($"[選單] tsmiManage.Click 失敗：{ex.Message}");
             }
         };
@@ -1602,6 +1642,8 @@ public partial class MainForm
             }
             catch (Exception ex)
             {
+                LoggerService.LogException(ex, "ReopenPhraseSubMenuAndSelectFirst 失敗");
+
                 Debug.WriteLine($"[選單] ReopenPhraseSubMenuAndSelectFirst 失敗：{ex.Message}");
             }
         });

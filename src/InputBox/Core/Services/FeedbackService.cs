@@ -183,17 +183,17 @@ internal class FeedbackService
                     // XInput 已由上方處理，此處主要針對 GameInput 與其原生 COM。
                     controller.StopVibration();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // 忽略個別控制器的操作失敗。
+                    Debug.WriteLine($"控制器停止震動失敗，已忽略：{ex.Message}");
                 }
             }
 
             ActiveControllers.Clear();
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略緊急清理時的任何錯誤。
+            Debug.WriteLine($"緊急清理發生錯誤，已忽略：{ex.Message}");
         }
     }
 }

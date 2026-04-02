@@ -322,6 +322,8 @@ internal sealed class NumericInputDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "NumericInputDialog.OnHandleCreated 延遲邏輯失敗");
+
                     Debug.WriteLine($"[NumericInputDialog] OnHandleCreated 延遲邏輯失敗：{ex.Message}");
                 }
             });
@@ -332,6 +334,8 @@ internal sealed class NumericInputDialog : Form
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "NumericInputDialog.OnHandleCreated 失敗");
+
             Debug.WriteLine($"[NumericInputDialog] OnHandleCreated 失敗：{ex.Message}");
         }
     }
@@ -380,12 +384,16 @@ internal sealed class NumericInputDialog : Form
                 }
                 catch (Exception ex)
                 {
+                    LoggerService.LogException(ex, "NumericInputDialog.OnDpiChanged 延遲邏輯失敗");
+
                     Debug.WriteLine($"[NumericInputDialog] OnDpiChanged 延遲邏輯失敗：{ex.Message}");
                 }
             });
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "NumericInputDialog.OnDpiChanged 失敗");
+
             Debug.WriteLine($"[NumericInputDialog] OnDpiChanged 失敗：{ex.Message}");
         }
     }
@@ -501,7 +509,6 @@ internal sealed class NumericInputDialog : Form
                 _gamepadController.BackPressed -= HandleCancel;
                 _gamepadController.XPressed -= HandleBackspace;
                 _gamepadController.YPressed -= HandleReset;
-                // LT/RT 綁定已移除（由 D‑Pad 處理游標移動），無需解除訂閱。
                 _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
             }
         }
@@ -531,6 +538,8 @@ internal sealed class NumericInputDialog : Form
         }
         catch (Exception ex)
         {
+            LoggerService.LogException(ex, "NumericInputDialog.HandleGamepadConnectionChanged 失敗");
+
             Debug.WriteLine($"[NumericInputDialog] 控制器連線變更處理失敗：{ex.Message}");
         }
     }

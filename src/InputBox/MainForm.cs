@@ -367,9 +367,9 @@ public partial class MainForm : Form
             {
                 FeedbackService.EmergencyStopAllActiveControllers();
             }
-            catch
+            catch (Exception ex)
             {
-                // 忽略背景清理的任何錯誤。
+                Debug.WriteLine($"背景硬體清理失敗，已忽略：{ex.Message}");
             }
         }).SafeFireAndForget();
 
@@ -380,9 +380,9 @@ public partial class MainForm : Form
 
             gamepad?.Dispose();
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略個別控制器的釋放失敗。
+            Debug.WriteLine($"控制器釋放失敗，已忽略：{ex.Message}");
         }
 
         // 原子性清理其餘權杖資源。
@@ -913,9 +913,9 @@ public partial class MainForm : Form
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 緊急清理路徑，忽略所有錯誤。
+            Debug.WriteLine($"系統事件清理失敗，已忽略：{ex.Message}");
         }
     }
 
