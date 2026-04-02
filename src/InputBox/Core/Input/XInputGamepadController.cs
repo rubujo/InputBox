@@ -89,6 +89,133 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private int _rsRepeatDirection;
 
     /// <summary>
+    /// 狀態未變時的方向維持幀計數（防卡住）
+    /// </summary>
+    private int _directionalStaleFrameCounter;
+
+    /// <summary>
+    /// 狀態有變時的方向幽靈重入幀計數（防抖動復發）
+    /// </summary>
+    private int _directionalGhostFrameCounter;
+
+    /// <summary>
+    /// 是否暫時封鎖左搖桿映射為 D-Pad Right（防重入）
+    /// </summary>
+    private bool _suppressMappedRightFromLeftStick;
+
+    /// <summary>
+    /// 右向映射封鎖解除的中立幀計數
+    /// </summary>
+    private int _mappedRightNeutralFrameCounter;
+
+    /// <summary>
+    /// 右向映射封鎖剩餘冷卻幀數
+    /// </summary>
+    private int _mappedRightSuppressionCooldownFrames;
+
+    /// <summary>
+    /// 左搖桿 X 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _leftStickBiasX;
+
+    /// <summary>
+    /// 左搖桿 Y 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _leftStickBiasY;
+
+    /// <summary>
+    /// 右搖桿 X 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _rightStickBiasX;
+
+#if DEBUG
+    /// <summary>
+    /// D-Pad Right 連發診斷計數
+    /// </summary>
+    private int _dpadRightRepeatDiagnosticCounter;
+
+    /// <summary>
+    /// RS Right 連發診斷計數
+    /// </summary>
+    private int _rsRightRepeatDiagnosticCounter;
+
+    /// <summary>
+    /// 機制健康度診斷計數（節流輸出）
+    /// </summary>
+    private int _mechanismHealthLogCounter;
+
+    /// <summary>
+    /// 機制閒置幀計數（避免短暫空窗造成重新啟動即連續輸出）
+    /// </summary>
+    private int _mechanismIdleFrameCounter;
+
+    /// <summary>
+    /// 上一幀是否處於機制活躍狀態
+    /// </summary>
+    private bool _wasMechanismEngaged;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的 D-Pad 方向
+    /// </summary>
+    private XInput.GamepadButton? _lastHealthDpadDirection;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的右搖桿方向
+    /// </summary>
+    private int _lastHealthRsDirection;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的 stale 活躍狀態
+    /// </summary>
+    private bool _lastHealthStaleActive;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的 ghost 活躍狀態
+    /// </summary>
+    private bool _lastHealthGhostActive;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的映射保護狀態
+    /// </summary>
+    private bool _lastHealthMapGuardActive;
+
+    /// <summary>
+    /// 連發風暴診斷輸出間隔（每 N 次輸出一次）
+    /// </summary>
+    private const int RepeatStormLogInterval = 30;
+
+    /// <summary>
+    /// 機制健康度診斷心跳輸出間隔（每 N 幀輸出一次，約 10 秒）
+    /// </summary>
+    private const int MechanismHealthLogIntervalFrames = 600;
+
+    /// <summary>
+    /// 機制視為真正閒置前的連續幀數（約 2 秒）
+    /// </summary>
+    private const int MechanismIdleResetFrames = 120;
+#endif
+
+    /// <summary>
+    /// 右向映射封鎖解除所需的連續中立幀數
+    /// </summary>
+    private const int MappedDirectionUnsuppressFrames = 6;
+
+    /// <summary>
+    /// 右向映射封鎖最長冷卻幀數（約 200ms）
+    /// </summary>
+    private const int MappedDirectionSuppressCooldownFrames = 12;
+
+    /// <summary>
+    /// 左搖桿偏移更新的平滑係數（越小越穩定）
+    /// </summary>
+    private const float LeftStickBiasSmoothing = 0.05f;
+
+    /// <summary>
+    /// 僅在接近中立時更新偏移，避免把有效操作學成偏移
+    /// </summary>
+    private const int LeftStickBiasLearningThreshold = 9000;
+
+    /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
     /// </summary>
     private const double PollingIntervalMs = 16.6;
@@ -380,8 +507,24 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 嘗試讀取目前控制器狀態（本 Tick 只讀一次）。
         uint result = XInput.XInputGetState(_userIndex, out XInput.XInputState currentState);
 
+        // 保留映射前的原始按鍵位元，避免 anti-stuck 判定被虛擬方向鍵污染。
+        ushort rawButtons = currentState.Gamepad.Buttons;
+
+        UpdateStickBias(
+            currentState.Gamepad.ThumbLeftX,
+            currentState.Gamepad.ThumbLeftY,
+            currentState.Gamepad.ThumbRightX);
+
+        int correctedLeftThumbX = (int)MathF.Round(currentState.Gamepad.ThumbLeftX - _leftStickBiasX),
+            correctedLeftThumbY = (int)MathF.Round(currentState.Gamepad.ThumbLeftY - _leftStickBiasY),
+            correctedRightThumbX = (int)MathF.Round(currentState.Gamepad.ThumbRightX - _rightStickBiasX);
+
+        UpdateMappedRightSuppression(correctedLeftThumbX, config);
+
         if (result != 0)
         {
+            ResetMechanismHealthLogState();
+
             if (_hasPreviousState)
             {
                 _hasPreviousState = false;
@@ -463,8 +606,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
         }
 
-        // 將搖桿訊號合併到按鍵狀態中。
-        ApplyStickToButtons(ref currentState, _previousState, config);
+        // 將搖桿訊號合併到按鍵狀態中（使用偏移校正後的左搖桿）。
+        ApplyStickToButtons(
+            ref currentState,
+            _previousState,
+            config,
+            _suppressMappedRightFromLeftStick,
+            correctedLeftThumbX,
+            correctedLeftThumbY);
 
         // 只有在 Input 啟用時才處理按鍵。
         if (!_context.IsInputActive)
@@ -473,6 +622,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _repeatDirection = null;
             _rsRepeatCounter = 0;
             _rsRepeatDirection = 0;
+            _directionalStaleFrameCounter = 0;
+            _directionalGhostFrameCounter = 0;
+
+            ResetMechanismHealthLogState();
 
             // 非活躍期間仍需更新 _previousState，否則重新啟動後邊緣偵測會以舊狀態比較，
             // 導致幻象按鍵事件（spurious press events）。
@@ -491,6 +644,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 檢查狀態是否改變。
         if (isStateChanged)
         {
+            _directionalStaleFrameCounter = 0;
+
             // 更新一般按鈕的「按住」狀態。
             IsLeftShoulderHeld = currentState.Has(XInput.GamepadButton.LeftShoulder);
             IsRightShoulderHeld = currentState.Has(XInput.GamepadButton.RightShoulder);
@@ -516,7 +671,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             // 處理右搖桿虛擬按键偵測（使用 Hysteresis 邏輯以對抗漂移）。
             int currentRsDir = GamepadDeadzoneHysteresis.ResolveDirection(
-                currentState.Gamepad.ThumbRightX,
+                correctedRightThumbX,
                 _rsRepeatDirection == -1,
                 _rsRepeatDirection == 1,
                 config.ThumbDeadzoneEnter,
@@ -563,11 +718,336 @@ internal sealed partial class XInputGamepadController : IGamepadController
                 RightTriggerPressed?.Invoke();
             }
         }
+        else if (HasActiveDirectionalRepeat())
+        {
+            if (ShouldForceReleaseDirectionalRepeat(
+                rawButtons,
+                correctedLeftThumbX,
+                correctedLeftThumbY,
+                correctedRightThumbX,
+                config))
+            {
+                _directionalStaleFrameCounter++;
+
+                if (_directionalStaleFrameCounter >= AppSettings.GamepadDirectionalStuckGuardFrames)
+                {
+                    LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput staleFrames={_directionalStaleFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection}");
+
+                    ResetDirectionalRepeatState();
+                }
+            }
+            else
+            {
+                _directionalStaleFrameCounter = 0;
+            }
+        }
+        else
+        {
+            _directionalStaleFrameCounter = 0;
+        }
 
         HandleRepeat(currentState, config);
 
+        EvaluateDirectionalGhostState(
+            currentState,
+            rawButtons,
+            correctedLeftThumbX,
+            correctedLeftThumbY,
+            correctedRightThumbX,
+            config);
+
+        EmitMechanismHealthLog(
+            correctedLeftThumbX,
+            correctedLeftThumbY,
+            correctedRightThumbX,
+            config);
+
         _previousState = currentState;
         _hasPreviousState = true;
+    }
+
+    /// <summary>
+    /// 低頻輸出搖桿機制健康度，協助確認 bias／deadzone／hysteresis／repeat 正在生效
+    /// </summary>
+    /// <param name="correctedLeftThumbX">左搖桿 X 軸修正值</param>
+    /// <param name="correctedLeftThumbY">左搖桿 Y 軸修正值</param>
+    /// <param name="correctedRightThumbX">右搖桿 X 軸修正值</param>
+    /// <param name="config">遊戲控制器配置快照</param>
+    private void EmitMechanismHealthLog(
+        int correctedLeftThumbX,
+        int correctedLeftThumbY,
+        int correctedRightThumbX,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+#if DEBUG
+        bool hasSignificantInput =
+                Math.Abs(correctedLeftThumbX) > config.ThumbDeadzoneExit ||
+                Math.Abs(correctedLeftThumbY) > config.ThumbDeadzoneExit ||
+                Math.Abs(correctedRightThumbX) > config.ThumbDeadzoneExit,
+            isEngaged = hasSignificantInput ||
+                _repeatDirection.HasValue ||
+                _rsRepeatDirection != 0 ||
+                _suppressMappedRightFromLeftStick;
+
+        if (!isEngaged)
+        {
+            _mechanismIdleFrameCounter++;
+
+            if (_mechanismIdleFrameCounter >= MechanismIdleResetFrames)
+            {
+                ResetMechanismHealthLogState();
+            }
+
+            return;
+        }
+
+        _mechanismIdleFrameCounter = 0;
+
+        bool staleActive = _directionalStaleFrameCounter > 0,
+            ghostActive = _directionalGhostFrameCounter > 0,
+            stateChanged = _repeatDirection != _lastHealthDpadDirection ||
+                _rsRepeatDirection != _lastHealthRsDirection ||
+                staleActive != _lastHealthStaleActive ||
+                ghostActive != _lastHealthGhostActive ||
+                _suppressMappedRightFromLeftStick != _lastHealthMapGuardActive;
+
+        _mechanismHealthLogCounter++;
+
+        if (!_wasMechanismEngaged ||
+            stateChanged ||
+            _mechanismHealthLogCounter >= MechanismHealthLogIntervalFrames)
+        {
+            LoggerService.LogInfo(
+                $"Gamepad.MechanismHealth source=XInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftThumbX} ly={correctedLeftThumbY} rx={correctedRightThumbX} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter} mapGuard={_suppressMappedRightFromLeftStick}");
+
+            _mechanismHealthLogCounter = 0;
+            _lastHealthDpadDirection = _repeatDirection;
+            _lastHealthRsDirection = _rsRepeatDirection;
+            _lastHealthStaleActive = staleActive;
+            _lastHealthGhostActive = ghostActive;
+            _lastHealthMapGuardActive = _suppressMappedRightFromLeftStick;
+        }
+
+        _wasMechanismEngaged = true;
+#endif
+    }
+
+    /// <summary>
+    /// 重置機制健康度診斷狀態
+    /// </summary>
+    private void ResetMechanismHealthLogState()
+    {
+#if DEBUG
+        _mechanismHealthLogCounter = 0;
+        _mechanismIdleFrameCounter = 0;
+        _wasMechanismEngaged = false;
+        _lastHealthDpadDirection = null;
+        _lastHealthRsDirection = 0;
+        _lastHealthStaleActive = false;
+        _lastHealthGhostActive = false;
+        _lastHealthMapGuardActive = false;
+#endif
+    }
+
+    /// <summary>
+    /// 評估方向幽靈重入狀態：處理「狀態有變化但方向持續誤判」情境
+    /// </summary>
+    /// <param name="state">XInput 狀態快照</param>
+    /// <param name="rawButtons">原始按鍵狀態</param>
+    /// <param name="correctedLeftThumbX">左搖桿 X 軸修正值</param>
+    /// <param name="correctedLeftThumbY">左搖桿 Y 軸修正值</param>
+    /// <param name="correctedRightThumbX">右搖桿 X 軸修正值</param>
+    /// <param name="config">遊戲控制器配置快照</param>
+    private void EvaluateDirectionalGhostState(
+        in XInput.XInputState state,
+        ushort rawButtons,
+        int correctedLeftThumbX,
+        int correctedLeftThumbY,
+        int correctedRightThumbX,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        if (!HasActiveDirectionalRepeat())
+        {
+            _directionalGhostFrameCounter = 0;
+
+            return;
+        }
+
+        if (!ShouldForceReleaseDirectionalRepeat(
+            rawButtons,
+            correctedLeftThumbX,
+            correctedLeftThumbY,
+            correctedRightThumbX,
+            config))
+        {
+            _directionalGhostFrameCounter = 0;
+
+            return;
+        }
+
+        _directionalGhostFrameCounter++;
+
+        if (_directionalGhostFrameCounter < AppSettings.GamepadDirectionalStuckGuardFrames)
+        {
+            return;
+        }
+
+        bool rawDpadRightDown = (((XInput.GamepadButton)rawButtons) & XInput.GamepadButton.DpadRight) != 0;
+
+        int leftThumbX = state.Gamepad.ThumbLeftX,
+            leftThumbY = state.Gamepad.ThumbLeftY,
+            rightThumbX = state.Gamepad.ThumbRightX;
+
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} rawDpadRight={rawDpadRightDown} lx={leftThumbX} ly={leftThumbY} rx={rightThumbX} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)}");
+
+        ResetDirectionalRepeatState();
+    }
+
+    /// <summary>
+    /// 更新右向映射封鎖狀態，避免 anti-stuck 觸發後立即重入
+    /// </summary>
+    /// <param name="correctedThumbLeftX">修正後的左搖桿 X 軸值</param>
+    /// <param name="config">遊戲控制器配置快照</param>
+    private void UpdateMappedRightSuppression(
+        int correctedThumbLeftX,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        if (!_suppressMappedRightFromLeftStick)
+        {
+            return;
+        }
+
+        if (_mappedRightSuppressionCooldownFrames > 0)
+        {
+            _mappedRightSuppressionCooldownFrames--;
+
+            // 冷卻期間一律不放行，避免 anti-stuck 後立即重入。
+            return;
+        }
+
+        if (Math.Abs(correctedThumbLeftX) <= config.ThumbDeadzoneExit)
+        {
+            _mappedRightNeutralFrameCounter++;
+        }
+        else
+        {
+            _mappedRightNeutralFrameCounter = 0;
+        }
+
+        if (_mappedRightNeutralFrameCounter >= MappedDirectionUnsuppressFrames)
+        {
+            _suppressMappedRightFromLeftStick = false;
+            _mappedRightNeutralFrameCounter = 0;
+            _mappedRightSuppressionCooldownFrames = 0;
+
+            LoggerService.LogInfo("Gamepad.MappingGuardReleased source=XInput direction=Right reason=neutral");
+        }
+    }
+
+    /// <summary>
+    /// 以接近中立區段估計搖桿中心偏移，降低固定偏壓造成的方向誤判
+    /// </summary>
+    /// <param name="rawLeftThumbX">原始左搖桿 X 軸值</param>
+    /// <param name="rawLeftThumbY">原始左搖桿 Y 軸值</param>
+    /// <param name="rawRightThumbX">原始右搖桿 X 軸值</param>
+    private void UpdateStickBias(
+        short rawLeftThumbX,
+        short rawLeftThumbY,
+        short rawRightThumbX)
+    {
+        if (Math.Abs((int)rawLeftThumbX) <= LeftStickBiasLearningThreshold)
+        {
+            _leftStickBiasX += (rawLeftThumbX - _leftStickBiasX) * LeftStickBiasSmoothing;
+        }
+
+        if (Math.Abs((int)rawLeftThumbY) <= LeftStickBiasLearningThreshold)
+        {
+            _leftStickBiasY += (rawLeftThumbY - _leftStickBiasY) * LeftStickBiasSmoothing;
+        }
+
+        if (Math.Abs((int)rawRightThumbX) <= LeftStickBiasLearningThreshold)
+        {
+            _rightStickBiasX += (rawRightThumbX - _rightStickBiasX) * LeftStickBiasSmoothing;
+        }
+    }
+
+    /// <summary>
+    /// 是否存在方向連發狀態（D-Pad 或 RS）
+    /// </summary>
+    /// <returns>是否存在方向連發狀態</returns>
+    private bool HasActiveDirectionalRepeat()
+    {
+        return _repeatDirection.HasValue ||
+            _rsRepeatDirection != 0;
+    }
+
+    /// <summary>
+    /// 判斷目前是否符合「疑似已放開但狀態未更新」條件
+    /// </summary>
+    /// <param name="rawButtons">原始按鈕狀態</param>
+    /// <param name="correctedLeftThumbX">修正後的左搖桿 X 軸值</param>
+    /// <param name="correctedLeftThumbY">修正後的左搖桿 Y 軸值</param>
+    /// <param name="correctedRightThumbX">修正後的右搖桿 X 軸值</param>
+    /// <param name="config">遊戲控制器配置快照</param>
+    /// <returns>是否應強制釋放方向連發狀態</returns>
+    private static bool ShouldForceReleaseDirectionalRepeat(
+        ushort rawButtons,
+        int correctedLeftThumbX,
+        int correctedLeftThumbY,
+        int correctedRightThumbX,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        const XInput.GamepadButton directionalFlags =
+            XInput.GamepadButton.DpadLeft |
+            XInput.GamepadButton.DpadRight |
+            XInput.GamepadButton.DpadUp |
+            XInput.GamepadButton.DpadDown;
+
+        if (((XInput.GamepadButton)rawButtons & directionalFlags) != 0)
+        {
+            return false;
+        }
+
+        int softCenterThreshold = Math.Min(
+            config.ThumbDeadzoneEnter,
+            config.ThumbDeadzoneExit + Math.Max(1000, (config.ThumbDeadzoneEnter - config.ThumbDeadzoneExit) / 2));
+
+        bool leftStickNearCenter =
+                Math.Abs(correctedLeftThumbX) <= softCenterThreshold &&
+                Math.Abs(correctedLeftThumbY) <= softCenterThreshold,
+            rightStickNearCenter =
+                Math.Abs(correctedRightThumbX) <= softCenterThreshold;
+
+        return leftStickNearCenter &&
+            rightStickNearCenter;
+    }
+
+    /// <summary>
+    /// 重置方向連發狀態（含 D-Pad 與 RS）
+    /// </summary>
+    private void ResetDirectionalRepeatState()
+    {
+        bool wasDpadRight = _repeatDirection == XInput.GamepadButton.DpadRight;
+
+        _repeatDirection = null;
+        _repeatCounter = 0;
+        _currentRepeatInterval = 0;
+
+        _rsRepeatDirection = 0;
+        _rsRepeatCounter = 0;
+        _currentRSRepeatInterval = 0;
+
+        _directionalStaleFrameCounter = 0;
+        _directionalGhostFrameCounter = 0;
+
+        if (wasDpadRight)
+        {
+            _suppressMappedRightFromLeftStick = true;
+            _mappedRightNeutralFrameCounter = 0;
+            _mappedRightSuppressionCooldownFrames = MappedDirectionSuppressCooldownFrames;
+
+            LoggerService.LogInfo("Gamepad.MappingGuardEnabled source=XInput direction=Right");
+        }
     }
 
     /// <summary>
@@ -625,6 +1105,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
         XInput.XInputState state,
         AppSettings.GamepadConfigSnapshot config)
     {
+#if DEBUG
+        bool emittedDpadRightRepeat = false,
+            emittedRsRightRepeat = false;
+#endif
+
         // 處理 D-Pad 重複輸入。
         XInput.GamepadButton? gbCurrentDirection =
             state.Has(XInput.GamepadButton.DpadLeft) ? XInput.GamepadButton.DpadLeft :
@@ -648,6 +1133,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
             else if (gbCurrentDirection == XInput.GamepadButton.DpadRight)
             {
                 RightRepeat?.Invoke();
+
+#if DEBUG
+                emittedDpadRightRepeat = true;
+#endif
             }
             else if (gbCurrentDirection == XInput.GamepadButton.DpadUp)
             {
@@ -676,8 +1165,42 @@ internal sealed partial class XInputGamepadController : IGamepadController
             else if (rsDir == 1)
             {
                 RSRightRepeat?.Invoke();
+
+#if DEBUG
+                emittedRsRightRepeat = true;
+#endif
             }
         }
+
+#if DEBUG
+        if (emittedDpadRightRepeat)
+        {
+            _dpadRightRepeatDiagnosticCounter++;
+
+            if (_dpadRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            {
+                LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=XInput kind=DPad count={_dpadRightRepeatDiagnosticCounter} dpadDir={_repeatDirection?.ToString() ?? "None"}");
+            }
+        }
+        else if (gbCurrentDirection != XInput.GamepadButton.DpadRight)
+        {
+            _dpadRightRepeatDiagnosticCounter = 0;
+        }
+
+        if (emittedRsRightRepeat)
+        {
+            _rsRightRepeatDiagnosticCounter++;
+
+            if (_rsRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            {
+                LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=XInput kind=RS count={_rsRightRepeatDiagnosticCounter} rsDir={_rsRepeatDirection}");
+            }
+        }
+        else if (rsDir != 1)
+        {
+            _rsRightRepeatDiagnosticCounter = 0;
+        }
+#endif
     }
 
     /// <summary>
@@ -745,10 +1268,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <param name="currentState">目前的 XInput.XInputState</param>
     /// <param name="previousState">前一次的 XInput.XInputState（用於遲滯判斷）</param>
     /// <param name="config">AppSettings.GamepadConfigSnapshot</param>
+    /// <param name="suppressMappedRightFromLeftStick">是否抑制左搖桿映射的右向按鍵</param>
+    /// <param name="correctedLeftThumbX">修正後的左搖桿 X 軸值</param>
+    /// <param name="correctedLeftThumbY">修正後的左搖桿 Y 軸值</param>
     private static void ApplyStickToButtons(
         ref XInput.XInputState currentState,
         XInput.XInputState previousState,
-        AppSettings.GamepadConfigSnapshot config)
+        AppSettings.GamepadConfigSnapshot config,
+        bool suppressMappedRightFromLeftStick,
+        int correctedLeftThumbX,
+        int correctedLeftThumbY)
     {
         // 注意：previousState 包含了上一幀的「實體按鍵」+「虛擬搖桿按鍵」的結果，
         // 這正好符合我們需要的遲滯行為（保持狀態）。
@@ -757,26 +1286,37 @@ internal sealed partial class XInputGamepadController : IGamepadController
             wasUp = previousState.Has(XInput.GamepadButton.DpadUp),
             wasDown = previousState.Has(XInput.GamepadButton.DpadDown);
 
-        int horizontalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
-            currentState.Gamepad.ThumbLeftX,
-            wasLeft,
-            wasRight,
-            config.ThumbDeadzoneEnter,
-            config.ThumbDeadzoneExit);
+        // 右向映射在筆電環境較容易受正偏噪聲影響，
+        // 這裡對「已在右向」時使用更高的退出門檻，避免進入後黏滯在 DPadRight。
+        int rightExitThreshold = Math.Max(
+                config.ThumbDeadzoneExit,
+                (int)(config.ThumbDeadzoneEnter * 0.75f)),
+            thresholdNegative = wasLeft ?
+                config.ThumbDeadzoneExit :
+                config.ThumbDeadzoneEnter,
+            thresholdPositive = wasRight ?
+                rightExitThreshold :
+                config.ThumbDeadzoneEnter,
+            horizontalDirection = correctedLeftThumbX < -thresholdNegative ?
+                -1 :
+                correctedLeftThumbX > thresholdPositive ?
+                    1 :
+                    0;
 
         if (horizontalDirection < 0)
         {
             // 搖桿向左 -> 視為按下 D-Pad Left。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadLeft;
         }
-        else if (horizontalDirection > 0)
+        else if (horizontalDirection > 0 &&
+            !suppressMappedRightFromLeftStick)
         {
             // 搖桿向右 -> 視為按下 D-Pad Right。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadRight;
         }
 
         int verticalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
-            currentState.Gamepad.ThumbLeftY,
+            correctedLeftThumbY,
             wasDown,
             wasUp,
             config.ThumbDeadzoneEnter,

@@ -138,6 +138,103 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private int _rsRepeatDirection; // -1: Left, 1: Right, 0: None
 
     /// <summary>
+    /// 無新輸入狀態時的方向維持幀計數（防卡住）
+    /// </summary>
+    private int _directionalStaleFrameCounter;
+
+    /// <summary>
+    /// 有新輸入狀態時的方向幽靈重入幀計數（防抖動復發）
+    /// </summary>
+    private int _directionalGhostFrameCounter;
+
+    /// <summary>
+    /// 左搖桿 X 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _leftStickBiasX;
+
+    /// <summary>
+    /// 左搖桿 Y 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _leftStickBiasY;
+
+    /// <summary>
+    /// 右搖桿 X 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _rightStickBiasX;
+
+#if DEBUG
+    /// <summary>
+    /// D-Pad Right 連發診斷計數
+    /// </summary>
+    private int _dpadRightRepeatDiagnosticCounter;
+
+    /// <summary>
+    /// RS Right 連發診斷計數
+    /// </summary>
+    private int _rsRightRepeatDiagnosticCounter;
+
+    /// <summary>
+    /// 機制健康度診斷計數（節流輸出）
+    /// </summary>
+    private int _mechanismHealthLogCounter;
+
+    /// <summary>
+    /// 機制閒置幀計數（避免短暫空窗造成重新啟動即連續輸出）
+    /// </summary>
+    private int _mechanismIdleFrameCounter;
+
+    /// <summary>
+    /// 上一幀是否處於機制活躍狀態
+    /// </summary>
+    private bool _wasMechanismEngaged;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的 D-Pad 方向
+    /// </summary>
+    private GameInputGamepadButtons? _lastHealthDpadDirection;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的右搖桿方向
+    /// </summary>
+    private int _lastHealthRsDirection;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的 stale 活躍狀態
+    /// </summary>
+    private bool _lastHealthStaleActive;
+
+    /// <summary>
+    /// 上一次機制健康度輸出的 ghost 活躍狀態
+    /// </summary>
+    private bool _lastHealthGhostActive;
+
+    /// <summary>
+    /// 連發風暴診斷輸出間隔（每 N 次輸出一次）
+    /// </summary>
+    private const int RepeatStormLogInterval = 30;
+
+    /// <summary>
+    /// 機制健康度診斷心跳輸出間隔（每 N 幀輸出一次，約 10 秒）
+    /// </summary>
+    private const int MechanismHealthLogIntervalFrames = 600;
+
+    /// <summary>
+    /// 機制視為真正閒置前的連續幀數（約 2 秒，提高避免 bias 補正波動觸發）
+    /// </summary>
+    private const int MechanismIdleResetFrames = 120;
+#endif
+
+    /// <summary>
+    /// 左搖桿偏移更新的平滑係數（越小越穩定）
+    /// </summary>
+    private const float LeftStickBiasSmoothing = 0.05f;
+
+    /// <summary>
+    /// 僅在接近中立時更新偏移，避免把有效操作學成偏移
+    /// </summary>
+    private const float LeftStickBiasLearningThreshold = 0.28f;
+
+    /// <summary>
     /// 輪詢間隔（毫秒），約 60 FPS
     /// </summary>
     private const double PollingIntervalMs = 16.6;
@@ -677,6 +774,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         if (dev == null)
         {
+            ResetMechanismHealthLogState();
+
             HandleDisconnect();
 
             return;
@@ -709,12 +808,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         if (hasNewState &&
             latestSnapshot != null)
         {
+            _directionalStaleFrameCounter = 0;
+
             // 使用最後一個快照作為本 Tick 的最終狀態。
             _previousState = latestSnapshot;
             _hasPreviousState = true;
 
             // 對齊 Timer Tick 執行連發邏輯。
             HandleRepeat(_previousProcessedButtons, config);
+
+            EvaluateDirectionalGhostState(latestSnapshot, config);
+
+            EmitMechanismHealthLog(latestSnapshot, config);
         }
         else if (_hasPreviousState &&
             _previousState != null)
@@ -733,15 +838,81 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         return;
                     }
                 }
+
+                _directionalGhostFrameCounter = 0;
             }
             else
             {
                 _reconnectCounter = 0;
 
+                if (HasActiveDirectionalRepeat())
+                {
+                    if (ShouldForceReleaseDirectionalRepeat(_previousState, config))
+                    {
+                        _directionalStaleFrameCounter++;
+
+                        if (_directionalStaleFrameCounter >= AppSettings.GamepadDirectionalStuckGuardFrames)
+                        {
+                            LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput staleFrames={_directionalStaleFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection}");
+
+                            ResetDirectionalRepeatState();
+                        }
+                    }
+                    else
+                    {
+                        _directionalStaleFrameCounter = 0;
+                    }
+                }
+                else
+                {
+                    _directionalStaleFrameCounter = 0;
+                }
+
                 // 玩家按住按鍵不放且硬體無新事件時，繼續執行連發計時。
                 HandleRepeat(_previousProcessedButtons, config);
+
+                EvaluateDirectionalGhostState(_previousState, config);
+
+                EmitMechanismHealthLog(_previousState, config);
             }
         }
+        else
+        {
+            ResetMechanismHealthLogState();
+        }
+    }
+
+    /// <summary>
+    /// 評估方向幽靈重入狀態：處理「狀態有變化但方向持續誤判」情境。
+    /// </summary>
+    private void EvaluateDirectionalGhostState(
+        GamepadStateSnapshot state,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        if (!HasActiveDirectionalRepeat())
+        {
+            _directionalGhostFrameCounter = 0;
+
+            return;
+        }
+
+        if (!ShouldForceReleaseDirectionalRepeat(state, config))
+        {
+            _directionalGhostFrameCounter = 0;
+
+            return;
+        }
+
+        _directionalGhostFrameCounter++;
+
+        if (_directionalGhostFrameCounter < AppSettings.GamepadDirectionalStuckGuardFrames)
+        {
+            return;
+        }
+
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.LeftThumbstickX:F4} ly={state.LeftThumbstickY:F4} rx={state.RightThumbstickX:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4}");
+
+        ResetDirectionalRepeatState();
     }
 
     /// <summary>
@@ -755,10 +926,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         GameInputGamepadButtons currentButtons = currentState.Buttons;
 
-        short thumbLX = (short)Math.Clamp(currentState.LeftThumbstickX * 32767f, short.MinValue, short.MaxValue),
-            thumbLY = (short)Math.Clamp(currentState.LeftThumbstickY * 32767f, short.MinValue, short.MaxValue);
+        UpdateStickBias(
+            currentState.LeftThumbstickX,
+            currentState.LeftThumbstickY,
+            currentState.RightThumbstickX);
 
-        ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY, config);
+        short correctedThumbLX = GetCorrectedLeftThumbShort(currentState.LeftThumbstickX, _leftStickBiasX),
+            correctedThumbLY = GetCorrectedLeftThumbShort(currentState.LeftThumbstickY, _leftStickBiasY);
+        float correctedRightThumbX = currentState.RightThumbstickX - _rightStickBiasX;
+
+        ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
 
         if (!_context.IsInputActive)
         {
@@ -772,7 +949,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         // 偵測按下事件。
-        DetectRisingEdge(currentButtons, currentState, config);
+        DetectRisingEdge(currentButtons, currentState, correctedRightThumbX, config);
 
         // 儲存加工後的按鍵狀態，給下一個快照或下一幀比對用。
         _previousProcessedButtons = currentButtons;
@@ -797,6 +974,80 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 rightThumbX: state.RightThumbstickX,
                 rightThumbY: state.RightThumbstickY,
                 threshold: AppSettings.GameInputIdleThreshold);
+    }
+
+    /// <summary>
+    /// 是否存在方向連發狀態（D-Pad 或 RS）
+    /// </summary>
+    private bool HasActiveDirectionalRepeat()
+    {
+        return _repeatDirection.HasValue ||
+            _rsRepeatDirection != 0;
+    }
+
+    /// <summary>
+    /// 判斷目前是否符合「疑似已放開但事件未更新」條件
+    /// </summary>
+    /// <param name="state">目前的遊戲控制器狀態快照</param>
+    /// <param name="config">遊戲控制器設定快照</param>
+    /// <returns>若符合條件，則回傳 true；否則回傳 false。</returns>
+    private bool ShouldForceReleaseDirectionalRepeat(
+        GamepadStateSnapshot state,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        const GameInputGamepadButtons directionalFlags =
+            GameInputGamepadButtons.DPadLeft |
+            GameInputGamepadButtons.DPadRight |
+            GameInputGamepadButtons.DPadUp |
+            GameInputGamepadButtons.DPadDown;
+
+        if ((state.Buttons & directionalFlags) != 0)
+        {
+            return false;
+        }
+
+        float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
+            exitThreshold = config.ThumbDeadzoneExit / 32768f,
+            // 使用介於 Exit 與 Enter 的中間區間作為「近中立」保護門檻，
+            // 避免實際長按方向時被誤判為卡住。
+            softCenterThreshold = MathF.Min(
+                enterThreshold,
+                exitThreshold + MathF.Max(0.02f, (enterThreshold - exitThreshold) * 0.5f)),
+            correctedLeftX = state.LeftThumbstickX - _leftStickBiasX,
+            correctedLeftY = state.LeftThumbstickY - _leftStickBiasY,
+            correctedRightX = state.RightThumbstickX - _rightStickBiasX;
+
+        bool leftStickNearCenter =
+                MathF.Abs(correctedLeftX) <= softCenterThreshold &&
+                MathF.Abs(correctedLeftY) <= softCenterThreshold,
+            rightStickNearCenter =
+                MathF.Abs(correctedRightX) <= softCenterThreshold;
+
+        return leftStickNearCenter &&
+            rightStickNearCenter;
+    }
+
+    /// <summary>
+    /// 重置方向連發狀態（含 D-Pad 與 RS）
+    /// </summary>
+    private void ResetDirectionalRepeatState()
+    {
+        _repeatDirection = null;
+        _repeatCounter = 0;
+        _currentRepeatInterval = 0;
+
+        _rsRepeatDirection = 0;
+        _rsRepeatCounter = 0;
+        _currentRSRepeatInterval = 0;
+
+        _directionalStaleFrameCounter = 0;
+        _directionalGhostFrameCounter = 0;
+
+        _previousProcessedButtons &= ~(
+            GameInputGamepadButtons.DPadLeft |
+            GameInputGamepadButtons.DPadRight |
+            GameInputGamepadButtons.DPadUp |
+            GameInputGamepadButtons.DPadDown);
     }
 
     /// <summary>
@@ -1108,13 +1359,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 GameInputGamepadButtons currentButtons = state.Buttons;
 
-                short thumbLX = (short)Math.Clamp(state.LeftThumbstickX * 32767f, short.MinValue, short.MaxValue),
-                    thumbLY = (short)Math.Clamp(state.LeftThumbstickY * 32767f, short.MinValue, short.MaxValue);
+                UpdateStickBias(state.LeftThumbstickX, state.LeftThumbstickY, state.RightThumbstickX);
+
+                short correctedThumbLX = GetCorrectedLeftThumbShort(state.LeftThumbstickX, _leftStickBiasX),
+                    correctedThumbLY = GetCorrectedLeftThumbShort(state.LeftThumbstickY, _leftStickBiasY);
 
                 // 取得快照以確保初始化時死區校驗一致。
                 AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
-                ApplyStickToButtons(ref currentButtons, thumbLX, thumbLY, config);
+                ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
 
                 _previousProcessedButtons = currentButtons;
 
@@ -1136,6 +1389,121 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _hasPreviousState = false;
         }
 
+    }
+
+    /// <summary>
+    /// 以接近中立區段估計搖桿中心偏移，降低固定偏壓造成的方向誤判
+    /// </summary>
+    /// <param name="rawLeftThumbX">左搖桿 X 軸原始值</param>
+    /// <param name="rawLeftThumbY">左搖桿 Y 軸原始值</param>
+    /// <param name="rawRightThumbX">右搖桿 X 軸原始值</param>
+    private void UpdateStickBias(
+        float rawLeftThumbX,
+        float rawLeftThumbY,
+        float rawRightThumbX)
+    {
+        if (MathF.Abs(rawLeftThumbX) <= LeftStickBiasLearningThreshold)
+        {
+            _leftStickBiasX += (rawLeftThumbX - _leftStickBiasX) * LeftStickBiasSmoothing;
+        }
+
+        if (MathF.Abs(rawLeftThumbY) <= LeftStickBiasLearningThreshold)
+        {
+            _leftStickBiasY += (rawLeftThumbY - _leftStickBiasY) * LeftStickBiasSmoothing;
+        }
+
+        if (MathF.Abs(rawRightThumbX) <= LeftStickBiasLearningThreshold)
+        {
+            _rightStickBiasX += (rawRightThumbX - _rightStickBiasX) * LeftStickBiasSmoothing;
+        }
+    }
+
+    /// <summary>
+    /// 取得偏移校正後的左搖桿軸值（short）。
+    /// </summary>
+    private static short GetCorrectedLeftThumbShort(float rawValue, float bias)
+    {
+        return (short)Math.Clamp((rawValue - bias) * 32767f, short.MinValue, short.MaxValue);
+    }
+
+    /// <summary>
+    /// 低頻輸出搖桿機制健康度，協助確認 bias／deadzone／hysteresis／repeat 正在生效。
+    /// </summary>
+    /// <param name="state">遊戲控制器狀態快照</param>
+    /// <param name="config">遊戲控制器設定快照</param>
+    private void EmitMechanismHealthLog(
+        GamepadStateSnapshot state,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+#if DEBUG
+        float correctedLeftX = state.LeftThumbstickX - _leftStickBiasX,
+            correctedLeftY = state.LeftThumbstickY - _leftStickBiasY,
+            correctedRightX = state.RightThumbstickX - _rightStickBiasX,
+            exitThreshold = config.ThumbDeadzoneExit / 32768f;
+
+        bool hasSignificantInput =
+                MathF.Abs(correctedLeftX) > exitThreshold ||
+                MathF.Abs(correctedLeftY) > exitThreshold ||
+                MathF.Abs(correctedRightX) > exitThreshold,
+            isEngaged = hasSignificantInput ||
+                _repeatDirection.HasValue ||
+                _rsRepeatDirection != 0;
+
+        if (!isEngaged)
+        {
+            _mechanismIdleFrameCounter++;
+
+            if (_mechanismIdleFrameCounter >= MechanismIdleResetFrames)
+            {
+                ResetMechanismHealthLogState();
+            }
+
+            return;
+        }
+
+        _mechanismIdleFrameCounter = 0;
+
+        bool staleActive = _directionalStaleFrameCounter > 0,
+            ghostActive = _directionalGhostFrameCounter > 0,
+            stateChanged = _repeatDirection != _lastHealthDpadDirection ||
+                _rsRepeatDirection != _lastHealthRsDirection ||
+                staleActive != _lastHealthStaleActive ||
+                ghostActive != _lastHealthGhostActive;
+
+        _mechanismHealthLogCounter++;
+
+        if (!_wasMechanismEngaged ||
+            stateChanged ||
+            _mechanismHealthLogCounter >= MechanismHealthLogIntervalFrames)
+        {
+            LoggerService.LogInfo(
+                $"Gamepad.MechanismHealth source=GameInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftX:F4} ly={correctedLeftY:F4} rx={correctedRightX:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter}");
+
+            _mechanismHealthLogCounter = 0;
+            _lastHealthDpadDirection = _repeatDirection;
+            _lastHealthRsDirection = _rsRepeatDirection;
+            _lastHealthStaleActive = staleActive;
+            _lastHealthGhostActive = ghostActive;
+        }
+
+        _wasMechanismEngaged = true;
+#endif
+    }
+
+    /// <summary>
+    /// 重置機制健康度診斷狀態。
+    /// </summary>
+    private void ResetMechanismHealthLogState()
+    {
+#if DEBUG
+        _mechanismHealthLogCounter = 0;
+        _mechanismIdleFrameCounter = 0;
+        _wasMechanismEngaged = false;
+        _lastHealthDpadDirection = null;
+        _lastHealthRsDirection = 0;
+        _lastHealthStaleActive = false;
+        _lastHealthGhostActive = false;
+#endif
     }
 
     /// <summary>
@@ -1198,10 +1566,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="currentButtons">目前的按鈕狀態</param>
     /// <param name="currentState">目前的遊戲控制器狀態快照</param>
+    /// <param name="correctedRightThumbX">修正後的右搖桿 X 軸值</param>
     /// <param name="config">遊戲控制器設定快照</param>
     private void DetectRisingEdge(
         GameInputGamepadButtons currentButtons,
         GamepadStateSnapshot currentState,
+        float correctedRightThumbX,
         AppSettings.GamepadConfigSnapshot config)
     {
         GameInputGamepadButtons prevButtons = _hasPreviousState ?
@@ -1219,7 +1589,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             GameInputGamepadButtons flag,
             Action? action)
         {
-            if (HasFlag(current, flag) && !HasFlag(previous, flag))
+            if (HasFlag(current, flag) &&
+                !HasFlag(previous, flag))
             {
                 action?.Invoke();
             }
@@ -1231,7 +1602,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             GameInputGamepadButtons flag,
             Action? action)
         {
-            if (!HasFlag(current, flag) && HasFlag(previous, flag))
+            if (!HasFlag(current, flag) &&
+                HasFlag(previous, flag))
             {
                 action?.Invoke();
             }
@@ -1259,11 +1631,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Y, YPressed);
 
         // 處理右搖桿（RS）虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
-        float enterThreshold = config.ThumbDeadzoneEnter / 32768f;
-        float exitThreshold = config.ThumbDeadzoneExit / 32768f;
+        float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
+            exitThreshold = config.ThumbDeadzoneExit / 32768f;
 
         int curRsDir = GamepadDeadzoneHysteresis.ResolveDirection(
-                currentState.RightThumbstickX,
+            correctedRightThumbX,
                 _rsRepeatDirection == -1,
                 _rsRepeatDirection == 1,
                 enterThreshold,
@@ -1316,6 +1688,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         GameInputGamepadButtons buttons,
         AppSettings.GamepadConfigSnapshot config)
     {
+#if DEBUG
+        bool emittedDpadRightRepeat = false,
+            emittedRsRightRepeat = false;
+#endif
+
         GameInputGamepadButtons? currentDir =
             buttons.HasFlag(GameInputGamepadButtons.DPadLeft) ? GameInputGamepadButtons.DPadLeft :
             buttons.HasFlag(GameInputGamepadButtons.DPadRight) ? GameInputGamepadButtons.DPadRight :
@@ -1338,6 +1715,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             else if (currentDir == GameInputGamepadButtons.DPadRight)
             {
                 RightRepeat?.Invoke();
+
+#if DEBUG
+                emittedDpadRightRepeat = true;
+#endif
             }
             else if (currentDir == GameInputGamepadButtons.DPadUp)
             {
@@ -1366,8 +1747,42 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             else if (rsDir == 1)
             {
                 RSRightRepeat?.Invoke();
+
+#if DEBUG
+                emittedRsRightRepeat = true;
+#endif
             }
         }
+
+#if DEBUG
+        if (emittedDpadRightRepeat)
+        {
+            _dpadRightRepeatDiagnosticCounter++;
+
+            if (_dpadRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            {
+                LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=GameInput kind=DPad count={_dpadRightRepeatDiagnosticCounter} dpadDir={_repeatDirection?.ToString() ?? "None"}");
+            }
+        }
+        else if (currentDir != GameInputGamepadButtons.DPadRight)
+        {
+            _dpadRightRepeatDiagnosticCounter = 0;
+        }
+
+        if (emittedRsRightRepeat)
+        {
+            _rsRightRepeatDiagnosticCounter++;
+
+            if (_rsRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            {
+                LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=GameInput kind=RS count={_rsRightRepeatDiagnosticCounter} rsDir={_rsRepeatDirection}");
+            }
+        }
+        else if (rsDir != 1)
+        {
+            _rsRightRepeatDiagnosticCounter = 0;
+        }
+#endif
     }
 
     /// <summary>
@@ -1407,6 +1822,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
 
             long token;
+
             CancellationTokenSource newInternalCts = new();
 
             lock (_vibrationLock)

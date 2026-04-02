@@ -180,6 +180,11 @@ public class AppSettings
     /// </summary>
     public const byte XInputTriggerThreshold = 30;
 
+    /// <summary>
+    /// 方向輸入防卡住保護幀數（約 400ms）
+    /// </summary>
+    public const int GamepadDirectionalStuckGuardFrames = 24;
+
     #endregion
 
     #region MainForm 視窗與操作設定
