@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 namespace InputBox;
 
 /// <summary>
-/// 應用程式進入點與全域資源管理。
+/// 應用程式進入點與全域資源管理
 /// </summary>
 /// <remarks>
 /// 螢幕方向（WCAG 1.3.4）：本應用程式為 Windows 桌面軟體，不強制鎖定螢幕方向。
@@ -27,9 +27,24 @@ internal static class Program
     private static Mutex? _mutex;
 
     /// <summary>
+    /// 目前執行個體是否持有主單例 Mutex
+    /// </summary>
+    private static int _ownsMutex = 0;
+
+    /// <summary>
     /// 是否已經執行過全域清理
     /// </summary>
     private static int _isCleanedUp = 0;
+
+    /// <summary>
+    /// Fallback 啟動防護 Mutex（確保同一時間只有一個 fallback 視窗能繼續啟動）
+    /// </summary>
+    private static Mutex? _fallbackGuardMutex;
+
+    /// <summary>
+    /// 目前執行個體是否持有 fallback 防護 Mutex
+    /// </summary>
+    private static int _ownsFallbackGuardMutex = 0;
 
     /// <summary>
     /// The main entry point for the application.
@@ -47,22 +62,65 @@ internal static class Program
                 name: @"Local\InputBox_40A57F4D-4C7E-45FD-9DC7-BE96DC026D66_SingleInstance",
                 out bool createdNew);
 
+            Interlocked.Exchange(ref _ownsMutex, createdNew ? 1 : 0);
+
             if (!createdNew)
             {
+                LoggerService.LogInfo($"SingleInstance.MutexCheck pid={Environment.ProcessId} createdNew={createdNew}");
+
+                bool broughtToFront = false,
+                    fallbackPermitted = false;
+
+                string activationDiagnostic = string.Empty;
+
                 try
                 {
                     // 如果已經有實例在執行，嘗試將其視窗帶到最前方。
                     // 這能解決 VS 偵錯時因殘留進程導致「看起來沒反應」的問題。
-                    BringExistingInstanceToFront();
+                    broughtToFront = BringExistingInstanceToFront(
+                        out activationDiagnostic,
+                        out fallbackPermitted);
+
+                    // 降噪：僅記錄喚醒失敗路徑，避免每次成功喚醒都輸出高頻資訊。
+                    if (!broughtToFront)
+                    {
+                        LoggerService.LogInfo($"SingleInstance.ActivationResult pid={Environment.ProcessId} broughtToFront={broughtToFront} fallbackPermitted={fallbackPermitted} detail={activationDiagnostic}");
+                    }
                 }
                 finally
                 {
                     // 立即釋放不具備所有權的 Mutex 引用（原子化歸零）。
-                    // 隨後直接退出。
                     ReleaseMutex();
                 }
 
-                return;
+                if (broughtToFront)
+                {
+                    // 既有實例已成功喚醒，本次啟動可直接結束。
+                    return;
+                }
+
+                // 收斂策略：若已找到可喚醒視窗但前景切換被系統阻擋，
+                // 則不允許 fallback 啟動新視窗，避免破壞單實例預期。
+                if (!fallbackPermitted)
+                {
+                    LoggerService.LogInfo($"SingleInstance.FallbackSuppressed pid={Environment.ProcessId} reason=foreground_blocked");
+
+                    return;
+                }
+
+                // Fallback 次數防護：確保同一時間只有一個 fallback 實例能繼續啟動。
+                // 若另一個 fallback 進程正在執行中（視窗尚未出現），則靜默中止本次啟動，
+                // 防止快速多次點擊造成多個視窗同時開啟。
+                if (!TryAcquireFallbackGuard())
+                {
+                    LoggerService.LogInfo($"SingleInstance.FallbackBlocked pid={Environment.ProcessId} reason=guard_active");
+
+                    return;
+                }
+
+                // Fallback：若喚醒失敗，避免「直接吞掉啟動」造成使用者無畫面。
+                // 此時允許本次啟動繼續，以確保至少有一個可見視窗。
+                LoggerService.LogInfo($"SingleInstance.FallbackStartNew pid={Environment.ProcessId} reason=no_activatable_window");
             }
         }
         catch (Exception ex)
@@ -129,7 +187,9 @@ internal static class Program
     /// </summary>
     /// <param name="sender">事件來源</param>
     /// <param name="e">事件參數</param>
-    private static void SessionEndingHandler(object? sender, SessionEndingEventArgs e)
+    private static void SessionEndingHandler(
+        object? sender,
+        SessionEndingEventArgs e)
     {
         FeedbackService.EmergencyStopAllActiveControllers();
     }
@@ -195,6 +255,18 @@ internal static class Program
             Debug.WriteLine($"[清理] 釋放 Mutex 時發生例外：{ex.GetType().Name}：{ex.Message}");
         }
 
+        // 釋放 Fallback 啟動防護 Mutex（讓下一次啟動可正常進行 fallback）。
+        try
+        {
+            ReleaseFallbackGuardMutex();
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "PerformFinalCleanup 釋放 FallbackGuard Mutex 時發生例外");
+
+            Debug.WriteLine($"[清理] 釋放 FallbackGuard Mutex 時發生例外：{ex.GetType().Name}：{ex.Message}");
+        }
+
         // 強化 A11y 安全：緊急解除靜態系統事件訂閱（確保視窗關閉時完全脫離 UIA 鏈結），防止進程結束前發生記憶體洩漏。
         try
         {
@@ -209,13 +281,145 @@ internal static class Program
     }
 
     /// <summary>
-    /// 尋找並喚醒現有的應用程式視窗。
+    /// 嘗試取得 Fallback 啟動防護 Mutex，確保同一時間只有一個 fallback 啟動能繼續執行。
     /// </summary>
-    private static void BringExistingInstanceToFront()
+    /// <returns>
+    /// 若成功取得防護（本次為第一個 fallback）則回傳 <see langword="true"/>；
+    /// 若另一個 fallback 進程仍在執行中則回傳 <see langword="false"/>。
+    /// </returns>
+    private static bool TryAcquireFallbackGuard()
+    {
+        try
+        {
+            _fallbackGuardMutex = new Mutex(
+                initiallyOwned: true,
+                name: @"Local\InputBox_40A57F4D-4C7E-45FD-9DC7-BE96DC026D66_FallbackGuard",
+                out bool claimedNew);
+
+            if (claimedNew)
+            {
+                Interlocked.Exchange(ref _ownsFallbackGuardMutex, 1);
+
+                // 成功建立新 Mutex，本次為第一個 fallback。
+                return true;
+            }
+
+            // Mutex 已存在（另一個 fallback 進程持有，或前一個 fallback 進程異常結束而遺留）。
+            // 嘗試以非阻塞方式取得所有權（處理前次崩潰造成的 Abandoned 狀態）。
+            try
+            {
+                bool acquired = _fallbackGuardMutex.WaitOne(0);
+
+                if (acquired)
+                {
+                    Interlocked.Exchange(ref _ownsFallbackGuardMutex, 1);
+
+                    // 前一個 fallback 已結束（或遺棄），本次取得所有權。
+                    return true;
+                }
+            }
+            catch (AbandonedMutexException)
+            {
+                Interlocked.Exchange(ref _ownsFallbackGuardMutex, 1);
+
+                // 前一個 fallback 進程崩潰後遺棄了 Mutex，本次取得所有權。
+                return true;
+            }
+
+            // 另一個 fallback 進程仍在執行中，不允許繼續。
+            Interlocked.Exchange(ref _ownsFallbackGuardMutex, 0);
+
+            _fallbackGuardMutex.Dispose();
+            _fallbackGuardMutex = null;
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Mutex? guard = Interlocked.Exchange(ref _fallbackGuardMutex, null);
+
+            Interlocked.Exchange(ref _ownsFallbackGuardMutex, 0);
+
+            guard?.Dispose();
+
+            LoggerService.LogException(ex, "TryAcquireFallbackGuard 取得防護 Mutex 失敗，允許繼續啟動");
+
+            // Fail open：防護機制失效時允許繼續啟動，避免永久封鎖使用者操作。
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 釋放 Fallback 啟動防護 Mutex（原子化操作）
+    /// </summary>
+    private static void ReleaseFallbackGuardMutex()
+    {
+        Mutex? m = Interlocked.Exchange(ref _fallbackGuardMutex, null);
+
+        bool ownsFallbackGuardMutex = Interlocked.Exchange(ref _ownsFallbackGuardMutex, 0) != 0;
+
+        if (m != null)
+        {
+            try
+            {
+                if (ownsFallbackGuardMutex)
+                {
+                    m.ReleaseMutex();
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // 已釋放則忽略。
+            }
+            catch (ApplicationException)
+            {
+                // 未持有同步物件時可忽略。
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // 不具備所有權時可忽略。
+            }
+            catch (SynchronizationLockException)
+            {
+                // 不具備所有權時可忽略。
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "ReleaseFallbackGuardMutex 發生未預期錯誤");
+
+                Debug.WriteLine($"釋放 FallbackGuard Mutex 時發生錯誤：{ex.Message}");
+            }
+            finally
+            {
+                m.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 尋找並喚醒現有的應用程式視窗
+    /// </summary>
+    /// <param name="diagnostic">診斷資訊</param>
+    /// <param name="fallbackPermitted">是否允許 fallback 啟動新實例</param>
+    /// <returns>是否成功喚醒現有的應用程式視窗</returns>
+    private static bool BringExistingInstanceToFront(
+        out string diagnostic,
+        out bool fallbackPermitted)
     {
         using Process current = Process.GetCurrentProcess();
 
         Process[] processes = Process.GetProcessesByName(current.ProcessName);
+
+        int checkedCandidates = 0,
+            zeroHandleCount = 0,
+            activationAttempts = 0,
+            invalidHandleCount = 0;
+
+        bool foregroundBlocked = false;
+
+        diagnostic = string.Empty;
+
+        fallbackPermitted = false;
 
         try
         {
@@ -229,26 +433,60 @@ internal static class Program
                         continue;
                     }
 
+                    checkedCandidates++;
+
                     nint handle = process.MainWindowHandle;
 
                     if (handle != 0)
                     {
+                        if (!User32.IsWindow(handle))
+                        {
+                            invalidHandleCount++;
+
+                            LoggerService.LogInfo($"SingleInstance.InvalidWindowHandle pid={process.Id} handle={handle}");
+
+                            continue;
+                        }
+
+                        activationAttempts++;
+
                         // 若視窗被最小化，則還原它。
-                        User32.ShowWindow(handle, User32.ShowWindowCommand.Restore);
+                        bool restored = User32.ShowWindow(handle, User32.ShowWindowCommand.Restore),
+                            // 將視窗帶到最前方。
+                            foregrounded = User32.SetForegroundWindow(handle);
 
-                        // 將視窗帶到最前方。
-                        User32.SetForegroundWindow(handle);
+                        if (foregrounded)
+                        {
+                            diagnostic = $"status=activated,targetPid={process.Id},checked={checkedCandidates},zeroHandle={zeroHandleCount},invalidHandle={invalidHandleCount},attempts={activationAttempts},restore={restored},foreground={foregrounded}";
 
-                        // 找到後即可退出列舉。
-                        break;
+                            return true;
+                        }
+
+                        LoggerService.LogInfo($"SingleInstance.ForegroundFailed pid={process.Id} handle={handle} restore={restored} foreground={foregrounded}");
+
+                        foregroundBlocked = true;
+
+                        continue;
                     }
+
+                    zeroHandleCount++;
+
+                    LoggerService.LogInfo($"SingleInstance.CandidateNoMainWindow pid={process.Id}");
                 }
                 catch (Exception ex)
                 {
                     // 忽略單一進程取得資訊失敗（可能正在關閉），繼續搜尋下一個。
+                    LoggerService.LogException(ex, "SingleInstance.EnumerateCandidateFailed");
+
                     Debug.WriteLine($"尋找既有視窗時忽略錯誤：{ex.Message}");
                 }
             }
+
+            fallbackPermitted = !foregroundBlocked && activationAttempts == 0;
+
+            diagnostic = $"status=activation_failed,checked={checkedCandidates},zeroHandle={zeroHandleCount},invalidHandle={invalidHandleCount},attempts={activationAttempts},foregroundBlocked={foregroundBlocked}";
+
+            return false;
         }
         finally
         {
@@ -269,17 +507,26 @@ internal static class Program
         // 使用原子交換確保僅有一個執行緒能執行釋放邏輯，防止 NullReferenceException。
         Mutex? m = Interlocked.Exchange(ref _mutex, null);
 
+        bool ownsMutex = Interlocked.Exchange(ref _ownsMutex, 0) != 0;
+
         if (m != null)
         {
             try
             {
                 // 如果我們擁有 Mutex，則釋放它。
                 // 若進程崩潰導致 Mutex 狀態異常或不具備所有權時呼叫，會拋出例外。
-                m.ReleaseMutex();
+                if (ownsMutex)
+                {
+                    m.ReleaseMutex();
+                }
             }
             catch (ObjectDisposedException)
             {
                 // 已釋放則忽略。
+            }
+            catch (ApplicationException)
+            {
+                // 未持有同步物件時可忽略。
             }
             catch (UnauthorizedAccessException)
             {
