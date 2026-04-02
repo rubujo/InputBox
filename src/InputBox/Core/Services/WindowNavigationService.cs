@@ -2,7 +2,6 @@
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
-using InputBox.Core.Utilities;
 using System.Media;
 
 namespace InputBox.Core.Services;
@@ -87,11 +86,8 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
             }
         }
 
-        // 捕捉設定快照（包含隨機抖動），確保延遲邏輯的一致性與可重複性。
-        // 使用高斯分佈 (Gaussian Distribution) 模擬人類生理反應，降低被 Anti-Cheat 統計學偵測的風險。
-        int baseDelay = AppSettings.Current.WindowSwitchBufferBase,
-            jitterRange = AppSettings.Current.InputJitterRange,
-            totalDelay = HumanoidRandom.NextDelay(baseDelay, jitterRange);
+        // 套用視窗切換前的固定緩衝，確保前一個視窗有足夠時間恢復焦點。
+        int totalDelay = AppSettings.Current.WindowSwitchBufferBase;
 
         try
         {

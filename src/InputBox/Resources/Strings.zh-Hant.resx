@@ -455,10 +455,6 @@
     <value>視窗切換緩衝時間</value>
     <comment>設定項目名稱，指視窗切換時的基礎緩衝時間。</comment>
   </data>
-  <data name="Settings_InputJitterRange" xml:space="preserve">
-    <value>隨機抖動範圍</value>
-    <comment>設定項目名稱，指控制器輸入時的隨機抖動範圍。</comment>
-  </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>歷程記錄容量</value>
     <comment>設定項目名稱，指歷程記錄的筆數限制。</comment>

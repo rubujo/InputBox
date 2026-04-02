@@ -536,13 +536,6 @@ public partial class MainForm
             () => AppSettings.Current.WindowSwitchBufferBase,
             v => AppSettings.Current.WindowSwitchBufferBase = v,
             150, 0, 5000);
-        AddNumericItem(
-            tsmiWinOps,
-            Strings.Settings_InputJitterRange,
-            'J',
-            () => AppSettings.Current.InputJitterRange,
-            v => AppSettings.Current.InputJitterRange = v,
-            50, 0, 1000);
 
         tsmiWinOps.DropDownItems.Add(new ToolStripSeparator());
         ToolStripMenuItem tsmiResetWinOps = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
@@ -558,7 +551,6 @@ public partial class MainForm
                 AppSettings.Current.ClipboardRetryDelay = 20;
                 AppSettings.Current.TouchKeyboardDismissDelay = 300;
                 AppSettings.Current.WindowSwitchBufferBase = 150;
-                AppSettings.Current.InputJitterRange = 50;
                 AppSettings.Save();
 
                 RefreshMenu();
@@ -1166,10 +1158,6 @@ public partial class MainForm
                 else if (label == Strings.Settings_WindowSwitchBufferBase)
                 {
                     fullText = $"{label}: {AppSettings.Current.WindowSwitchBufferBase}";
-                }
-                else if (label == Strings.Settings_InputJitterRange)
-                {
-                    fullText = $"{label}: {AppSettings.Current.InputJitterRange}";
                 }
                 else if (label == Strings.Settings_ThumbDeadzoneEnter)
                 {

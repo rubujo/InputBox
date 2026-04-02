@@ -455,10 +455,6 @@
     <value>ウィンドウ切り替えバッファのベース</value>
     <comment>設定項目の名称。ウィンドウ切り替え時の基礎的なバッファ時間を指します。</comment>
   </data>
-  <data name="Settings_InputJitterRange" xml:space="preserve">
-    <value>入力ジッター範囲</value>
-    <comment>設定項目の名称。パッド入力時のランダムなジッター（ゆらぎ）の範囲を指します。</comment>
-  </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>履歴の保持数</value>
     <comment>設定項目の名称。履歴として保持される入力の最大件数を指します。</comment>

@@ -455,10 +455,6 @@
     <value>窗口切换缓冲基础值</value>
     <comment>设置项目名称，指窗口切换时的基础缓冲时间。</comment>
   </data>
-  <data name="Settings_InputJitterRange" xml:space="preserve">
-    <value>输入随机抖动范围</value>
-    <comment>设置项目名称，指手柄输入时的随机抖动范围。</comment>
-  </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>历史记录容量</value>
     <comment>设置项目名称，指历史记录的条数限制。</comment>

@@ -4,12 +4,10 @@ using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
-using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Media;
-
 
 namespace InputBox;
 
@@ -967,8 +965,7 @@ public partial class MainForm
         Task.Run(async () =>
         {
             // 給予 Windows 系統約 150ms 的緩衝時間來啟動其原生的鍵盤彈出邏輯。
-            // 加入生理抖動（μ=150, σ=22），使行為特徵更接近真人操作。
-            await Task.Delay(HumanoidRandom.NextDelay(150, 45));
+            await Task.Delay(150);
 
             // 如果延遲後鍵盤已經顯示（由系統自動開啟），則我們不需要再介入 Toggle。
             if (TouchKeyboardService.IsVisible())

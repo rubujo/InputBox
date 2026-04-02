@@ -5,7 +5,6 @@ using GameInputDotNet.States;
 using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Services;
-using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -1347,11 +1346,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _repeatCounter = 0;
             _repeatDirection = currentDir;
 
-            // 初始觸發後，計算第一次連發所需的動態延遲。
-            // 採用保守的生理抖動係數（σ=15%），確保對身障人士的操作穩定性。
-            _currentRepeatInterval = HumanoidRandom.NextDelay(
-                config.RepeatInitialDelayFrames,
-                (int)(config.RepeatInitialDelayFrames * 0.3));
+            // 初始觸發後，設定第一次連發所需的固定延遲。
+            _currentRepeatInterval = config.RepeatInitialDelayFrames;
         }
         else
         {
@@ -1377,11 +1373,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     DownRepeat?.Invoke();
                 }
 
-                // 觸發後，重置計數器並重新計算下一次連發的間隔。
+                // 觸發後，重置計數器並設定下一次連發的固定間隔。
                 _repeatCounter = 0;
-                _currentRepeatInterval = HumanoidRandom.NextDelay(
-                    config.RepeatIntervalFrames,
-                    (int)(config.RepeatIntervalFrames * 0.3));
+                _currentRepeatInterval = config.RepeatIntervalFrames;
             }
         }
 
@@ -1397,10 +1391,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             if (_rsRepeatCounter == 0 && _currentRSRepeatInterval == 0)
             {
-                // 第一次進入連發判定，設定初始延遲。
-                _currentRSRepeatInterval = HumanoidRandom.NextDelay(
-                    config.RepeatInitialDelayFrames,
-                    (int)(config.RepeatInitialDelayFrames * 0.3));
+                // 第一次進入連發判定，設定初始固定延遲。
+                _currentRSRepeatInterval = config.RepeatInitialDelayFrames;
             }
 
             _rsRepeatCounter++;
@@ -1416,11 +1408,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     RSRightRepeat?.Invoke();
                 }
 
-                // 重置並計算下一個間隔。
+                // 重置並設定下一個固定間隔。
                 _rsRepeatCounter = 0;
-                _currentRSRepeatInterval = HumanoidRandom.NextDelay(
-                    config.RepeatIntervalFrames,
-                    (int)(config.RepeatIntervalFrames * 0.3));
+                _currentRSRepeatInterval = config.RepeatIntervalFrames;
             }
         }
     }

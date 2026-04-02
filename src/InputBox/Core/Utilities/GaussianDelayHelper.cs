@@ -1,10 +1,10 @@
 namespace InputBox.Core.Utilities;
 
 /// <summary>
-/// 提供符合人類生理特徵的高斯分佈（常態分佈）隨機數產生器。
-/// 用於模擬真實玩家的操作延遲，降低被 Anti-Cheat 統計學偵測的風險。
+/// 提供基於高斯分佈（常態分佈）的隨機數產生器。
+/// 用於系統操作的自然緩衝延遲，改善 A11y 音訊避讓與 UI 執行緒排程穩定性。
 /// </summary>
-internal static class HumanoidRandom
+internal static class GaussianDelayHelper
 {
     private static readonly Random _rng = new();
 

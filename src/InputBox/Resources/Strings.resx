@@ -455,10 +455,6 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Window Switch Buffer Base</value>
     <comment>Setting name for base buffer time when switching focus back to target window.</comment>
   </data>
-  <data name="Settings_InputJitterRange" xml:space="preserve">
-    <value>Input Jitter Range</value>
-    <comment>Setting name for random jitter range in focus switching.</comment>
-  </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>History Capacity</value>
     <comment>Setting name for max records in input history.</comment>

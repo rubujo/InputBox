@@ -2,7 +2,6 @@
 using InputBox.Core.Extensions;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
-using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Diagnostics;
 
@@ -652,10 +651,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _repeatCounter = 0;
             _repeatDirection = gbCurrentDirection;
 
-            // 初始觸發後，計算第一次連發所需的動態延遲（包含生理抖動 μ=InitialDelay, σ=15%）。
-            _currentRepeatInterval = HumanoidRandom.NextDelay(
-                config.RepeatInitialDelayFrames,
-                (int)(config.RepeatInitialDelayFrames * 0.3));
+            // 初始觸發後，設定第一次連發所需的固定延遲。
+            _currentRepeatInterval = config.RepeatInitialDelayFrames;
         }
         else
         {
@@ -681,13 +678,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     DownRepeat?.Invoke();
                 }
 
-                // 觸發後，重置計數器並重新計算下一次連發的間隔（μ=Interval, σ=15%）。
+                // 觸發後，重置計數器並設定下一次連發的固定間隔。
                 _repeatCounter = 0;
 
                 // 設定為重複間隔模式。
-                _currentRepeatInterval = HumanoidRandom.NextDelay(
-                    config.RepeatIntervalFrames,
-                    (int)(config.RepeatIntervalFrames * 0.3));
+                _currentRepeatInterval = config.RepeatIntervalFrames;
             }
         }
 
@@ -704,10 +699,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
             if (_rsRepeatCounter == 0 &&
                 _currentRSRepeatInterval == 0)
             {
-                // 第一次進入連發判定，設定初始延遲。
-                _currentRSRepeatInterval = HumanoidRandom.NextDelay(
-                    config.RepeatInitialDelayFrames,
-                    (int)(config.RepeatInitialDelayFrames * 0.3));
+                // 第一次進入連發判定，設定初始固定延遲。
+                _currentRSRepeatInterval = config.RepeatInitialDelayFrames;
             }
 
             _rsRepeatCounter++;
@@ -723,11 +716,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     RSRightRepeat?.Invoke();
                 }
 
-                // 重置並計算下一個間隔。
+                // 重置並設定下一個固定間隔。
                 _rsRepeatCounter = 0;
-                _currentRSRepeatInterval = HumanoidRandom.NextDelay(
-                    config.RepeatIntervalFrames,
-                    (int)(config.RepeatIntervalFrames * 0.3));
+                _currentRSRepeatInterval = config.RepeatIntervalFrames;
             }
         }
     }

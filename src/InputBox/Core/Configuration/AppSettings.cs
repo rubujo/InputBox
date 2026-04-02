@@ -241,20 +241,6 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 輸入隨機抖動範圍（毫秒）
-    /// </summary>
-    private volatile int _inputJitterRange = 50;
-
-    /// <summary>
-    /// 輸入隨機抖動範圍（毫秒）
-    /// </summary>
-    public int InputJitterRange
-    {
-        get => _inputJitterRange;
-        set => _inputJitterRange = Math.Clamp(value, 0, 1000);
-    }
-
-    /// <summary>
     /// 輸入歷程記錄的最大容量
     /// </summary>
     private volatile int _historyCapacity = 100;
