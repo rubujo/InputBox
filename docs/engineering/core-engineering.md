@@ -12,6 +12,7 @@
 - **資源管理 (Atomic Dispose)**：
   - **原子化處置模式**：使用 `Interlocked.Exchange(ref _field, null)?.Dispose()`，確保先歸零、後處置。
   - **權杖處置紅線**：終止任務時必用擴充方法 `Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();`。
+  - **CTS 欄位宣告紅線**：`CancellationTokenSource` 欄位**絕對禁止**宣告為 `readonly`。`readonly` 會使 `ref` 傳遞失敗，導致無法使用上述原子化處置模式。正確宣告：`private CancellationTokenSource? _cts = new();`。
   - **共享資源歸零 (Shared Nullification)**：來自全域快取池 (如 `GetSharedA11yFont`) 的資源，在 Dispose 時**僅能將欄位設為 null**，絕對禁止手動 `Dispose()` 或放入回收桶。
   - **字體回收桶 (Trash Can)**：更換「視窗私有」字體實例時，舊實例必須放入 `AddFontToTrashCan` 延遲釋放。
 - **DPI 與佈局一致性**：

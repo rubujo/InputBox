@@ -20,3 +20,8 @@
 
 ## 3. P/Invoke 安全性
 - 所有控制器相關的 DLL 調用 (XInput.dll 等) 必須套用 `[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]` 安全邊界。
+
+## 4. Dialog 層級控制器整合
+- **ConnectionChanged 強制訂閱**：任何持有或使用 `IGamepadController` 的 Dialog（對話框），在 `BindGamepadEvents` 中**必須**同時訂閱 `ConnectionChanged`，並在 `UnbindGamepadEvents` 中解除。
+- **連線廣播**：`ConnectionChanged` 處理器必須透過對話框自身的 A11y 廣播機制（如 `AnnouncerLabel`）告知使用者連線狀態變更，不可依賴主視窗的廣播路徑。
+- **處置順序**：對話框的 `OnFormClosing` 必須先呼叫 `UnbindGamepadEvents()` 再處置其他資源，確保事件解除先於控制器存取。

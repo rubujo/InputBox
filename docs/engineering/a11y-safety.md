@@ -3,6 +3,7 @@
 - **廣播與避讓 (Announce)**：
   - 廣播前保留 200ms 延遲 (於非 UI 執行緒執行)，避開 Audio Ducking。
   - 重複訊息末尾交替附加 `\u200B` (ZWSP) 或 `\u200C` (ZWNJ)。
+  - **Clear() 字元規範**：廣播元件的 `Clear()` 操作必須使用 `\u200B` (ZWSP) 填充，**禁止**使用 `\u00A0` (NBSP)。NBSP 部分版本的 JAWS／NVDA 會朗讀為「blank（空白）」，ZWSP 為零寬字元，AT 不會朗讀，同樣能觸發 UIA `LiveRegionChanged` 事件。
   - **詳細程度控制 (WCAG 2.2.4 AAA)**：提供選項將 `interrupt: true` 的非緊急廣播降級為 Polite。
 - **視覺回饋標準 (Visual Feedback)**：
   - **分離式回饋**：
