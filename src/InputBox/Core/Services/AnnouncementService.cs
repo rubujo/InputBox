@@ -19,7 +19,7 @@ internal sealed class AnnouncementService : IDisposable
     /// <summary>
     /// 取消權杖來源
     /// </summary>
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _cts = new();
 
     /// <summary>
     /// UI 執行緒廣播委派
@@ -63,7 +63,7 @@ internal sealed class AnnouncementService : IDisposable
             SingleWriter = false
         });
 
-        Task.Run(() => ProcessAnnouncementsAsync(_cts.Token)).SafeFireAndForget();
+        Task.Run(() => ProcessAnnouncementsAsync(_cts?.Token ?? CancellationToken.None)).SafeFireAndForget();
     }
 
     /// <summary>
@@ -190,7 +190,6 @@ internal sealed class AnnouncementService : IDisposable
 
         _channel.Writer.TryComplete();
 
-        _cts.Cancel();
-        _cts.Dispose();
+        Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
     }
 }

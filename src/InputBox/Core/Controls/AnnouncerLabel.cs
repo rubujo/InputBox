@@ -54,8 +54,9 @@ internal sealed class AnnouncerLabel : Label
     /// </summary>
     public void Clear()
     {
-        Text = "\u00A0";
-        AccessibleName = "\u00A0";
+        // 使用 ZWSP（零寬空白）觸發 UIA 事件，避免 NBSP 被部分 AT 朗讀為「空白」。
+        Text = "\u200B";
+        AccessibleName = "\u200B";
 
         AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
 

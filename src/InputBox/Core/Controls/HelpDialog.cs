@@ -66,6 +66,11 @@ internal sealed class HelpDialog : Form
     private float _lastAppliedDpi;
 
     /// <summary>
+    /// A11y 廣播用的 Label
+    /// </summary>
+    private AnnouncerLabel? _announcer;
+
+    /// <summary>
     /// 初始化說明對話框
     /// </summary>
     public HelpDialog()
@@ -226,7 +231,16 @@ internal sealed class HelpDialog : Form
         tlpRoot.Controls.Add(_pnlFooter, 0, 1);
 
         Controls.Add(tlpRoot);
-
+        // A11y 廣播元件（模擬狀態外觀）。
+        _announcer = new AnnouncerLabel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 1,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
+            TabStop = false,
+        };
+        Controls.Add(_announcer);
         // 應用程式切回前景時恢復控制器輪詢（防止 alt-tab 後控制器停滯）。
         // 加入 50ms 延遲確保系統焦點切換完成後再呼叫 Resume，與 NumericInputDialog 一致。
         Activated += (s, e) =>
@@ -506,11 +520,49 @@ internal sealed class HelpDialog : Form
     /// <summary>
     /// 關閉時解除控制器事件。
     /// </summary>
+    /// <summary>
+    /// 發送無障礙廣播
+    /// </summary>
+    /// <param name="message">廣播文字。</param>
+    private void AnnounceA11y(string message)
+    {
+        if (string.IsNullOrEmpty(message) ||
+            IsDisposed ||
+            _announcer == null ||
+            _announcer.IsDisposed)
+        {
+            return;
+        }
+
+        _announcer.Announce(message);
+    }
+
+    /// <summary>
+    /// 處理控制器連線變更
+    /// </summary>
+    /// <param name="connected">是否已連線</param>
+    private void HandleConnectionChanged(bool connected)
+    {
+        this.SafeBeginInvoke(() =>
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            AnnounceA11y(connected ?
+                string.Format(Strings.A11y_Gamepad_Connected, GamepadController?.DeviceName) :
+                string.Format(Strings.A11y_Gamepad_Disconnected, GamepadController?.DeviceName));
+        });
+    }
+
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         base.OnFormClosing(e);
 
         UnbindGamepadEvents();
+
+        Interlocked.Exchange(ref _announcer, null)?.Dispose();
 
         Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
 
@@ -825,6 +877,7 @@ internal sealed class HelpDialog : Form
         GamepadController.UpRepeat += OnGamepadScrollUp;
         GamepadController.DownPressed += OnGamepadScrollDown;
         GamepadController.DownRepeat += OnGamepadScrollDown;
+        GamepadController.ConnectionChanged += HandleConnectionChanged;
     }
 
     /// <summary>
@@ -847,6 +900,7 @@ internal sealed class HelpDialog : Form
         GamepadController.UpRepeat -= OnGamepadScrollUp;
         GamepadController.DownPressed -= OnGamepadScrollDown;
         GamepadController.DownRepeat -= OnGamepadScrollDown;
+        GamepadController.ConnectionChanged -= HandleConnectionChanged;
     }
 
     /// <summary>
