@@ -99,7 +99,20 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
         }
 
         // 執行視窗切換。
-        await _windowFocusManager.RestorePreviousWindowAsync(cancellationToken);
+        // 使用本次流程一開始的 target 快照，避免背景追蹤在等待期間覆寫目標。
+        bool restored = await WindowFocusService.RestoreWindowAsync(targetHwnd, cancellationToken);
+
+        if (!restored)
+        {
+            // 若實際切換失敗，回報與前置檢查一致的失敗訊息，避免「播報返回中但未切走」的假成功體驗。
+            FeedbackService.PlaySound(SystemSounds.Exclamation);
+
+            _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail, cancellationToken);
+
+            announceErrorAction?.Invoke(Resources.Strings.A11y_TargetWindowLost);
+
+            return;
+        }
 
         // 切換完成後的震動。
         _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess, cancellationToken);

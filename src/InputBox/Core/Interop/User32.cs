@@ -26,6 +26,20 @@ public static partial class User32
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool BringWindowToTop(nint handle);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool AttachThreadInput(uint idAttach, uint idAttachTo, [MarshalAs(UnmanagedType.Bool)] bool attach);
+
+    [LibraryImport("user32.dll")]
+    internal static partial nint SetFocus(nint handle);
+
+    [LibraryImport("kernel32.dll")]
+    internal static partial uint GetCurrentThreadId();
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool ShowWindow(nint handle, ShowWindowCommand command);
 
     [LibraryImport("user32.dll", SetLastError = true)]
@@ -98,6 +112,10 @@ public static partial class User32
     /// </summary>
     public enum WindowMessage : uint
     {
+        /// <summary>
+        /// 視窗啟用狀態變更訊息
+        /// </summary>
+        Activate = 0x0006,
         /// <summary>
         /// 全域快速鍵訊息
         /// </summary>

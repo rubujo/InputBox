@@ -34,13 +34,44 @@ public class WindowFocusService
     /// <summary>
     /// 捕捉目前的前景視窗作為返回目標
     /// </summary>
-    public void CaptureCurrentWindow()
+    /// <returns>若目前前景可作為返回目標則回傳 true。</returns>
+    public bool CaptureCurrentWindow()
     {
-        nint hwnd = User32.ForegroundWindow;
+        nint foregroundHwnd = User32.ForegroundWindow;
 
-        if (hwnd == IntPtr.Zero)
+        if (foregroundHwnd == IntPtr.Zero ||
+            !User32.IsWindow(foregroundHwnd))
         {
-            return;
+            return false;
+        }
+
+        _ = User32.GetWindowThreadProcessId(foregroundHwnd, out uint processId);
+
+        // 目前前景若是自己，不應當成返回目標。
+        if (processId == Environment.ProcessId)
+        {
+            return false;
+        }
+
+        lock (_lockObj)
+        {
+            _capturedHwnd = foregroundHwnd;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 嘗試捕捉指定視窗作為返回目標
+    /// </summary>
+    /// <param name="hwnd">欲捕捉的視窗控制代碼</param>
+    /// <returns>若成功捕捉則回傳 true。</returns>
+    public bool TryCaptureWindow(nint hwnd)
+    {
+        if (hwnd == IntPtr.Zero ||
+            !User32.IsWindow(hwnd))
+        {
+            return false;
         }
 
         // 取得該視窗所屬的進程 PID。
@@ -50,13 +81,21 @@ public class WindowFocusService
         // 這能防止使用者在 InputBox 已經開啟時再次按下熱鍵，導致捕捉到自己。
         if (processId == Environment.ProcessId)
         {
-            return;
+            return false;
         }
 
         lock (_lockObj)
         {
+            // 小型防呆：避免重複覆寫相同目標，降低高頻切換時的無效更新。
+            if (_capturedHwnd == hwnd)
+            {
+                return false;
+            }
+
             _capturedHwnd = hwnd;
         }
+
+        return true;
     }
 
     /// <summary>
@@ -84,6 +123,20 @@ public class WindowFocusService
             targetHwnd = _capturedHwnd;
         }
 
+        return await RestoreWindowAsync(targetHwnd, cancellationToken);
+    }
+
+    /// <summary>
+    /// 嘗試切換至指定視窗
+    /// </summary>
+    /// <param name="targetHwnd">目標視窗 Handle</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>Task&lt;bool&gt;</returns>
+    public static async Task<bool> RestoreWindowAsync(
+        nint targetHwnd,
+        CancellationToken cancellationToken = default)
+    {
+
         if (targetHwnd == IntPtr.Zero ||
             !User32.IsWindow(targetHwnd))
         {
@@ -92,10 +145,60 @@ public class WindowFocusService
 
         try
         {
-            // 嘗試多次切換，直到成功或次數用盡。
+            // 第一段：先用低侵入方式切換，避免不必要的執行緒附加。
+            _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
+            _ = User32.BringWindowToTop(targetHwnd);
+            _ = User32.SetForegroundWindow(targetHwnd);
+
+            await Task.Delay(AppSettings.WindowSwitchRetryDelayMs, cancellationToken);
+
+            if (User32.ForegroundWindow == targetHwnd)
+            {
+                return true;
+            }
+
+            // 第二段：第一段失敗才啟用執行緒附加強化切換。
             for (int i = 0; i < AppSettings.WindowSwitchMaxRetries; i++)
             {
-                User32.SetForegroundWindow(targetHwnd);
+                uint currentThreadId = User32.GetCurrentThreadId(),
+                    targetThreadId = User32.GetWindowThreadProcessId(targetHwnd, out _),
+                    foregroundThreadId = User32.GetWindowThreadProcessId(User32.ForegroundWindow, out _);
+
+                bool attachedToTarget = false,
+                    attachedToForeground = false;
+
+                try
+                {
+                    if (targetThreadId != 0 &&
+                        targetThreadId != currentThreadId)
+                    {
+                        attachedToTarget = User32.AttachThreadInput(currentThreadId, targetThreadId, true);
+                    }
+
+                    if (foregroundThreadId != 0 &&
+                        foregroundThreadId != targetThreadId)
+                    {
+                        attachedToForeground = User32.AttachThreadInput(foregroundThreadId, targetThreadId, true);
+                    }
+
+                    // 先還原並提升 Z-Order，再切前景，提升跨應用視窗切換穩定性。
+                    _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
+                    _ = User32.BringWindowToTop(targetHwnd);
+                    _ = User32.SetForegroundWindow(targetHwnd);
+                    _ = User32.SetFocus(targetHwnd);
+                }
+                finally
+                {
+                    if (attachedToForeground)
+                    {
+                        _ = User32.AttachThreadInput(foregroundThreadId, targetThreadId, false);
+                    }
+
+                    if (attachedToTarget)
+                    {
+                        _ = User32.AttachThreadInput(currentThreadId, targetThreadId, false);
+                    }
+                }
 
                 // 給系統一點時間反應。
                 await Task.Delay(AppSettings.WindowSwitchRetryDelayMs, cancellationToken);

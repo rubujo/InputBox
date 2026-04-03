@@ -1027,7 +1027,7 @@ public partial class MainForm
         // 如果延遲後鍵盤已經顯示（由系統自動開啟），則我們不需要再介入 Toggle。
         if (TouchKeyboardService.IsVisible())
         {
-            Debug.WriteLine("觸控鍵盤已由系統自動開啟，略過手動 Toggle。");
+            Debug.WriteLine("觸控鍵盤已由系統自動開啟，略過手動切換。");
 
             return;
         }
@@ -1085,7 +1085,17 @@ public partial class MainForm
     public void ShowForInput()
     {
         // 捕捉目前視窗。
-        _windowFocusService.CaptureCurrentWindow();
+        bool captured = _windowFocusService.CaptureCurrentWindow();
+
+        // 若喚醒當下無法取得有效外部前景，清除舊目標，避免返回到過期視窗。
+        if (!captured)
+        {
+            _windowFocusService.ClearCapturedWindow();
+        }
+
+#if DEBUG
+    Debug.WriteLine($"[顯示輸入框] 捕捉目前視窗 已捕捉={captured} 前景視窗={User32.ForegroundWindow}");
+#endif
 
         ShowAndActivateInputWindow();
 
@@ -1093,8 +1103,9 @@ public partial class MainForm
         // 在全螢幕遊戲環境下呼叫時，系統焦點可能會有短暫的競爭期。
         // 透過非同步重試確保 TBInput 絕對取得焦點。
         Task.Run(
-            EnsureInputFocusAndAnnounceAsync,
-            _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
+                EnsureInputFocusAndAnnounceAsync,
+                _formCts?.Token ?? CancellationToken.None)
+            .SafeFireAndForget();
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 

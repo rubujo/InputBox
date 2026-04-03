@@ -112,6 +112,9 @@ public partial class MainForm
             OnConnectionChanged: CreateConnectionChangedHandler(controller),
             OnBackPressed: CreateSafeGamepadActionHandler(() =>
             {
+                // 記錄一次合法的 Back 按下，供 BackReleased 配對使用。
+                Interlocked.Exchange(ref _backReleaseArmed, 1);
+
                 // 按下時重置旗標。
                 _isBackUsedAsModifier = false;
             }),
@@ -530,6 +533,17 @@ public partial class MainForm
             return;
         }
 
+        // 只接受有對應 BackPressed 的放開事件，忽略恢復輪詢後的孤兒 BackReleased。
+        if (Interlocked.Exchange(ref _backReleaseArmed, 0) == 0)
+        {
+            return;
+        }
+
+        if (IsGamepadReturnSuppressed())
+        {
+            return;
+        }
+
         // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
         if (_isBackUsedAsModifier)
         {
@@ -739,6 +753,11 @@ public partial class MainForm
         if (controller.IsLeftShoulderHeld &&
             controller.IsRightShoulderHeld)
         {
+            if (IsGamepadReturnSuppressed())
+            {
+                return;
+            }
+
             HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
 
             return;

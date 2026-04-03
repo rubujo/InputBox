@@ -376,7 +376,7 @@ internal sealed class PhraseEditDialog : Form
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"[片語編輯] Resume 失敗: {ex.Message}");
+                            Debug.WriteLine($"[片語編輯] 控制器繼續失敗：{ex.Message}");
                         }
                     });
                 }
@@ -386,7 +386,7 @@ internal sealed class PhraseEditDialog : Form
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[片語編輯] Activated 失敗: {ex.Message}");
+                    Debug.WriteLine($"[片語編輯] 已啟動失敗：{ex.Message}");
                 }
             },
             _cts?.Token ?? CancellationToken.None)
@@ -405,13 +405,13 @@ internal sealed class PhraseEditDialog : Form
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[片語編輯] Pause 失敗: {ex.Message}");
+                        Debug.WriteLine($"[片語編輯] 控制器暂停失敗：{ex.Message}");
                     }
                 });
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[片語編輯] Deactivate 失敗: {ex.Message}");
+                Debug.WriteLine($"[片語編輯] 失焦失敗：{ex.Message}");
             }
         };
     }
@@ -654,7 +654,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleGamepadA 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 控制器 A 鍵失敗：{ex.Message}");
         }
     });
 
@@ -671,7 +671,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleOpenTouchKeyboardFromGamepad 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 控制器開啟觸控鍵盤失敗：{ex.Message}");
         }
     });
 
@@ -704,7 +704,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] Confirm 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 確認失敗：{ex.Message}");
         }
     });
 
@@ -721,7 +721,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] Cancel 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 取消失敗：{ex.Message}");
         }
     });
 
@@ -812,7 +812,7 @@ internal sealed class PhraseEditDialog : Form
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[片語編輯] 觸控鍵盤開啟失敗: {ex.Message}");
+                        Debug.WriteLine($"[片語編輯] 觸控鍵盤開啟失敗：{ex.Message}");
                     }
                 });
             }
@@ -822,11 +822,10 @@ internal sealed class PhraseEditDialog : Form
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[片語編輯] ShowTouchKeyboard 失敗: {ex.Message}");
+                Debug.WriteLine($"[片語編輯] 開啟觸控鍵盤失敗：{ex.Message}");
             }
         },
-        _cts?.Token ?? CancellationToken.None)
-        .SafeFireAndForget();
+        _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
     }
 
     /// <summary>
@@ -1113,7 +1112,7 @@ internal sealed class PhraseEditDialog : Form
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[片語編輯] FlashValidationCueAsync UI還原失敗: {ex.Message}");
+                    Debug.WriteLine($"[片語編輯] 驗證提示動畫 UI 還原失敗：{ex.Message}");
                 }
             });
         }
@@ -1190,7 +1189,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleLeft 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 左移失敗：{ex.Message}");
         }
     });
 
@@ -1247,7 +1246,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleRight 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 右移失敗：{ex.Message}");
         }
     });
 
@@ -1283,7 +1282,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleFieldPrev 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 欄位向前失敗：{ex.Message}");
         }
     });
 
@@ -1319,7 +1318,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleFieldNext 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 欄位向後失敗：{ex.Message}");
         }
     });
 
@@ -1362,7 +1361,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleBackspace 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 退格失敗：{ex.Message}");
         }
     });
 
@@ -1377,7 +1376,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleRSLeft 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 右摘桿左移失敗：{ex.Message}");
         }
     });
 
@@ -1392,7 +1391,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleRSRight 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 右摘桿右移失敗：{ex.Message}");
         }
     });
 
@@ -1423,13 +1422,14 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleOpenContextMenu 失敗: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 開啟右鍵選單失敗：{ex.Message}");
         }
     });
 
     /// <summary>
     /// 擴張或縮減文字選取範圍（比照 MainForm.Gamepad.cs 的 ExpandSelection）
     /// </summary>
+    /// <param name="direction">方向，正數表示向右擴張，負數表示向左擴張。</param>
     private void ExpandSelection(int direction)
     {
         TextBox? tb = GetActiveTextBox();
@@ -1491,7 +1491,7 @@ internal sealed class PhraseEditDialog : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] 控制器連線變更: {ex.Message}");
+            Debug.WriteLine($"[片語編輯] 控制器連線變更：{ex.Message}");
         }
     }
 

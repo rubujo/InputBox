@@ -71,6 +71,16 @@ public partial class MainForm : Form
     private DateTime _lastTouchKeyboardOpened = DateTime.MinValue;
 
     /// <summary>
+    /// 抑制控制器返回行為至指定 UTC Ticks（避免切回前景瞬間誤觸返回）
+    /// </summary>
+    private long _suppressGamepadReturnUntilUtcTicks;
+
+    /// <summary>
+    /// Back 鍵按下-放開配對閂鎖（1=已觀察到按下，允許一次放開；0=忽略放開）
+    /// </summary>
+    private int _backReleaseArmed;
+
+    /// <summary>
     /// 進入快速鍵擷取模式前的輸入框描述快取（用於對稱還原 A11y 狀態）
     /// </summary>
     private string? _tbInputAccessibleDescriptionBeforeCapture;
@@ -265,10 +275,86 @@ public partial class MainForm : Form
                 NavigateHistory(+1);
             }
         };
+
+        // 在 InputBox 不在前景時持續追蹤外部前景視窗，
+        // 可修補滑鼠／Alt+Tab 手動切回 InputBox 時 WM_ACTIVATE lParam 為 0 的情境。
+        StartExternalForegroundTrackingLoop();
+    }
+
+    /// <summary>
+    /// 背景追蹤外部前景視窗，作為返回目標更新來源
+    /// </summary>
+    private void StartExternalForegroundTrackingLoop()
+    {
+        Task.Run(async () =>
+        {
+            CancellationToken token = _formCts?.Token ?? CancellationToken.None;
+
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(80, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                nint foregroundHwnd = User32.ForegroundWindow;
+
+                if (foregroundHwnd == IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                _ = User32.GetWindowThreadProcessId(foregroundHwnd, out uint processId);
+
+                // 只追蹤外部前景視窗，避免覆寫為本程式內視窗。
+                if (processId == 0 ||
+                    processId == Environment.ProcessId)
+                {
+                    continue;
+                }
+
+                bool captured = _windowFocusService.TryCaptureWindow(foregroundHwnd);
+
+#if DEBUG
+                if (captured)
+                {
+                    Debug.WriteLine($"[前景追蹤] 已捕捉 前景視窗={foregroundHwnd}");
+                }
+#endif
+            }
+        }, _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
     }
 
     protected override void WndProc(ref Message m)
     {
+        if (m.Msg == (int)User32.WindowMessage.Activate)
+        {
+            const int WA_INACTIVE = 0;
+
+            // WM_ACTIVATE 的低位表示啟用狀態；非 0 代表本視窗正要成為啟用視窗。
+            int activateState = m.WParam.ToInt32() & 0xFFFF;
+
+#if DEBUG
+            Debug.WriteLine($"[視窗訊息] WM_ACTIVATE 狀態={activateState} 前一視窗={m.LParam}");
+#endif
+
+            // lParam 在啟用時為「先前啟用視窗」Handle。
+            // 這可涵蓋 Alt + Tab／滑鼠切換等非全域熱鍵進入路徑。
+            if (activateState != WA_INACTIVE &&
+                m.LParam != IntPtr.Zero)
+            {
+                bool captured = _windowFocusService.TryCaptureWindow(m.LParam);
+
+#if DEBUG
+                Debug.WriteLine($"[視窗訊息] WM_ACTIVATE 嘗試捕捉 前一視窗={m.LParam} 已捕捉={captured}");
+#endif
+            }
+        }
+
         if (m.Msg == (int)User32.WindowMessage.HotKey &&
             m.WParam.ToInt32() == HotKey.ShowInput)
         {
@@ -284,7 +370,35 @@ public partial class MainForm : Form
     {
         base.OnActivated(e);
 
+        // 當使用者用滑鼠／Alt+Tab 切回時，先短暫抑制返回，
+        // 避免控制器狀態邊緣（例如 BackReleased）在恢復輪詢瞬間誤觸返回。
+        SuppressGamepadReturnForActivationWindow();
+
+        // 切回前景時清除 Back 放開配對，避免恢復輪詢瞬間的孤兒 BackReleased 事件誤觸返回。
+        Interlocked.Exchange(ref _backReleaseArmed, 0);
+
         _gamepadController?.Resume();
+    }
+
+    /// <summary>
+    /// 建立切回前景後的短抑制窗，降低控制器邊緣事件誤觸返回風險
+    /// </summary>
+    private void SuppressGamepadReturnForActivationWindow()
+    {
+        long untilTicks = DateTime.UtcNow.AddMilliseconds(300).Ticks;
+
+        Interlocked.Exchange(ref _suppressGamepadReturnUntilUtcTicks, untilTicks);
+    }
+
+    /// <summary>
+    /// 是否仍在控制器返回抑制窗內
+    /// </summary>
+    /// <returns>若在抑制窗內回傳 true。</returns>
+    private bool IsGamepadReturnSuppressed()
+    {
+        long untilTicks = Volatile.Read(ref _suppressGamepadReturnUntilUtcTicks);
+
+        return untilTicks > DateTime.UtcNow.Ticks;
     }
 
     protected override void OnDeactivate(EventArgs e)
@@ -296,6 +410,10 @@ public partial class MainForm : Form
         {
             return;
         }
+
+        // 備援捕捉：部分環境下 WM_ACTIVATE 的 lParam 可能為 0，
+        // 因此在失焦後短延遲再讀取前景視窗，確保返回目標可建立。
+        CaptureForegroundWindowAfterDeactivate();
 
         // 使用 SafeBeginInvoke 延遲執行，避開 ShowDialog 瞬間的焦點空窗期，並確保在 UI 執行緒操作。
         this.SafeBeginInvoke(() =>
@@ -332,6 +450,33 @@ public partial class MainForm : Form
 
             _gamepadController?.Pause();
         });
+    }
+
+    /// <summary>
+    /// 失焦後短延遲捕捉前景視窗，作為返回目標備援
+    /// </summary>
+    private void CaptureForegroundWindowAfterDeactivate()
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                // 讓系統先完成焦點轉移，避免讀到仍為目前視窗的瞬時狀態。
+                await Task.Delay(50, _formCts?.Token ?? CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            nint foregroundHwnd = User32.ForegroundWindow;
+
+            bool captured = _windowFocusService.TryCaptureWindow(foregroundHwnd);
+
+#if DEBUG
+            Debug.WriteLine($"[失焦事件] 備援捕捉 前景視窗={foregroundHwnd} 已捕捉={captured}");
+#endif
+        }, _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
     }
 
     protected override void OnHandleDestroyed(EventArgs e)
