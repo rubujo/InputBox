@@ -10,6 +10,9 @@
   <meta property="og:title" content="輸入框｜InputBox">
   <meta property="og:description" content="改善在《FINAL FANTASY XIV 繁體中文版》遊戲環境中，於特定操作情境下無法直接使用 Windows 觸控式鍵盤輸入中文的使用體驗。">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:url" content="https://rubujo.github.io/InputBox/">
+  <link rel="canonical" href="https://rubujo.github.io/InputBox/">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
   <style>
@@ -162,6 +165,7 @@
       margin: -1px !important;
       overflow: hidden !important;
       clip: rect(0, 0, 0, 0) !important;
+      clip-path: inset(50%) !important;
       white-space: nowrap !important;
       border: 0 !important;
     }
@@ -535,7 +539,7 @@
       font-size: 1.25rem;
       min-height: 60px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s, background-color 0.2s, color 0.2s;
+      transition: box-shadow 0.3s, background-color 0.2s, color 0.2s;
       border: 4px solid transparent;
       margin: 0.75rem;
     }
@@ -685,7 +689,7 @@
       scroll-margin-top: 120px;
     }
 
-    section:nth-child(even) {
+    section:nth-of-type(even) {
       background-color: var(--section-alt-bg);
     }
 
@@ -751,6 +755,7 @@
       left: 50%;
       bottom: 0.5rem;
       transform: translateX(-50%);
+      white-space: nowrap;
       color: var(--link-color);
       font-size: 0.95rem;
       background: var(--bg-color);
@@ -902,6 +907,31 @@
         animation-timeline: scroll(root block);
         animation-range: 180px 420px;
       }
+
+      /*
+       * prefers-reduced-motion 防護：全域 animation-duration: 0.01ms 對 scroll-driven
+       * animation 無效（時間軸由捲動位置驅動，與時間無關），需在此另行覆蓋。
+       * 改用無位移的替代 keyframe：僅切換 opacity/visibility，消除 translate + scale 運動。
+       */
+      @media (prefers-reduced-motion: reduce) {
+        .back-to-top {
+          animation-name: show-back-to-top-reduced;
+        }
+      }
+    }
+
+    @keyframes show-back-to-top-reduced {
+      from {
+        visibility: hidden;
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      to {
+        visibility: visible;
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
     }
 
     .back-to-top:hover {
@@ -911,7 +941,7 @@
 
     .back-to-top:focus-visible {
       outline: 5px solid var(--focus-ring);
-      outline-offset: 8px;
+      outline-offset: 8px !important;
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
@@ -1300,7 +1330,7 @@
       }
 
       .table-wrapper::after {
-        display: block;
+        display: none;
       }
 
       .table-wrapper {
@@ -1444,6 +1474,7 @@
         display: none;
         animation: none !important;
         filter: none !important;
+        will-change: auto;
       }
 
       .requirement-list,
@@ -1589,9 +1620,18 @@
       }
 
       /* 區塊交替背景：深色模式下為深色，列印需修正為白色 */
-      section,
-      section:nth-child(even) {
+      section {
         background-color: white !important;
+      }
+
+      /* 區塊間距：螢幕版使用 clamp() 導致列印浪費大量留白，壓縮為緊湊值 */
+      section {
+        padding: 1rem 0 !important;
+      }
+
+      /* 標題孤行防護：禁止 h2 獨立出現在頁面底部 */
+      h2 {
+        break-after: avoid;
       }
 
       /* 連結：深色模式下為淺藍色，列印改為黑色 */
@@ -1624,6 +1664,7 @@
       .footer-notice {
         border: 1px solid #ccc !important;
         background: transparent !important;
+        break-inside: avoid;
       }
 
       /*
@@ -1858,10 +1899,10 @@
           <span class="lang-sc" lang="zh-Hans">需配合 Windows 11 内置输入法（微软注音、微软仓颉或速成）使用</span>
         </li>
         <li>
-          <span class="lang-zh">需開啟該輸入法之「遊戲控制器」鍵盤設定</span>
-          <span class="lang-en" lang="en">Must enable the "Game Controller" keyboard setting in IME.</span>
-          <span class="lang-ja" lang="ja">IME の「ゲーム コントローラー」キーボード設定を有効にする必要があります。</span>
-          <span class="lang-sc" lang="zh-Hans">需开启该输入法的「游戏控制器」键盘设置</span>
+          <span class="lang-zh">需開啟該輸入法之「遊戲控制器」鍵盤配置</span>
+          <span class="lang-en" lang="en">Must enable the "Game Controller" keyboard layout in IME.</span>
+          <span class="lang-ja" lang="ja">IME の「ゲーム コントローラー」キーボード レイアウトを有効にする必要があります。</span>
+          <span class="lang-sc" lang="zh-Hans">需开启该输入法的「游戏控制器」键盘布局</span>
         </li>
         <li>
           <span class="lang-zh">可用性取決於 Windows 11 版本與微軟的分階段功能推出進度</span>
@@ -2882,16 +2923,16 @@
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                   </span>
-                  <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                  <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 移動<br><span class="xbox-btn xbox-round xbox-a">A</span> 鍵
                     執行<br><span class="xbox-btn xbox-round xbox-b">B</span> 鍵 關閉</span>
                   <span class="lang-en" lang="en"><span class="xbox-btn xbox-dpad">↑</span>/<span
                       class="xbox-btn xbox-dpad">↓</span> Move<br><span class="xbox-btn xbox-round xbox-a">A</span>
                     Button Select<br><span class="xbox-btn xbox-round xbox-b">B</span> Button Close</span>
-                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                  <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 移動<br><span class="xbox-btn xbox-round xbox-a">A</span> ボタン
                     決定<br><span class="xbox-btn xbox-round xbox-b">B</span> ボタン 閉じる</span>
-                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                  <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 移动<br><span class="xbox-btn xbox-round xbox-a">A</span> 键
                     执行<br><span class="xbox-btn xbox-round xbox-b">B</span> 键 关闭</span>
                 </td>
@@ -3238,11 +3279,11 @@
               <span class="lang-sc" lang="zh-Hans">输入环境设置 ⌨️</span>
             </h3>
             <p>
-              <span class="lang-zh">需配合系統內建輸入法（注音、倉頡、速成）之「遊戲控制器」設定使用。</span>
-              <span class="lang-en" lang="en">Requires "Game Controller" mode for built-in Windows 11
+              <span class="lang-zh">需配合系統內建輸入法（注音、倉頡、速成）之「遊戲控制器」鍵盤配置使用。</span>
+              <span class="lang-en" lang="en">Requires the "Game Controller" keyboard layout for built-in Windows 11
                 IMEs.</span>
-              <span class="lang-ja" lang="ja">標準 IME の「ゲーム コントローラー」設定を有効にする必要があります。</span>
-              <span class="lang-sc" lang="zh-Hans">需配合系统内置输入法（注音、仓颉、速成）之「游戏控制器」设定使用。</span>
+              <span class="lang-ja" lang="ja">標準 IME の「ゲーム コントローラー」キーボード レイアウトを有効にする必要があります。</span>
+              <span class="lang-sc" lang="zh-Hans">需配合系统内置输入法（注音、仓颉、速成）之「游戏控制器」键盘布局使用。</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3570,38 +3611,42 @@
           <span class="lang-sc" lang="zh-Hans">本应用程序采用 self-contained 形式发布。以下第三方组件不属于 CC0 授权范围，并依其各自授权条款提供。</span>
         </p>
         <p class="footer-license-links">
-          <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener">.NET Runtime（MIT）</a> |
-          <a href="https://github.com/dotnet/winforms" target="_blank" rel="noopener">WinForms（MIT）</a> |
-          <a href="https://github.com/Cephy314/GameInputNet" target="_blank" rel="noopener">GameInput.Net（MIT）</a> |
+          <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener noreferrer">.NET Runtime（MIT）</a> |
+          <a href="https://github.com/dotnet/winforms" target="_blank" rel="noopener noreferrer">WinForms（MIT）</a> |
+          <a href="https://github.com/Cephy314/GameInputNet" target="_blank" rel="noopener noreferrer">GameInput.Net（MIT）</a> |
           <a href="https://github.com/Cephy314/UsbVendorsLibrary" target="_blank"
-            rel="noopener">UsbVendorsLibrary（MIT）</a> |
-          <a href="http://www.linux-usb.org/usb-ids.html" target="_blank" rel="noopener">USB ID
+            rel="noopener noreferrer">UsbVendorsLibrary（MIT）</a> |
+          <a href="http://www.linux-usb.org/usb-ids.html" target="_blank" rel="noopener noreferrer">USB ID
             Database（Dual-License）</a>
         </p>
         <p>
+          <span class="lang-zh">發佈檔 <strong>Licenses/</strong> 資料夾內含 <strong>ThirdPartyNotices.txt</strong>（NuGet 套件授權聲明清單）及各元件完整授權文字。</span>
+          <span class="lang-en" lang="en">The <strong>Licenses/</strong> folder in the release package contains <strong>ThirdPartyNotices.txt</strong> (a NuGet package license summary) and the full license text for each component.</span>
+          <span class="lang-ja" lang="ja">配布物内の <strong>Licenses/</strong> フォルダーには、<strong>ThirdPartyNotices.txt</strong>（NuGet パッケージ ライセンス サマリー）と各コンポーネントの完全なライセンス本文が含まれています。</span>
+          <span class="lang-sc" lang="zh-Hans">发布包内的 <strong>Licenses/</strong> 文件夹包含 <strong>ThirdPartyNotices.txt</strong>（NuGet 套件授权声明清单）及各组件完整授权文本。</span>
+        </p>
+        <p>
           <span class="lang-zh">本專案透過 UsbVendorsLibrary 使用 USB ID Database（usb.ids）。該資料庫採雙重授權（<a
-              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener">GNU General Public License（第
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public License（第
               2 版或更新版本）</a>／<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
-              rel="noopener">3-clause BSD License</a>）；本專案隨附發佈採用 3-clause BSD 條款。完整版權與授權文字請參閱發佈檔內的
-            <strong>ThirdPartyNotices.txt</strong> 與 <strong>usb_ids_LICENSE.txt</strong>。</span>
+              rel="noopener noreferrer">3-clause BSD License</a>）；本專案隨附發佈採用 3-clause BSD 條款。完整授權文字請參閱發佈檔內
+            <strong>Licenses/usb_ids_LICENSE.txt</strong>。</span>
           <span class="lang-en" lang="en">This project uses USB ID Database (usb.ids) via UsbVendorsLibrary. The
             database is dual-licensed under <a href="https://opensource.org/license/GPL-2.0" target="_blank"
-              rel="noopener">GNU General Public License (version 2 or later)</a> and the <a
-              href="https://opensource.org/license/bsd-3-clause" target="_blank" rel="noopener">3-clause BSD
-              License</a>; this project ships it under the 3-clause BSD terms. For full notices and license texts, see
-            <strong>ThirdPartyNotices.txt</strong> and <strong>usb_ids_LICENSE.txt</strong> in the release
-            package.</span>
+              rel="noopener noreferrer">GNU General Public License (version 2 or later)</a> and the <a
+              href="https://opensource.org/license/bsd-3-clause" target="_blank" rel="noopener noreferrer">3-clause BSD
+              License</a>; this project ships it under the 3-clause BSD terms. For the full license text, see
+            <strong>Licenses/usb_ids_LICENSE.txt</strong> in the release package.</span>
           <span class="lang-ja" lang="ja">本プロジェクトは UsbVendorsLibrary を通じて USB ID Database（usb.ids）を利用しています。同データベースは <a
-              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener">GNU General Public
-              License（Version 2 以降）</a> と <a href="https://opensource.org/license/bsd-3-clause" target="_blank"
-              rel="noopener">3-clause BSD License</a> のデュアルライセンスで提供され、本プロジェクトの同梱配布は 3-clause BSD
-            条項を採用します。完全な通知とライセンス本文は、配布物内の <strong>ThirdPartyNotices.txt</strong> と <strong>usb_ids_LICENSE.txt</strong>
-            を参照してください。</span>
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public
+              License（Version 2 以降）</a>と<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
+              rel="noopener noreferrer">3-clause BSD License</a> のデュアルライセンスで提供され、本プロジェクトの同梱配布は 3-clause BSD
+            条項を採用します。完全なライセンス本文は、配布物内の <strong>Licenses/usb_ids_LICENSE.txt</strong> を参照してください。</span>
           <span class="lang-sc" lang="zh-Hans">本项目通过 UsbVendorsLibrary 使用 USB ID Database（usb.ids）。该数据库采用双重授权（<a
-              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener">GNU General Public License（第
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public License（第
               2 版或更新版本）</a>／<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
-              rel="noopener">3-clause BSD License</a>）；本项目随附发布采用 3-clause BSD 条款。完整版权与授权文本请参阅发布包内的
-            <strong>ThirdPartyNotices.txt</strong> 与 <strong>usb_ids_LICENSE.txt</strong>。</span>
+              rel="noopener noreferrer">3-clause BSD License</a>）；本项目随附发布采用 3-clause BSD 条款。完整授权文本请参阅发布包内
+            <strong>Licenses/usb_ids_LICENSE.txt</strong>。</span>
         </p>
       </div>
     </div>
