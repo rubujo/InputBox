@@ -22,13 +22,16 @@
       /* Light Mode */
       --bg-color: #ffffff;
       --text-color: #111827;
+      --heading-color: #003a70;
       --header-bg: #003a70;
       --header-text: #ffffff;
       --nav-bg: rgba(253, 254, 255, 0.96);
+      --lang-switcher-height: 56px;
       --section-alt-bg: #f9fafb;
       --link-color: #004488;
       --border-color: #374151;
       --focus-ring: #e67e00;
+      --focus-companion: 0 0 0 10px #111827;
       --card-bg: #ffffff;
       --table-header: #f3f4f6;
       --nav-current-bg: rgba(0, 68, 136, 0.2);
@@ -45,6 +48,7 @@
         /* Dark Mode */
         --bg-color: #030712;
         --text-color: #f9fafb;
+        --heading-color: #dbeafe;
         --header-bg: #001e3c;
         --nav-bg: rgba(17, 24, 39, 0.96);
         --section-alt-bg: #181f2a;
@@ -58,6 +62,7 @@
         --nav-previous-accent: #93a4ba;
         --card-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.45);
         --card-shadow-hover: 0 24px 32px -8px rgba(0, 0, 0, 0.55);
+        --focus-companion: none;
       }
     }
 
@@ -71,6 +76,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+
       *,
       *::before,
       *::after {
@@ -90,7 +96,6 @@
       text-rendering: optimizeLegibility;
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
     }
 
     .container {
@@ -103,6 +108,14 @@
     :focus-visible {
       outline: 5px solid var(--focus-ring) !important;
       outline-offset: 4px !important;
+      /*
+       * 雙環對焦指示器 (Dual-ring Focus Indicator)
+       * 淺色模式：深色輔助環 (0-10px) 夾住橙色輪廓 (4-9px)，確保橙色與輔助環之間達 6.2:1
+       * WCAG 2.4.11 AA、2.4.12 AAA：輔助環像素 (unfocused=white → focused=dark) 達 17.7:1
+       * 深色模式：輔助環設為 none；橙色 vs 深色背景 (#030712) = 7.05:1 自然通過
+       * box-shadow 不影響佈局，符合零佈局抖動 (Zero-Jitter) 規範
+       */
+      box-shadow: var(--focus-companion) !important;
     }
 
     .visually-hidden {
@@ -153,15 +166,18 @@
       border: 0 !important;
     }
 
-    /* 當單選鈕被鍵盤聚焦時，為對應的 Label 加入視覺回饋 */
-    body:has(#lang-zh:focus-visible) .lang-switcher label[for="lang-zh"],
-    body:has(#lang-en:focus-visible) .lang-switcher label[for="lang-en"],
-    body:has(#lang-ja:focus-visible) .lang-switcher label[for="lang-ja"],
-    body:has(#lang-sc:focus-visible) .lang-switcher label[for="lang-sc"] {
-      outline: 5px solid var(--focus-ring);
-      outline-offset: -4px;
-      background-color: rgba(128, 128, 128, 0.1);
-      border-radius: 4px;
+    @supports selector(body:has(#lang-zh:focus-visible)) {
+
+      /* 當單選鈕被鍵盤聚焦時，為對應的 Label 加入視覺回饋 */
+      body:has(#lang-zh:focus-visible) .lang-switcher label[for="lang-zh"],
+      body:has(#lang-en:focus-visible) .lang-switcher label[for="lang-en"],
+      body:has(#lang-ja:focus-visible) .lang-switcher label[for="lang-ja"],
+      body:has(#lang-sc:focus-visible) .lang-switcher label[for="lang-sc"] {
+        outline: 5px solid var(--focus-ring);
+        outline-offset: -4px;
+        background-color: rgba(128, 128, 128, 0.1);
+        border-radius: 4px;
+      }
     }
 
     .lang-en,
@@ -174,28 +190,141 @@
       display: inline-block;
     }
 
-    body:has(#lang-en:checked) .lang-zh {
-      display: none;
+    @supports selector(body:has(#lang-en:checked)) {
+      body:has(#lang-en:checked) .lang-zh {
+        display: none;
+      }
+
+      body:has(#lang-en:checked) .lang-en {
+        display: inline-block;
+      }
+
+      body:has(#lang-ja:checked) .lang-zh {
+        display: none;
+      }
+
+      body:has(#lang-ja:checked) .lang-ja {
+        display: inline-block;
+      }
+
+      body:has(#lang-sc:checked) .lang-zh {
+        display: none;
+      }
+
+      body:has(#lang-sc:checked) .lang-sc {
+        display: inline-block;
+      }
+
+      /* 表格橫向滑動提示文字 L10N */
+      body:has(#lang-en:checked) .table-wrapper::after {
+        content: "← Scroll sideways →";
+      }
+
+      body:has(#lang-ja:checked) .table-wrapper::after {
+        content: "← 横にスクロール →";
+      }
+
+      body:has(#lang-sc:checked) .table-wrapper::after {
+        content: "← 可横向滑动 →";
+      }
     }
 
-    body:has(#lang-en:checked) .lang-en {
-      display: inline-block;
+    @supports not selector(body:has(#lang-en:checked)) {
+
+      /* 退化方案：不支援 :has 時仍可完整閱讀四語內容 */
+      .lang-switcher {
+        display: none;
+      }
+
+      .lang-zh,
+      .lang-en,
+      .lang-ja,
+      .lang-sc {
+        display: block;
+      }
     }
 
-    body:has(#lang-ja:checked) .lang-zh {
-      display: none;
-    }
+    /*
+     * ========== 3a. 色彩主題切換 (Theme Switcher) ==========
+     * 使用 Radio Hack 實現三段式主題切換：淺色、深色、跟隨系統。
+     * 以 body:has() 覆蓋 :root 繼承，確保優先權高於 @media (prefers-color-scheme)。
+     */
+    @supports selector(body:has(#theme-light:checked)) {
 
-    body:has(#lang-ja:checked) .lang-ja {
-      display: inline-block;
-    }
+      /* 強制淺色模式：覆蓋 @media (prefers-color-scheme: dark) 的 :root 變數 */
+      body:has(#theme-light:checked) {
+        color-scheme: light;
+        --bg-color: #ffffff;
+        --text-color: #111827;
+        --heading-color: #003a70;
+        --header-bg: #003a70;
+        --nav-bg: rgba(253, 254, 255, 0.96);
+        --section-alt-bg: #f9fafb;
+        --link-color: #004488;
+        --border-color: #374151;
+        --card-bg: #ffffff;
+        --table-header: #f3f4f6;
+        --nav-current-bg: rgba(0, 68, 136, 0.2);
+        --nav-current-accent: #004488;
+        --nav-previous-bg: rgba(107, 114, 128, 0.1);
+        --nav-previous-accent: #6b7280;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --focus-companion: 0 0 0 10px #111827;
+      }
 
-    body:has(#lang-sc:checked) .lang-zh {
-      display: none;
-    }
+      /* 強制深色模式：即使系統為淺色亦套用深色變數 */
+      body:has(#theme-dark:checked) {
+        color-scheme: dark;
+        --bg-color: #030712;
+        --text-color: #f9fafb;
+        --heading-color: #dbeafe;
+        --header-bg: #001e3c;
+        --nav-bg: rgba(17, 24, 39, 0.96);
+        --section-alt-bg: #181f2a;
+        --link-color: #a5d8ff;
+        --border-color: #5c6e85;
+        --card-bg: #111827;
+        --table-header: #1f2937;
+        --nav-current-bg: rgba(165, 216, 255, 0.22);
+        --nav-current-accent: #a5d8ff;
+        --nav-previous-bg: rgba(147, 164, 186, 0.18);
+        --nav-previous-accent: #93a4ba;
+        --card-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.45);
+        --card-shadow-hover: 0 24px 32px -8px rgba(0, 0, 0, 0.55);
+        --focus-companion: none;
+      }
 
-    body:has(#lang-sc:checked) .lang-sc {
-      display: inline-block;
+      /* 強制深色：補充無法透過 CSS 變數覆蓋的深色樣式（header 光暈、Xbox 按鈕） */
+      body:has(#theme-dark:checked) header::before,
+      body:has(#theme-dark:checked) header::after {
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+      }
+
+      body:has(#theme-dark:checked) .xbox-btn {
+        background-color: #000000;
+        border-color: #1f2937;
+        box-shadow: 0 3px 0 #000000, inset 0 2px 4px rgba(255, 255, 255, 0.05);
+      }
+
+      body:has(#theme-dark:checked) .xbox-dpad,
+      body:has(#theme-dark:checked) .xbox-stick {
+        background-color: #030712;
+      }
+
+      body:has(#theme-dark:checked) .xbox-stick {
+        background: radial-gradient(circle at center, #111827 40%, #000000 100%);
+      }
+
+      /* 鍵盤聚焦時的視覺回饋 */
+      body:has(#theme-sys:focus-visible) .lang-switcher label[for="theme-sys"],
+      body:has(#theme-light:focus-visible) .lang-switcher label[for="theme-light"],
+      body:has(#theme-dark:focus-visible) .lang-switcher label[for="theme-dark"] {
+        outline: 5px solid var(--focus-ring);
+        outline-offset: -4px;
+        background-color: rgba(128, 128, 128, 0.1);
+        border-radius: 4px;
+      }
     }
 
     /*
@@ -449,11 +578,13 @@
       border-bottom: 1px solid var(--border-color);
       position: sticky;
       top: 0;
+      min-height: var(--lang-switcher-height);
       z-index: 101;
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .lang-switcher fieldset {
@@ -484,11 +615,30 @@
       border-bottom-color: var(--focus-ring);
     }
 
+    .lang-switcher .theme-switcher-fieldset label {
+      cursor: pointer;
+      padding: 0 0.5rem;
+      font-size: 1.2rem;
+      min-height: 48px;
+      min-width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 4px solid transparent;
+      transition: border-bottom-color 0.2s;
+    }
+
+    #theme-sys:checked+label[for="theme-sys"],
+    #theme-light:checked+label[for="theme-light"],
+    #theme-dark:checked+label[for="theme-dark"] {
+      border-bottom-color: var(--focus-ring);
+    }
+
     nav.main-nav {
       background-color: var(--nav-bg);
       border-bottom: 1px solid var(--border-color);
       position: sticky;
-      top: 48px;
+      top: var(--lang-switcher-height);
       z-index: 100;
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
@@ -536,16 +686,10 @@
     h2 {
       font-size: clamp(2rem, 4vw, 3rem);
       margin-bottom: clamp(2rem, 5vh, 4rem);
-      color: var(--header-bg);
+      color: var(--heading-color);
       text-align: center;
       font-weight: 900;
       letter-spacing: -0.03em;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      h2 {
-        color: var(--link-color);
-      }
     }
 
     p {
@@ -608,12 +752,6 @@
       border-radius: 1em;
       opacity: 0.85;
       pointer-events: none;
-    }
-
-    @media (max-width: 900px) {
-      .table-wrapper::after {
-        display: block;
-      }
     }
 
     table {
@@ -855,15 +993,17 @@
      * 不支援者會自動退回上方 Anchor-based 模式。
      */
     @supports (animation-timeline: view()) {
-      body {
-        timeline-scope:
-          --section-about,
-          --section-handheld,
-          --section-usage,
-          --section-usage-advanced,
-          --section-spec,
-          --section-vibration,
-          --section-faq;
+      @supports (timeline-scope: --section-about) {
+        body {
+          timeline-scope:
+            --section-about,
+            --section-handheld,
+            --section-usage,
+            --section-usage-advanced,
+            --section-spec,
+            --section-vibration,
+            --section-faq;
+        }
       }
 
       #about {
@@ -931,6 +1071,7 @@
       }
 
       nav.main-nav a {
+        animation-duration: 1s;
         animation-fill-mode: none;
         animation-timing-function: linear;
         animation-range: cover;
@@ -939,14 +1080,27 @@
       @keyframes spy-current {
 
         0%,
-        100% {
+        15% {
+          background-color: transparent;
+          box-shadow: none;
+          text-decoration-line: none;
+        }
+
+        20%,
+        80% {
           background-color: var(--nav-current-bg);
           box-shadow: inset 0 -4px 0 var(--nav-current-accent);
           text-decoration: underline;
           text-decoration-style: solid;
           text-decoration-thickness: 3px;
           text-underline-offset: 4px;
-          font-weight: 800;
+        }
+
+        85%,
+        100% {
+          background-color: transparent;
+          box-shadow: none;
+          text-decoration-line: none;
         }
       }
 
@@ -1031,8 +1185,8 @@
     }
 
     .xbox-b {
-      color: #f87171;
-      text-shadow: 0 0 3px rgba(248, 113, 113, 0.4);
+      color: #fc8181;
+      text-shadow: 0 0 3px rgba(252, 129, 129, 0.4);
     }
 
     .xbox-x {
@@ -1075,13 +1229,17 @@
       }
     }
 
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 2.2rem;
+    @media (max-width: 900px) {
+      .lang-switcher {
+        position: relative;
+        justify-content: center;
       }
 
-      .requirement-list {
-        padding: 1.5rem;
+      /* ≤900px：兩組並排置中，加入垂直分隔線 */
+      .lang-switcher .theme-switcher-fieldset {
+        border-right: 1px solid var(--border-color);
+        padding-right: 0.75rem;
+        margin-right: 0.25rem;
       }
 
       nav.main-nav {
@@ -1089,37 +1247,14 @@
         top: 0;
       }
 
-      .lang-switcher {
-        position: relative;
-        justify-content: center;
+      section {
+        scroll-margin-top: 1.5rem;
       }
 
-      nav.main-nav ul {
-        flex-direction: column;
-        padding: 0.75rem;
-        gap: 0.25rem;
+      .table-wrapper::after {
+        display: block;
       }
 
-      nav.main-nav a {
-        justify-content: center;
-        width: 100%;
-        border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-        border-radius: 0.75rem;
-        margin: 0;
-      }
-
-      .feature-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .back-to-top {
-        bottom: 1.5rem;
-        right: 1.5rem;
-        width: 48px;
-        height: 48px;
-      }
-
-      /* Mobile Table */
       .table-wrapper {
         border: none;
         box-shadow: none;
@@ -1176,10 +1311,73 @@
         text-transform: uppercase;
         margin-bottom: 0.5rem;
       }
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2.2rem;
+      }
+
+      .requirement-list {
+        padding: 1.5rem;
+      }
+
+      nav.main-nav ul {
+        flex-direction: column;
+        padding: 0.75rem;
+        gap: 0.25rem;
+      }
+
+      nav.main-nav a {
+        justify-content: center;
+        width: 100%;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+        border-radius: 0.75rem;
+        margin: 0;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .back-to-top {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 48px;
+        height: 48px;
+      }
 
       .cta-button {
         width: 100%;
         padding: 1.25rem 1rem;
+      }
+    }
+
+    /*
+     * ========== iPhone SE / 小型手機 (≤544px) ==========
+     * iPhone SE 3/4 代 CSS 視口寬度 375px，兩組切換器並排需 ~500px 因此換行堆疊。
+     * 語言列改為垂直排列：主題組在上、語言組在下，分隔線改為水平。
+     */
+    @media (max-width: 544px) {
+      .lang-switcher {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 1rem;
+        min-height: 0;
+      }
+
+      .lang-switcher fieldset {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .lang-switcher .theme-switcher-fieldset {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding-right: 0;
+        padding-bottom: 0.5rem;
+        margin-right: 0;
       }
     }
 
@@ -1243,34 +1441,105 @@
 
     /*
      * ========== @media print ==========
-     * 針對列印介面進行黑白化與隱藏多餘導航列的最佳化
+     * 遵循 W3C CSS Paged Media 規範，最佳化列印輸出。
+     * 策略：黑白墨水友善、隱藏純螢幕元素、正確的頁面邊距與分頁控制。
+     *
+     * 修正項目（相較舊版）：
+     *   - 新增 @page 頁面邊距規範
+     *   - 修正錯誤的選擇器（.lang-nav/.card 等不存在的類別）
+     *   - 新增 h1/h2/h3 墨水色覆蓋（CSS 自訂屬性在列印中不會自動轉換）
+     *   - 新增 .skip-link、.back-to-top、.header-glow 等螢幕專用元素隱藏
+     *   - 新增 header、.requirement-list、.cta-button 列印樣式
+     *   - 修正 .card → .feature-card
      */
+    @page {
+      margin: 2cm 2cm 2.5cm;
+    }
+
     @media print {
       body {
         background-color: white !important;
         color: black !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-size: 11pt;
+        line-height: 1.5;
       }
 
-      .main-nav,
-      .lang-nav,
-      .mobile-menu-btn,
-      .gh-link {
+      /* 隱藏所有純螢幕互動元素 */
+      .skip-link,
+      .back-to-top,
+      .lang-switcher,
+      nav.main-nav,
+      .header-glow {
         display: none !important;
       }
 
+      header::before,
+      header::after {
+        display: none !important;
+      }
+
+      /* 頁首：移除深色漸層背景，改為白底黑字 */
+      header {
+        background: white !important;
+        color: black !important;
+        padding: 1.5rem 0 !important;
+      }
+
+      /* 標題墨水色（覆蓋 CSS 自訂屬性，因列印通常不繼承 CSS var 預設值） */
+      h1,
+      h2,
+      h3 {
+        color: black !important;
+      }
+
+      /* 需求清單：移除半透明深色背景與白色邊框 */
+      .requirement-list {
+        background: transparent !important;
+        border: 1px solid #999 !important;
+        color: black !important;
+      }
+
+      .requirement-list li {
+        color: black !important;
+      }
+
+      .requirement-list li:not(:first-child)::before {
+        color: black !important;
+      }
+
+      /* CTA 按鈕：移除彩色背景，改為黑色輪廓 */
+      .cta-button,
+      .cta-button.secondary {
+        background: none !important;
+        color: black !important;
+        border: 2px solid black !important;
+        box-shadow: none !important;
+      }
+
+      /* 容器充滿列印紙張寬度 */
       .container {
         width: 100% !important;
         max-width: none !important;
-        padding: 0 !important;
+        padding: 1rem 0 !important;
         margin: 0 !important;
       }
 
-      .card {
+      /* 功能卡片：去除陰影，統一細框線 */
+      .feature-card {
         box-shadow: none !important;
         border: 1px solid #ccc !important;
         break-inside: avoid;
       }
 
+      /* 頁尾通知框 */
+      .footer-notice {
+        border: 1px solid #ccc !important;
+        background: transparent !important;
+      }
+
+      /* 表格分頁控制：表格可跨頁，但單列不可被切斷 */
       table {
         break-inside: auto;
       }
@@ -1282,6 +1551,7 @@
         page-break-inside: avoid;
       }
 
+      /* Xbox 按鈕：去除彩色，改為黑色輪廓（節省彩色墨水） */
       .xbox-btn {
         border-color: #333 !important;
         color: #000 !important;
@@ -1336,6 +1606,44 @@
       <span class="lang-ja" lang="ja">言語切替 🌐</span>
       <span class="lang-sc" lang="zh-Hans">语言切换 🌐</span>
     </span>
+    <fieldset class="theme-switcher-fieldset">
+      <legend class="visually-hidden">
+        <span class="lang-zh">色彩主題</span>
+        <span class="lang-en" lang="en">Color Theme</span>
+        <span class="lang-ja" lang="ja">カラーテーマ</span>
+        <span class="lang-sc" lang="zh-Hans">色彩主题</span>
+      </legend>
+      <input type="radio" name="theme" id="theme-sys" checked class="lang-nav-hidden">
+      <label for="theme-sys">
+        <span aria-hidden="true">🖥️</span>
+        <span class="visually-hidden">
+          <span class="lang-zh">跟隨系統</span>
+          <span class="lang-en" lang="en">Auto</span>
+          <span class="lang-ja" lang="ja">自動</span>
+          <span class="lang-sc" lang="zh-Hans">跟随系统</span>
+        </span>
+      </label>
+      <input type="radio" name="theme" id="theme-light" class="lang-nav-hidden">
+      <label for="theme-light">
+        <span aria-hidden="true">☀️</span>
+        <span class="visually-hidden">
+          <span class="lang-zh">淺色模式</span>
+          <span class="lang-en" lang="en">Light</span>
+          <span class="lang-ja" lang="ja">ライト</span>
+          <span class="lang-sc" lang="zh-Hans">浅色模式</span>
+        </span>
+      </label>
+      <input type="radio" name="theme" id="theme-dark" class="lang-nav-hidden">
+      <label for="theme-dark">
+        <span aria-hidden="true">🌙</span>
+        <span class="visually-hidden">
+          <span class="lang-zh">深色模式</span>
+          <span class="lang-en" lang="en">Dark</span>
+          <span class="lang-ja" lang="ja">ダーク</span>
+          <span class="lang-sc" lang="zh-Hans">深色模式</span>
+        </span>
+      </label>
+    </fieldset>
     <fieldset>
       <legend class="visually-hidden">
         <span class="lang-zh">選擇顯示語言</span>
@@ -1457,11 +1765,11 @@
       <span class="lang-sc" lang="zh-Hans">主要导航链接</span>
     </span>
     <ul>
-      <li><a href="#about" class="nav-default-active" aria-current="page">
-          <span class="lang-zh">功能特色 ✨<span class="visually-hidden">（目前頁面）</span></span>
-          <span class="lang-en" lang="en">Key Features ✨<span class="visually-hidden"> (Current)</span></span>
-          <span class="lang-ja" lang="ja">主な特徴 ✨<span class="visually-hidden">（現在のページ）</span></span>
-          <span class="lang-sc" lang="zh-Hans">功能特色 ✨<span class="visually-hidden">（当前页面）</span></span>
+      <li><a href="#about" class="nav-default-active" aria-current="location">
+          <span class="lang-zh">功能特色 ✨<span class="visually-hidden">（目前區段）</span></span>
+          <span class="lang-en" lang="en">Key Features ✨<span class="visually-hidden"> (Current section)</span></span>
+          <span class="lang-ja" lang="ja">主な特徴 ✨<span class="visually-hidden">（現在のセクション）</span></span>
+          <span class="lang-sc" lang="zh-Hans">功能特色 ✨<span class="visually-hidden">（当前区段）</span></span>
         </a></li>
       <li><a href="#handheld">
           <span class="lang-zh">掌機最佳化方案 🎮</span>
@@ -1701,19 +2009,19 @@
           <table>
             <thead>
               <tr>
-                <th>
+                <th scope="col">
                   <span class="lang-zh">功能項目</span>
                   <span class="lang-en" lang="en">Action</span>
                   <span class="lang-ja" lang="ja">項目</span>
                   <span class="lang-sc" lang="zh-Hans">功能项目</span>
                 </th>
-                <th>
+                <th scope="col">
                   <span class="lang-zh">遊戲控制器 🎮</span>
                   <span class="lang-en" lang="en">Controller 🎮</span>
                   <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                   <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                 </th>
-                <th>
+                <th scope="col">
                   <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                   <span class="lang-en" lang="en">Keyboard ⌨️</span>
                   <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2350,19 +2658,19 @@
           <table>
             <thead>
               <tr>
-                <th>
+                <th scope="col">
                   <span class="lang-zh">功能項目</span>
                   <span class="lang-en" lang="en">Action</span>
                   <span class="lang-ja" lang="ja">項目</span>
                   <span class="lang-sc" lang="zh-Hans">功能项目</span>
                 </th>
-                <th>
+                <th scope="col">
                   <span class="lang-zh">遊戲控制器 🎮</span>
                   <span class="lang-en" lang="en">Controller 🎮</span>
                   <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                   <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                 </th>
-                <th>
+                <th scope="col">
                   <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                   <span class="lang-en" lang="en">Keyboard ⌨️</span>
                   <span class="lang-ja" lang="ja">キーボード ⌨️</span>
