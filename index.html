@@ -295,6 +295,12 @@
         --focus-companion: none;
       }
 
+      /* 強制淺色：系統深色模式下，@media dark 會對星星加光暈，強制淺色時需清除 */
+      body:has(#theme-light:checked) header::before,
+      body:has(#theme-light:checked) header::after {
+        filter: none;
+      }
+
       /* 強制深色：補充無法透過 CSS 變數覆蓋的深色樣式（header 光暈、Xbox 按鈕） */
       body:has(#theme-dark:checked) header::before,
       body:has(#theme-dark:checked) header::after {
@@ -709,7 +715,7 @@
       border-radius: 1.5rem;
       background-color: var(--card-bg);
       box-shadow: var(--card-shadow);
-      transition: transform var(--transition-speed) cubic-bezier(0.2, 0, 0, 1), box-shadow var(--transition-speed);
+      transition: box-shadow var(--transition-speed), border-color var(--transition-speed);
     }
 
     .feature-card:hover {
@@ -1536,11 +1542,13 @@
         color: black !important;
       }
 
-      /* 需求清單：移除半透明深色背景與白色邊框 */
+      /* 需求清單：移除半透明深色背景與白色邊框，清除 backdrop-filter */
       .requirement-list {
         background: transparent !important;
         border: 1px solid #999 !important;
         color: black !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
       }
 
       .requirement-list li {
