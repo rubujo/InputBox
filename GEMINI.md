@@ -9,11 +9,13 @@
 
 ## 1. 核心紅線
 - **零 JS／零圖片／零 Inline CSS**：嚴禁違背此政策。
+- **`@supports selector()` 強制要求**：所有使用 `body:has()` 的 CSS 規則，必須以 `@supports selector(body:has())` 包裹，並提供 `@supports not selector()` 退化方案（展開四語內容、隱藏切換器）。
 - **多語系同步**：修改文字時必須同時更新 ZH、EN、JA、SC 四種語系。
 - **編碼與換行**：文字檔一律使用 UTF-8 編碼與 CRLF 換行，並遵循 `.editorconfig`、`.gitattributes`。
 
 ## 2. A11y 要求
-- 色彩對比必須 ≥ 7:1。
+- 色彩對比必須 ≥ 7:1（文字），非文字 UI ≥ 3:1。
+- 焦點指示器：雙環`outline #e67e00` + `--focus-companion` 伴侶環（淺色模式）；深色模式單橘環 7.05:1。
 - 點擊目標 ≥ 44x44px。
 - 嚴格遵守「零佈局抖動」原則。
 
