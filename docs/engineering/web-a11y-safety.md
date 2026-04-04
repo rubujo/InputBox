@@ -6,7 +6,12 @@
   - 視覺警示配色採用 **`#e67e00`** (DarkOrange)。
 - **眼動儀優化 (Eye Tracker Optimized)**：
   - **大點擊目標**：按鈕與連結最小尺寸為 44x44px。
-  - **強化焦點框**：`:focus-visible` 必須具備高對比色且厚度 ≥ 5px。
+  - **強化焦點框（雙環指示器）**：`:focus-visible` 採雙環設計以同時滿足 WCAG SC 2.4.11/2.4.12：
+    - `outline: 5px solid #e67e00`（橙色主環，厚度 ≥ 5px）
+    - 淺色模式：`box-shadow: 0 0 0 10px #111827`（深色伴侶環，對比：橙色 vs 伴侶環 6.21:1；伴侶環 vs 白色頁面背景 17.74:1）
+    - 深色模式：`--focus-companion: none`（橙色 vs 深色背景 `#030712` = 7.05:1，單環即達 AAA）
+    - 透過 `--focus-companion` CSS 自訂屬性管理，主題切換與媒體查詢均可正確覆蓋。
+    - `box-shadow` 不影響佈局尺寸，符合零佈局抖動規範。
   - **預設動作引導**：主要行動按鈕（如 CTA 下載）應具備與焦點框一致的視覺特徵。
   - **零佈局抖動 (Zero-Jitter)**：禁止在互動（Hover/Focus）時變動 Width, Height, Margin 或 Padding。
 - **動畫安全與光敏防護**：
