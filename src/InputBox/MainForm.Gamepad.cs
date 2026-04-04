@@ -28,8 +28,20 @@ public partial class MainForm
         SemaphoreSlim? initLock = _gamepadInitLock;
 
         // 使用號誌確保一次只有一個初始化流程在運行，防止連點熱鍵引發的競爭。
-        if (initLock == null ||
-            !await initLock.WaitAsync(0))
+        // 以 try-catch 保護 WaitAsync：若 OnFormClosing 在此指令執行前已搶先處置號誌，
+        // 應視為正常關閉流程，靜默退出即可。
+        bool acquired;
+
+        try
+        {
+            acquired = initLock != null && await initLock.WaitAsync(0);
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        if (!acquired)
         {
             return;
         }

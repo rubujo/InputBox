@@ -1,4 +1,4 @@
-namespace InputBox.Core.Utilities;
+﻿namespace InputBox.Core.Utilities;
 
 /// <summary>
 /// 提供基於高斯分佈（常態分佈）的隨機數產生器
@@ -6,11 +6,6 @@ namespace InputBox.Core.Utilities;
 /// </summary>
 internal static class GaussianDelayHelper
 {
-    /// <summary>
-    /// 隨機數生成器實例
-    /// </summary>
-    private static readonly Random _rng = new();
-
     /// <summary>
     /// 產生符合高斯分佈的隨機值
     /// </summary>
@@ -22,9 +17,10 @@ internal static class GaussianDelayHelper
         double standardDeviation)
     {
         // 使用 Box-Muller 轉換。
+        // 使用 Random.Shared（.NET 6+ 執行緒安全實作），避免靜態 Random 欄位在多執行緒並行時發生資料競爭。
         // 確保不為 0。
-        double u1 = 1.0 - _rng.NextDouble(),
-            u2 = 1.0 - _rng.NextDouble(),
+        double u1 = 1.0 - Random.Shared.NextDouble(),
+            u2 = 1.0 - Random.Shared.NextDouble(),
             randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2),
             // 映射到目標分佈。
             result = mean + standardDeviation * randStdNormal;
