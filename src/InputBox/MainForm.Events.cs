@@ -537,6 +537,11 @@ public partial class MainForm
 
         _isActionCooldown = true;
 
+        // 取消因 TBInput.Focus() → LostFocus → StopFeedback 意外觸發的寄生 Dwell 動畫。
+        // 若不在此時取消，Dwell 1 會在 Task.Delay(1000) 期間完整播放，
+        // 再加上 CompleteClickAndReGazeAsync 結束後啟動的 Dwell 2，使用者將看到兩次動畫。
+        BtnCopy.CancelDwellAnimation();
+
         FeedbackService.PlaySound(SystemSounds.Beep);
 
         await VibrateAsync(VibrationPatterns.ActionFail);

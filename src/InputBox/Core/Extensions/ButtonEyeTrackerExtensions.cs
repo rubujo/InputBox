@@ -172,6 +172,25 @@ public static class ButtonEyeTrackerExtensions
     }
 
     /// <summary>
+    /// 取消目前進行中的 Dwell 動畫且不啟動新動畫，
+    /// 用於在程式主動移焦時阻斷因 LostFocus 意外觸發的寄生動畫
+    /// </summary>
+    /// <param name="btn">目標按鈕</param>
+    public static void CancelDwellAnimation(this Button btn)
+    {
+        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+        {
+            return;
+        }
+
+        Interlocked.Increment(ref st.AnimId);
+
+        st.DwellProgress = 0f;
+
+        btn.Invalidate();
+    }
+
+    /// <summary>
     /// 取得鍵盤焦點時套用強視覺狀態，
     /// 並觸發焦點狀態改變回呼以連動提示標籤等 UI 元件的更新
     /// </summary>
