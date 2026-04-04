@@ -146,7 +146,13 @@ internal class WindowFocusService
         try
         {
             // 第一段：先用低侵入方式切換，避免不必要的執行緒附加。
-            _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
+            // 僅在視窗確實處於最小化狀態時才呼叫 SW_RESTORE，
+            // 避免對全螢幕（Xbox 達陣全螢幕）或最大化視窗呼叫後造成畫面跟版。
+            if (User32.IsIconic(targetHwnd))
+            {
+                _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
+            }
+
             _ = User32.BringWindowToTop(targetHwnd);
             _ = User32.SetForegroundWindow(targetHwnd);
 
@@ -182,7 +188,12 @@ internal class WindowFocusService
                     }
 
                     // 先還原並提升 Z-Order，再切前景，提升跨應用視窗切換穩定性。
-                    _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
+                    // 同第一段，僅在視窗最小化時才呼叫 SW_RESTORE，防止將全螢幕視窗退出全螢幕。
+                    if (User32.IsIconic(targetHwnd))
+                    {
+                        _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
+                    }
+
                     _ = User32.BringWindowToTop(targetHwnd);
                     _ = User32.SetForegroundWindow(targetHwnd);
                     _ = User32.SetFocus(targetHwnd);
