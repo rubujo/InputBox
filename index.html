@@ -1628,7 +1628,8 @@
         display: table !important;
         min-width: 0 !important;
         width: 100% !important;
-        break-inside: auto;
+        table-layout: auto !important;
+        break-inside: auto !important;
       }
 
       thead {
@@ -1652,8 +1653,8 @@
         background: transparent !important;
         padding: 0 !important;
         margin: 0 !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
       }
 
       th,
@@ -1661,13 +1662,15 @@
         display: table-cell !important;
         padding: 0.75rem !important;
         width: auto !important;
+        flex-direction: unset !important;
+        align-items: unset !important;
         border: none !important;
         border-bottom: 1px solid #999 !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
       }
 
-      tr:last-child td {
+      tbody tr:last-child td {
         border-bottom: none !important;
       }
 
