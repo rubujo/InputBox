@@ -1568,11 +1568,48 @@
         margin: 0 !important;
       }
 
-      /* 功能卡片：去除陰影，統一細框線 */
+      /* 功能卡片：去除陰影、統一細框線，並修正深色模式的黑色背景 */
       .feature-card {
         box-shadow: none !important;
         border: 1px solid #ccc !important;
         break-inside: avoid;
+        background-color: white !important;
+      }
+
+      .feature-card h3 {
+        color: black !important;
+      }
+
+      /* 區塊交替背景：深色模式下為深色，列印需修正為白色 */
+      section,
+      section:nth-child(even) {
+        background-color: white !important;
+      }
+
+      /* 連結：深色模式下為淺藍色，列印改為黑色 */
+      a {
+        color: black !important;
+      }
+
+      /* 鍵盤按鍵：深色模式下為深色背景，列印改為淺灰色 */
+      kbd {
+        background-color: #f0f0f0 !important;
+        border-color: #333 !important;
+        color: black !important;
+        box-shadow: none !important;
+      }
+
+      /* 表格標題列：深色模式下為深色背景，列印改為淺灰色 */
+      th {
+        background-color: #f0f0f0 !important;
+        color: black !important;
+      }
+
+      /* 頁尾：深色模式下為深色背景，列印改為白色 */
+      footer {
+        background-color: white !important;
+        color: black !important;
+        border-top-color: #ccc !important;
       }
 
       /* 頁尾通知框 */
@@ -1581,16 +1618,61 @@
         background: transparent !important;
       }
 
-      /* 表格分頁控制：表格可跨頁，但單列不可被切斷 */
+      /*
+       * 表格顯示模式恢復：
+       * ≤900px 的 RWD 將 table 元素設為 display:block 堆疊呈現；
+       * A4 列印可用寬度約 640px（含 2cm 頁邊距），會觸發 ≤900px 媒體查詢。
+       * 須在列印媒體中強制復原為正常表格顯示模式。
+       */
       table {
+        display: table !important;
+        min-width: 0 !important;
+        width: 100% !important;
         break-inside: auto;
       }
 
-      tr,
-      td,
-      th {
+      thead {
+        display: table-header-group !important;
+      }
+
+      thead tr {
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+      }
+
+      tbody {
+        display: table-row-group !important;
+      }
+
+      tr {
+        display: table-row !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
         break-inside: avoid;
         page-break-inside: avoid;
+      }
+
+      th,
+      td {
+        display: table-cell !important;
+        padding: 0.75rem !important;
+        width: auto !important;
+        border: none !important;
+        border-bottom: 1px solid #999 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      td:last-child {
+        border-bottom: none !important;
+      }
+
+      .mobile-label {
+        display: none !important;
       }
 
       /* Xbox 按鈕：去除彩色，改為黑色輪廓（節省彩色墨水） */
