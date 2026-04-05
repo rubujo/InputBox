@@ -156,10 +156,15 @@ public static class InputBoxLayoutManager
 
         form.MinimumSize = new Size(clampedMinWidth, clampedMinHeight);
 
-        if (form.Width < clampedMinWidth ||
-            form.Height < clampedMinHeight ||
-            form.Width > maxFitWidth ||
-            form.Height > maxFitHeight)
+        // 僅在 Normal 狀態下強制修正尺寸。
+        // 若視窗已最大化（如 ROG Ally X 平板模式在 Handle 建立前即最大化），
+        // 跳過 Size 設定，避免視窗從 Maximized 被強制固定至接近全螢幕的 Normal 大小，
+        // 導致後續 ShowWindow(Restore) 成為 no-op 而無法縮回合理尺寸。
+        if (form.WindowState == FormWindowState.Normal &&
+            (form.Width < clampedMinWidth ||
+             form.Height < clampedMinHeight ||
+             form.Width > maxFitWidth ||
+             form.Height > maxFitHeight))
         {
             int finalMaxW = Math.Max(clampedMinWidth, maxFitWidth),
                 finalMaxH = Math.Max(clampedMinHeight, maxFitHeight);

@@ -98,6 +98,11 @@ public partial class MainForm
             // 對「Windows 遊戲：全螢幕體驗」（Xbox 全螢幕體驗）不受影響，一樣會自動最大化。
             User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
 
+            // Restore 後執行位置修正，確保 WINDOWPLACEMENT.rcNormalPosition 夾回工作區範圍內。
+            // （若 Handle 建立前視窗已最大化，MinimumSize 已在 UpdateLayoutConstraints 設定；
+            //   Restore 後 Windows 夾至 MinimumSize，此處僅需確保位置合法即可。）
+            ApplySmartPosition();
+
             // 初始化 GamepadController。
             // 使用 SafeFireAndForget 並傳入額外處理動作，以確保啟動失敗時能獲得 A11y 通知。
             InitializeGamepadControllerAsync()
