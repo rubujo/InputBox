@@ -198,7 +198,7 @@ jobs:
             '',
             'This project redistributes the embedded usb.ids data under the',
             'BSD 3-Clause License, which is one of the two licenses explicitly',
-            'offered by the upstream project.',
+            'stated at the official source listed above.',
             '',
             'For the full text of the BSD 3-Clause License, see:',
             '  https://opensource.org/license/bsd-3-clause',
