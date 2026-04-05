@@ -121,6 +121,11 @@ public partial class MainForm : Form
     private ToolStripMenuItem? _tsmiAnimatedVisualAlerts;
 
     /// <summary>
+    /// 返回時最小化選單項
+    /// </summary>
+    private ToolStripMenuItem? _tsmiMinimizeOnReturn;
+
+    /// <summary>
     /// 片語子選單項
     /// </summary>
     private ToolStripMenuItem? _tsmiPhrases;
@@ -874,9 +879,31 @@ public partial class MainForm : Form
 
         config.WindowOpacity += delta;
 
+        // 消除浮點步進累積誤差，確保數值為精確的百分比整數。
+        config.WindowOpacity = MathF.Round(config.WindowOpacity, 2);
+
         // 若數值有實質變動才處理。
         if (Math.Abs(oldOpacity - config.WindowOpacity) > 0.001f)
         {
+            // 首次穿越 50% 下限時顯示知情警告。
+            if (config.WindowOpacity < 0.5f && oldOpacity >= 0.5f)
+            {
+                DialogResult confirm = MessageBox.Show(
+                    Strings.Msg_LowOpacity_Warn,
+                    Strings.Msg_LowOpacity_Warn_Title,
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+
+                if (confirm != DialogResult.OK)
+                {
+                    // 使用者取消：回復至原值，不套用。
+                    config.WindowOpacity = oldOpacity;
+
+                    return;
+                }
+            }
+
             // 立即套用視覺變更。
             UpdateOpacity();
 

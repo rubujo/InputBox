@@ -239,6 +239,13 @@ internal sealed class NumericInputDialog : Form
     public decimal Value => _nud?.Value ?? 0m;
 
     /// <summary>
+    /// 確認關閉前的驗證回呼。回傳 false 表示中止關閉，對話框維持開啟狀態。
+    /// </summary>
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Func<decimal, bool>? ConfirmBeforeClose { get; set; }
+
+    /// <summary>
     /// 設定控制器實作，並訂閱事件
     /// </summary>
     [Browsable(false)]
@@ -890,6 +897,13 @@ internal sealed class NumericInputDialog : Form
             }
 
             _nud?.ValidateValue();
+
+            // 關閉前執行呼叫端的驗證回呼（例如低不透明度警告）。
+            if (ConfirmBeforeClose != null && !ConfirmBeforeClose(Value))
+            {
+                // 使用者在警告對話框中取消：保持 NumericInputDialog 開啟。
+                return;
+            }
 
             // 發送與控制器對等的震動與 A11y 播報。
             FeedbackService.PlaySound(SystemSounds.Asterisk);

@@ -664,7 +664,7 @@
     <comment>設定項目の名前で、ウィンドウの透明度を指します。</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}。現在の値：{1:P0}。下限は 70% です。</value>
+    <value>{0}。現在の値：{1:P0}。下限は 10% です。</value>
     <comment>不透明度メニュー項目のアクセシビリティ説明です。{0} はラベル名、{1} は現在のパーセンテージです。</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
@@ -674,6 +674,16 @@
   <data name="A11y_Opacity_HighContrast" xml:space="preserve">
     <value>ハイコントラストモードが有効なため、不透明度は 100% に固定されました。</value>
     <comment>ハイコントラストモードで不透明度が強制的に固定されたときに再生されるアクセシビリティ音声ガイドです。</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn" xml:space="preserve">
+    <value>不透明度を 50% 未満に設定すると、背景が複雑な場合にウィンドウの内容が読みづらくなる可能性があります。ハイコントラストモード時は、入力ボックスが自動的にこの設定を 100% に上書きします。
+
+続けますか？</value>
+    <comment>不透明度を 50% 未満に設定したときに表示される警告ダイアログの本文です。可読性への影響をユーザーに知らせ、ハイコントラストモードがこの設定を上書きすることを説明します。</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
+    <value>不透明度の警告</value>
+    <comment>不透明度を 50% 未満に設定したときに表示される警告ダイアログのタイトルです。</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>ゲームパッドの初期化に失敗しました。一部の機能が利用できない可能性があります。</value>
@@ -700,7 +710,7 @@
     <comment>コントローラーでサブメニューを閉じる際のアクセシビリティ読み上げメッセージ。</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
-    <value>読み上げ中断を許可 (&amp;I)</value>
+    <value>読み上げ中断を許可</value>
     <comment>読み上げ中断のオン/オフを切り替えるコンテキストメニュー項目（WCAG 2.2.4）。</comment>
   </data>
   <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
@@ -716,7 +726,7 @@
     <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
-    <value>アニメーション視覚警告 (&amp;V)</value>
+    <value>アニメーション視覚警告</value>
     <comment>警告や検証状態でアニメーション視覚通知を使うかどうかを切り替えるコンテキストメニュー項目です。</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
@@ -730,6 +740,32 @@
   <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
     <value>アニメーション視覚警告を無効にしました。警告は単発の静的パルスになります。</value>
     <comment>アニメーション視覚警告設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn" xml:space="preserve">
+    <value>戻るときに最小化</value>
+    <comment>前のウィンドウに戻るときに入力ボックスを最小化するかどうかを切り替えるコンテキストメニュー項目。</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
+    <value>前のウィンドウに戻るときに入力ボックスを最小化します。Xbox フルスクリーン体験では推奨しません。</value>
+    <comment>「戻るときに最小化」トグルメニュー項目のアクセシブルな説明。</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
+    <value>戻るときに最小化を有効にしました。</value>
+    <comment>「戻るときに最小化」設定をオンにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
+    <value>戻るときに最小化を無効にしました。</value>
+    <comment>「戻るときに最小化」設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
+    <value>Xbox フルスクリーンモードでは、入力ボックスを最小化すると画面が真っ黒になり、直接元に戻せない場合があります。
+
+グローバルホットキーで入力ボックスを再び起動できます。この機能を有効にしますか？</value>
+    <comment>「戻るときに最小化」を有効にしようとしたときに表示される確認ダイアログの本文。Xbox フルスクリーンモードの制限について警告します。</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
+    <value>戻るときに最小化</value>
+    <comment>「戻るときに最小化」を有効にするときに表示される確認ダイアログのタイトル。</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>ヘルプ</value>
@@ -768,7 +804,7 @@
     <comment>ヘルプダイアログ内の両方の表の「操作」列ヘッダー。</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>閉じる (&amp;B)</value>
+    <value>閉じる</value>
     <comment>ヘルプダイアログ内の「閉じる」ボタンのラベルテキスト。</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">

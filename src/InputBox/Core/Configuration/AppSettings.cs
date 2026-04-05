@@ -304,18 +304,34 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 視窗不透明度（0.7 ~ 1.0）
+    /// 返回前一個視窗時是否最小化 InputBox
+    /// </summary>
+    private volatile bool _minimizeOnReturn = false;
+
+    /// <summary>
+    /// 返回前一個視窗時是否最小化 InputBox
+    /// </summary>
+    public bool MinimizeOnReturn
+    {
+        get => _minimizeOnReturn;
+        set => _minimizeOnReturn = value;
+    }
+
+    /// <summary>
+    /// 視窗不透明度（0.1 ~ 1.0）
     /// </summary>
     private volatile float _windowOpacity = 1.0f;
 
     /// <summary>
-    /// 視窗不透明度（0.7 ~ 1.0）。
-    /// 下限設為 70% 以確保文字對比度在最差背景條件下仍可達 WCAG AAA（≥ 7:1）。
+    /// 視窗不透明度（0.1 ~ 1.0）。
+    /// 下限設為 10% 以防止視窗完全消失。
+    /// 低於 50% 時，UI 層會在套用前向使用者顯示知情警告。
+    /// 高對比模式下由 UpdateOpacity() 強制覆寫為 1.0。
     /// </summary>
     public float WindowOpacity
     {
         get => _windowOpacity;
-        set => _windowOpacity = Math.Clamp(value, 0.7f, 1.0f);
+        set => _windowOpacity = Math.Clamp(value, 0.1f, 1.0f);
     }
 
     #endregion

@@ -664,7 +664,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Setting item name for window transparency level.</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}. Current: {1:P0}. Minimum is 70%.</value>
+    <value>{0}. Current: {1:P0}. Minimum is 10%.</value>
     <comment>Accessibility description for the opacity menu item. {0} is label, {1} is percentage.</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
@@ -674,6 +674,16 @@ Make sure that multiple instances of this application are not running at the sam
   <data name="A11y_Opacity_HighContrast" xml:space="preserve">
     <value>High Contrast mode is on, opacity locked to 100%.</value>
     <comment>Accessibility voice prompt played when opacity is forced to 100% due to High Contrast.</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn" xml:space="preserve">
+    <value>Setting opacity below 50% may reduce readability when the background is complex. In High Contrast mode, InputBox always overrides this to 100%.
+
+Continue?</value>
+    <comment>Warning dialog body shown when user sets opacity below 50%. Informs the user of potential readability impact and that High Contrast mode overrides this setting.</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
+    <value>Low Opacity Warning</value>
+    <comment>Title of the warning dialog shown when opacity is set below 50%.</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>Gamepad controller initialization failed. Some features may be unavailable.</value>
@@ -700,7 +710,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Announce when exiting a submenu using gamepad</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
-    <value>Interrupt Announcements (&amp;I)</value>
+    <value>Interrupt Announcements</value>
     <comment>Context menu item that toggles whether screen reader announcements can interrupt the previous one (WCAG 2.2.4).</comment>
   </data>
   <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
@@ -716,7 +726,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Screen reader announcement played when the interrupt-announcements setting is turned off.</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
-    <value>Animated Visual Alerts (&amp;V)</value>
+    <value>Animated Visual Alerts</value>
     <comment>Context menu item that toggles animated visual alerts for warnings and validation states.</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
@@ -730,6 +740,32 @@ Make sure that multiple instances of this application are not running at the sam
   <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
     <value>Animated visual alerts disabled. Warnings will use a single static pulse.</value>
     <comment>Screen reader announcement played when animated visual alerts are disabled.</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn" xml:space="preserve">
+    <value>Minimize on Return</value>
+    <comment>Context menu item that toggles whether InputBox minimizes itself when returning to the previous window.</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
+    <value>Minimize InputBox when returning to the previous window. Not recommended in Xbox full-screen experience.</value>
+    <comment>Accessible description for the minimize-on-return toggle menu item.</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
+    <value>Minimize on return enabled.</value>
+    <comment>Screen reader announcement played when the minimize-on-return setting is turned on.</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
+    <value>Minimize on return disabled.</value>
+    <comment>Screen reader announcement played when the minimize-on-return setting is turned off.</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
+    <value>In Xbox full-screen experience, minimizing InputBox may leave the screen blank with no way to restore it directly.
+
+You can still restore InputBox using the global hotkey. Do you want to enable this feature?</value>
+    <comment>Confirmation dialog body shown when the user attempts to enable the minimize-on-return feature. Warns about Xbox full-screen limitations.</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
+    <value>Minimize on Return</value>
+    <comment>Title of the confirmation dialog shown when enabling minimize-on-return.</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>Help</value>
@@ -768,7 +804,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Column header for the action description column in both tables inside the Help dialog.</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>Close (&amp;B)</value>
+    <value>Close</value>
     <comment>Label for the Close button in the Help dialog.</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">

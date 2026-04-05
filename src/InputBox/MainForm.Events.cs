@@ -1221,6 +1221,12 @@ public partial class MainForm
             AnnounceA11y(Strings.A11y_Returning);
         }
 
+        // 最小化必須在 NavigateBack 之前執行，避免兩個視窗交替出現的視覺閃爍。
+        if (AppSettings.Current.MinimizeOnReturn)
+        {
+            await this.InvokeAsync(() => WindowState = FormWindowState.Minimized);
+        }
+
         await NavigateBackWithAnnouncementAsync();
         FlashWindowIfStillForeground();
     }
@@ -1741,7 +1747,8 @@ public partial class MainForm
         float minimum = 0.0f,
         float maximum = 1.0f,
         decimal step = 0.1m,
-        int decimalPlaces = 1)
+        int decimalPlaces = 1,
+        Func<float, bool>? confirmBeforeClose = null)
     {
         using NumericInputDialog dialog = new(
             title,
@@ -1753,6 +1760,11 @@ public partial class MainForm
             (decimal)maximum);
 
         dialog.GamepadController = _gamepadController;
+
+        if (confirmBeforeClose != null)
+        {
+            dialog.ConfirmBeforeClose = (v) => confirmBeforeClose((float)v);
+        }
 
         // 傳入 this 作為 Owner，確保模態視窗行為正確。
         return dialog.ShowDialog(this) == DialogResult.OK ?

@@ -180,6 +180,53 @@ public partial class MainForm
             }
         };
 
+        // 返回時最小化。
+        _tsmiMinimizeOnReturn = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_MinimizeOnReturn, 'M'))
+        {
+            CheckOnClick = true,
+            Checked = AppSettings.Current.MinimizeOnReturn,
+            AccessibleName = Strings.Menu_MinimizeOnReturn,
+            AccessibleDescription = Strings.Menu_MinimizeOnReturn_Desc
+        };
+
+        _tsmiMinimizeOnReturn.CheckedChanged += (s, e) =>
+        {
+            try
+            {
+                if (_tsmiMinimizeOnReturn.Checked)
+                {
+                    // 使用者嘗試啟用：先暫停 CheckOnClick 效果，等待使用者確認後再決定。
+                    DialogResult result = MessageBox.Show(
+                        Strings.Msg_MinimizeOnReturn_Confirm,
+                        Strings.Msg_MinimizeOnReturn_Confirm_Title,
+                        MessageBoxButtons.OKCancel,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button2);
+
+                    if (result != DialogResult.OK)
+                    {
+                        // 使用者取消：復原勾選狀態，不儲存。
+                        _tsmiMinimizeOnReturn.Checked = false;
+
+                        return;
+                    }
+                }
+
+                AppSettings.Current.MinimizeOnReturn = _tsmiMinimizeOnReturn.Checked;
+                AppSettings.Save();
+
+                AnnounceA11y(AppSettings.Current.MinimizeOnReturn ?
+                    Strings.A11y_MinimizeOnReturn_On :
+                    Strings.A11y_MinimizeOnReturn_Off);
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "返回時最小化設定變更失敗");
+
+                Debug.WriteLine($"[選單] _tsmiMinimizeOnReturn.CheckedChanged 失敗：{ex.Message}");
+            }
+        };
+
         // 快速鍵設定子選單。
         ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'T'))
         {
@@ -383,6 +430,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiOpacity = new(ControlExtensions.GetMnemonicText(Strings.Settings_WindowOpacity, 'O'))
         {
             AccessibleName = Strings.Settings_WindowOpacity,
+            Tag = new KeyValuePair<string, char>(Strings.Settings_WindowOpacity, 'O')
         };
 
         // WCAG 2.4.8：進入子選單時宣告層級。
@@ -408,7 +456,7 @@ public partial class MainForm
         ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
         {
             AccessibleName = Strings.Settings_WindowOpacity,
-            Tag = new MenuMetadata(Strings.Settings_WindowOpacity, 'S', 70, 100)
+            Tag = new MenuMetadata(Strings.Settings_WindowOpacity, 'S', 10, 100)
         };
         tsmiSetOpacity.Click += (s, e) =>
         {
@@ -418,10 +466,27 @@ public partial class MainForm
                     Strings.Settings_WindowOpacity,
                     AppSettings.Current.WindowOpacity * 100,
                     100.0f,
-                    70.0f,
+                    10.0f,
                     100.0f,
                     1.0m,
-                    0);
+                    0,
+                    confirmBeforeClose: (value) =>
+                    {
+                        // 低於 50% 時，在 Dialog 關閉前顯示知情警告。
+                        if (value < 50.0f)
+                        {
+                            DialogResult confirm = MessageBox.Show(
+                                Strings.Msg_LowOpacity_Warn,
+                                Strings.Msg_LowOpacity_Warn_Title,
+                                MessageBoxButtons.OKCancel,
+                                MessageBoxIcon.Warning,
+                                MessageBoxDefaultButton.Button2);
+
+                            return confirm == DialogResult.OK;
+                        }
+
+                        return true;
+                    });
 
                 if (result.HasValue)
                 {
@@ -1126,6 +1191,7 @@ public partial class MainForm
         _cmsInput.Items.Add(_tsmiPrivacyMode);
         _cmsInput.Items.Add(_tsmiA11yInterrupt);
         _cmsInput.Items.Add(_tsmiAnimatedVisualAlerts);
+        _cmsInput.Items.Add(_tsmiMinimizeOnReturn);
         _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(_tsmiPhrases);
         _cmsInput.Items.Add(new ToolStripSeparator());

@@ -421,6 +421,24 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
+        ///   查詢類似 Minimize on return disabled. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_MinimizeOnReturn_Off {
+            get {
+                return ResourceManager.GetString("A11y_MinimizeOnReturn_Off", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Minimize on return enabled. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_MinimizeOnReturn_On {
+            get {
+                return ResourceManager.GetString("A11y_MinimizeOnReturn_On", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查詢類似 Quit the application and release all resources. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_Exit_Desc {
@@ -457,7 +475,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        ///   查詢類似 {0}. Current: {1:P0}. Minimum is 70%. 的當地語系化字串。
+        ///   查詢類似 {0}. Current: {1:P0}. Minimum is 10%. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_OpacityDesc {
             get {
@@ -1035,7 +1053,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        ///   查詢類似 Close (&amp;B) 的當地語系化字串。
+        ///   查詢類似 Close 的當地語系化字串。
         /// </summary>
         internal static string Help_Btn_Close {
             get {
@@ -1141,7 +1159,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        ///   查詢類似 Interrupt Announcements (&amp;I) 的當地語系化字串。
+        ///   查詢類似 Interrupt Announcements 的當地語系化字串。
         /// </summary>
         internal static string Menu_A11yInterrupt {
             get {
@@ -1159,7 +1177,7 @@ namespace InputBox.Resources {
         }
 
         /// <summary>
-        ///   查詢類似 Animated Visual Alerts (&amp;V) 的當地語系化字串。
+        ///   查詢類似 Animated Visual Alerts 的當地語系化字串。
         /// </summary>
         internal static string Menu_AnimatedVisualAlerts {
             get {
@@ -1290,6 +1308,24 @@ namespace InputBox.Resources {
         internal static string Menu_OpenDataFolder_Desc {
             get {
                 return ResourceManager.GetString("Menu_OpenDataFolder_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Minimize on Return 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_MinimizeOnReturn {
+            get {
+                return ResourceManager.GetString("Menu_MinimizeOnReturn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Minimize InputBox when returning to the previous window. Not recommended in Xbox full-screen mode. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_MinimizeOnReturn_Desc {
+            get {
+                return ResourceManager.GetString("Menu_MinimizeOnReturn_Desc", resourceCulture);
             }
         }
 
@@ -1515,6 +1551,42 @@ namespace InputBox.Resources {
         internal static string Msg_FolderNotFound {
             get {
                 return ResourceManager.GetString("Msg_FolderNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Setting opacity below 50% may reduce readability... 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_LowOpacity_Warn {
+            get {
+                return ResourceManager.GetString("Msg_LowOpacity_Warn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Low Opacity Warning 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_LowOpacity_Warn_Title {
+            get {
+                return ResourceManager.GetString("Msg_LowOpacity_Warn_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 In Xbox full-screen mode, minimizing InputBox may leave the screen blank... 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_MinimizeOnReturn_Confirm {
+            get {
+                return ResourceManager.GetString("Msg_MinimizeOnReturn_Confirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查詢類似 Minimize on Return 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_MinimizeOnReturn_Confirm_Title {
+            get {
+                return ResourceManager.GetString("Msg_MinimizeOnReturn_Confirm_Title", resourceCulture);
             }
         }
 

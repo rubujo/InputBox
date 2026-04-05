@@ -664,7 +664,7 @@
     <comment>設定項目名稱，指視窗的透明程度。</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}。目前值：{1:P0}。下限為 70%。</value>
+    <value>{0}。目前值：{1:P0}。下限為 10%。</value>
     <comment>不透明度選單項目的無障礙描述。{0} 是標籤名稱，{1} 是目前的百分比。</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
@@ -674,6 +674,16 @@
   <data name="A11y_Opacity_HighContrast" xml:space="preserve">
     <value>高對比模式已開啟，不透明度已鎖定為 100%。</value>
     <comment>無障礙語音播報，在高對比模式下不透明度被強制鎖定時播放。</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn" xml:space="preserve">
+    <value>將不透明度設定低於 50% 時，在複雜背景下視窗內容可能難以辨識。高對比模式開啟時，輸入框會自動覆寫此設定為 100%。
+
+確定繼續？</value>
+    <comment>當使用者將不透明度設定低於 50% 時顯示的警告對話框內容。告知使用者可能影響可讀性，並說明高對比模式會覆寫此設定。</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
+    <value>低不透明度警告</value>
+    <comment>當不透明度設定低於 50% 時顯示的警告對話框標題。</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>遊戲控制器初始化失敗，部分功能可能無法使用。</value>
@@ -700,7 +710,7 @@
     <comment>使用控制器退出子選單時的無障礙廣播訊息。</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
-    <value>允許中斷廣播 (&amp;I)</value>
+    <value>允許中斷廣播</value>
     <comment>右鍵選單項目，切換是否允許無障礙廣播中斷前一則訊息（WCAG 2.2.4）。</comment>
   </data>
   <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
@@ -716,7 +726,7 @@
     <comment>關閉「允許中斷廣播」設定時播放的無障礙播報訊息。</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
-    <value>動畫式視覺警示 (&amp;V)</value>
+    <value>動畫式視覺警示</value>
     <comment>右鍵選單項目，切換警示與驗證狀態是否使用動畫式視覺提示。</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
@@ -730,6 +740,32 @@
   <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
     <value>已停用動畫式視覺警示，警示將改用單次靜態脈衝。</value>
     <comment>關閉「動畫式視覺警示」設定時播放的無障礙播報訊息。</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn" xml:space="preserve">
+    <value>返回時最小化</value>
+    <comment>右鍵選單項目，切換返回前一個視窗時是否最小化輸入框。</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
+    <value>返回前一個視窗時最小化輸入框。在 Xbox 全螢幕體驗下不建議使用。</value>
+    <comment>「返回時最小化」切換選單項目的無障礙描述。</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
+    <value>已啟用返回時最小化。</value>
+    <comment>開啟「返回時最小化」設定時播放的無障礙播報訊息。</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
+    <value>已停用返回時最小化。</value>
+    <comment>關閉「返回時最小化」設定時播放的無障礙播報訊息。</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
+    <value>在 Xbox 全螢幕體驗下，最小化輸入框後畫面可能變為一片黑，且無法直接還原。
+
+您仍可透過全域快速鍵重新喚出輸入框。確定要啟用此功能嗎？</value>
+    <comment>使用者嘗試啟用「返回時最小化」時顯示的確認對話框本文，警告 Xbox 全螢幕體驗下的限制。</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
+    <value>返回時最小化</value>
+    <comment>啟用「返回時最小化」時顯示的確認對話框標題。</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>說明</value>
@@ -768,7 +804,7 @@
     <comment>說明對話框中兩個表格的「功能」欄標題。</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
-    <value>關閉 (&amp;B)</value>
+    <value>關閉</value>
     <comment>說明對話框中「關閉」按鈕的標籤文字。</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
