@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>輸入框｜InputBox</title>
   <meta name="description" content="改善在《FINAL FANTASY XIV 繁體中文版》遊戲環境中，於特定操作情境下無法直接使用 Windows 觸控式鍵盤輸入中文的使用體驗。">
@@ -168,6 +169,12 @@
       clip-path: inset(50%) !important;
       white-space: nowrap !important;
       border: 0 !important;
+      /*
+       * clip-path 在現代瀏覽器不裁剪 outline；全域 :focus-visible 會對此 1px 元素
+       * 注入 5px 橘色輪廓造成殘影。焦點指示已由對應 label 透過 @supports :has() 承接，
+       * 此處明確壓制以避免視覺汙染（WCAG 2.4.7/2.4.11/2.4.12 由 label 滿足）。
+       */
+      outline: none !important;
     }
 
     @supports selector(body:has(#lang-zh:focus-visible)) {
@@ -1780,7 +1787,7 @@
     </span>
   </a>
 
-  <nav class="lang-switcher" aria-labelledby="lang-switcher-label" role="navigation">
+  <nav class="lang-switcher" aria-labelledby="lang-switcher-label">
     <span id="lang-switcher-label" class="visually-hidden">
       <span class="lang-zh">語言切換 🌐</span>
       <span class="lang-en" lang="en">Language Selection 🌐</span>
@@ -1857,7 +1864,7 @@
       </label>
     </fieldset>
   </nav>
-  <header role="banner" aria-labelledby="header-label">
+  <header aria-labelledby="header-label">
     <span id="header-label" class="visually-hidden">
       <span class="lang-zh">頁首</span>
       <span class="lang-en" lang="en">Header</span>
@@ -1938,7 +1945,7 @@
     </div>
   </header>
 
-  <nav class="main-nav" aria-labelledby="main-nav-label" role="navigation">
+  <nav class="main-nav" aria-labelledby="main-nav-label">
     <span id="main-nav-label" class="visually-hidden">
       <span class="lang-zh">主要導覽連結</span>
       <span class="lang-en" lang="en">Main Navigation</span>
@@ -1985,7 +1992,7 @@
     </ul>
   </nav>
 
-  <main id="main-content" role="main" aria-labelledby="main-content-label">
+  <main id="main-content" aria-labelledby="main-content-label">
     <span id="main-content-label" class="visually-hidden">
       <span class="lang-zh">主要內容</span>
       <span class="lang-en" lang="en">Main Content</span>
@@ -3540,7 +3547,7 @@
 
   </main>
 
-  <footer role="contentinfo" aria-labelledby="footer-label">
+  <footer aria-labelledby="footer-label">
     <span id="footer-label" class="visually-hidden">
       <span class="lang-zh">頁尾</span>
       <span class="lang-en" lang="en">Footer</span>
