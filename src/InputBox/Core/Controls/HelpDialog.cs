@@ -168,7 +168,7 @@ internal sealed class HelpDialog : Form
         // 關閉按鈕（底部固定，不隨內容捲動）。
         _btnClose = new Button()
         {
-            Text = Strings.Help_Btn_Close,
+            Text = ControlExtensions.GetMnemonicText(Strings.Help_Btn_Close, 'B'),
             AutoSize = true,
             Anchor = AnchorStyles.Right,
             Margin = Padding.Empty, // 移除預設外距避免被底部面板裁切
