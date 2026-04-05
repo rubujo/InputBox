@@ -179,22 +179,34 @@ jobs:
             Write-Warning "找不到 csproj 檔案 ($csprojPath)，無法動態抓取套件版本。"
         }
 
-        Write-Host "產生 usb.ids 的 3-clause BSD 完整授權檔……"
-        # 使用 @' '@ 單引號 Here-String 來避免 PowerShell 把引號內的內容當作變數解析。
-        $bsdLicenseText = @'
-        Copyright (c) Stephen J. Gowdy <linux.usb.ids@gmail.com>
-
-        Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-        1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-        2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-        3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-        '@
-        $bsdLicenseText | Out-File -FilePath (Join-Path $licensesDir "usb_ids_LICENSE.txt") -Encoding utf8
+        Write-Host "產生 usb.ids 的歸因聲明檔……"
+        # 以事實性歸因聲明（factual attribution notice）替代硬編碼的授權條款全文。
+        # 理由：UsbVendorsLibrary NuGet 套件所嵌入的 usb.ids 副本已移除原始授權標頭，
+        # 無法在發佈時提供從來源可追溯的授權文本。直接產生 BSD 全文會造成文件來源
+        # 無法稽核的問題。改以聲明形式標示資料來源、官方雙重授權及本專案所採用的條款。
+        $attributionText = @(
+            'USB ID Database (usb.ids) Attribution Notice',
+            '=============================================',
+            '',
+            'This release package includes data from the USB ID Database (usb.ids),',
+            'used via the UsbVendorsLibrary NuGet package.',
+            '',
+            '  Source:     http://www.linux-usb.org/usb-ids.html',
+            '  Maintained: Stephen J. Gowdy <linux.usb.ids@gmail.com>',
+            '  License:    Dual-licensed — GPL-2.0-or-later OR BSD-3-Clause',
+            '              (as stated at the official source above)',
+            '',
+            'This project redistributes the embedded usb.ids data under the',
+            'BSD 3-Clause License, which is one of the two licenses explicitly',
+            'offered by the upstream project.',
+            '',
+            'For the full text of the BSD 3-Clause License, see:',
+            '  https://opensource.org/license/bsd-3-clause',
+            '',
+            'For the full text of the GNU General Public License (version 2 or later), see:',
+            '  https://opensource.org/license/GPL-2.0'
+        ) -join "`n"
+        $attributionText | Out-File -FilePath (Join-Path $licensesDir "usb_ids_LICENSE.txt") -Encoding utf8
         Write-Host "✅ 成功建立 usb_ids_LICENSE.txt"
         Write-Host "======================================="
 

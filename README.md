@@ -380,6 +380,6 @@ bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
 - [UsbVendorsLibrary](https://github.com/Cephy314/UsbVendorsLibrary)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/UsbVendorsLibrary/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/UsbVendorsLibrary/blob/main/LICENSE) 授權，用於存取裝置資訊。
 - [USB ID Database（usb.ids）](http://www.linux-usb.org/usb-ids.html)：由 Stephen J. Gowdy 等人維護的公開 USB 裝置識別碼資料庫。該資料庫採雙重授權（[GNU General Public License（第 2 版或是更新的版本）](https://opensource.org/license/GPL-2.0)／[**3-clause BSD License**](https://opensource.org/license/bsd-3-clause)）。
   - 本應用程式透過第三方函式庫 [**UsbVendorsLibrary**](https://github.com/Cephy314/UsbVendorsLibrary) 使用該資料庫，並於 **自包含部署（self‑contained）** 發佈之執行檔中以嵌入資源形式包含其內容。
-  - 本專案選擇依循 [**3-clause BSD License**](https://opensource.org/license/bsd-3-clause) 條款隨附發佈，其完整版權與免責聲明請參閱發佈檔內的 **usb_ids_LICENSE.txt**。
+  - 本專案依照官方雙重授權所明示之選項，以 [**3-clause BSD License**](https://opensource.org/license/bsd-3-clause) 條款隨附發佈；歸因聲明請參閱發佈檔 **Licenses/usb_ids_LICENSE.txt**。
 
-本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；關於第三方套件之完整版權宣告與授權文字，請參閱隨附於發佈檔內之 **ThirdPartyNotices.txt** 文件以及各框架專屬授權文件。
+本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）及各元件完整授權文字。

@@ -1401,6 +1401,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             CancellationTokenSource newCts = new();
 
+            CancellationToken token;
+
             lock (_vibrationLock)
             {
                 // 每次呼叫時產生一個新的通行證（Token）。
@@ -1410,9 +1412,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
                 Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
                 _vibrationCts = newCts;
-            }
 
-            CancellationToken token = newCts.Token;
+                // 在鎖內取得 Token，避免鎖外其他執行緒 CancelAndDispose() 後
+                // 再存取 newCts.Token 屬性時拋出 ObjectDisposedException。
+                token = newCts.Token;
+            }
 
             XInput.XInputVibration vibration = new()
             {
@@ -1424,7 +1428,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             // 將「內部震動覆蓋權杖」與「外部傳入的取消權杖」綁定在一起。
             using CancellationTokenSource linkedCts = CancellationTokenSource
-                .CreateLinkedTokenSource(newCts.Token, ct);
+                .CreateLinkedTokenSource(token, ct);
 
             try
             {

@@ -450,6 +450,10 @@ internal sealed class NumericInputDialog : Form
         {
             if (disposing)
             {
+                // 優先解除控制器事件訂閱，確保事件解除先於控制項處置，
+                // 防止控制器輪詢在 UI 控制項釋放後仍觸發事件。
+                UnsubscribeGamepadEvents();
+
                 // 處置取消權杖來源（主要任務與 Flash Alert 各自獨立處置）。
                 Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
                 Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
@@ -468,9 +472,6 @@ internal sealed class NumericInputDialog : Form
                 Interlocked.Exchange(ref _a11yFont, null);
 
                 Interlocked.Exchange(ref _announcer, null)?.Dispose();
-
-                // 解除控制器事件訂閱，防止記憶體洩漏（_gamepadController 生命週期由外部管理）。
-                UnsubscribeGamepadEvents();
 
                 // 確保靜態事件在視窗處置時被絕對釋放，防止 Handle 未建立時的洩漏。
                 SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;

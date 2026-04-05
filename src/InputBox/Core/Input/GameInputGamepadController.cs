@@ -125,7 +125,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 是否已處置
     /// </summary>
-    private volatile bool _disposed;
+    private volatile int _disposed;
 
     /// <summary>
     /// 控制器按鈕重複方向
@@ -625,7 +625,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 // 這樣可避免為了拿到既有裝置名單而付出兩次同步枚舉成本。
                 if (_needsRefresh &&
                     !cancellationToken.IsCancellationRequested &&
-                    !_disposed)
+                    _disposed == 0)
                 {
                     TryFindDevice();
                 }
@@ -670,7 +670,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             // 裝置連線已由初始化快速掃描完成；此次呼叫的目的是在計時器首幀（16ms）
             // 延遲發生前，先讀取一次完整的按鍵／搖桿初始狀態，避免首幀狀態為空白。
             if (!cancellationToken.IsCancellationRequested &&
-                !_disposed)
+                _disposed == 0)
             {
                 try
                 {
@@ -684,7 +684,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             while (await periodicTimer.WaitForNextTickAsync(cancellationToken))
             {
-                if (_disposed ||
+                if (_disposed != 0 ||
                     cancellationToken.IsCancellationRequested)
                 {
                     break;
@@ -1823,6 +1823,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             long token;
 
+            CancellationToken internalToken;
+
             CancellationTokenSource newInternalCts = new();
 
             lock (_vibrationLock)
@@ -1833,11 +1835,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
 
                 _vibrationCts = newInternalCts;
+
+                // 在鎖內取得 Token，避免鎖外其他執行緒 CancelAndDispose() 後
+                // 再存取 newInternalCts.Token 屬性時拋出 ObjectDisposedException。
+                internalToken = newInternalCts.Token;
             }
 
             // 直接連結外部 ct 與內部 CTS。
             using CancellationTokenSource finalCts = CancellationTokenSource
-                .CreateLinkedTokenSource(ct, newInternalCts.Token);
+                .CreateLinkedTokenSource(ct, internalToken);
 
             CancellationToken ctsToken = finalCts.Token;
 
@@ -1855,7 +1861,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             try
             {
                 // 再次檢查狀態。
-                if (_disposed ||
+                if (_disposed != 0 ||
                     _device == null ||
                     _device != dev)
                 {
@@ -1867,7 +1873,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 await Task.Delay(milliseconds, ctsToken).ConfigureAwait(false);
 
                 // 檢查是否已被處置、裝置是否已變更、或是否有更新的震動請求。
-                if (_disposed ||
+                if (_disposed != 0 ||
                     Interlocked.Read(ref _vibrationToken) != token ||
                     _device == null ||
                     _device != dev)
@@ -1909,7 +1915,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     public void Resume()
     {
-        if (!_disposed)
+        if (_disposed == 0)
         {
             StartPolling();
         }
@@ -1934,12 +1940,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <returns>ValueTask</returns>
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
         {
             return;
         }
-
-        _disposed = true;
 
         // 取消註冊。
         FeedbackService.UnregisterController(this);
@@ -1963,12 +1967,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     public void Dispose()
     {
-        if (_disposed)
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
         {
             return;
         }
-
-        _disposed = true;
 
         // 取消註冊。
         FeedbackService.UnregisterController(this);
