@@ -1948,8 +1948,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 取消註冊。
         FeedbackService.UnregisterController(this);
 
-        // 取消震動任務。
-        Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
+        // 確保馬達即時歸零，並在鎖內原子取消現有 CTS（與 StopVibration / VibrateAsync 保持鎖邊界一致）。
+        StopVibration();
 
         await StopPollingAsync().ConfigureAwait(false);
 
