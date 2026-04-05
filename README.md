@@ -342,7 +342,7 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 發佈完成後，編譯好的單一執行檔會生成在以下路徑：
 ```
-bin\Release\net10.0-windows\win-x64\publish\InputBox.exe
+bin\Release\net10.0-windows\publish\win-x64\InputBox.exe
 ```
 
 ### 2. 使用 Visual Studio 發佈 🚀
