@@ -26,6 +26,11 @@ internal static class LoggerService
         "Logs");
 
     /// <summary>
+    /// 公開日誌目錄路徑，供外部（如選單）使用。
+    /// </summary>
+    internal static string LogDirectory => _logDirectory;
+
+    /// <summary>
     /// 主要日誌檔名
     /// </summary>
     private const string LogFileName = "InputBox.log";

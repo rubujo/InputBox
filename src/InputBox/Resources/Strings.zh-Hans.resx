@@ -439,6 +439,18 @@
     <value>打开位于 AppData 的应用程序文件夹。</value>
     <comment>打开文件夹菜单项目的无障碍描述。</comment>
   </data>
+  <data name="Menu_OpenLogFolder" xml:space="preserve">
+    <value>打开日志文件夹</value>
+    <comment>右键菜单项目，用于打开位于 AppData Local 中的日志文件夹。</comment>
+  </data>
+  <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
+    <value>打开位于 AppData Local 的日志文件夹。</value>
+    <comment>打开日志文件夹菜单项目的无障碍描述。</comment>
+  </data>
+  <data name="Msg_FolderNotFound" xml:space="preserve">
+    <value>文件夹尚未创建。</value>
+    <comment>当目标文件夹尚未创建时的无障碍提示消息。</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>窗口恢复延迟</value>
     <comment>设置项目名称，指窗口还原时的延迟时间。</comment>

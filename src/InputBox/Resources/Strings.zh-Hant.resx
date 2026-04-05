@@ -439,6 +439,18 @@
     <value>開啟位於 AppData 的應用程式資料夾。</value>
     <comment>開啟資料夾選單項目的無障礙描述。</comment>
   </data>
+  <data name="Menu_OpenLogFolder" xml:space="preserve">
+    <value>開啟日誌資料夾</value>
+    <comment>右鍵選單項目，用於開啟位於 AppData Local 中的日誌資料夾。</comment>
+  </data>
+  <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
+    <value>開啟位於 AppData Local 的日誌檔案資料夾。</value>
+    <comment>開啟日誌資料夾選單項目的無障礙描述。</comment>
+  </data>
+  <data name="Msg_FolderNotFound" xml:space="preserve">
+    <value>資料夾尚未建立。</value>
+    <comment>當目標資料夾尚未建立時的無障礙提示訊息。</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>視窗還原延遲</value>
     <comment>設定項目名稱，指視窗還原時的延遲時間。</comment>

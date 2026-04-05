@@ -439,6 +439,18 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Open the application data folder in AppData.</value>
     <comment>Accessibility description for the Open Folder menu item.</comment>
   </data>
+  <data name="Menu_OpenLogFolder" xml:space="preserve">
+    <value>Open Log Folder</value>
+    <comment>Context menu item for opening the application log folder in AppData Local.</comment>
+  </data>
+  <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
+    <value>Open the log file folder in AppData Local.</value>
+    <comment>Accessibility description for the Open Log Folder menu item.</comment>
+  </data>
+  <data name="Msg_FolderNotFound" xml:space="preserve">
+    <value>The folder does not exist yet.</value>
+    <comment>Accessibility message when the target folder has not been created yet.</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>Window Restore Delay</value>
     <comment>Setting name for delay when window is restored.</comment>

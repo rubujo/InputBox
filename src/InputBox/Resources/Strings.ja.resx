@@ -439,6 +439,18 @@
     <value>AppData にあるアプリケーション フォルダを開きます。</value>
     <comment>フォルダを開くメニュー項目のアクセシビリティの説明。</comment>
   </data>
+  <data name="Menu_OpenLogFolder" xml:space="preserve">
+    <value>ログ フォルダを開く</value>
+    <comment>右クリックメニュー項目。AppData Local 内のログフォルダを開くために使用します。</comment>
+  </data>
+  <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
+    <value>AppData Local にあるログ ファイル フォルダを開きます。</value>
+    <comment>ログフォルダを開くメニュー項目のアクセシビリティの説明。</comment>
+  </data>
+  <data name="Msg_FolderNotFound" xml:space="preserve">
+    <value>フォルダはまだ作成されていません。</value>
+    <comment>対象フォルダがまだ作成されていない場合のアクセシビリティ メッセージ。</comment>
+  </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>ウィンドウ復元遅延</value>
     <comment>設定項目の名称。ウィンドウが復元される際の遅延時間を指します。</comment>

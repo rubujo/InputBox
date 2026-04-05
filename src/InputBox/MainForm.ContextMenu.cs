@@ -958,6 +958,16 @@ public partial class MainForm
                         UseShellExecute = true
                     });
                 }
+                else
+                {
+                    AnnounceA11y(Strings.Msg_FolderNotFound);
+
+                    MessageBox.Show(
+                        Strings.Msg_FolderNotFound,
+                        Strings.Wrn_Title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
             }
             catch (Exception ex)
             {
@@ -965,6 +975,41 @@ public partial class MainForm
             }
         };
         tsmiSettings.DropDownItems.Add(tsmiOpenDataFolder);
+
+        // 開啟日誌資料夾。
+        ToolStripMenuItem tsmiOpenLogFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenLogFolder, 'L'))
+        {
+            AccessibleName = Strings.Menu_OpenLogFolder,
+            AccessibleDescription = Strings.Menu_OpenLogFolder_Desc
+        };
+        tsmiOpenLogFolder.Click += (s, e) =>
+        {
+            try
+            {
+                if (Directory.Exists(LoggerService.LogDirectory))
+                {
+                    Process.Start(new ProcessStartInfo(LoggerService.LogDirectory)
+                    {
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    AnnounceA11y(Strings.Msg_FolderNotFound);
+
+                    MessageBox.Show(
+                        Strings.Msg_FolderNotFound,
+                        Strings.Wrn_Title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiOpenLogFolder.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiSettings.DropDownItems.Add(tsmiOpenLogFolder);
 
         // 清除歷程。
         ToolStripMenuItem tsmiClearHistory = new(ControlExtensions.GetMnemonicText(Strings.Menu_ClearHistory, 'C'))
