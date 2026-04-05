@@ -447,7 +447,9 @@ internal sealed class PhraseEditDialog : Form
         _txtContent.Font = sharedInputFont;
 
         // 釋放建構子中建立的私有字體實例（兩個輸入框共用同一實例）。
-        Interlocked.Exchange(ref _txtInputFont, null)?.Dispose();
+        // 使用 AddFontToTrashCan 延遲釋放，避免 GDI 管線仍在使用舊字體時立即 Dispose 引發例外。
+        var oldInputFont = Interlocked.Exchange(ref _txtInputFont, null);
+        if (oldInputFont != null) FontResourceManager.AddFontToTrashCan(oldInputFont);
 
         UpdateButtonMinimumSizes();
         UpdateMinimumSize();
@@ -561,7 +563,9 @@ internal sealed class PhraseEditDialog : Form
             Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
 
             // 安全釋放建構子建立的私有字體（如果 OnShown 未執行即關閉對話框時使用）。
-            Interlocked.Exchange(ref _txtInputFont, null)?.Dispose();
+            // 使用 AddFontToTrashCan 延遲釋放，避免 GDI 管線仍在使用舊字體時立即 Dispose 引發例外。
+            var oldInputFont = Interlocked.Exchange(ref _txtInputFont, null);
+            if (oldInputFont != null) FontResourceManager.AddFontToTrashCan(oldInputFont);
 
             // 共享字體僅歸零，由 Program.cs 統一釋放。
             _a11yFont = null;
