@@ -562,6 +562,11 @@ internal sealed class PhraseEditDialog : Form
 
             Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
 
+            // 中止進行中的警示閃爍動畫（若對話框在閃爍期間被關閉，
+            // _alertCts 與 _cts 的連結可能在 _cts 歸零後才建立，
+            // 導致連結傳播失效；此處直接歸零並取消確保資源被釋放）。
+            Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
+
             // 安全釋放建構子建立的私有字體（如果 OnShown 未執行即關閉對話框時使用）。
             // 使用 AddFontToTrashCan 延遲釋放，避免 GDI 管線仍在使用舊字體時立即 Dispose 引發例外。
             var oldInputFont = Interlocked.Exchange(ref _txtInputFont, null);
