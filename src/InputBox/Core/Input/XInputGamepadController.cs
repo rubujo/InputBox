@@ -128,6 +128,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private float _rightStickBiasX;
 
+    /// <summary>
+    /// 右搖桿 Y 軸動態偏移估計（bias compensation）
+    /// </summary>
+    private float _rightStickBiasY;
+
 #if DEBUG
     /// <summary>
     /// D-Pad Right 連發診斷計數
@@ -205,10 +210,58 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private const int MappedDirectionSuppressCooldownFrames = 12;
 
+    // ── 自適應 EMA 係數（Adaptive Exponential Moving Average）────────────────
+    // 設計原則：每個軸保有獨立的「基礎值」與「最大值」。
+    //   • 當估計誤差（rawValue − currentBias）落在 BiasAdaptiveErrorRange 以內時，
+    //     學習率從 Base 線性插值至 Max，誤差越大學習越快（快速收斂）。
+    //   • 當誤差接近 0 時，退回 Base（保守維持），避免把有效輸入誤學成硬體偏移。
+    //   • 係數與 GameInputGamepadController 對齊，確保兩路手把行為一致。
+
     /// <summary>
-    /// 左搖桿偏移更新的平滑係數（越小越穩定）
+    /// 左搖桿 X 軸：偏移估計的最低保守學習率（誤差接近 0 時使用）。
     /// </summary>
-    private const float LeftStickBiasSmoothing = 0.05f;
+    private const float LeftStickBiasXBaseSmoothing = 0.03f;
+
+    /// <summary>
+    /// 左搖桿 X 軸：偏移估計的最高學習率（誤差達到 BiasAdaptiveErrorRange 時使用）。
+    /// </summary>
+    private const float LeftStickBiasXMaxSmoothing = 0.15f;
+
+    /// <summary>
+    /// 左搖桿 Y 軸：偏移估計的最低保守學習率。
+    /// </summary>
+    private const float LeftStickBiasYBaseSmoothing = 0.03f;
+
+    /// <summary>
+    /// 左搖桿 Y 軸：偏移估計的最高學習率。
+    /// </summary>
+    private const float LeftStickBiasYMaxSmoothing = 0.12f;
+
+    /// <summary>
+    /// 右搖桿 X 軸：偏移估計的最低保守學習率。
+    /// </summary>
+    private const float RightStickBiasBaseSmoothing = 0.05f;
+
+    /// <summary>
+    /// 右搖桿 X 軸：偏移估計的最高學習率。
+    /// 右搖桿無 D-Pad 閘門，低 Max 可防止快速劃過中立區時累積偏移。
+    /// </summary>
+    private const float RightStickBiasMaxSmoothing = 0.07f;
+
+    /// <summary>
+    /// 右搖桿 Y 軸：偏移估計的最低保守學習率。
+    /// </summary>
+    private const float RightStickBiasYBaseSmoothing = 0.05f;
+
+    /// <summary>
+    /// 右搖桿 Y 軸：偏移估計的最高學習率。
+    /// </summary>
+    private const float RightStickBiasYMaxSmoothing = 0.07f;
+
+    /// <summary>
+    /// 觸發全速學習的誤差閾值（short 尺度；對應 float 空間的 0.05，即 0.05 × 32767 ≈ 1638）。
+    /// </summary>
+    private const float BiasAdaptiveErrorRange = 1638f;
 
     /// <summary>
     /// 僅在接近中立時更新偏移，避免把有效操作學成偏移
@@ -510,10 +563,19 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 保留映射前的原始按鍵位元，避免 anti-stuck 判定被虛擬方向鍵污染。
         ushort rawButtons = currentState.Gamepad.Buttons;
 
+        // D-Pad 按下時，左搖桿因機械耦合會產生偏移，需暫停左搖桿 bias 學習。
+        bool isDPadActive = (((XInput.GamepadButton)rawButtons) & (
+            XInput.GamepadButton.DpadLeft  |
+            XInput.GamepadButton.DpadRight |
+            XInput.GamepadButton.DpadUp    |
+            XInput.GamepadButton.DpadDown)) != 0;
+
         UpdateStickBias(
             currentState.Gamepad.ThumbLeftX,
             currentState.Gamepad.ThumbLeftY,
-            currentState.Gamepad.ThumbRightX);
+            currentState.Gamepad.ThumbRightX,
+            currentState.Gamepad.ThumbRightY,
+            isDPadActive);
 
         int correctedLeftThumbX = (int)MathF.Round(currentState.Gamepad.ThumbLeftX - _leftStickBiasX),
             correctedLeftThumbY = (int)MathF.Round(currentState.Gamepad.ThumbLeftY - _leftStickBiasY),
@@ -561,6 +623,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
                     _previousState = newState;
 
+                    // Bias warm-up：以初始讀值連續執行 50 次 EMA，
+                    // 使偏移估計在第一幀即接近真實值（收斂率 ≈ 99%），
+                    // 避免連線初期因 bias ≈ 0 造成方向誤判。
+                    InitializeDeviceBias(newState);
+
                     _hasPreviousState = true;
 
                     UpdateCachedDeviceName();
@@ -577,6 +644,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             if (!_hasPreviousState)
             {
+                // Bias warm-up：以初始讀值連續執行 50 次 EMA，
+                // 使偏移估計在第一幀即接近真實值（收斂率 ≈ 99%），
+                // 避免連線初期因 bias ≈ 0 造成方向誤判。
+                InitializeDeviceBias(currentState);
+
                 _hasPreviousState = true;
 
                 ConnectionChanged?.Invoke(true);
@@ -818,7 +890,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _mechanismHealthLogCounter >= MechanismHealthLogIntervalFrames)
         {
             LoggerService.LogInfo(
-                $"Gamepad.MechanismHealth source=XInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftThumbX} ly={correctedLeftThumbY} rx={correctedRightThumbX} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter} mapGuard={_suppressMappedRightFromLeftStick}");
+                $"Gamepad.MechanismHealth source=XInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftThumbX} ly={correctedLeftThumbY} rx={correctedRightThumbX} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter} mapGuard={_suppressMappedRightFromLeftStick}");
 
             _mechanismHealthLogCounter = 0;
             _lastHealthDpadDirection = _repeatDirection;
@@ -898,7 +970,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             leftThumbY = state.Gamepad.ThumbLeftY,
             rightThumbX = state.Gamepad.ThumbRightX;
 
-        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} rawDpadRight={rawDpadRightDown} lx={leftThumbX} ly={leftThumbY} rx={rightThumbX} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)}");
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} rawDpadRight={rawDpadRightDown} lx={leftThumbX} ly={leftThumbY} rx={rightThumbX} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)}");
 
         ResetDirectionalRepeatState();
     }
@@ -945,30 +1017,84 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// Bias warm-up：以初始讀值連續執行 50 次 EMA，
+    /// 使偏移估計在第一幀即接近真實值（收斂率 ≈ 99%），
+    /// 避免連線初期因 bias ≈ 0 造成方向誤判。
+    /// </summary>
+    /// <param name="state">連線時的第一份 XInputState 快照。</param>
+    private void InitializeDeviceBias(XInput.XInputState state)
+    {
+        for (int i = 0; i < 50; i++)
+        {
+            // 暖機時不存在 D-Pad 操作情境，閘門固定傳 false。
+            UpdateStickBias(
+                state.Gamepad.ThumbLeftX,
+                state.Gamepad.ThumbLeftY,
+                state.Gamepad.ThumbRightX,
+                state.Gamepad.ThumbRightY,
+                isDPadActive: false);
+        }
+    }
+
+    /// <summary>
     /// 以接近中立區段估計搖桿中心偏移，降低固定偏壓造成的方向誤判
     /// </summary>
     /// <param name="rawLeftThumbX">原始左搖桿 X 軸值</param>
     /// <param name="rawLeftThumbY">原始左搖桿 Y 軸值</param>
     /// <param name="rawRightThumbX">原始右搖桿 X 軸值</param>
+    /// <param name="rawRightThumbY">原始右搖桿 Y 軸值</param>
+    /// <param name="isDPadActive">是否有任意 D-Pad 方向目前被按下；為 true 時暫停左搖桿 bias 學習以避免機械耦合污染。</param>
     private void UpdateStickBias(
         short rawLeftThumbX,
         short rawLeftThumbY,
-        short rawRightThumbX)
+        short rawRightThumbX,
+        short rawRightThumbY,
+        bool isDPadActive)
     {
-        if (Math.Abs((int)rawLeftThumbX) <= LeftStickBiasLearningThreshold)
+        if (!isDPadActive && Math.Abs((int)rawLeftThumbX) <= LeftStickBiasLearningThreshold)
         {
-            _leftStickBiasX += (rawLeftThumbX - _leftStickBiasX) * LeftStickBiasSmoothing;
+            float errorLX = rawLeftThumbX - _leftStickBiasX;
+            _leftStickBiasX += errorLX * ComputeAdaptiveBiasSmoothing(
+                errorLX, LeftStickBiasXBaseSmoothing, LeftStickBiasXMaxSmoothing);
         }
 
-        if (Math.Abs((int)rawLeftThumbY) <= LeftStickBiasLearningThreshold)
+        if (!isDPadActive && Math.Abs((int)rawLeftThumbY) <= LeftStickBiasLearningThreshold)
         {
-            _leftStickBiasY += (rawLeftThumbY - _leftStickBiasY) * LeftStickBiasSmoothing;
+            float errorLY = rawLeftThumbY - _leftStickBiasY;
+            _leftStickBiasY += errorLY * ComputeAdaptiveBiasSmoothing(
+                errorLY, LeftStickBiasYBaseSmoothing, LeftStickBiasYMaxSmoothing);
         }
 
         if (Math.Abs((int)rawRightThumbX) <= LeftStickBiasLearningThreshold)
         {
-            _rightStickBiasX += (rawRightThumbX - _rightStickBiasX) * LeftStickBiasSmoothing;
+            float errorRX = rawRightThumbX - _rightStickBiasX;
+            _rightStickBiasX += errorRX * ComputeAdaptiveBiasSmoothing(
+                errorRX, RightStickBiasBaseSmoothing, RightStickBiasMaxSmoothing);
         }
+
+        if (Math.Abs((int)rawRightThumbY) <= LeftStickBiasLearningThreshold)
+        {
+            float errorRY = rawRightThumbY - _rightStickBiasY;
+            _rightStickBiasY += errorRY * ComputeAdaptiveBiasSmoothing(
+                errorRY, RightStickBiasYBaseSmoothing, RightStickBiasYMaxSmoothing);
+        }
+    }
+
+    /// <summary>
+    /// 計算自適應 EMA 學習率：誤差越大越接近 <paramref name="maxSmoothing"/>，
+    /// 誤差越小越接近 <paramref name="baseSmoothing"/>。
+    /// </summary>
+    /// <param name="error">目前估計誤差（rawValue − currentBias）。</param>
+    /// <param name="baseSmoothing">誤差接近 0 時的保守係數。</param>
+    /// <param name="maxSmoothing">誤差達到 BiasAdaptiveErrorRange 時的最大係數。</param>
+    /// <returns>本次更新應使用的 EMA 係數。</returns>
+    private static float ComputeAdaptiveBiasSmoothing(
+        float error,
+        float baseSmoothing,
+        float maxSmoothing)
+    {
+        float t = Math.Clamp(MathF.Abs(error) / BiasAdaptiveErrorRange, 0f, 1f);
+        return baseSmoothing + (maxSmoothing - baseSmoothing) * t;
     }
 
     /// <summary>

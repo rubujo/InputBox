@@ -746,7 +746,7 @@
     <comment>右键菜单项，切换返回前一个窗口时是否最小化输入框。</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
-    <value>返回前一个窗口时最小化输入框。在 Xbox 全屏体验下不建议使用。</value>
+    <value>返回前一个窗口时最小化输入框。</value>
     <comment>「返回时最小化」切换菜单项的无障碍描述。</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
@@ -758,10 +758,8 @@
     <comment>关闭「返回时最小化」设置时播放的无障碍播报消息。</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>在 Xbox 全屏体验下，最小化输入框后画面可能变为一片黑，且无法直接还原。
-
-您仍可通过全局快捷键重新唤出输入框。确定要启用此功能吗？</value>
-    <comment>用户尝试启用「返回时最小化」时显示的确认对话框正文，警告 Xbox 全屏体验下的限制。</comment>
+    <value>返回前一个窗口时，输入框将自动最小化。确定要启用此功能吗？</value>
+    <comment>用户尝试启用「返回时最小化」时显示的确认对话框正文。</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
     <value>返回时最小化</value>
@@ -1071,5 +1069,33 @@
   <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
     <value>请输入短语内容…</value>
     <comment>短语编辑对话框内容输入框的占位文本。</comment>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>是</value>
+    <comment>GamepadMessageBox「是」按钮的标签文本。</comment>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>否</value>
+    <comment>GamepadMessageBox「否」按钮的标签文本。</comment>
+  </data>
+  <data name="Btn_Abort" xml:space="preserve">
+    <value>终止</value>
+    <comment>GamepadMessageBox「终止」按钮的标签文本（AbortRetryIgnore 组合）。</comment>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>重试</value>
+    <comment>GamepadMessageBox「重试」按钮的标签文本（RetryCancel / AbortRetryIgnore 组合）。</comment>
+  </data>
+  <data name="Btn_Ignore" xml:space="preserve">
+    <value>忽略</value>
+    <comment>GamepadMessageBox「忽略」按钮的标签文本（AbortRetryIgnore 组合）。</comment>
+  </data>
+  <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
+    <value>消息对话框。按 A 执行主要操作，按 B 取消。</value>
+    <comment>GamepadMessageBox 的无障碍描述，对话框打开时由屏幕阅读器播报。</comment>
+  </data>
+  <data name="GmBox_A11y_Hint" xml:space="preserve">
+    <value>A: {0} · B: {1}</value>
+    <comment>GamepadMessageBox 的手柄提示标签。{0} 为主要操作标签，{1} 为取消操作标签。</comment>
   </data>
 </root>

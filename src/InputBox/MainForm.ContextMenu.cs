@@ -196,12 +196,14 @@ public partial class MainForm
                 if (_tsmiMinimizeOnReturn.Checked)
                 {
                     // 使用者嘗試啟用：先暫停 CheckOnClick 效果，等待使用者確認後再決定。
-                    DialogResult result = MessageBox.Show(
+                    DialogResult result = GamepadMessageBox.Show(
+                        this,
                         Strings.Msg_MinimizeOnReturn_Confirm,
                         Strings.Msg_MinimizeOnReturn_Confirm_Title,
                         MessageBoxButtons.OKCancel,
                         MessageBoxIcon.Warning,
-                        MessageBoxDefaultButton.Button2);
+                        MessageBoxDefaultButton.Button2,
+                        _gamepadController);
 
                     if (result != DialogResult.OK)
                     {
@@ -475,12 +477,14 @@ public partial class MainForm
                         // 低於 50% 時，在 Dialog 關閉前顯示知情警告。
                         if (value < 50.0f)
                         {
-                            DialogResult confirm = MessageBox.Show(
+                            DialogResult confirm = GamepadMessageBox.Show(
+                                this,
                                 Strings.Msg_LowOpacity_Warn,
                                 Strings.Msg_LowOpacity_Warn_Title,
                                 MessageBoxButtons.OKCancel,
                                 MessageBoxIcon.Warning,
-                                MessageBoxDefaultButton.Button2);
+                                MessageBoxDefaultButton.Button2,
+                                _gamepadController);
 
                             return confirm == DialogResult.OK;
                         }
@@ -1027,11 +1031,13 @@ public partial class MainForm
                 {
                     AnnounceA11y(Strings.Msg_FolderNotFound);
 
-                    MessageBox.Show(
+                    GamepadMessageBox.Show(
+                        this,
                         Strings.Msg_FolderNotFound,
                         Strings.Wrn_Title,
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                        MessageBoxIcon.Warning,
+                        gamepad: _gamepadController);
                 }
             }
             catch (Exception ex)
@@ -1062,11 +1068,13 @@ public partial class MainForm
                 {
                     AnnounceA11y(Strings.Msg_FolderNotFound);
 
-                    MessageBox.Show(
+                    GamepadMessageBox.Show(
+                        this,
                         Strings.Msg_FolderNotFound,
                         Strings.Wrn_Title,
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                        MessageBoxIcon.Warning,
+                        gamepad: _gamepadController);
                 }
             }
             catch (Exception ex)

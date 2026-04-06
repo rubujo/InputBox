@@ -746,7 +746,7 @@ Continue?</value>
     <comment>Context menu item that toggles whether InputBox minimizes itself when returning to the previous window.</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
-    <value>Minimize InputBox when returning to the previous window. Not recommended in Xbox full-screen experience.</value>
+    <value>Minimize InputBox when returning to the previous window.</value>
     <comment>Accessible description for the minimize-on-return toggle menu item.</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
@@ -758,10 +758,8 @@ Continue?</value>
     <comment>Screen reader announcement played when the minimize-on-return setting is turned off.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>In Xbox full-screen experience, minimizing InputBox may leave the screen blank with no way to restore it directly.
-
-You can still restore InputBox using the global hotkey. Do you want to enable this feature?</value>
-    <comment>Confirmation dialog body shown when the user attempts to enable the minimize-on-return feature. Warns about Xbox full-screen limitations.</comment>
+    <value>InputBox will minimize itself when you return to the previous window. Do you want to enable this feature?</value>
+    <comment>Confirmation dialog body shown when the user attempts to enable the minimize-on-return feature.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
     <value>Minimize on Return</value>
@@ -1072,5 +1070,33 @@ Back + ↑ / ↓	Adjust window opacity (±5%)</value>
   <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
     <value>Enter phrase content...</value>
     <comment>Placeholder text for phrase content input in phrase edit dialog.</comment>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Label for the Yes button in GamepadMessageBox.</comment>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>No</value>
+    <comment>Label for the No button in GamepadMessageBox.</comment>
+  </data>
+  <data name="Btn_Abort" xml:space="preserve">
+    <value>Abort</value>
+    <comment>Label for the Abort button in GamepadMessageBox (AbortRetryIgnore set).</comment>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>Retry</value>
+    <comment>Label for the Retry button in GamepadMessageBox (RetryCancel / AbortRetryIgnore set).</comment>
+  </data>
+  <data name="Btn_Ignore" xml:space="preserve">
+    <value>Ignore</value>
+    <comment>Label for the Ignore button in GamepadMessageBox (AbortRetryIgnore set).</comment>
+  </data>
+  <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Message dialog. Press A for the primary action, B to cancel.</value>
+    <comment>Accessible description for GamepadMessageBox. Announced by screen readers when the dialog opens.</comment>
+  </data>
+  <data name="GmBox_A11y_Hint" xml:space="preserve">
+    <value>A: {0} · B: {1}</value>
+    <comment>Gamepad hint label in GamepadMessageBox. {0} = primary action label, {1} = cancel action label.</comment>
   </data>
 </root>

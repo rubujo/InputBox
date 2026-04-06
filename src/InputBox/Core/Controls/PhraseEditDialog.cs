@@ -344,8 +344,8 @@ internal sealed class PhraseEditDialog : Form
             }
         };
 
-        flpBtns.Controls.Add(_btnOk);
         flpBtns.Controls.Add(_btnCancel);
+        flpBtns.Controls.Add(_btnOk);
 
         tlp.Controls.Add(flpBtns, 0, 3);
         tlp.SetColumnSpan(flpBtns, 2);

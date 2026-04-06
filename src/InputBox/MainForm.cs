@@ -888,12 +888,14 @@ public partial class MainForm : Form
             // 首次穿越 50% 下限時顯示知情警告。
             if (config.WindowOpacity < 0.5f && oldOpacity >= 0.5f)
             {
-                DialogResult confirm = MessageBox.Show(
+                DialogResult confirm = GamepadMessageBox.Show(
+                    this,
                     Strings.Msg_LowOpacity_Warn,
                     Strings.Msg_LowOpacity_Warn_Title,
                     MessageBoxButtons.OKCancel,
                     MessageBoxIcon.Warning,
-                    MessageBoxDefaultButton.Button2);
+                    MessageBoxDefaultButton.Button2,
+                    _gamepadController);
 
                 if (confirm != DialogResult.OK)
                 {
@@ -1030,13 +1032,15 @@ public partial class MainForm : Form
     /// <summary>
     /// 要求使用者重啟應用程式以套用變更
     /// </summary>
-    private static void AskForRestart()
+    private void AskForRestart()
     {
-        if (MessageBox.Show(
+        if (GamepadMessageBox.Show(
+            this,
             Strings.Msg_RestartRequired,
             Strings.Wrn_Title,
             MessageBoxButtons.YesNo,
-            MessageBoxIcon.Question) == DialogResult.Yes)
+            MessageBoxIcon.Question,
+            gamepad: _gamepadController) == DialogResult.Yes)
         {
             // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
             FeedbackService.EmergencyStopAllActiveControllers();

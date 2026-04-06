@@ -915,11 +915,13 @@ internal sealed class PhraseManagerDialog : Form
         string name = phrases[idx].Name;
 
         // 確認刪除對話框（與應用程式其他訊息框使用相同風格）
-        if (MessageBox.Show(
+        if (GamepadMessageBox.Show(
+            this,
             string.Format(Strings.Msg_ConfirmDeletePhrase, name),
             Strings.Wrn_Title,
             MessageBoxButtons.YesNo,
-            MessageBoxIcon.Warning) != DialogResult.Yes)
+            MessageBoxIcon.Warning,
+            gamepad: _gamepadController) != DialogResult.Yes)
         {
             return;
         }

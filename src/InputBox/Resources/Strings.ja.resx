@@ -746,7 +746,7 @@
     <comment>前のウィンドウに戻るときに入力ボックスを最小化するかどうかを切り替えるコンテキストメニュー項目。</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
-    <value>前のウィンドウに戻るときに入力ボックスを最小化します。Xbox フルスクリーン体験では推奨しません。</value>
+    <value>前のウィンドウに戻るときに入力ボックスを最小化します。</value>
     <comment>「戻るときに最小化」トグルメニュー項目のアクセシブルな説明。</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
@@ -758,10 +758,8 @@
     <comment>「戻るときに最小化」設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>Xbox フルスクリーンモードでは、入力ボックスを最小化すると画面が真っ黒になり、直接元に戻せない場合があります。
-
-グローバルホットキーで入力ボックスを再び起動できます。この機能を有効にしますか？</value>
-    <comment>「戻るときに最小化」を有効にしようとしたときに表示される確認ダイアログの本文。Xbox フルスクリーンモードの制限について警告します。</comment>
+    <value>前のウィンドウに戻るときに入力ボックスが最小化されます。この機能を有効にしますか？</value>
+    <comment>「戻るときに最小化」を有効にしようとしたときに表示される確認ダイアログの本文。</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
     <value>戻るときに最小化</value>
@@ -1072,5 +1070,33 @@ Back + ↑／↓	透明度を調整（±5%）</value>
   <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
     <value>定型文の内容を入力してください…</value>
     <comment>定型文編集ダイアログの内容入力欄プレースホルダー。</comment>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>はい</value>
+    <comment>GamepadMessageBox の「はい」ボタンのラベルテキスト。</comment>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>いいえ</value>
+    <comment>GamepadMessageBox の「いいえ」ボタンのラベルテキスト。</comment>
+  </data>
+  <data name="Btn_Abort" xml:space="preserve">
+    <value>中止</value>
+    <comment>GamepadMessageBox の「中止」ボタンのラベルテキスト（AbortRetryIgnore セット）。</comment>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>再試行</value>
+    <comment>GamepadMessageBox の「再試行」ボタンのラベルテキスト（RetryCancel / AbortRetryIgnore セット）。</comment>
+  </data>
+  <data name="Btn_Ignore" xml:space="preserve">
+    <value>無視</value>
+    <comment>GamepadMessageBox の「無視」ボタンのラベルテキスト（AbortRetryIgnore セット）。</comment>
+  </data>
+  <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
+    <value>メッセージダイアログ。A ボタンでメインアクション、B ボタンでキャンセル。</value>
+    <comment>GamepadMessageBox のアクセシビリティ説明。ダイアログ表示時にスクリーンリーダーが読み上げます。</comment>
+  </data>
+  <data name="GmBox_A11y_Hint" xml:space="preserve">
+    <value>A: {0} · B: {1}</value>
+    <comment>GamepadMessageBox のゲームパッドヒントラベル。{0} = メインアクションラベル、{1} = キャンセルアクションラベル。</comment>
   </data>
 </root>

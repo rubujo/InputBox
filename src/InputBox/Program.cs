@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Configuration;
+using InputBox.Core.Controls;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
@@ -128,7 +129,8 @@ internal static class Program
             // 處理 Mutex 建立失敗的情況（例如權限不足或系統錯誤）。
             LoggerService.LogException(ex, "Mutex 建立失敗");
 
-            MessageBox.Show(
+            GamepadMessageBox.Show(
+                null,
                 ex.Message,
                 Strings.Err_Title,
                 MessageBoxButtons.OK,
@@ -574,7 +576,8 @@ internal static class Program
         PerformFinalCleanup();
 
         // 告知使用者錯誤。
-        MessageBox.Show(
+        GamepadMessageBox.Show(
+            null,
             ex.Message,
             Strings.Err_Title,
             MessageBoxButtons.OK,

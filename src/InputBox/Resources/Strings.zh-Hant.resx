@@ -746,7 +746,7 @@
     <comment>右鍵選單項目，切換返回前一個視窗時是否最小化輸入框。</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
-    <value>返回前一個視窗時最小化輸入框。在 Xbox 全螢幕體驗下不建議使用。</value>
+    <value>返回前一個視窗時最小化輸入框。</value>
     <comment>「返回時最小化」切換選單項目的無障礙描述。</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
@@ -758,10 +758,8 @@
     <comment>關閉「返回時最小化」設定時播放的無障礙播報訊息。</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>在 Xbox 全螢幕體驗下，最小化輸入框後畫面可能變為一片黑，且無法直接還原。
-
-您仍可透過全域快速鍵重新喚出輸入框。確定要啟用此功能嗎？</value>
-    <comment>使用者嘗試啟用「返回時最小化」時顯示的確認對話框本文，警告 Xbox 全螢幕體驗下的限制。</comment>
+    <value>返回前一個視窗時，輸入框將自動最小化。確定要啟用此功能嗎？</value>
+    <comment>使用者嘗試啟用「返回時最小化」時顯示的確認對話框本文。</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
     <value>返回時最小化</value>
@@ -1072,5 +1070,33 @@ Back + ↑／↓	調整視窗透明度（±5%）</value>
   <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
     <value>請輸入片語內容…</value>
     <comment>片語編輯對話框內容輸入框的預留文字。</comment>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>是</value>
+    <comment>GamepadMessageBox「是」按鈕的標籤文字。</comment>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>否</value>
+    <comment>GamepadMessageBox「否」按鈕的標籤文字。</comment>
+  </data>
+  <data name="Btn_Abort" xml:space="preserve">
+    <value>中止</value>
+    <comment>GamepadMessageBox「中止」按鈕的標籤文字（AbortRetryIgnore 組合）。</comment>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>重試</value>
+    <comment>GamepadMessageBox「重試」按鈕的標籤文字（RetryCancel / AbortRetryIgnore 組合）。</comment>
+  </data>
+  <data name="Btn_Ignore" xml:space="preserve">
+    <value>略過</value>
+    <comment>GamepadMessageBox「略過」按鈕的標籤文字（AbortRetryIgnore 組合）。</comment>
+  </data>
+  <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
+    <value>訊息對話框。按 A 執行主要動作，按 B 取消。</value>
+    <comment>GamepadMessageBox 的無障礙描述，對話框開啟時由螢幕閱讀器播報。</comment>
+  </data>
+  <data name="GmBox_A11y_Hint" xml:space="preserve">
+    <value>A: {0} · B: {1}</value>
+    <comment>GamepadMessageBox 的手把提示標籤。{0} 為主要動作標籤，{1} 為取消動作標籤。</comment>
   </data>
 </root>

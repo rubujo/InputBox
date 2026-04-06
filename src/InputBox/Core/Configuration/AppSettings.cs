@@ -1,4 +1,5 @@
-﻿using InputBox.Core.Interop;
+﻿using InputBox.Core.Controls;
+using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
@@ -730,7 +731,8 @@ public class AppSettings
         // 警告視窗必須在 Lock 之外彈出，以免阻塞其他執行緒對設定檔的存取。
         if (isInvalid)
         {
-            MessageBox.Show(
+            GamepadMessageBox.Show(
+                null,
                 Strings.Err_ConfigInvalid,
                 caption: Strings.Wrn_Title,
                 buttons: MessageBoxButtons.OK,

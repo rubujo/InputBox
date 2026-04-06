@@ -2003,7 +2003,7 @@ internal sealed class NumericInputDialog : Form
             _a11yFont);
         _btnOk.Click += (s, e) => HandleConfirm();
         _btnOk.Anchor = AnchorStyles.None;
-        _btnOk.TabIndex = 5;
+        _btnOk.TabIndex = 3;
 
         _btnCancel = CreateEyeTrackerButton(
             ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'),
@@ -2012,7 +2012,7 @@ internal sealed class NumericInputDialog : Form
             _a11yFont);
         _btnCancel.Click += (s, e) => HandleCancel();
         _btnCancel.Anchor = AnchorStyles.None;
-        _btnCancel.TabIndex = 3;
+        _btnCancel.TabIndex = 5;
 
         AcceptButton = _btnOk;
         CancelButton = _btnCancel;
@@ -2030,8 +2030,8 @@ internal sealed class NumericInputDialog : Form
         _tlpGrid.Controls.Add(_btnMinus, 0, 0);
         _tlpGrid.Controls.Add(_nud, 1, 0);
         _tlpGrid.Controls.Add(_btnPlus, 2, 0);
-        _tlpGrid.Controls.Add(_btnOk, 2, 1);
-        _tlpGrid.Controls.Add(_btnCancel, 0, 1);
+        _tlpGrid.Controls.Add(_btnOk, 0, 1);
+        _tlpGrid.Controls.Add(_btnCancel, 2, 1);
         _tlpGrid.Controls.Add(_btnReset, 1, 1);
 
         tlpMain.Controls.Add(lblPrompt, 0, 0);

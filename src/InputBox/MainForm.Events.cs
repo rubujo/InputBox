@@ -176,11 +176,13 @@ public partial class MainForm
 
             AnnounceA11y(string.Format(Strings.A11y_Background_Error, ex.Message));
 
-            MessageBox.Show(
+            GamepadMessageBox.Show(
+                this,
                 ex.Message,
                 Strings.Err_Title,
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+                MessageBoxIcon.Error,
+                gamepad: _gamepadController);
         }
     }
 
@@ -901,11 +903,13 @@ public partial class MainForm
             // 音效回饋。
             FeedbackService.PlaySound(SystemSounds.Hand);
 
-            MessageBox.Show(
+            GamepadMessageBox.Show(
+                this,
                 string.Format(Strings.Err_HotkeyRegFail, $"[{currentHotkeyStr}]"),
                 caption: Strings.Wrn_Title,
                 buttons: MessageBoxButtons.OK,
-                icon: MessageBoxIcon.Exclamation);
+                icon: MessageBoxIcon.Exclamation,
+                gamepad: _gamepadController);
         }
 
         return isOkay;
