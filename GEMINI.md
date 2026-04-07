@@ -15,9 +15,10 @@
 
 ## 2. A11y 要求
 - 色彩對比必須 ≥ 7:1（文字），非文字 UI ≥ 3:1。
-- 焦點指示器：雙環`outline #e67e00` + `--focus-companion` 伴侶環（淺色模式）；深色模式單橘環 7.05:1。
+- 焦點指示器：雙環 `outline: 5px solid #e67e00` + `box-shadow: var(--focus-companion)` 伴侶環（淺色模式）；深色模式單橘環 7.05:1。
 - 點擊目標 ≥ 44x44px。
 - 嚴格遵守「零佈局抖動」原則。
+- 提交前執行 `npm test`（Playwright 44 項全過），並檢查符號全形化、`lang` 屬性及 Landmark 導覽結構。
 
 ## 3. 參考索引
 - 文件入口：`ENGINEERING_GUIDELINES.md`
