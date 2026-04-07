@@ -10,11 +10,11 @@
 **代理人必須在變更任何核心輸入/輸出邏輯前，使用網頁抓取工具擷取並分析以下網址的最新內容（例如 Copilot：`fetch_webpage`；Gemini：`web_fetch`），確保設計不違反服務條款：**
 
 - **FINAL FANTASY XIV 繁體中文版**：
-  - [使用者合約](https://www.ffxiv.com.tw/web/user_agreement.html)
-  - [授權條款](https://www.ffxiv.com.tw/web/license.html)
+  - [遊戲使用者合約](https://www.ffxiv.com.tw/web/user_agreement.html)
+  - [第三方授權聲明](https://www.ffxiv.com.tw/web/license.html)
 - **宇峻奧汀 (UserJoy)**：
   - [隱私權政策](https://www.userjoy.com/mp/privacy.aspx)
-  - [使用者授權合約 (EULA)](https://www.userjoy.com/mp/eula.aspx)
+  - [使用條款](https://www.userjoy.com/mp/eula.aspx)
   - [免責聲明](https://www.uj.com.tw/uj/service/service_user_disclaimer.aspx)
 
 ## 3. Git 提交規範

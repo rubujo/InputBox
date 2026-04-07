@@ -18,9 +18,11 @@
     - 淺色模式 (`#DCDCDC`)：Green (3.75:1) + CVD 紋理 PaleGreen。
     - 深色模式 (`#3C3C3C`)：LimeGreen (5.21:1) + CVD 紋理 DarkGreen。
 - **色覺友善 (CVD) 與亮度計算**：
-  - **情境感知焦點邊框色**：依 `BackColor` 實際值動態選取：
-    - `BackColor == Black` (淺色反轉) → `Cyan` (16.75:1)
-    - `BackColor == White` (深色反轉) → `MediumBlue` (11.16:1)
+  - **情境感知焦點邊框色**：依 `BackColor` 實際值與主題動態選取（完整 4 情境）：
+    - `BackColor == Black`（淺色反轉，強視覺）→ `Cyan` (16.75:1 AAA)
+    - `BackColor == White`（深色反轉，強視覺）→ `MediumBlue` (11.16:1 AAA)
+    - 深色中性（未反轉，深色主題）→ `LightBlue` (≥7.2:1 AAA)
+    - 淺色中性（未反轉，淺色主題）→ `MediumBlue` (8.14:1 AAA)
   - **視覺脈衝 (Flash Alert)**：
     - 頻率：1Hz 平滑正弦波脈衝。
     - 基色：固定為焦點反轉底色 (深色用 White，淺色用 Black)。

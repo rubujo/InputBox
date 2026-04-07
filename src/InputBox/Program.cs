@@ -331,8 +331,7 @@ internal static class Program
             // 另一個 fallback 進程仍在執行中，不允許繼續。
             Interlocked.Exchange(ref _ownsFallbackGuardMutex, 0);
 
-            _fallbackGuardMutex.Dispose();
-            _fallbackGuardMutex = null;
+            Interlocked.Exchange(ref _fallbackGuardMutex, null)?.Dispose();
 
             return false;
         }

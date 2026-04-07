@@ -1646,7 +1646,7 @@ internal sealed class NumericInputDialog : Form
         // 建立 A11y 廣播器（作為備援）。
         _announcer = new AnnouncerLabel
         {
-            AccessibleName = "\u00A0"
+            AccessibleName = "\u200B"
         };
 
         // 繼承圖示：優先從主視窗繼承，保持應用程式視覺識別的一致性。

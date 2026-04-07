@@ -12,7 +12,10 @@
 - **僅限**：僅允許剪貼簿操作。
 
 ## 2. 環境
-- 在執行指令前，請確保 PowerShell 環境已設定為 UTF-8 編碼。
+- 在執行指令前，必須先設定 PowerShell 環境為 UTF-8 編碼：
+  ```powershell
+  [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+  ```
 - 使用以下指令驗證異動：`dotnet build src/InputBox/InputBox.csproj --configuration Debug`
 
 ## 3. 參考資料
