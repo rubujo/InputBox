@@ -153,6 +153,11 @@
       top: 0;
     }
 
+    /* 現代瀏覽器：滑鼠點擊時收回，避免視覺干擾；舊版瀏覽器略過此規則，保持前項退化行為 */
+    .skip-link:focus:not(:focus-visible) {
+      top: -200px;
+    }
+
     /*
      * ========== 3. 多語系切換 (Localization) ==========
      */
@@ -486,7 +491,7 @@
       margin-bottom: 1.5rem;
       letter-spacing: -0.02em;
       line-height: 1.1;
-      color: #ffffff;
+      color: var(--header-text);
     }
 
     header .desc {
@@ -1968,11 +1973,11 @@
       <span class="lang-sc" lang="zh-Hans">主要导航链接</span>
     </span>
     <ul>
-      <li><a href="#about" class="nav-default-active" aria-current="location">
-          <span class="lang-zh">功能特色 ✨<span class="visually-hidden">（目前區段）</span></span>
-          <span class="lang-en" lang="en">Key Features ✨<span class="visually-hidden"> (Current section)</span></span>
-          <span class="lang-ja" lang="ja">主な特徴 ✨<span class="visually-hidden">（現在のセクション）</span></span>
-          <span class="lang-sc" lang="zh-Hans">功能特色 ✨<span class="visually-hidden">（当前区段）</span></span>
+      <li><a href="#about" class="nav-default-active">
+          <span class="lang-zh">功能特色 ✨</span>
+          <span class="lang-en" lang="en">Key Features ✨</span>
+          <span class="lang-ja" lang="ja">主な特徴 ✨</span>
+          <span class="lang-sc" lang="zh-Hans">功能特色 ✨</span>
         </a></li>
       <li><a href="#handheld">
           <span class="lang-zh">掌機最佳化方案 🎮</span>
@@ -2201,7 +2206,7 @@
 
     <section id="usage">
       <div class="container">
-        <h2>
+        <h2 id="usage-guide-heading">
           <span class="lang-zh">快速操作 ⌨️</span>
           <span class="lang-en" lang="en">Quick Guide ⌨️</span>
           <span class="lang-ja" lang="ja">操作方法 ⌨️</span>
@@ -2209,7 +2214,7 @@
         </h2>
 
         <div class="table-wrapper">
-          <table>
+          <table aria-labelledby="usage-guide-heading">
             <thead>
               <tr>
                 <th scope="col">
@@ -2851,14 +2856,14 @@
 
     <section id="usage-advanced">
       <div class="container">
-        <h3 class="usage-advanced-title">
+        <h3 class="usage-advanced-title" id="usage-advanced-heading">
           <span class="lang-zh">右鍵選單與對話框操作</span>
           <span class="lang-en" lang="en">Context Menu & Dialog Controls</span>
           <span class="lang-ja" lang="ja">右クリックメニューとダイアログ操作</span>
           <span class="lang-sc" lang="zh-Hans">右键菜单与对话框操作</span>
         </h3>
         <div class="table-wrapper">
-          <table>
+          <table aria-labelledby="usage-advanced-heading">
             <thead>
               <tr>
                 <th scope="col">
@@ -3570,7 +3575,7 @@
       <span class="lang-ja" lang="ja">フッター</span>
       <span class="lang-sc" lang="zh-Hans">页尾</span>
     </span>
-    <div class="container footer-container">
+    <div class="container">
       <p class="footer-text">
         <span class="lang-zh">本專案使用 AI 服務輔助開發、翻譯、圖示生成、文件撰寫以及網頁製作。</span>
         <span class="lang-en" lang="en">This project utilizes AI services to assist with development,
