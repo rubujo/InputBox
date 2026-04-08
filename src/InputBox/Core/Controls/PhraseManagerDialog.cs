@@ -175,7 +175,7 @@ internal sealed class PhraseManagerDialog : Form
         _announcer = new AnnouncerLabel()
         {
             Dock = DockStyle.Bottom,
-            Height = 0
+            Height = 1
         };
         Controls.Add(_announcer);
 
