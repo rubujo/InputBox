@@ -205,6 +205,21 @@ internal sealed class PhraseService
             LoggerService.LogException(ex, "片語檔儲存失敗");
 
             Debug.WriteLine($"[片語] 儲存失敗：{ex.Message}");
+
+            // 嘗試清理可能殘留的暫存檔，與 AppSettings.WriteConfigToFile 保持一致。
+            try
+            {
+                string tempPathForCleanup = PhrasePath + ".tmp";
+
+                if (File.Exists(tempPathForCleanup))
+                {
+                    File.Delete(tempPathForCleanup);
+                }
+            }
+            catch (Exception cleanupEx)
+            {
+                Debug.WriteLine($"[片語] 暫存檔清理失敗，已忽略：{cleanupEx.Message}");
+            }
         }
     }
 
@@ -216,6 +231,12 @@ internal sealed class PhraseService
     /// <returns>是否成功</returns>
     public bool Add(string name, string content)
     {
+        if (string.IsNullOrEmpty(name) ||
+            string.IsNullOrEmpty(content))
+        {
+            return false;
+        }
+
         lock (PhraseLock)
         {
             if (_phrases.Count >= MaxPhraseCount)
@@ -242,6 +263,12 @@ internal sealed class PhraseService
     /// <returns>是否成功</returns>
     public bool Update(int index, string name, string content)
     {
+        if (string.IsNullOrEmpty(name) ||
+            string.IsNullOrEmpty(content))
+        {
+            return false;
+        }
+
         lock (PhraseLock)
         {
             if (index < 0 ||
