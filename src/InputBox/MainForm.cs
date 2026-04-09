@@ -136,6 +136,11 @@ public partial class MainForm : Form
     private bool? _lastGamepadConnectedState;
 
     /// <summary>
+    /// 專案預設字型家族（初始化後由 InitA11y 設定，供所有對話框共用）
+    /// </summary>
+    private static FontFamily? _defaultFontFamily;
+
+    /// <summary>
     /// 統一放大的 A11y 字型（實例引用）
     /// </summary>
     private Font A11yFont => FontResourceManager.GetSharedA11yFont(
@@ -1119,7 +1124,7 @@ public partial class MainForm : Form
         FontFamily? family = null,
         float sizeMultiplier = 1.0f)
     {
-        return FontResourceManager.GetSharedA11yFont(dpi, style, family, sizeMultiplier);
+        return FontResourceManager.GetSharedA11yFont(dpi, style, family ?? _defaultFontFamily, sizeMultiplier);
     }
 
     /// <summary>
