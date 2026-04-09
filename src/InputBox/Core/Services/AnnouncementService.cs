@@ -112,10 +112,10 @@ internal sealed class AnnouncementService : IDisposable
                     }
 
                     // interrupt 過期檢查：使用獨立的 _latestInterruptId 而非
-                    // _currentAnnouncementId + TryPeek，確保中間的 polite 訊息不會
-                    // 誤使 interrupt 失效（A→polite B→interrupt C 場景中 A 仍應被 C 取代）。
-                    if (request.Interrupt &&
-                        Interlocked.Read(ref _latestInterruptId) > request.Id)
+                    // _currentAnnouncementId + TryPeek，確保任何比最新 interrupt 還舊的
+                    // 訊息（無論 polite 或 interrupt）都被丟棄。
+                    // 例：polite A → interrupt B：A 應被 B 取代，不需播報。
+                    if (Interlocked.Read(ref _latestInterruptId) > request.Id)
                     {
                         continue;
                     }
@@ -135,9 +135,8 @@ internal sealed class AnnouncementService : IDisposable
                             cancellationToken);
 
                         // Ducking 延遲後再次檢查：若有更新的 interrupt 訊息已加入佇列，
-                        // 放棄播報此訊息，讓後來者負責播報最新內容。
-                        if (request.Interrupt &&
-                            Interlocked.Read(ref _latestInterruptId) > request.Id)
+                        // 放棄播報此訊息（無論 polite 或 interrupt），讓後來者負責播報最新內容。
+                        if (Interlocked.Read(ref _latestInterruptId) > request.Id)
                         {
                             continue;
                         }
