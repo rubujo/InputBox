@@ -126,6 +126,16 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     event Action? RightTriggerPressed;
 
     /// <summary>
+    /// LT 持續按住時的連發事件
+    /// </summary>
+    event Action? LeftTriggerRepeat;
+
+    /// <summary>
+    /// RT 持續按住時的連發事件
+    /// </summary>
+    event Action? RightTriggerRepeat;
+
+    /// <summary>
     /// 控制器 LB 鍵是否按住
     /// </summary>
     bool IsLeftShoulderHeld { get; }
