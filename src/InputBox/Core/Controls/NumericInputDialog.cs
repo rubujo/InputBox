@@ -2146,16 +2146,20 @@ internal sealed class NumericInputDialog : Form
             {
                 MainForm? mainForm = GetOwnerMainForm();
 
-                mainForm?.SetA11yLiveSetting(AutomationLiveSetting.Polite);
-
                 UnsubscribeGamepadEvents();
 
                 if (DialogResult == DialogResult.Cancel)
                 {
                     // 直接在 UI 執行緒同步播報，避免 Task.Run 路徑在 Dispose 取消
                     // _cts 後因 OperationCanceledException 而遺失此關鍵訊息。
+                    // 必須在還原主視窗 LiveSetting 之前播報，防止主視窗積壓訊息
+                    // 在靜默解除後立即插播，與關閉訊息交錯。
                     _announcer?.Announce(Strings.A11y_Cancelled, false);
                 }
+
+                // 還原主視窗廣播器：在對話框自身播報完成後才解除靜默，
+                // 確保積壓的主視窗訊息不會與關閉訊息交錯。
+                mainForm?.SetA11yLiveSetting(AutomationLiveSetting.Polite);
             }
             catch (Exception ex)
             {
