@@ -1292,43 +1292,34 @@ internal sealed class NumericInputDialog : Form
             return;
         }
 
-        MainForm? mainForm = GetOwnerMainForm();
+        long currentId = Interlocked.Increment(ref _a11yDebounceId);
 
-        if (mainForm != null)
+        Task.Run(async () =>
         {
-            mainForm.AnnounceA11y(message, interrupt);
-        }
-        else
-        {
-            long currentId = Interlocked.Increment(ref _a11yDebounceId);
-
-            Task.Run(async () =>
+            try
             {
-                try
-                {
-                    // 統一 Audio Ducking 避讓延遲。
-                    await Task.Delay(AppSettings.AudioDuckingDelayMs, _cts?.Token ?? CancellationToken.None);
+                // 統一 Audio Ducking 避讓延遲。
+                await Task.Delay(AppSettings.AudioDuckingDelayMs, _cts?.Token ?? CancellationToken.None);
 
-                    if (Interlocked.Read(ref _a11yDebounceId) == currentId &&
-                        !IsDisposed &&
-                        IsHandleCreated)
-                    {
-                        await this.SafeInvokeAsync(() =>
-                            _announcer?.Announce(message, interrupt && AppSettings.Current.A11yInterruptEnabled));
-                    }
-                }
-                catch (OperationCanceledException)
+                if (Interlocked.Read(ref _a11yDebounceId) == currentId &&
+                    !IsDisposed &&
+                    IsHandleCreated)
                 {
-                    // 正常取消。
+                    await this.SafeInvokeAsync(() =>
+                        _announcer?.Announce(message, interrupt && AppSettings.Current.A11yInterruptEnabled));
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[A11y] 對話框本地廣播失敗：{ex.Message}");
-                }
-            },
-            _cts?.Token ?? CancellationToken.None)
-            .SafeFireAndForget();
-        }
+            }
+            catch (OperationCanceledException)
+            {
+                // 正常取消。
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[A11y] 對話框本地廣播失敗：{ex.Message}");
+            }
+        },
+        _cts?.Token ?? CancellationToken.None)
+        .SafeFireAndForget();
     }
 
     /// <summary>

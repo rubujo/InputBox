@@ -25,11 +25,18 @@ public partial class MainForm
     private Font? _inputFont;
 
     /// <summary>
+    /// 當子對話框佔用廣播頻道時為 true，此期間主視窗廣播將被靜默。
+    /// </summary>
+    private volatile bool _announcementSuppressed;
+
+    /// <summary>
     /// 設定 A11y 廣播器的 LiveSetting 狀態
     /// </summary>
     /// <param name="setting">LiveSetting 設定</param>
     public void SetA11yLiveSetting(AutomationLiveSetting setting)
     {
+        _announcementSuppressed = (setting == AutomationLiveSetting.Off);
+
         if (_lblA11yAnnouncer != null &&
             !_lblA11yAnnouncer.IsDisposed)
         {
@@ -223,7 +230,8 @@ public partial class MainForm
         bool interrupt = false)
     {
         if (string.IsNullOrEmpty(message) ||
-            IsDisposed)
+            IsDisposed ||
+            _announcementSuppressed)
         {
             return;
         }
