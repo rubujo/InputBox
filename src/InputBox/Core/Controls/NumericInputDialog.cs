@@ -1643,10 +1643,15 @@ internal sealed class NumericInputDialog : Form
         AccessibleRole = AccessibleRole.Dialog;
         DoubleBuffered = true;
 
-        // 建立 A11y 廣播器（作為備援）。
+        // 建立 A11y 廣播器（模擬標準狀態列，確保 NVDA 可靠識別為 live region）。
         _announcer = new AnnouncerLabel
         {
-            AccessibleName = "\u200B"
+            AccessibleName = "\u200B",
+            Dock = DockStyle.Bottom,
+            Height = 1,
+            TabStop = false,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
         };
 
         // 繼承圖示：優先從主視窗繼承，保持應用程式視覺識別的一致性。
@@ -2037,11 +2042,8 @@ internal sealed class NumericInputDialog : Form
         tlpMain.Controls.Add(lblPrompt, 0, 0);
         tlpMain.Controls.Add(_tlpGrid, 0, 1);
 
-        // 將大小設為 1x1 並移至不可見區域，避免 Size.Empty 被 UIA 剔除。
-        _announcer.Size = new Size(1, 1);
-        _announcer.Location = new Point(-100, -100);
-        Controls.Add(_announcer);
         Controls.Add(tlpMain);
+        Controls.Add(_announcer);
 
         Shown += (s, e) =>
         {
