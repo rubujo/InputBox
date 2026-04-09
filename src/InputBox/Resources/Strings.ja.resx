@@ -1091,6 +1091,22 @@ Back + ↑／↓	透明度を調整（±5%）</value>
     <value>無視</value>
     <comment>GamepadMessageBox の「無視」ボタンのラベルテキスト（AbortRetryIgnore セット）。</comment>
   </data>
+  <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
+    <value>エラーアイコン。</value>
+    <comment>GamepadMessageBox で MessageBoxIcon.Error が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
+    <value>警告アイコン。</value>
+    <comment>GamepadMessageBox で MessageBoxIcon.Warning が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
+    <value>情報アイコン。</value>
+    <comment>GamepadMessageBox で MessageBoxIcon.Information が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
+    <value>質問アイコン。</value>
+    <comment>GamepadMessageBox で MessageBoxIcon.Question が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+  </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>メッセージダイアログ。A ボタンでメインアクション、B ボタンでキャンセル。</value>
     <comment>GamepadMessageBox のアクセシビリティ説明。ダイアログ表示時にスクリーンリーダーが読み上げます。</comment>

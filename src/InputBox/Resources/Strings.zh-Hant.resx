@@ -1091,6 +1091,22 @@ Back + ↑／↓	調整視窗透明度（±5%）</value>
     <value>略過</value>
     <comment>GamepadMessageBox「略過」按鈕的標籤文字（AbortRetryIgnore 組合）。</comment>
   </data>
+  <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
+    <value>錯誤圖示。</value>
+    <comment>GamepadMessageBox 顯示 MessageBoxIcon.Error 時的圖示無障礙標籤，附加於無障礙描述之前。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
+    <value>警告圖示。</value>
+    <comment>GamepadMessageBox 顯示 MessageBoxIcon.Warning 時的圖示無障礙標籤，附加於無障礙描述之前。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
+    <value>資訊圖示。</value>
+    <comment>GamepadMessageBox 顯示 MessageBoxIcon.Information 時的圖示無障礙標籤，附加於無障礙描述之前。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
+    <value>詢問圖示。</value>
+    <comment>GamepadMessageBox 顯示 MessageBoxIcon.Question 時的圖示無障礙標籤，附加於無障礙描述之前。</comment>
+  </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>訊息對話框。按 A 執行主要動作，按 B 取消。</value>
     <comment>GamepadMessageBox 的無障礙描述，對話框開啟時由螢幕閱讀器播報。</comment>

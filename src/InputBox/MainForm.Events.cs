@@ -1026,17 +1026,19 @@ public partial class MainForm
         AnnounceA11y(Strings.A11y_Opening_Keyboard);
 
         // 使用非同步延遲，避免與系統原生的 Focus 彈出行為發生競態。
-        Task.Run(OpenTouchKeyboardWithDelayAsync).SafeFireAndForget();
+        // 快照 CancellationToken，避免多次讀取 _formCts 的競態條件。
+        CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
+        OpenTouchKeyboardWithDelayAsync(ct).SafeFireAndForget();
     }
 
     /// <summary>
     /// 延遲嘗試開啟觸控鍵盤，避免與系統自動彈出邏輯競態
     /// </summary>
     /// <returns>非同步作業。</returns>
-    private async Task OpenTouchKeyboardWithDelayAsync()
+    private async Task OpenTouchKeyboardWithDelayAsync(CancellationToken ct = default)
     {
         // 給予 Windows 系統約 150ms 的緩衝時間來啟動其原生的鍵盤彈出邏輯。
-        await Task.Delay(150);
+        await Task.Delay(150, ct);
 
         // 如果延遲後鍵盤已經顯示（由系統自動開啟），則我們不需要再介入 Toggle。
         if (TouchKeyboardService.IsVisible())
