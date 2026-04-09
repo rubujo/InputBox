@@ -1090,6 +1090,22 @@
     <value>忽略</value>
     <comment>GamepadMessageBox「忽略」按钮的标签文本（AbortRetryIgnore 组合）。</comment>
   </data>
+  <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
+    <value>错误图标。</value>
+    <comment>GamepadMessageBox 显示 MessageBoxIcon.Error 时的图标无障碍标签，附加于无障碍描述之前。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
+    <value>警告图标。</value>
+    <comment>GamepadMessageBox 显示 MessageBoxIcon.Warning 时的图标无障碍标签，附加于无障碍描述之前。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
+    <value>信息图标。</value>
+    <comment>GamepadMessageBox 显示 MessageBoxIcon.Information 时的图标无障碍标签，附加于无障碍描述之前。</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
+    <value>问题图标。</value>
+    <comment>GamepadMessageBox 显示 MessageBoxIcon.Question 时的图标无障碍标签，附加于无障碍描述之前。</comment>
+  </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>消息对话框。按 A 执行主要操作，按 B 取消。</value>
     <comment>GamepadMessageBox 的无障碍描述，对话框打开时由屏幕阅读器播报。</comment>

@@ -1091,6 +1091,22 @@ Back + ↑ / ↓	Adjust window opacity (±5%)</value>
     <value>Ignore</value>
     <comment>Label for the Ignore button in GamepadMessageBox (AbortRetryIgnore set).</comment>
   </data>
+  <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
+    <value>Error icon.</value>
+    <comment>Accessible label for the error icon in GamepadMessageBox. Prepended to AccessibleDescription when MessageBoxIcon.Error is shown.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
+    <value>Warning icon.</value>
+    <comment>Accessible label for the warning icon in GamepadMessageBox. Prepended to AccessibleDescription when MessageBoxIcon.Warning is shown.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
+    <value>Information icon.</value>
+    <comment>Accessible label for the information icon in GamepadMessageBox. Prepended to AccessibleDescription when MessageBoxIcon.Information is shown.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
+    <value>Question icon.</value>
+    <comment>Accessible label for the question icon in GamepadMessageBox. Prepended to AccessibleDescription when MessageBoxIcon.Question is shown.</comment>
+  </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>Message dialog. Press A for the primary action, B to cancel.</value>
     <comment>Accessible description for GamepadMessageBox. Announced by screen readers when the dialog opens.</comment>

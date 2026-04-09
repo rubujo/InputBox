@@ -1062,6 +1062,42 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Error icon. 的當地語系化字串。
+        /// </summary>
+        internal static string GmBox_A11y_Icon_Error {
+            get {
+                return ResourceManager.GetString("GmBox_A11y_Icon_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Warning icon. 的當地語系化字串。
+        /// </summary>
+        internal static string GmBox_A11y_Icon_Warning {
+            get {
+                return ResourceManager.GetString("GmBox_A11y_Icon_Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Information icon. 的當地語系化字串。
+        /// </summary>
+        internal static string GmBox_A11y_Icon_Information {
+            get {
+                return ResourceManager.GetString("GmBox_A11y_Icon_Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Question icon. 的當地語系化字串。
+        /// </summary>
+        internal static string GmBox_A11y_Icon_Question {
+            get {
+                return ResourceManager.GetString("GmBox_A11y_Icon_Question", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 A: {0} · B: {1} 的當地語系化字串。
         /// </summary>
         internal static string GmBox_A11y_Hint {

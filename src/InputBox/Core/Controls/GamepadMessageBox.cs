@@ -150,6 +150,11 @@ internal sealed class GamepadMessageBox : Form
     private Label? _lblText;
 
     /// <summary>
+    /// 對話框圖示類型（用於 A11y 描述）
+    /// </summary>
+    private MessageBoxIcon _icon;
+
+    /// <summary>
     /// 內容列面板（DPI 更新時調整 Padding）
     /// </summary>
     private TableLayoutPanel? _contentPanel;
@@ -218,6 +223,8 @@ internal sealed class GamepadMessageBox : Form
     {
         float scale = DeviceDpi / AppSettings.BaseDpi;
 
+        _icon = icon;
+
         // 外層垂直面板，由上而下：內容列 + 提示列 + 按鈕列 + 播報器。
         TableLayoutPanel outer = new()
         {
@@ -265,6 +272,8 @@ internal sealed class GamepadMessageBox : Form
                 Height = (int)(48 * scale),
                 Margin = new Padding(0, 0, (int)(12 * scale), 0),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                AccessibleName = GetIconAccessibleName(icon),
+                AccessibleRole = AccessibleRole.Graphic,
             };
 
             content.Controls.Add(pb, 0, 0);
@@ -286,6 +295,7 @@ internal sealed class GamepadMessageBox : Form
             Margin = new Padding(0, (int)(4 * scale), 0, (int)(4 * scale)),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top,
             Dock = DockStyle.Fill,
+            AccessibleRole = AccessibleRole.StaticText,
         };
         content.Controls.Add(lblText, 1, 0);
         _lblText = lblText;
@@ -562,14 +572,36 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 更新對話框的 AccessibleDescription，包含基本描述與按鈕提示，讓螢幕閱讀器能播報完整的操作說明
+    /// 更新對話框的 AccessibleDescription，包含圖示語義、基本描述與按鈕提示，讓螢幕閱讀器能播報完整的操作說明
     /// </summary>
     /// <param name="lblHint">提示標籤</param>
     private void UpdateDialogAccessibleDescription(Label lblHint)
     {
-        AccessibleDescription = string.IsNullOrEmpty(lblHint.Text) ?
+        string? iconLabel = GetIconAccessibleName(_icon);
+        string baseDesc = string.IsNullOrEmpty(lblHint.Text) ?
             Strings.GmBox_A11y_Dialog_Desc :
             $"{Strings.GmBox_A11y_Dialog_Desc} {lblHint.Text}";
+
+        AccessibleDescription = iconLabel is null ?
+            baseDesc :
+            $"{iconLabel} {baseDesc}";
+    }
+
+    /// <summary>
+    /// 取得對應 MessageBoxIcon 的無障礙標籤文字，供 AccessibleDescription 使用
+    /// </summary>
+    /// <param name="icon">MessageBoxIcon 類型</param>
+    /// <returns>圖示的無障礙標籤，若無圖示則為 null</returns>
+    private static string? GetIconAccessibleName(MessageBoxIcon icon)
+    {
+        return icon switch
+        {
+            MessageBoxIcon.Error => Strings.GmBox_A11y_Icon_Error,
+            MessageBoxIcon.Warning => Strings.GmBox_A11y_Icon_Warning,
+            MessageBoxIcon.Information => Strings.GmBox_A11y_Icon_Information,
+            MessageBoxIcon.Question => Strings.GmBox_A11y_Icon_Question,
+            _ => null,
+        };
     }
 
     /// <summary>
