@@ -31,16 +31,18 @@ internal sealed class PhraseService
     public const int MaxPhraseNameLength = 50;
 
     /// <summary>
-    /// 片語內容最大長度
+    /// 片語內容最大長度（500 字元）。
+    /// 對齊 FFXIV 聊天輸入框硬上限（500 字元含空格）；
+    /// 同時與 PhraseEditDialog._txtContent.MaxLength 保持一致。
     /// </summary>
-    public const int MaxPhraseContentLength = 10000;
+    public const int MaxPhraseContentLength = 500;
 
     /// <summary>
-    /// 片語檔允許讀取的最大位元組數（2 MB）。
-    /// 依據 MaxPhraseCount（50）× MaxPhraseContentLength（10,000）× UTF-8 CJK 最大 3 bytes/字元計算，
-    /// 理論上限約 1.47 MB；設為 2 MB 以消除 CJK 使用者在合法範圍內觸發拒讀的風險。
+    /// 片語檔允許讀取的最大位元組數（512 KB）。
+    /// 依據 MaxPhraseCount（50）× MaxPhraseContentLength（500）× UTF-8 CJK 最大 3 bytes/字元計算，
+    /// 理論上限約 82 KB；設為 512 KB 作為防惡意或損壞大檔的安全守衛。
     /// </summary>
-    private const long MaxPhraseFileSizeBytes = 2 * 1024 * 1024;
+    private const long MaxPhraseFileSizeBytes = 512 * 1024;
 
     /// <summary>
     /// 片語檔案路徑
