@@ -2146,6 +2146,10 @@ internal sealed class NumericInputDialog : Form
             {
                 MainForm? mainForm = GetOwnerMainForm();
 
+                // 使所有尚在 Task.Run 延遲中的防抖播報失效，防止過時的數值／
+                // 游標訊息在關閉播報之後才姍姍來遲地播出。
+                Interlocked.Increment(ref _a11yDebounceId);
+
                 UnsubscribeGamepadEvents();
 
                 if (DialogResult == DialogResult.Cancel)
