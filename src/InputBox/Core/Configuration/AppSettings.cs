@@ -89,9 +89,8 @@ public class AppSettings
     public const int AudioDuckingDelayMs = 200;
 
     /// <summary>
-    /// 單筆歷程記錄與輸入框的最大字數限制（500 字元）。
-    /// 對齊 FFXIV 聊天輸入框硬上限（500 字元含空格），
-    /// 同時與 PhraseService.MaxPhraseContentLength 保持一致。
+    /// 單筆歷程記錄、主輸入框與片語內容的最大字數限制（500 字元）。
+    /// 對齊 FFXIV 聊天輸入框硬上限（500 字元含空格）。
     /// </summary>
     public const int MaxHistoryEntryLength = 500;
 
