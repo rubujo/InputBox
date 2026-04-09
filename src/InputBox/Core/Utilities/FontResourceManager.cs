@@ -24,9 +24,9 @@ public static class FontResourceManager
     private static readonly Lock _trashCanLock = new();
 
     /// <summary>
-    /// 全域共享的 A11y 標準字型快取（依據 DPI 儲存，支援 PerMonitorV2）
+    /// 全域共享的 A11y 標準字型快取（依據 DPI、字型家族與尺寸倍率儲存，支援 PerMonitorV2）
     /// </summary>
-    private static readonly Dictionary<int, Font> _regularFontCache = [];
+    private static readonly Dictionary<(int DpiSize, string Family), Font> _regularFontCache = [];
 
     /// <summary>
     /// 全域共享的 A11y 標準字型快取鎖（用於保護靜態字型快取）
@@ -34,9 +34,9 @@ public static class FontResourceManager
     private static readonly Lock _regularFontCacheLock = new();
 
     /// <summary>
-    /// 全域共享的 A11y 加粗字型快取（依據 DPI 儲存，支援 PerMonitorV2）
+    /// 全域共享的 A11y 加粗字型快取（依據 DPI、字型家族與尺寸倍率儲存，支援 PerMonitorV2）
     /// </summary>
-    private static readonly Dictionary<int, Font> _boldFontCache = [];
+    private static readonly Dictionary<(int DpiSize, string Family), Font> _boldFontCache = [];
 
     /// <summary>
     /// 全域共享的 A11y 加粗字型快取鎖（用於保護靜態字型快取）
@@ -144,7 +144,7 @@ public static class FontResourceManager
         FontFamily? family = null,
         float sizeMultiplier = 1.0f)
     {
-        Dictionary<int, Font> cache = style.HasFlag(FontStyle.Bold) ?
+        Dictionary<(int DpiSize, string Family), Font> cache = style.HasFlag(FontStyle.Bold) ?
             _boldFontCache :
             _regularFontCache;
 
@@ -152,7 +152,9 @@ public static class FontResourceManager
             _boldFontCacheLock :
             _regularFontCacheLock;
 
-        int cacheKey = (int)(dpi * sizeMultiplier * 1000);
+        int dpiSize = (int)(dpi * sizeMultiplier * 1000);
+        string familyName = (family ?? FontFamily.GenericSansSerif).Name;
+        (int, string) cacheKey = (dpiSize, familyName);
 
         lock (cacheLock)
         {
