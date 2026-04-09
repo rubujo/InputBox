@@ -193,8 +193,12 @@ internal sealed class PhraseEditDialog : Form
 
         _announcer = new AnnouncerLabel()
         {
+            AccessibleName = "\u200B",
             Dock = DockStyle.Bottom,
-            Height = 1
+            Height = 1,
+            TabStop = false,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
         };
         Controls.Add(_announcer);
 
