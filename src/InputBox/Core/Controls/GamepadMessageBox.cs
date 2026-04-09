@@ -321,8 +321,12 @@ internal sealed class GamepadMessageBox : Form
         // 播報器（A11y）。
         _announcer = new AnnouncerLabel
         {
+            AccessibleName = "\u200B",
             Dock = DockStyle.Bottom,
             Height = 1,
+            TabStop = false,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
         };
         outer.Controls.Add(_announcer, 0, 3);
 

@@ -234,11 +234,12 @@ internal sealed class HelpDialog : Form
         // A11y 廣播元件（模擬狀態外觀）。
         _announcer = new AnnouncerLabel
         {
+            AccessibleName = "\u200B",
             Dock = DockStyle.Bottom,
             Height = 1,
+            TabStop = false,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
-            TabStop = false,
         };
         Controls.Add(_announcer);
         // 應用程式切回前景時恢復控制器輪詢（防止 alt-tab 後控制器停滯）。

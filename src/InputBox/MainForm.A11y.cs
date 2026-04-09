@@ -171,6 +171,8 @@ public partial class MainForm
         _lblA11yAnnouncer = new AnnouncerLabel
         {
             Name = "LblA11yAnnouncer",
+            // ZWSP 可讓 AT 辨識此為已命名的廣播區域，同時保持視覺隱形。
+            AccessibleName = "\u200B",
             Visible = true,
             // 使用 Dock 置於底部，模擬標準狀態列，這是 NVDA 最信任的區域。
             Dock = DockStyle.Bottom,
