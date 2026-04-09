@@ -587,12 +587,20 @@ public static class ButtonEyeTrackerExtensions
                     }
                     else
                     {
-                        Color baseColor = isDark ?
-                                Color.LimeGreen :
-                                Color.Green,
-                              hatchColor = isDark ?
-                                Color.DarkGreen :
-                                Color.PaleGreen;
+                        // 依據按鈕實際背景亮度（而非主題）決定進度條顏色。
+                        // 眼動儀懸停時背景反轉（深色主題→White, 淺色主題→Black），
+                        // 若繼續用 isDark 判斷，深色主題懸停 LimeGreen vs White
+                        // 對比僅 2.12:1，低於 WCAG 1.4.11 Non-text Contrast 3:1 要求。
+                        bool bgIsLight = btn.BackColor != Color.Empty
+                            ? btn.BackColor.GetBrightness() > 0.5f
+                            : !isDark;
+
+                        Color baseColor = bgIsLight ?
+                                Color.Green :
+                                Color.LimeGreen,
+                              hatchColor = bgIsLight ?
+                                Color.PaleGreen :
+                                Color.DarkGreen;
 
                         using Brush bgBrush = new SolidBrush(baseColor);
                         using Brush hatchBrush = new HatchBrush(
