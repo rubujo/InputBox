@@ -108,6 +108,11 @@ internal sealed class PhraseEditDialog : Form
     private int _isFlashing = 0;
 
     /// <summary>
+    /// 片語內容字元數提示標籤（{current}/{max}，近上限時顯示橙色）
+    /// </summary>
+    private Label? _lblContentCount;
+
+    /// <summary>
     /// 用於中斷動畫的專屬 Token 來源
     /// </summary>
     private CancellationTokenSource? _alertCts;
@@ -206,7 +211,7 @@ internal sealed class PhraseEditDialog : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 2,
-            RowCount = 4,
+            RowCount = 5,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Padding = new Padding(0)
@@ -215,6 +220,7 @@ internal sealed class PhraseEditDialog : Form
         tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // 字元數提示列
         tlp.RowStyles.Add(new RowStyle(SizeType.Absolute, 8));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
@@ -273,7 +279,7 @@ internal sealed class PhraseEditDialog : Form
             ScrollBars = ScrollBars.Vertical,
             Height = 140,
             Dock = DockStyle.Fill,
-            MaxLength = AppSettings.MaxHistoryEntryLength,
+            MaxLength = AppSettings.MaxInputLength,
             BorderStyle = BorderStyle.None,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
@@ -289,6 +295,21 @@ internal sealed class PhraseEditDialog : Form
         _txtContent.Enter += HandleInputBoxEnter;
         _txtContent.Leave += HandleInputBoxLeave;
         tlp.Controls.Add(_txtContent, 1, 1);
+
+        // 字元數提示標籤（顯示內容已輸入字元數 / 上限）。
+        _lblContentCount = new Label
+        {
+            AutoSize = true,
+            Anchor = AnchorStyles.Right,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
+            TabStop = false,
+            AccessibleRole = AccessibleRole.StaticText,
+            Margin = new Padding(0, 0, 0, 2)
+        };
+        _txtContent.TextChanged += (s, e) => UpdateContentCharCount();
+        UpdateContentCharCount();
+        tlp.Controls.Add(_lblContentCount, 1, 2);
 
         // 按鈕區（Grouping）：與其他對話框一致，提供可導覽的群組語意。
         FlowLayoutPanel flpBtns = new()
@@ -351,7 +372,7 @@ internal sealed class PhraseEditDialog : Form
         flpBtns.Controls.Add(_btnCancel);
         flpBtns.Controls.Add(_btnOk);
 
-        tlp.Controls.Add(flpBtns, 0, 3);
+        tlp.Controls.Add(flpBtns, 0, 4);
         tlp.SetColumnSpan(flpBtns, 2);
 
         AcceptButton = _btnOk;
@@ -625,6 +646,8 @@ internal sealed class PhraseEditDialog : Form
 
                     _btnOk.Invalidate();
                     _btnCancel.Invalidate();
+
+                    UpdateContentCharCount();
 
                     TextBox? active = GetActiveTextBox();
 
@@ -1540,6 +1563,35 @@ internal sealed class PhraseEditDialog : Form
         {
             Debug.WriteLine($"[片語編輯] UnsubscribeGamepadEvents 失敗：{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 更新片語內容字元數提示標籤（{current}/{max}），近上限時顯示橙色。
+    /// </summary>
+    private void UpdateContentCharCount()
+    {
+        if (_lblContentCount == null || _lblContentCount.IsDisposed)
+        {
+            return;
+        }
+
+        int len = _txtContent.TextLength;
+        int max = AppSettings.MaxInputLength;
+        string countText = $"{len}/{max}";
+
+        _lblContentCount.Text = countText;
+        _lblContentCount.AccessibleName = $"{Strings.Phrase_Edit_Content} {countText}";
+
+        if (SystemInformation.HighContrast)
+        {
+            _lblContentCount.ForeColor = Color.Empty;
+
+            return;
+        }
+
+        _lblContentCount.ForeColor = len >= max - 50 ?
+            Color.DarkOrange :
+            Color.Empty;
     }
 
     /// <summary>

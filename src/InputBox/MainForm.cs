@@ -262,7 +262,7 @@ public partial class MainForm : Form
         AcceptButton = BtnCopy;
 
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
-        TBInput.MaxLength = AppSettings.MaxHistoryEntryLength;
+        TBInput.MaxLength = AppSettings.MaxInputLength;
 
         // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>
