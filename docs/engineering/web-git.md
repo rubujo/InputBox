@@ -15,4 +15,6 @@
   - 確認 Footer 第三方函式庫清單與 `main` 分支 `README.md`（權威來源）保持 100% 同步。
   - 確認編碼與換行未漂移為非 UTF-8 或非 CRLF。
   - 驗證所有 Landmark 結構正確，通過 A11y 檢測。
+  - 驗證 Windows 高對比模式（`forced-colors: active`）下關鍵互動元素（`.skip-link`、`.cta-button`、導覽列 hover / active）可辨識。
+  - 確認互動元素 hover/focus 邊框色對所有相鄰背景均達 WCAG 1.4.11（≥ 3:1 非文字對比度）。
   - 執行 Playwright 測試套件（`npm test`）確認 44 項可及性與對比度驗證全部通過。

@@ -4,6 +4,17 @@
   - 文字對比度必須 ≥ 7:1。
   - 必須完整支援 `prefers-color-scheme: dark` 且對比度同樣達標。
   - 視覺警示配色採用 **`#e67e00`** (DarkOrange)。
+- **非文字對比度 (WCAG 1.4.11)**：
+  - UI 元件邊界（按鈕邊框、焦點指示器等）與其相鄰背景的對比度必須 ≥ 3:1。
+  - Hover / Focus 狀態的邊框色必須對所有相鄰色（含按鈕內側與外側頁面背景）均達 3:1。
+    - 反例：`border-color: #ffda44`（黃色）對白色按鈕背景 `#ffffff` = 1.37:1 ❌
+    - CTA 按鈕 hover 邊框色標準值：`#b88000`（對 `#ffffff` = 3.43:1 ✅；對深色標頭 `#003a70` = 3.33:1 ✅）
+  - 純裝飾性元素（背景光暈、星粒動畫等非 UI 元件）不受此規定約束。
+- **強制色彩模式 (Windows High Contrast / forced-colors)**：
+  - 必須提供 `@media (forced-colors: active)` 區塊，確保關鍵互動元素在高對比模式下可辨識。
+  - 使用 CSS 系統色彩關鍵字：`Highlight`（選取/作用色）、`HighlightText`（選取文字）、`ButtonBorder`（按鈕邊框）、`ButtonText`（按鈕文字）、`Canvas`（頁面背景）、`CanvasText`（頁面文字）。
+  - 必須覆蓋的元素：`.skip-link:focus`（`Highlight` / `HighlightText`）、`.cta-button`（`ButtonBorder` / `Highlight`）、導覽列的 hover / active 狀態（`outline: 2px solid Highlight`）。
+  - `@media print` 區塊內的硬碼色值（如 `color: #000`）不屬於 `forced-colors` 問題，無需修正。
 - **眼動儀優化 (Eye Tracker Optimized)**：
   - **大點擊目標**：按鈕與連結最小尺寸為 44x44px。
   - **強化焦點框（雙環指示器）**：`:focus-visible` 採雙環設計以同時滿足 WCAG SC 2.4.11/2.4.12：
@@ -19,3 +30,6 @@
   - 必須支援 `@media (prefers-reduced-motion: reduce)`。
   - 使用低頻、平滑、無劇烈跳變的過渡（如 `ease-in-out` 或其他柔和 easing），杜絕高頻閃爍或突兀脈衝。
   - 針對低效能觸控裝置（例如低階 Android 或 coarse pointer 裝置），應提供降級樣式，優先停用高成本動畫、濾鏡、陰影與平滑捲動，以維持可讀性與操作流暢度。
+- **資料表格語義 (Table Semantics)**：
+  - 資料表格第一欄（列標題）必須使用 `<th scope="row">`，禁止使用 `<td>`。
+  - 行動版排版中以純 CSS 重複顯示的欄標題標籤（如 `.mobile-label`）必須加上 `aria-hidden="true"`，避免螢幕閱讀器重複播報。
