@@ -1009,8 +1009,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         short correctedThumbLX = GetCorrectedLeftThumbShort(clampedLX, _leftStickBiasX),
             correctedThumbLY = GetCorrectedLeftThumbShort(clampedLY, _leftStickBiasY);
-        float correctedRightThumbX = clampedRX - _rightStickBiasX,
-            correctedRightThumbY = clampedRY - _rightStickBiasY;
+
+        float correctedRightThumbX = clampedRX - _rightStickBiasX;
 
         ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
 
