@@ -11,6 +11,9 @@ using Microsoft.Win32;
 
 namespace InputBox.Core.Controls;
 
+// 阻擋設計工具。
+partial class DesignerBlocker { };
+
 /// <summary>
 /// 支援遊戲控制器的訊息對話框
 /// A 鍵觸發確認（是／OK／重試），B 鍵觸發取消（否／取消／中止）
