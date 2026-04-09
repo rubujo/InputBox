@@ -918,14 +918,42 @@ internal sealed class PhraseManagerDialog : Form
 
         string name = phrases[idx].Name;
 
-        // 確認刪除對話框（與應用程式其他訊息框使用相同風格）
-        if (GamepadMessageBox.Show(
-            this,
-            string.Format(Strings.Msg_ConfirmDeletePhrase, name),
-            Strings.Wrn_Title,
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Warning,
-            gamepad: _gamepadController) != DialogResult.Yes)
+        // 暫時解除本對話框的控制器事件，防止子對話框開啟期間事件同時觸發。
+        UnsubscribeGamepadEvents();
+
+        DialogResult confirmResult;
+
+        try
+        {
+            // 確認刪除對話框（與應用程式其他訊息框使用相同風格）
+            confirmResult = GamepadMessageBox.Show(
+                this,
+                string.Format(Strings.Msg_ConfirmDeletePhrase, name),
+                Strings.Wrn_Title,
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning,
+                gamepad: _gamepadController);
+        }
+        finally
+        {
+            // 子對話框關閉後重新訂閱控制器事件。
+            SubscribeGamepadEvents();
+
+            // 防止 Owner／Child 失焦競態導致控制器殘留在 Pause 狀態。
+            if (ActiveForm == this)
+            {
+                try
+                {
+                    _gamepadController?.Resume();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語] DeleteSelectedPhrase Resume 失敗：{ex.Message}");
+                }
+            }
+        }
+
+        if (confirmResult != DialogResult.Yes)
         {
             return;
         }
@@ -1021,6 +1049,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             // 焦點在按鈕上時，D-Pad 上下切換焦點。
             if (IsButtonAreaFocused())
             {
@@ -1056,6 +1089,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             // 焦點在按鈕上時，D-Pad 上下切換焦點。
             if (IsButtonAreaFocused())
             {
@@ -1092,6 +1130,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             // 如果焦點在按鈕上，執行該按鈕的動作。
             if (TryGetFocusedButton(out Button? focusedBtn) &&
                 focusedBtn is { Enabled: true })
@@ -1121,6 +1164,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             Close();
         }
         catch (Exception ex)
@@ -1136,6 +1184,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             DeleteSelectedPhrase();
         }
         catch (Exception ex)
@@ -1151,6 +1204,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             AddPhrase();
         }
         catch (Exception ex)
@@ -1166,6 +1224,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             // 左方向鍵：若目前在右側按鈕區，回到清單。
             if (IsButtonAreaFocused())
             {
@@ -1209,6 +1272,11 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (ActiveForm != this)
+            {
+                return;
+            }
+
             // 右方向鍵：由清單進入右側按鈕區；若已在按鈕區則向後循環。
             if (_lstPhrases.Focused ||
                 _lstPhrases.ContainsFocus)
