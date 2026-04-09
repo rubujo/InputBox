@@ -721,7 +721,7 @@ internal sealed class PhraseManagerDialog : Form
     private void UpdateButtonStates()
     {
         bool hasSelection = _lstPhrases.SelectedIndex >= 0,
-            canAdd = _phraseService.Count < PhraseService.MaxPhraseCount;
+            canAdd = _phraseService.Count < AppSettings.MaxPhraseCount;
 
         _btnAdd.Enabled = canAdd;
         _btnEdit.Enabled = hasSelection;
@@ -745,7 +745,7 @@ internal sealed class PhraseManagerDialog : Form
             return;
         }
 
-        string countText = $"{Strings.Phrase_A11y_List_Name}：{_phraseService.Count}/{PhraseService.MaxPhraseCount}";
+        string countText = $"{Strings.Phrase_A11y_List_Name}：{_phraseService.Count}/{AppSettings.MaxPhraseCount}";
 
         _lblPhraseCount.Text = countText;
         _lblPhraseCount.AccessibleName = countText;
@@ -759,7 +759,7 @@ internal sealed class PhraseManagerDialog : Form
             return;
         }
 
-        bool isNearLimit = _phraseService.Count >= PhraseService.MaxPhraseCount - 5;
+        bool isNearLimit = _phraseService.Count >= AppSettings.MaxPhraseCount - 5;
 
         _lblPhraseCount.ForeColor = isNearLimit ?
             Color.DarkOrange :
@@ -771,7 +771,7 @@ internal sealed class PhraseManagerDialog : Form
     /// </summary>
     private void AddPhrase()
     {
-        if (_phraseService.Count >= PhraseService.MaxPhraseCount)
+        if (_phraseService.Count >= AppSettings.MaxPhraseCount)
         {
             FeedbackService.PlaySound(SystemSounds.Beep);
 
