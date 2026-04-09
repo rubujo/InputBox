@@ -8,7 +8,16 @@ public static class VibrationPatterns
     /// <summary>
     /// 全域強度倍率（0.7 = 預設、0.5 = 弱、0.0 = 關閉）
     /// </summary>
-    public static float GlobalIntensityMultiplier { get; set; } = 0.7f;
+    /// <remarks>
+    /// 以 volatile 欄位支撐，確保 UI 執行緒寫入對震動輪詢執行緒的記憶體可見性。
+    /// </remarks>
+    private static volatile float _globalIntensityMultiplier = 0.7f;
+
+    public static float GlobalIntensityMultiplier
+    {
+        get => _globalIntensityMultiplier;
+        set => _globalIntensityMultiplier = value;
+    }
 
     /// <summary>
     /// 游標移動（輕微短促的點擊感）

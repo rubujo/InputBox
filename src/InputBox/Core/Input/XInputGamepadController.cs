@@ -470,14 +470,15 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 防止重複啟動。
         StopPolling();
 
-        // 先以區域變數持有新的 CancellationTokenSource，再寫入欄位，
-        // 避免 StopPolling()（Interlocked.Exchange）在欄位寫入與 Token 讀取之間介入，
-        // 導致取得 CancellationToken.None 的 TOCTOU 競態。
+        // 先以區域變數捕捉 Token，再寫入欄位；確保若 StopPolling（Interlocked.Exchange）
+        // 在欄位寫入後即介入並 CancelAndDispose，Token 捕捉不會取得已釋放物件的屬性。
         CancellationTokenSource cts = new();
+
+        CancellationToken token = cts.Token;
 
         _ctsPolling = cts;
 
-        _taskPolling = Task.Run(() => PollingLoopAsync(cts.Token), cts.Token);
+        _taskPolling = Task.Run(() => PollingLoopAsync(token), token);
     }
 
     /// <summary>
@@ -827,7 +828,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
             correctedLeftThumbX,
             correctedLeftThumbY,
             correctedRightThumbX,
-            correctedRightThumbY,
             config);
 
         EmitMechanismHealthLog(
@@ -934,7 +934,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <param name="correctedLeftThumbX">左搖桿 X 軸修正值</param>
     /// <param name="correctedLeftThumbY">左搖桿 Y 軸修正值</param>
     /// <param name="correctedRightThumbX">右搖桿 X 軸修正值</param>
-    /// <param name="correctedRightThumbY">右搖桿 Y 軸修正值（僅用於診斷日誌）</param>
     /// <param name="config">遊戲控制器配置快照</param>
     private void EvaluateDirectionalGhostState(
         in XInput.XInputState state,
@@ -942,7 +941,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
         int correctedLeftThumbX,
         int correctedLeftThumbY,
         int correctedRightThumbX,
-        int correctedRightThumbY,
         AppSettings.GamepadConfigSnapshot config)
     {
         if (!HasActiveDirectionalRepeat())
@@ -975,9 +973,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         int leftThumbX = state.Gamepad.ThumbLeftX,
             leftThumbY = state.Gamepad.ThumbLeftY,
-            rightThumbX = state.Gamepad.ThumbRightX;
+            rightThumbX = state.Gamepad.ThumbRightX,
+            rightThumbY = state.Gamepad.ThumbRightY;
 
-        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} rawDpadRight={rawDpadRightDown} lx={leftThumbX} ly={leftThumbY} rx={rightThumbX} ry={correctedRightThumbY} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)}");
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} rawDpadRight={rawDpadRightDown} lx={leftThumbX} ly={leftThumbY} rx={rightThumbX} ry={rightThumbY} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)}");
 
         ResetDirectionalRepeatState();
     }
