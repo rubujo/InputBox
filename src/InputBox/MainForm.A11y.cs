@@ -70,6 +70,10 @@ public partial class MainForm
         BtnCopy.AccessibleName = Strings.Btn_CopyDefault;
         BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
 
+        // 擷取 Designer 設定的字型家族，供所有對話框透過 GetSharedA11yFont 共用相同字型。
+        // 須在 BtnCopy.Font 被替換之前執行，以保留原始設計字型（如微軟正黑體 UI）。
+        _defaultFontFamily ??= BtnCopy.Font.FontFamily;
+
         // 從全域共享快取池取得輸入框專用的 28pt 大字體（14pt * 2.0）。
         // 既然使用共享快取，則不應手動放入回收桶，由快取池統一管理生命週期。
         _inputFont = GetSharedA11yFont(
