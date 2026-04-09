@@ -242,7 +242,7 @@ internal sealed class PhraseEditDialog : Form
         {
             Text = name,
             Dock = DockStyle.Fill,
-            MaxLength = PhraseService.MaxPhraseNameLength,
+            MaxLength = AppSettings.MaxPhraseNameLength,
             BorderStyle = BorderStyle.None,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,

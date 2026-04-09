@@ -95,6 +95,16 @@ public class AppSettings
     public const int MaxInputLength = 500;
 
     /// <summary>
+    /// 片語名稱最大字數（50 字元）
+    /// </summary>
+    public const int MaxPhraseNameLength = 50;
+
+    /// <summary>
+    /// 片語清單最大容量（50 組）
+    /// </summary>
+    public const int MaxPhraseCount = 50;
+
+    /// <summary>
     /// 設定檔允許讀取的最大位元組數（1 MB）
     /// </summary>
     public const long MaxConfigFileSizeBytes = 1 * 1024 * 1024;
