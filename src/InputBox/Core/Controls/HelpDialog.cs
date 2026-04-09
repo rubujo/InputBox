@@ -859,7 +859,7 @@ internal sealed class HelpDialog : Form
     #region 控制器事件
 
     /// <summary>
-    /// 綁定控制器事件（B／Back 關閉；Start／A 確認關閉；LT／RT 翻頁捲動；↑↓ 行捲動）
+    /// 綁定控制器事件（B／Back 關閉；Start／A 確認關閉；LT／RT 翻頁捲動（含連發）；↑↓ 行捲動）
     /// </summary>
     private void BindGamepadEvents()
     {
@@ -874,6 +874,8 @@ internal sealed class HelpDialog : Form
         GamepadController.APressed += OnGamepadClose;
         GamepadController.LeftTriggerPressed += OnGamepadPageUp;
         GamepadController.RightTriggerPressed += OnGamepadPageDown;
+        GamepadController.LeftTriggerRepeat += OnGamepadPageUp;
+        GamepadController.RightTriggerRepeat += OnGamepadPageDown;
         GamepadController.UpPressed += OnGamepadScrollUp;
         GamepadController.UpRepeat += OnGamepadScrollUp;
         GamepadController.DownPressed += OnGamepadScrollDown;
@@ -897,6 +899,8 @@ internal sealed class HelpDialog : Form
         GamepadController.APressed -= OnGamepadClose;
         GamepadController.LeftTriggerPressed -= OnGamepadPageUp;
         GamepadController.RightTriggerPressed -= OnGamepadPageDown;
+        GamepadController.LeftTriggerRepeat -= OnGamepadPageUp;
+        GamepadController.RightTriggerRepeat -= OnGamepadPageDown;
         GamepadController.UpPressed -= OnGamepadScrollUp;
         GamepadController.UpRepeat -= OnGamepadScrollUp;
         GamepadController.DownPressed -= OnGamepadScrollDown;

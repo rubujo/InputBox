@@ -68,6 +68,26 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private int _rsRepeatCounter;
 
     /// <summary>
+    /// LT 連發計數器
+    /// </summary>
+    private int _ltRepeatCounter;
+
+    /// <summary>
+    /// LT 目前動態計算的連發間隔幀數
+    /// </summary>
+    private int _currentLTRepeatInterval;
+
+    /// <summary>
+    /// RT 連發計數器
+    /// </summary>
+    private int _rtRepeatCounter;
+
+    /// <summary>
+    /// RT 目前動態計算的連發間隔幀數
+    /// </summary>
+    private int _currentRTRepeatInterval;
+
+    /// <summary>
     /// 是否有前一次的 XInputState
     /// </summary>
     private volatile bool _hasPreviousState;
@@ -387,6 +407,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     public event Action? LeftTriggerPressed;
     public event Action? RightTriggerPressed;
+    public event Action? LeftTriggerRepeat;
+    public event Action? RightTriggerRepeat;
 
     /// <summary>
     /// 控制器 LB 鍵是否按住
@@ -1304,6 +1326,28 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
         }
 
+        // 處理左觸發鍵（LT）連發輸入。
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                IsLeftTriggerHeld,
+                ref _ltRepeatCounter,
+                ref _currentLTRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
+        {
+            LeftTriggerRepeat?.Invoke();
+        }
+
+        // 處理右觸發鍵（RT）連發輸入。
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                IsRightTriggerHeld,
+                ref _rtRepeatCounter,
+                ref _currentRTRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
+        {
+            RightTriggerRepeat?.Invoke();
+        }
+
 #if DEBUG
         if (emittedDpadRightRepeat)
         {
@@ -1751,6 +1795,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         RSRightRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
+        LeftTriggerRepeat = null;
+        RightTriggerRepeat = null;
         ConnectionChanged = null;
     }
 }
