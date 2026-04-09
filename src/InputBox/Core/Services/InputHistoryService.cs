@@ -48,9 +48,9 @@ internal class InputHistoryService(int maxHistory = 100)
             }
 
             // 截斷過長的文字，避免記憶體爆炸。
-            if (text.Length > AppSettings.MaxHistoryEntryLength)
+            if (text.Length > AppSettings.MaxInputLength)
             {
-                text = text[..AppSettings.MaxHistoryEntryLength];
+                text = text[..AppSettings.MaxInputLength];
             }
 
             // 防止連續重複輸入。
