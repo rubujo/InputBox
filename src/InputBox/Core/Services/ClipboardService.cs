@@ -21,6 +21,11 @@ internal class ClipboardService
     private static readonly SemaphoreSlim ClipboardSemaphore = new(1, 1);
 
     /// <summary>
+    /// 觸發 A11y 重試廣播的重試次數閾值
+    /// </summary>
+    private const int RetryAnnounceThreshold = 3;
+
+    /// <summary>
     /// 嘗試將文字寫入剪貼簿（包含重試機制，建議在 UI 執行緒呼叫以確保 STA 環境）
     /// </summary>
     /// <param name="text">要寫入的文字</param>
@@ -128,7 +133,7 @@ internal class ClipboardService
                     }
 
                     // 觸發 A11y 廣播回呼。
-                    if (retryCount == 3)
+                    if (retryCount == RetryAnnounceThreshold)
                     {
                         OnRetry?.Invoke();
                     }
