@@ -211,7 +211,7 @@ internal sealed class PhraseEditDialog : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 2,
-            RowCount = 5,
+            RowCount = 4,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Padding = new Padding(0)
@@ -220,7 +220,6 @@ internal sealed class PhraseEditDialog : Form
         tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // 字元數提示列
         tlp.RowStyles.Add(new RowStyle(SizeType.Absolute, 8));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
@@ -300,16 +299,15 @@ internal sealed class PhraseEditDialog : Form
         _lblContentCount = new Label
         {
             AutoSize = true,
-            Anchor = AnchorStyles.Right,
+            Anchor = AnchorStyles.Left | AnchorStyles.Bottom,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
             TabStop = false,
             AccessibleRole = AccessibleRole.StaticText,
-            Margin = new Padding(0, 0, 0, 2)
+            Margin = new Padding(0, 0, 0, 0)
         };
         _txtContent.TextChanged += (s, e) => UpdateContentCharCount();
         UpdateContentCharCount();
-        tlp.Controls.Add(_lblContentCount, 1, 2);
 
         // 按鈕區（Grouping）：與其他對話框一致，提供可導覽的群組語意。
         FlowLayoutPanel flpBtns = new()
@@ -372,8 +370,8 @@ internal sealed class PhraseEditDialog : Form
         flpBtns.Controls.Add(_btnCancel);
         flpBtns.Controls.Add(_btnOk);
 
-        tlp.Controls.Add(flpBtns, 0, 4);
-        tlp.SetColumnSpan(flpBtns, 2);
+        tlp.Controls.Add(_lblContentCount, 0, 3);
+        tlp.Controls.Add(flpBtns, 1, 3);
 
         AcceptButton = _btnOk;
         CancelButton = _btnCancel;
