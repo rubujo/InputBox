@@ -89,6 +89,14 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
       }
+
+      /* 裝飾性頁首動畫完全停用：釋放 GPU 合成層，避免低效能裝置無謂的圖層佔用。 */
+      .header-glow,
+      header::before,
+      header::after {
+        animation: none;
+        will-change: auto;
+      }
     }
 
     body {
@@ -901,17 +909,21 @@
       border: 3px solid #ffffff;
       transition: background-color 0.3s, box-shadow 0.3s, outline-offset 0.2s;
 
-      /* 預設隱藏，避免初始載入時常駐於畫面。 */
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transform: translate3d(0, 24px, 0) scale(0.88);
+      /* 預設可見：漸進增強基礎。不支援 scroll-driven animation 的瀏覽器中永遠顯示此按鈕，確保鍵盤使用者可存取。 */
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0) scale(1);
       backface-visibility: hidden;
     }
 
     @supports (animation-timeline: scroll()) {
       .back-to-top {
-        pointer-events: auto;
+        /* 支援 scroll-driven animation：初始隱藏，由捲動位置觸發顯示，提升視覺整潔度。 */
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translate3d(0, 24px, 0) scale(0.88);
         animation-name: show-back-to-top;
         animation-duration: 1ms;
         animation-timing-function: linear;
@@ -978,6 +990,31 @@
     @media (forced-colors: active) {
       .back-to-top {
         border: 3px solid ButtonText;
+      }
+
+      /* skip-link 在強迫高對比模式下需明確使用系統高亮色，避免失去視覺顯著性。 */
+      .skip-link:focus {
+        background: Highlight;
+        color: HighlightText;
+        outline: 3px solid ButtonText;
+      }
+
+      /* CTA 按鈕邊框使用系統按鈕邊框色，懸停 / 聚焦時切換為 Highlight。 */
+      .cta-button {
+        border-color: ButtonBorder;
+      }
+
+      .cta-button:hover,
+      .cta-button:focus-visible {
+        border-color: Highlight;
+      }
+
+      /* 導覽連結的目前 / 懸停狀態須以外框線替代 box-shadow（強迫高對比模式會移除陰影）。 */
+      nav.main-nav a.nav-default-active,
+      nav.main-nav a:hover,
+      nav.main-nav a:focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
       }
     }
 
@@ -2239,8 +2276,8 @@
             </thead>
             <tbody>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2250,9 +2287,9 @@
                   <span class="lang-en" lang="en">Toggle Privacy Mode</span>
                   <span class="lang-ja" lang="ja">プライバシーモード切替</span>
                   <span class="lang-sc" lang="zh-Hans">切换隐私模式</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2264,7 +2301,7 @@
                   <span class="lang-sc" lang="zh-Hans">在智能功能菜单中切换</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2277,8 +2314,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2288,9 +2325,9 @@
                   <span class="lang-en" lang="en">History Browse / Quick Position</span>
                   <span class="lang-ja" lang="ja">履歴参照／高速移動</span>
                   <span class="lang-sc" lang="zh-Hans">历史浏览／快速定位</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2312,7 +2349,7 @@
                       class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>（光标）</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2329,8 +2366,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2340,9 +2377,9 @@
                   <span class="lang-en" lang="en">Help / Focus Input</span>
                   <span class="lang-ja" lang="ja">ヘルプ／入力欄フォーカス</span>
                   <span class="lang-sc" lang="zh-Hans">说明／聚焦输入框</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2354,7 +2391,7 @@
                   <span class="lang-sc" lang="zh-Hans">在智能功能菜单中选择「说明」</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2367,8 +2404,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2378,9 +2415,9 @@
                   <span class="lang-en" lang="en">Call Application</span>
                   <span class="lang-ja" lang="ja">アプリ呼び出し</span>
                   <span class="lang-sc" lang="zh-Hans">唤醒应用程序</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2396,7 +2433,7 @@
                       class="xbox-btn xbox-pill">Custom</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2413,8 +2450,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2424,9 +2461,9 @@
                   <span class="lang-en" lang="en">Confirm & Copy</span>
                   <span class="lang-ja" lang="ja">確定・コピー</span>
                   <span class="lang-sc" lang="zh-Hans">确认并复制</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2442,7 +2479,7 @@
                       class="xbox-btn xbox-pill xbox-start">Start</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2459,8 +2496,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2470,9 +2507,9 @@
                   <span class="lang-en" lang="en">Clear Input Box</span>
                   <span class="lang-ja" lang="ja">入力欄をクリア</span>
                   <span class="lang-sc" lang="zh-Hans">清除文字框</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2484,7 +2521,7 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-b">B</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2497,8 +2534,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2508,9 +2545,9 @@
                   <span class="lang-en" lang="en">Delete Character</span>
                   <span class="lang-ja" lang="ja">1文字削除</span>
                   <span class="lang-sc" lang="zh-Hans">删除单一字符</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2522,7 +2559,7 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-x">X</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2535,8 +2572,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2546,9 +2583,9 @@
                   <span class="lang-en" lang="en">Return to Previous Window (Close)</span>
                   <span class="lang-ja" lang="ja">前のウィンドウに戻る（閉じる）</span>
                   <span class="lang-sc" lang="zh-Hans">返回前一个窗口（关闭）</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2572,7 +2609,7 @@
                     键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2589,8 +2626,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2600,9 +2637,9 @@
                   <span class="lang-en" lang="en">Open Touch Keyboard</span>
                   <span class="lang-ja" lang="ja">タッチ キーボードを起動</span>
                   <span class="lang-sc" lang="zh-Hans">开启触摸键盘</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2614,7 +2651,7 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-start">Start</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2627,8 +2664,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2638,9 +2675,9 @@
                   <span class="lang-en" lang="en">Smart Menu</span>
                   <span class="lang-ja" lang="ja">スマート メニュー</span>
                   <span class="lang-sc" lang="zh-Hans">智能功能菜单</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2652,7 +2689,7 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2669,8 +2706,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2680,9 +2717,9 @@
                   <span class="lang-en" lang="en">Adjust Opacity</span>
                   <span class="lang-ja" lang="ja">不透明度を調整</span>
                   <span class="lang-sc" lang="zh-Hans">调整不透明度</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2699,7 +2736,7 @@
                     <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2715,8 +2752,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2726,9 +2763,9 @@
                   <span class="lang-en" lang="en">Reset Opacity to 100%</span>
                   <span class="lang-ja" lang="ja">不透明度を 100% にリセット</span>
                   <span class="lang-sc" lang="zh-Hans">重置不透明度 100%</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2744,7 +2781,7 @@
                     <span class="xbox-btn xbox-round xbox-x">X</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2757,8 +2794,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2768,9 +2805,9 @@
                   <span class="lang-en" lang="en">Word Jump / Selection</span>
                   <span class="lang-ja" lang="ja">単語ジャンプ／仮想選択</span>
                   <span class="lang-sc" lang="zh-Hans">单词跳转／虚拟选取</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2786,7 +2823,7 @@
                       class="xbox-btn xbox-stick">R</span> 右摇杆</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2803,8 +2840,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2814,9 +2851,9 @@
                   <span class="lang-en" lang="en">Exit Application</span>
                   <span class="lang-ja" lang="ja">アプリを終了</span>
                   <span class="lang-sc" lang="zh-Hans">结束应用程序</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2836,7 +2873,7 @@
                     键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2888,8 +2925,8 @@
             </thead>
             <tbody>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2899,9 +2936,9 @@
                   <span class="lang-en" lang="en">Open Context Menu</span>
                   <span class="lang-ja" lang="ja">機能メニューを開く</span>
                   <span class="lang-sc" lang="zh-Hans">打开功能菜单</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2913,7 +2950,7 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2931,8 +2968,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2942,9 +2979,9 @@
                   <span class="lang-en" lang="en">Menu Navigation</span>
                   <span class="lang-ja" lang="ja">メニュー操作</span>
                   <span class="lang-sc" lang="zh-Hans">菜单导航与操作</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -2964,7 +3001,7 @@
                     执行<br><span class="xbox-btn xbox-round xbox-b">B</span> 键 关闭</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -2980,8 +3017,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -2991,9 +3028,9 @@
                   <span class="lang-en" lang="en">Numeric Dialog</span>
                   <span class="lang-ja" lang="ja">数値入力ダイアログ</span>
                   <span class="lang-sc" lang="zh-Hans">数值输入对话框</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -3039,7 +3076,7 @@
                       class="xbox-btn xbox-round xbox-y">Y</span> 重置为默认值</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -3056,8 +3093,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -3067,9 +3104,9 @@
                   <span class="lang-en" lang="en">Help Dialog</span>
                   <span class="lang-ja" lang="ja">説明ダイアログ</span>
                   <span class="lang-sc" lang="zh-Hans">说明对话框</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -3105,7 +3142,7 @@
                       class="xbox-btn xbox-pill xbox-back">Back</span> 关闭</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -3122,8 +3159,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -3133,9 +3170,9 @@
                   <span class="lang-en" lang="en">Phrase Manager</span>
                   <span class="lang-ja" lang="ja">定型文管理</span>
                   <span class="lang-sc" lang="zh-Hans">短语管理对话框</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -3177,7 +3214,7 @@
                       class="xbox-btn xbox-round xbox-y">Y</span> 添加</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
@@ -3198,8 +3235,8 @@
                 </td>
               </tr>
               <tr>
-                <td>
-                  <span class="mobile-label">
+                <th scope="row">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">功能項目</span>
                     <span class="lang-en" lang="en">Action</span>
                     <span class="lang-ja" lang="ja">項目</span>
@@ -3209,9 +3246,9 @@
                   <span class="lang-en" lang="en">Phrase Edit</span>
                   <span class="lang-ja" lang="ja">定型文編集</span>
                   <span class="lang-sc" lang="zh-Hans">短语编辑对话框</span>
-                </td>
+                </th>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
@@ -3251,7 +3288,7 @@
                       class="xbox-btn xbox-pill xbox-start">Start</span> 键盘</span>
                 </td>
                 <td>
-                  <span class="mobile-label">
+                  <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                     <span class="lang-en" lang="en">Keyboard ⌨️</span>
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
