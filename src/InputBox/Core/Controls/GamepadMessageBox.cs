@@ -1068,12 +1068,9 @@ internal sealed class GamepadMessageBox : Form
 
         // owner 為 null 時（例如 AppSettings、Program 的靜態呼叫），
         // 退回至 OpenForms 中第一個 TopMost 視窗，確保對話框不被遮蓋。
-        if (ownerForm == null)
-        {
-            ownerForm = Application.OpenForms
-                .OfType<Form>()
-                .FirstOrDefault(fw => fw.TopMost && fw.IsHandleCreated && !fw.IsDisposed);
-        }
+        ownerForm ??= Application.OpenForms
+            .OfType<Form>()
+            .FirstOrDefault(fw => fw.TopMost && fw.IsHandleCreated && !fw.IsDisposed);
 
         if (ownerForm?.TopMost == true)
         {
