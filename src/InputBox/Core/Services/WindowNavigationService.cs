@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Configuration;
+using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
@@ -48,7 +49,8 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
             // 播放警告音效與失敗震動。
             FeedbackService.PlaySound(SystemSounds.Exclamation);
 
-            _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail, cancellationToken);
+            FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail, cancellationToken)
+                .SafeFireAndForget();
 
             announceErrorAction?.Invoke(Resources.Strings.A11y_TargetWindowLost);
 
@@ -58,7 +60,8 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
         // 播放音效／震動，給予即時回饋。
         FeedbackService.PlaySound(SystemSounds.Exclamation);
 
-        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart, cancellationToken);
+        FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnStart, cancellationToken)
+            .SafeFireAndForget();
 
         using CancellationTokenSource ctsTimeout = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken);
@@ -107,7 +110,8 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
             // 若實際切換失敗，回報與前置檢查一致的失敗訊息，避免「播報返回中但未切走」的假成功體驗。
             FeedbackService.PlaySound(SystemSounds.Exclamation);
 
-            _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail, cancellationToken);
+            FeedbackService.VibrateAsync(controller, VibrationPatterns.ActionFail, cancellationToken)
+                .SafeFireAndForget();
 
             announceErrorAction?.Invoke(Resources.Strings.A11y_TargetWindowLost);
 
@@ -115,7 +119,8 @@ internal class WindowNavigationService(WindowFocusService windowFocusManager)
         }
 
         // 切換完成後的震動。
-        _ = FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess, cancellationToken);
+        FeedbackService.VibrateAsync(controller, VibrationPatterns.ReturnSuccess, cancellationToken)
+            .SafeFireAndForget();
     }
 
     /// <summary>
