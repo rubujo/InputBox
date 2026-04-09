@@ -273,7 +273,7 @@ internal sealed class PhraseEditDialog : Form
             ScrollBars = ScrollBars.Vertical,
             Height = 140,
             Dock = DockStyle.Fill,
-            MaxLength = 500,
+            MaxLength = AppSettings.MaxHistoryEntryLength,
             BorderStyle = BorderStyle.None,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,

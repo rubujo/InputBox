@@ -31,15 +31,8 @@ internal sealed class PhraseService
     public const int MaxPhraseNameLength = 50;
 
     /// <summary>
-    /// 片語內容最大長度（500 字元）。
-    /// 對齊 FFXIV 聊天輸入框硬上限（500 字元含空格）；
-    /// 同時與 PhraseEditDialog._txtContent.MaxLength 保持一致。
-    /// </summary>
-    public const int MaxPhraseContentLength = 500;
-
-    /// <summary>
     /// 片語檔允許讀取的最大位元組數（512 KB）。
-    /// 依據 MaxPhraseCount（50）× MaxPhraseContentLength（500）× UTF-8 CJK 最大 3 bytes/字元計算，
+    /// 依據 MaxPhraseCount（50）× AppSettings.MaxHistoryEntryLength（500）× UTF-8 CJK 最大 3 bytes/字元計算，
     /// 理論上限約 82 KB；設為 512 KB 作為防惡意或損壞大檔的安全守衛。
     /// </summary>
     private const long MaxPhraseFileSizeBytes = 512 * 1024;
@@ -147,8 +140,8 @@ internal sealed class PhraseService
                                 entry.Name.Length > MaxPhraseNameLength ?
                                     entry.Name[..MaxPhraseNameLength] :
                                     entry.Name,
-                                entry.Content.Length > MaxPhraseContentLength ?
-                                    entry.Content[..MaxPhraseContentLength] :
+                                entry.Content.Length > AppSettings.MaxHistoryEntryLength ?
+                                    entry.Content[..AppSettings.MaxHistoryEntryLength] :
                                     entry.Content));
                         }
                     }
@@ -250,7 +243,7 @@ internal sealed class PhraseService
 
             _phrases.Add(new PhraseEntry(
                 name.Length > MaxPhraseNameLength ? name[..MaxPhraseNameLength] : name,
-                content.Length > MaxPhraseContentLength ? content[..MaxPhraseContentLength] : content));
+                content.Length > AppSettings.MaxHistoryEntryLength ? content[..AppSettings.MaxHistoryEntryLength] : content));
         }
 
         Save();
@@ -283,7 +276,7 @@ internal sealed class PhraseService
 
             _phrases[index] = new PhraseEntry(
                 name.Length > MaxPhraseNameLength ? name[..MaxPhraseNameLength] : name,
-                content.Length > MaxPhraseContentLength ? content[..MaxPhraseContentLength] : content);
+                content.Length > AppSettings.MaxHistoryEntryLength ? content[..AppSettings.MaxHistoryEntryLength] : content);
         }
 
         Save();
