@@ -126,6 +126,15 @@ internal sealed class AnnouncementService : IDisposable
                             GaussianDelayHelper.NextDelay(duckingDelay, 60),
                             cancellationToken);
 
+                        // Ducking 延遲後再次檢查：若有更新的 interrupt 訊息已進入佇列，
+                        // 放棄播報此訊息，讓後來者負責播報最新內容。
+                        if (request.Interrupt &&
+                            Interlocked.Read(ref _currentAnnouncementId) > request.Id &&
+                            _channel.Reader.TryPeek(out _))
+                        {
+                            continue;
+                        }
+
                         // 將實際 UI 朗讀邏輯委派給呼叫端，服務只負責佇列與節流。
                         await _announceOnUiAsync(
                             request.Message,
