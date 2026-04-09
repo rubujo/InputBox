@@ -29,7 +29,7 @@
 
 - **自適應 EMA**：學習率公式為 `α = base + (max − base) × clamp(|error| / BiasAdaptiveErrorRange, 0, 1)`，誤差越大學習率越高，越快追蹤到真實偏移。
 - **四軸追蹤**：必須對左搖桿 X/Y 與右搖桿 X/Y 共四軸分別維護 `_leftStickBiasX/Y`、`_rightStickBiasX/Y`。
-- **右搖桿 Y 軸**：右搖桿 Y 偏移**僅學習不校正**，因本應用右搖桿 Y 軸不參與導航邏輯；學習值僅用於 Health Log 診斷。
+- **右搖桿 Y 軸**：右搖桿 Y 偏移會被學習並**校正用於診斷**（`correctedRightThumbY` 出現於 Health Log 與 Ghost Log），但**不觸發任何導航事件**，亦不納入 `hasSignificantInput` 或 `ShouldForceReleaseDirectionalRepeat` 判斷。
 
 ### 4.2 常數縮放規則
 

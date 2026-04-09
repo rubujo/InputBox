@@ -966,7 +966,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.LeftThumbstickX:F4} ly={state.LeftThumbstickY:F4} rx={state.RightThumbstickX:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4}");
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.LeftThumbstickX:F4} ly={state.LeftThumbstickY:F4} rx={state.RightThumbstickX:F4} ry={Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4}");
 
         ResetDirectionalRepeatState();
     }
@@ -1009,7 +1009,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         short correctedThumbLX = GetCorrectedLeftThumbShort(clampedLX, _leftStickBiasX),
             correctedThumbLY = GetCorrectedLeftThumbShort(clampedLY, _leftStickBiasY);
-        float correctedRightThumbX = clampedRX - _rightStickBiasX;
+        float correctedRightThumbX = clampedRX - _rightStickBiasX,
+            correctedRightThumbY = clampedRY - _rightStickBiasY;
 
         ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
 
@@ -1558,6 +1559,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         float correctedLeftX = state.LeftThumbstickX - _leftStickBiasX,
             correctedLeftY = state.LeftThumbstickY - _leftStickBiasY,
             correctedRightX = state.RightThumbstickX - _rightStickBiasX,
+            correctedRightY = Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY,
             exitThreshold = config.ThumbDeadzoneExit / 32768f;
 
         bool hasSignificantInput =
@@ -1596,7 +1598,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _mechanismHealthLogCounter >= MechanismHealthLogIntervalFrames)
         {
             LoggerService.LogInfo(
-                $"Gamepad.MechanismHealth source=GameInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftX:F4} ly={correctedLeftY:F4} rx={correctedRightX:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter}");
+                $"Gamepad.MechanismHealth source=GameInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftX:F4} ly={correctedLeftY:F4} rx={correctedRightX:F4} ry={correctedRightY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter}");
 
             _mechanismHealthLogCounter = 0;
             _lastHealthDpadDirection = _repeatDirection;
