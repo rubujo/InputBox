@@ -975,8 +975,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         int leftThumbX = state.Gamepad.ThumbLeftX,
             leftThumbY = state.Gamepad.ThumbLeftY,
-            rightThumbX = state.Gamepad.ThumbRightX,
-            rightThumbY = state.Gamepad.ThumbRightY;
+            rightThumbX = state.Gamepad.ThumbRightX;
 
         LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=XInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} rawDpadRight={rawDpadRightDown} lx={leftThumbX} ly={leftThumbY} rx={rightThumbX} ry={correctedRightThumbY} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)}");
 
