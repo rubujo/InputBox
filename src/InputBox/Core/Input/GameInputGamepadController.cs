@@ -532,14 +532,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         StopPolling();
 
-        // 先以區域變數持有新的 CancellationTokenSource，再寫入欄位，
-        // 避免 StopPolling()（Interlocked.Exchange）在欄位寫入與 Token 讀取之間介入，
-        // 導致取得已釋放 Token 的 TOCTOU 競態。
+        // 先以區域變數捕捉 Token，再寫入欄位；確保若 StopPolling（Interlocked.Exchange）
+        // 在欄位寫入後即介入並 CancelAndDispose，Token 捕捉不會取得已釋放物件的屬性。
         CancellationTokenSource cts = new();
 
-        _ctsPolling = cts;
-
         CancellationToken token = cts.Token;
+
+        _ctsPolling = cts;
 
         TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -556,14 +555,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 確保先停止舊的。
         StopPolling();
 
-        // 先以區域變數持有新的 CancellationTokenSource，再寫入欄位，
-        // 避免 StopPolling()（Interlocked.Exchange）在欄位寫入與 Token 讀取之間介入，
-        // 導致取得已釋放 Token 的 TOCTOU 競態。
+        // 先以區域變數捕捉 Token，再寫入欄位；確保若 StopPolling（Interlocked.Exchange）
+        // 在欄位寫入後即介入並 CancelAndDispose，Token 捕捉不會取得已釋放物件的屬性。
         CancellationTokenSource cts = new();
 
-        _ctsPolling = cts;
-
         CancellationToken token = cts.Token;
+
+        _ctsPolling = cts;
 
         _taskPolling = Task.Run(() => PollingLoopAsync(token, null), token);
     }
@@ -966,7 +964,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.LeftThumbstickX:F4} ly={state.LeftThumbstickY:F4} rx={state.RightThumbstickX:F4} ry={Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4}");
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.LeftThumbstickX:F4} ly={state.LeftThumbstickY:F4} rx={state.RightThumbstickX:F4} ry={state.RightThumbstickY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4}");
 
         ResetDirectionalRepeatState();
     }
