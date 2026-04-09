@@ -198,6 +198,7 @@ public partial class MainForm
             {
                 if (cancellationToken.IsCancellationRequested ||
                     IsDisposed ||
+                    _announcementSuppressed ||
                     _lblA11yAnnouncer == null)
                 {
                     return;
