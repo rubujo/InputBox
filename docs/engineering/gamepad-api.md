@@ -21,7 +21,46 @@
 ## 3. P/Invoke 安全性
 - 所有控制器相關的 DLL 調用 (XInput.dll 等) 必須套用 `[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]` 安全邊界。
 
-## 4. Dialog 層級控制器整合
+## 4. 搖桿飄移補償 (Drift Compensation)
+
+兩個後端（XInput / GameInput）均須實作自適應 EMA 飄移補償，且必須遵循以下規範：
+
+### 4.1 演算法結構
+
+- **自適應 EMA**：學習率公式為 `α = base + (max − base) × clamp(|error| / BiasAdaptiveErrorRange, 0, 1)`，誤差越大學習率越高，越快追蹤到真實偏移。
+- **四軸追蹤**：必須對左搖桿 X/Y 與右搖桿 X/Y 共四軸分別維護 `_leftStickBiasX/Y`、`_rightStickBiasX/Y`。
+- **右搖桿 Y 軸**：右搖桿 Y 偏移**僅學習不校正**，因本應用右搖桿 Y 軸不參與導航邏輯；學習值僅用於 Health Log 診斷。
+
+### 4.2 常數縮放規則
+
+XInput 以 `short` 範圍 (±32767) 運作；GameInput 以 float `[-1.0, 1.0]` 運作。
+兩者閾值概念必須等效，換算關係如下：
+
+| 常數 | XInput (short) | GameInput (float) |
+|---|---|---|
+| `BiasAdaptiveErrorRange` | `1638f` (≈ 0.05 × 32767) | `0.05f` |
+| `LeftStickBiasLearningThreshold` | `9000` (≈ 0.275 × 32767) | `0.28f` |
+| EMA 平滑係數 | 與 GameInput **完全相同** | 與 XInput **完全相同** |
+
+### 4.3 D-Pad 機械耦合防污閘門
+
+- D-Pad 按下期間，左搖桿因機械耦合可能產生 ±0.15–0.25 的偏移，落在學習閾值內，若不處理會污染 EMA。
+- **規範**：`isDPadActive == true` 時，必須跳過左搖桿 X/Y 兩軸的 bias 更新；右搖桿不受此限。
+
+### 4.4 連線暖機 (Bias Warm-up)
+
+- 裝置連線後立即以第一幀快照重複執行 **50 次** EMA，使 bias 在第一幀即收斂至約 99%，避免連線初期因 bias ≈ 0 造成方向誤判。
+- 暖機時固定傳入 `isDPadActive: false`。
+
+### 4.5 右向映射保護（各後端可採不同機制，效果須等效）
+
+右向映射較易受到正偏噪聲影響（尤其筆電環境），各後端須各自防止以下場景：
+「DPad-Right 方向觸發後，左搖桿殘餘偏移立即重觸發右向」
+
+- **XInput**：以 `_suppressMappedRightFromLeftStick` 旗標實作，重置方向狀態時若上一方向為 Right，則啟動抑制，直到左搖桿回到中立區。另配合非對稱退出閾值 `max(exit, enter × 0.75f)` 提高黏滯防護。
+- **GameInput**：以 `ResetDirectionalRepeatState` 清除 `_previousProcessedButtons` 的 DPad 位元，強制下次觸發須重新穿越 Enter 閾值，配合硬體校準輸出達到等效保護。
+
+## 5. Dialog 層級控制器整合
 - **ConnectionChanged 強制訂閱**：任何持有或使用 `IGamepadController` 的 Dialog（對話框），在 `BindGamepadEvents` 中**必須**同時訂閱 `ConnectionChanged`，並在 `UnbindGamepadEvents` 中解除。
 - **連線廣播**：`ConnectionChanged` 處理器必須透過對話框自身的 A11y 廣播機制（如 `AnnouncerLabel`）告知使用者連線狀態變更，不可依賴主視窗的廣播路徑。
 - **處置順序**：對話框的 `OnFormClosing` 必須先呼叫 `UnbindGamepadEvents()` 再處置其他資源，確保事件解除先於控制器存取。
