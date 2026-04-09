@@ -37,6 +37,11 @@ internal sealed class AnnouncementService : IDisposable
     private long _lastProcessedAnnouncementId;
 
     /// <summary>
+    /// 最新的 interrupt 廣播序號，用於準確判斷 interrupt 訊息是否已過期
+    /// </summary>
+    private long _latestInterruptId;
+
+    /// <summary>
     /// 是否已發出釋放資源的訊號
     /// </summary>
     private int _disposeSignaled;
@@ -81,6 +86,11 @@ internal sealed class AnnouncementService : IDisposable
 
         long id = Interlocked.Increment(ref _currentAnnouncementId);
 
+        if (interrupt)
+        {
+            Interlocked.Exchange(ref _latestInterruptId, id);
+        }
+
         _channel.Writer.TryWrite(new AnnouncementRequest(message, interrupt, id));
     }
 
@@ -101,16 +111,13 @@ internal sealed class AnnouncementService : IDisposable
                         break;
                     }
 
-                    if (request.Interrupt)
+                    // interrupt 過期檢查：使用獨立的 _latestInterruptId 而非
+                    // _currentAnnouncementId + TryPeek，確保中間的 polite 訊息不會
+                    // 誤使 interrupt 失效（A→polite B→interrupt C 場景中 A 仍應被 C 取代）。
+                    if (request.Interrupt &&
+                        Interlocked.Read(ref _latestInterruptId) > request.Id)
                     {
-                        long currentLatestId = Interlocked.Read(ref _currentAnnouncementId);
-
-                        if (request.Id < currentLatestId &&
-                            _channel.Reader.TryPeek(out AnnouncementRequest? next) &&
-                            next.Interrupt)
-                        {
-                            continue;
-                        }
+                        continue;
                     }
 
                     // 最終保護：忽略比 UI 已完成序號更舊的訊息。
@@ -127,14 +134,10 @@ internal sealed class AnnouncementService : IDisposable
                             GaussianDelayHelper.NextDelay(duckingDelay, 60),
                             cancellationToken);
 
-                        // Ducking 延遲後再次檢查：若有更新的 interrupt 訊息已進入佇列，
+                        // Ducking 延遲後再次檢查：若有更新的 interrupt 訊息已加入佇列，
                         // 放棄播報此訊息，讓後來者負責播報最新內容。
-                        // 僅當下一筆也是 interrupt 時才放棄，避免低優先的 polite 訊息
-                        // 錯誤地使緊急 interrupt 失效。
                         if (request.Interrupt &&
-                            Interlocked.Read(ref _currentAnnouncementId) > request.Id &&
-                            _channel.Reader.TryPeek(out AnnouncementRequest? nextAfterDelay) &&
-                            nextAfterDelay.Interrupt)
+                            Interlocked.Read(ref _latestInterruptId) > request.Id)
                         {
                             continue;
                         }
