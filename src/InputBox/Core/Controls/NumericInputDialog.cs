@@ -2150,7 +2150,9 @@ internal sealed class NumericInputDialog : Form
 
                 if (DialogResult == DialogResult.Cancel)
                 {
-                    AnnounceA11y(Strings.A11y_Cancelled);
+                    // 直接在 UI 執行緒同步播報，避免 Task.Run 路徑在 Dispose 取消
+                    // _cts 後因 OperationCanceledException 而遺失此關鍵訊息。
+                    _announcer?.Announce(Strings.A11y_Cancelled, false);
                 }
             }
             catch (Exception ex)
