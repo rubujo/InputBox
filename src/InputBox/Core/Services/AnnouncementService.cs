@@ -106,7 +106,8 @@ internal sealed class AnnouncementService : IDisposable
                         long currentLatestId = Interlocked.Read(ref _currentAnnouncementId);
 
                         if (request.Id < currentLatestId &&
-                            _channel.Reader.TryPeek(out _))
+                            _channel.Reader.TryPeek(out AnnouncementRequest? next) &&
+                            next.Interrupt)
                         {
                             continue;
                         }
@@ -128,9 +129,12 @@ internal sealed class AnnouncementService : IDisposable
 
                         // Ducking 延遲後再次檢查：若有更新的 interrupt 訊息已進入佇列，
                         // 放棄播報此訊息，讓後來者負責播報最新內容。
+                        // 僅當下一筆也是 interrupt 時才放棄，避免低優先的 polite 訊息
+                        // 錯誤地使緊急 interrupt 失效。
                         if (request.Interrupt &&
                             Interlocked.Read(ref _currentAnnouncementId) > request.Id &&
-                            _channel.Reader.TryPeek(out _))
+                            _channel.Reader.TryPeek(out AnnouncementRequest? nextAfterDelay) &&
+                            nextAfterDelay.Interrupt)
                         {
                             continue;
                         }
