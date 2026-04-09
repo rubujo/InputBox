@@ -53,6 +53,7 @@ internal static partial class TouchKeyboardService
     /// <summary>
     /// 嘗試開啟觸控式鍵盤
     /// </summary>
+    /// <remarks>必須在 UI 執行緒呼叫。</remarks>
     /// <returns>是否成功啟動程序或鍵盤已顯示</returns>
     public static bool TryOpen()
     {
@@ -199,6 +200,6 @@ internal static partial class TouchKeyboardService
     /// </summary>
     internal static void Cleanup()
     {
-        _tipInvocation = null;
+        Interlocked.Exchange(ref _tipInvocation, null);
     }
 }
