@@ -907,6 +907,10 @@ Back + ↑ / ↓	Adjust window opacity (±5%)</value>
     <value>Failed to export phrases. Please check the destination path and try again.</value>
     <comment>Error message when exporting phrases fails.</comment>
   </data>
+  <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
+    <value>There are no phrases to export. Please add phrases first.</value>
+    <comment>Warning message when the user tries to export but the phrase list is empty.</comment>
+  </data>
   <data name="A11y_Phrases_Exported" xml:space="preserve">
     <value>Exported {0} phrase(s).</value>
     <comment>Screen reader announcement after successfully exporting phrases. {0} = count.</comment>

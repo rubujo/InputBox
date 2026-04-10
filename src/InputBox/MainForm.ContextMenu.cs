@@ -1661,6 +1661,20 @@ public partial class MainForm
     /// </summary>
     private void ExportPhrases()
     {
+        if (_phraseService.Count == 0)
+        {
+            GamepadMessageBox.Show(
+                this,
+                Strings.Msg_ExportPhrases_Empty,
+                Strings.Menu_ExportPhrases,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                _gamepadController);
+
+            return;
+        }
+
         using SaveFileDialog dlg = new()
         {
             Title = Strings.Menu_ExportPhrases,

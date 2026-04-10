@@ -673,6 +673,24 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Exported {0} phrase(s). 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Phrases_Exported {
+            get {
+                return ResourceManager.GetString("A11y_Phrases_Exported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Imported {0} phrase(s). 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Phrases_Imported {
+            get {
+                return ResourceManager.GetString("A11y_Phrases_Imported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Privacy mode disabled 的當地語系化字串。
         /// </summary>
         internal static string A11y_PrivacyMode_Off {
@@ -1062,20 +1080,20 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 A: {0} · B: {1} 的當地語系化字串。
+        /// </summary>
+        internal static string GmBox_A11y_Hint {
+            get {
+                return ResourceManager.GetString("GmBox_A11y_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Error icon. 的當地語系化字串。
         /// </summary>
         internal static string GmBox_A11y_Icon_Error {
             get {
                 return ResourceManager.GetString("GmBox_A11y_Icon_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Warning icon. 的當地語系化字串。
-        /// </summary>
-        internal static string GmBox_A11y_Icon_Warning {
-            get {
-                return ResourceManager.GetString("GmBox_A11y_Icon_Warning", resourceCulture);
             }
         }
         
@@ -1098,11 +1116,11 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 A: {0} · B: {1} 的當地語系化字串。
+        ///   查詢類似 Warning icon. 的當地語系化字串。
         /// </summary>
-        internal static string GmBox_A11y_Hint {
+        internal static string GmBox_A11y_Icon_Warning {
             get {
-                return ResourceManager.GetString("GmBox_A11y_Hint", resourceCulture);
+                return ResourceManager.GetString("GmBox_A11y_Icon_Warning", resourceCulture);
             }
         }
         
@@ -1348,6 +1366,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Export Phrases… 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_ExportPhrases {
+            get {
+                return ResourceManager.GetString("Menu_ExportPhrases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Help 的當地語系化字串。
         /// </summary>
         internal static string Menu_Help {
@@ -1384,24 +1411,6 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Manage Phrases… 的當地語系化字串。
-        /// </summary>
-        internal static string Menu_ManagePhrases {
-            get {
-                return ResourceManager.GetString("Menu_ManagePhrases", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Export Phrases… 的當地語系化字串。
-        /// </summary>
-        internal static string Menu_ExportPhrases {
-            get {
-                return ResourceManager.GetString("Menu_ExportPhrases", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查詢類似 Import Phrases… 的當地語系化字串。
         /// </summary>
         internal static string Menu_ImportPhrases {
@@ -1411,74 +1420,11 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Importing will replace all {0} existing phrase(s). Continue? 的當地語系化字串。
+        ///   查詢類似 Manage Phrases… 的當地語系化字串。
         /// </summary>
-        internal static string Msg_ImportPhrases_Confirm {
+        internal static string Menu_ManagePhrases {
             get {
-                return ResourceManager.GetString("Msg_ImportPhrases_Confirm", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Imported {0} phrase(s). 的當地語系化字串。
-        /// </summary>
-        internal static string Msg_ImportPhrases_Success {
-            get {
-                return ResourceManager.GetString("Msg_ImportPhrases_Success", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Failed to import phrases. 的當地語系化字串。
-        /// </summary>
-        internal static string Msg_ImportPhrases_Error {
-            get {
-                return ResourceManager.GetString("Msg_ImportPhrases_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Failed to save imported phrases to disk. 的當地語系化字串。
-        /// </summary>
-        internal static string Msg_ImportPhrases_Error_Persist {
-            get {
-                return ResourceManager.GetString("Msg_ImportPhrases_Error_Persist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Exported {0} phrase(s). 的當地語系化字串。
-        /// </summary>
-        internal static string Msg_ExportPhrases_Success {
-            get {
-                return ResourceManager.GetString("Msg_ExportPhrases_Success", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Failed to export phrases. 的當地語系化字串。
-        /// </summary>
-        internal static string Msg_ExportPhrases_Error {
-            get {
-                return ResourceManager.GetString("Msg_ExportPhrases_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Exported {0} phrase(s). 的當地語系化字串。（螢幕閱讀器通知）
-        /// </summary>
-        internal static string A11y_Phrases_Exported {
-            get {
-                return ResourceManager.GetString("A11y_Phrases_Exported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Imported {0} phrase(s). 的當地語系化字串。（螢幕閱讀器通知）
-        /// </summary>
-        internal static string A11y_Phrases_Imported {
-            get {
-                return ResourceManager.GetString("A11y_Phrases_Imported", resourceCulture);
+                return ResourceManager.GetString("Menu_ManagePhrases", resourceCulture);
             }
         }
         
@@ -1717,6 +1663,33 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Failed to export phrases. Please check the destination path and try again. 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ExportPhrases_Error {
+            get {
+                return ResourceManager.GetString("Msg_ExportPhrases_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 There are no phrases to export. 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ExportPhrases_Empty {
+            get {
+                return ResourceManager.GetString("Msg_ExportPhrases_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Exported {0} phrase(s). 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ExportPhrases_Success {
+            get {
+                return ResourceManager.GetString("Msg_ExportPhrases_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 The folder does not exist yet. 的當地語系化字串。
         /// </summary>
         internal static string Msg_FolderNotFound {
@@ -1731,6 +1704,42 @@ namespace InputBox.Resources {
         internal static string Msg_HotkeyUpdated {
             get {
                 return ResourceManager.GetString("Msg_HotkeyUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Importing will replace all {0} existing phrase(s). Continue? 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ImportPhrases_Confirm {
+            get {
+                return ResourceManager.GetString("Msg_ImportPhrases_Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Failed to import phrases. The file may be invalid or corrupted. 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ImportPhrases_Error {
+            get {
+                return ResourceManager.GetString("Msg_ImportPhrases_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Failed to save imported phrases to disk. The previous phrases have been restored. 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ImportPhrases_Error_Persist {
+            get {
+                return ResourceManager.GetString("Msg_ImportPhrases_Error_Persist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Imported {0} phrase(s). 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ImportPhrases_Success {
+            get {
+                return ResourceManager.GetString("Msg_ImportPhrases_Success", resourceCulture);
             }
         }
         
