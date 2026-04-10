@@ -381,4 +381,259 @@ public sealed class PhraseServiceTests : IDisposable
 
         Assert.False(result);
     }
+
+    // ── ExportToFile ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 有片語時呼叫 ExportToFile()，應將片語序列化至指定檔案，且回傳 Success=true。
+    /// </summary>
+    [Fact]
+    public void ExportToFile_WithPhrases_WritesFileAndReturnsSuccess()
+    {
+        var svc = new PhraseService();
+        svc.Add("名稱A", "內容A");
+        svc.Add("名稱B", "內容B");
+
+        string exportPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            PhraseService.ExportOutcome result = svc.ExportToFile(exportPath);
+
+            Assert.True(result.Success);
+            Assert.Equal(PhraseService.ExportError.None, result.Error);
+            Assert.Equal(2, result.Exported);
+            Assert.True(File.Exists(exportPath));
+
+            string content = File.ReadAllText(exportPath);
+            Assert.Contains("名稱A", content);
+            Assert.Contains("內容B", content);
+        }
+        finally
+        {
+            if (File.Exists(exportPath)) File.Delete(exportPath);
+        }
+    }
+
+    /// <summary>
+    /// 無片語時呼叫 ExportToFile()，應匯出空陣列 JSON 且回傳 Exported=0。
+    /// </summary>
+    [Fact]
+    public void ExportToFile_NoPhrases_WritesEmptyArrayAndReturnsSuccess()
+    {
+        var svc = new PhraseService();
+
+        string exportPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            PhraseService.ExportOutcome result = svc.ExportToFile(exportPath);
+
+            Assert.True(result.Success);
+            Assert.Equal(0, result.Exported);
+            Assert.True(File.Exists(exportPath));
+
+            string content = File.ReadAllText(exportPath).Trim();
+            Assert.Equal("[]", content);
+        }
+        finally
+        {
+            if (File.Exists(exportPath)) File.Delete(exportPath);
+        }
+    }
+
+    // ── ImportFromFile ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 匯入有效 JSON 後，片語清單應正確更新，且回傳 Success=true 及正確計數。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_ValidJson_ReplacesPhrasesAndReturnsSuccess()
+    {
+        var svc = new PhraseService();
+        svc.Add("舊片語", "舊內容");
+
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+        string json = """[{"Name":"新片語","Content":"新內容"}]""";
+
+        try
+        {
+            File.WriteAllText(importPath, json, System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.True(result.Success);
+            Assert.Equal(PhraseService.ImportError.None, result.Error);
+            Assert.Equal(1, result.Imported);
+            Assert.Equal(1, result.Total);
+            Assert.Single(svc.Phrases);
+            Assert.Equal("新片語", svc.Phrases[0].Name);
+            Assert.Equal("新內容", svc.Phrases[0].Content);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入空陣列 JSON，應清空片語清單並回傳 Imported=0，Success=true。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_EmptyArray_ClearsPhrases()
+    {
+        var svc = new PhraseService();
+        svc.Add("保留片語", "保留內容");
+
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            File.WriteAllText(importPath, "[]", System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.True(result.Success);
+            Assert.Equal(0, result.Imported);
+            Assert.Equal(0, result.Total);
+            Assert.Empty(svc.Phrases);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入超過 MaxPhraseCount（50）的片語，應截斷至上限，仍回傳 Success=true。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_ExceedsMaxCount_TruncatesToMaxPhraseCount()
+    {
+        var svc = new PhraseService();
+
+        var entries = Enumerable.Range(1, 60)
+            .Select(i => $"{{\"Name\":\"片語{i}\",\"Content\":\"內容{i}\"}}")
+            .ToList();
+
+        string json = $"[{string.Join(",", entries)}]";
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            File.WriteAllText(importPath, json, System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.True(result.Success);
+            Assert.Equal(60, result.Total);
+            Assert.Equal(AppSettings.MaxPhraseCount, result.Imported);
+            Assert.Equal(AppSettings.MaxPhraseCount, svc.Count);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入格式無效的 JSON，應回傳 InvalidJson 錯誤。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_InvalidJson_ReturnsInvalidJsonError()
+    {
+        var svc = new PhraseService();
+
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            File.WriteAllText(importPath, "{ not valid json ]]]", System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.False(result.Success);
+            Assert.Equal(PhraseService.ImportError.InvalidJson, result.Error);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入不存在的路徑，應回傳 FileNotFound 錯誤。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_FileNotFound_ReturnsFileNotFoundError()
+    {
+        var svc = new PhraseService();
+
+        PhraseService.ImportOutcome result = svc.ImportFromFile(
+            Path.Combine(Path.GetTempPath(), "nonexistent_phrase_file.json"));
+
+        Assert.False(result.Success);
+        Assert.Equal(PhraseService.ImportError.FileNotFound, result.Error);
+    }
+
+    /// <summary>
+    /// 匯入超過 MaxPhraseFileSizeBytes 的檔案，應回傳 FileTooLarge 錯誤，且不修改現有片語。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_FileTooLarge_ReturnsFileTooLargeErrorAndPreservesPhrases()
+    {
+        var svc = new PhraseService();
+        svc.Add("保留片語", "保留內容");
+
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            // 寫入超過 512 KB 的檔案。
+            File.WriteAllText(importPath, new string('x', 513 * 1024), System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.False(result.Success);
+            Assert.Equal(PhraseService.ImportError.FileTooLarge, result.Error);
+            Assert.Equal(1, svc.Count);
+            Assert.Equal("保留片語", svc.Phrases[0].Name);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入後的 ExportToFile() 應輸出相同片語，驗證 Export/Import 端對端一致性。
+    /// </summary>
+    [Fact]
+    public void ExportImport_RoundTrip_PreservesAllPhrases()
+    {
+        var svc = new PhraseService();
+        svc.Add("片語一", "這是第一個片語");
+        svc.Add("片語二", "This is phrase two");
+
+        string exportPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            PhraseService.ExportOutcome exportResult = svc.ExportToFile(exportPath);
+            Assert.True(exportResult.Success);
+
+            var svc2 = new PhraseService();
+            PhraseService.ImportOutcome importResult = svc2.ImportFromFile(exportPath);
+
+            Assert.True(importResult.Success);
+            Assert.Equal(2, importResult.Imported);
+            Assert.Equal(2, svc2.Phrases.Count);
+            Assert.Equal("片語一", svc2.Phrases[0].Name);
+            Assert.Equal("片語二", svc2.Phrases[1].Name);
+        }
+        finally
+        {
+            if (File.Exists(exportPath)) File.Delete(exportPath);
+        }
+    }
 }
