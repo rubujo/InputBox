@@ -24,6 +24,11 @@ jobs:
       # xUnit v3 MTP 的 coverage 輸出在 bin 輸出目錄的 TestResults 子目錄下。
       COVERAGE_GLOB: tests/**/coverage.cobertura.xml
       REPORT_DIR: CoverageReport
+      # 行覆蓋率最低門檻（%）。低於此值時 CI 強制失敗。
+      # WinForms UI 層（MainForm、Dialog、GamepadController、Interop）無法自動化測試，
+      # 佔全部程式碼 ~90%，將整體率壓至 ~2%（266/12335 行）。
+      # 此閾值設為略低於現值，作為迴歸守衛：若移除測試檔或大量已測邏輯則 CI 失敗。
+      COVERAGE_THRESHOLD: '2'
 
     steps:
     - name: 簽出原始碼（Checkout）
@@ -77,6 +82,18 @@ jobs:
         name: coverage-report
         path: ${{ env.REPORT_DIR }}
         if-no-files-found: error
+
+    - name: 覆蓋率門檻檢查（Coverage Threshold Gate）
+      run: |
+        $xml = [xml](Get-Content -Path "${{ env.REPORT_DIR }}/Cobertura.xml" -Encoding UTF8)
+        $lineRate = [double]$xml.coverage.'line-rate'
+        $pct = [Math]::Round($lineRate * 100, 1)
+        Write-Host "目前行覆蓋率：$pct%（最低門檻：${{ env.COVERAGE_THRESHOLD }}%）"
+        if ($pct -lt [double]"${{ env.COVERAGE_THRESHOLD }}") {
+          Write-Host "##[error]覆蓋率 $pct% 低於最低門檻 ${{ env.COVERAGE_THRESHOLD }}%，請補充測試後再提交。"
+          exit 1
+        }
+        Write-Host "覆蓋率檢查通過。"
 
     - name: 建置與測試成功通知
       if: success()
