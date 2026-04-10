@@ -14,7 +14,7 @@ namespace InputBox.Core.Services;
 /// 負責處理視窗切換的流程控制，包含安全檢查、隨機延遲與執行切換。
 /// </remarks>
 /// <param name="windowFocusManager">視窗焦點管理器</param>
-internal class WindowNavigationService(WindowFocusService windowFocusManager)
+internal sealed class WindowNavigationService(WindowFocusService windowFocusManager)
 {
     /// <summary>
     /// WindowFocusManager

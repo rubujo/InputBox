@@ -8,7 +8,7 @@ namespace InputBox.Core.Services;
 /// <summary>
 /// 視窗焦點服務
 /// </summary>
-internal class WindowFocusService
+internal sealed class WindowFocusService
 {
     private readonly Lock _lockObj = new();
 

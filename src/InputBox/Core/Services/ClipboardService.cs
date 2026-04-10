@@ -8,7 +8,7 @@ namespace InputBox.Core.Services;
 /// <summary>
 /// 剪貼簿服務
 /// </summary>
-internal class ClipboardService
+internal static class ClipboardService
 {
     /// <summary>
     /// 重試時的通知事件（主要用於 A11y 廣播通知）
