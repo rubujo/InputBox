@@ -21,6 +21,8 @@ jobs:
     # 定義環境變數，方便統一管理。
     env:
       DOTNET_MAJOR_VERSION: '10'
+      COVERAGE_DIR: tests/InputBox.Tests/TestResults
+      REPORT_DIR: CoverageReport
 
     steps:
     - name: 簽出原始碼（Checkout）
@@ -45,11 +47,35 @@ jobs:
       working-directory: ./tests/InputBox.Tests
       run: dotnet build -c Release --no-incremental
 
-    - name: 執行單元測試（Test）
+    - name: 執行單元測試並收集覆蓋率（Test + Coverage）
       working-directory: ./tests/InputBox.Tests
-      # --no-build 重用上一步的建置產出，避免重複編譯。
-      run: dotnet test -c Release --no-build --logger "console;verbosity=normal"
+      # --no-build 重用上一步的建置產出；coverlet.collector 透過 XPlat Code Coverage 收集。
+      run: |
+        dotnet test -c Release --no-build `
+          --logger "console;verbosity=normal" `
+          --collect:"XPlat Code Coverage" `
+          --results-directory ./TestResults
+
+    - name: 安裝 ReportGenerator 並產生覆蓋率報告
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator `
+          "-reports:${{ env.COVERAGE_DIR }}/**/coverage.cobertura.xml" `
+          "-targetdir:${{ env.REPORT_DIR }}" `
+          "-reporttypes:Html;Cobertura;MarkdownSummaryGithub"
+
+    - name: 寫入覆蓋率摘要至 GitHub Step Summary
+      run: |
+        Get-Content -Path "${{ env.REPORT_DIR }}/SummaryGithub.md" |
+          Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+    - name: 上傳覆蓋率報告（Artifact）
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: ${{ env.REPORT_DIR }}
+        if-no-files-found: error
 
     - name: 建置與測試成功通知
       if: success()
-      run: echo "建置與測試全部通過！程式碼狀態良好。"
+      run: Write-Host "建置與測試全部通過！程式碼狀態良好。"
