@@ -23,3 +23,12 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+
+  # 追蹤 gh-pages 分支的 GitHub Actions 版本更新（static.yml 部署流程）。
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: gh-pages
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
