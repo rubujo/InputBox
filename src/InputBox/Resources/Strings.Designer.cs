@@ -1663,20 +1663,20 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 There are no phrases to export. Please add phrases first. 的當地語系化字串。
+        /// </summary>
+        internal static string Msg_ExportPhrases_Empty {
+            get {
+                return ResourceManager.GetString("Msg_ExportPhrases_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Failed to export phrases. Please check the destination path and try again. 的當地語系化字串。
         /// </summary>
         internal static string Msg_ExportPhrases_Error {
             get {
                 return ResourceManager.GetString("Msg_ExportPhrases_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 There are no phrases to export. 的當地語系化字串。
-        /// </summary>
-        internal static string Msg_ExportPhrases_Empty {
-            get {
-                return ResourceManager.GetString("Msg_ExportPhrases_Empty", resourceCulture);
             }
         }
         
