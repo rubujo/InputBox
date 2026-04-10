@@ -11,9 +11,9 @@ namespace InputBox.Core.Services;
 internal class ClipboardService
 {
     /// <summary>
-    /// 重試時的通知回呼（主要用於 A11y 廣播通知）
+    /// 重試時的通知事件（主要用於 A11y 廣播通知）
     /// </summary>
-    public static Action? OnRetry { get; set; }
+    internal static event Action? OnRetry;
 
     /// <summary>
     /// 剪貼簿存取號誌（確保一次只有一個重試迴圈在運行）

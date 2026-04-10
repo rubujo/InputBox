@@ -6,7 +6,7 @@ namespace InputBox.Core.Services;
 /// 輸入歷程記錄服務
 /// </summary>
 /// <param name="maxHistory">最大輸入歷程記錄資料筆數，預設值為 100</param>
-internal class InputHistoryService(int maxHistory = 100)
+internal sealed class InputHistoryService(int maxHistory = 100)
 {
     /// <summary>
     /// 輸入歷程記錄

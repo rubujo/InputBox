@@ -136,6 +136,11 @@ public partial class MainForm : Form
     private bool? _lastGamepadConnectedState;
 
     /// <summary>
+    /// 剪貼簿重試回呼的訂閱老據（用於提交時正確取消訂閱）
+    /// </summary>
+    private Action? _onClipboardRetry;
+
+    /// <summary>
     /// 專案預設字型家族（初始化後由 InitA11y 設定，供所有對話框共用）
     /// </summary>
     private static FontFamily? _defaultFontFamily;
@@ -256,7 +261,8 @@ public partial class MainForm : Form
         RefreshMenu();
 
         // 綁定剪貼簿重試通知。
-        ClipboardService.OnRetry = () => AnnounceA11y(Strings.A11y_Clipboard_Retrying);
+        _onClipboardRetry = () => AnnounceA11y(Strings.A11y_Clipboard_Retrying);
+        ClipboardService.OnRetry += _onClipboardRetry;
 
         // 設定預設動作按鈕，支援 A11y 視覺引導。
         AcceptButton = BtnCopy;
@@ -573,7 +579,7 @@ public partial class MainForm : Form
         // 解除靜態委派，防止記憶體洩漏。
         Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
 
-        ClipboardService.OnRetry = null;
+        ClipboardService.OnRetry -= _onClipboardRetry;
 
         base.OnFormClosing(e);
     }
