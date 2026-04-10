@@ -875,6 +875,46 @@ Back + ↑／↓	調整視窗透明度（±5%）</value>
     <value>管理片語…</value>
     <comment>開啟片語管理對話框的選單項目。</comment>
   </data>
+  <data name="Menu_ExportPhrases" xml:space="preserve">
+    <value>匯出片語…</value>
+    <comment>將所有片語匯出至使用者指定 JSON 檔案的選單項目。</comment>
+  </data>
+  <data name="Menu_ImportPhrases" xml:space="preserve">
+    <value>匯入片語…</value>
+    <comment>從使用者指定 JSON 檔案匯入片語（取代現有清單）的選單項目。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
+    <value>匯入將取代現有的 {0} 個片語，確定繼續？</value>
+    <comment>匯入片語前的確認訊息。{0} = 目前片語數量。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Success" xml:space="preserve">
+    <value>已匯入 {0} 個片語。</value>
+    <comment>成功匯入片語後的提示訊息。{0} = 匯入片語數量。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error" xml:space="preserve">
+    <value>片語匯入失敗，檔案可能無效或已損毀。</value>
+    <comment>因檔案無效或無法讀取導致匯入失敗的錯誤訊息。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
+    <value>片語已匯入但寫入磁碟失敗，已還原原有片語。</value>
+    <comment>記憶體中匯入成功但無法持久化時的錯誤訊息，資料已回退。</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Success" xml:space="preserve">
+    <value>已匯出 {0} 個片語。</value>
+    <comment>成功匯出片語後的提示訊息。{0} = 匯出片語數量。</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Error" xml:space="preserve">
+    <value>片語匯出失敗，請確認目標路徑後再試。</value>
+    <comment>匯出片語失敗時的錯誤訊息。</comment>
+  </data>
+  <data name="A11y_Phrases_Exported" xml:space="preserve">
+    <value>已匯出 {0} 個片語。</value>
+    <comment>成功匯出片語後的螢幕閱讀器播報。{0} = 數量。</comment>
+  </data>
+  <data name="A11y_Phrases_Imported" xml:space="preserve">
+    <value>已匯入 {0} 個片語。</value>
+    <comment>成功匯入片語後的螢幕閱讀器播報。{0} = 數量。</comment>
+  </data>
   <data name="Menu_PhraseEmpty" xml:space="preserve">
     <value>（無片語）</value>
     <comment>片語子選單中沒有任何片語時顯示的文字。</comment>
