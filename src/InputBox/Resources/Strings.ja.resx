@@ -907,6 +907,10 @@ Back + ↑／↓	透明度を調整（±5%）</value>
     <value>定型文のエクスポートに失敗しました。保存先のパスを確認してから再試行してください。</value>
     <comment>定型文エクスポート失敗時のエラーメッセージ。</comment>
   </data>
+  <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
+    <value>エクスポートできる定型文がありません。先に定型文を追加してください。</value>
+    <comment>エクスポートしようとしたとき定型文リストが空の場合の警告メッセージ。</comment>
+  </data>
   <data name="A11y_Phrases_Exported" xml:space="preserve">
     <value>{0} 件の定型文をエクスポートしました。</value>
     <comment>定型文エクスポート成功後のスクリーンリーダー読み上げ。{0} = 件数。</comment>

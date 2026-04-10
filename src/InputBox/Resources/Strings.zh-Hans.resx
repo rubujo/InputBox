@@ -906,6 +906,10 @@
     <value>短语导出失败，请确认目标路径后再试。</value>
     <comment>导出短语失败时的错误消息。</comment>
   </data>
+  <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
+    <value>当前没有可导出的短语，请先添加短语。</value>
+    <comment>用户尝试导出但短语列表为空时的警告消息。</comment>
+  </data>
   <data name="A11y_Phrases_Exported" xml:space="preserve">
     <value>已导出 {0} 个短语。</value>
     <comment>成功导出短语后的屏幕阅读器播报。{0} = 数量。</comment>

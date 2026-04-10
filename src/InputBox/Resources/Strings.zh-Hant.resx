@@ -907,6 +907,10 @@ Back + ↑／↓	調整視窗透明度（±5%）</value>
     <value>片語匯出失敗，請確認目標路徑後再試。</value>
     <comment>匯出片語失敗時的錯誤訊息。</comment>
   </data>
+  <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
+    <value>目前沒有可匯出的片語，請先新增片語。</value>
+    <comment>使用者嘗試匯出但片語清單為空時的警告訊息。</comment>
+  </data>
   <data name="A11y_Phrases_Exported" xml:space="preserve">
     <value>已匯出 {0} 個片語。</value>
     <comment>成功匯出片語後的螢幕閱讀器播報。{0} = 數量。</comment>
