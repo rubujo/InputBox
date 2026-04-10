@@ -4,11 +4,237 @@ using Xunit;
 namespace InputBox.Tests;
 
 /// <summary>
-/// AppSettings 關鍵常數驗證測試
-/// <para>確保影響安全、A11y 與行為邊界的常數不會因重構而意外改變。</para>
+/// AppSettings 關鍵常數驗證、屬性夾緊與 GamepadConfigSnapshot 快照邏輯測試
+/// <para>確保影響安全、A11y 與行為邊界的常數及夾緊規則不會因重構而意外改變。</para>
 /// </summary>
 public class AppSettingsTests
 {
+    // ── 整數屬性夾緊 ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// WindowRestoreDelay 低於下限 0 時應夾緊至 0。
+    /// </summary>
+    [Fact]
+    public void WindowRestoreDelay_BelowMin_ClampsToZero()
+    {
+        var s = new AppSettings { WindowRestoreDelay = -1 };
+        Assert.Equal(0, s.WindowRestoreDelay);
+    }
+
+    /// <summary>
+    /// WindowRestoreDelay 超過上限 5000 時應夾緊至 5000。
+    /// </summary>
+    [Fact]
+    public void WindowRestoreDelay_AboveMax_ClampsTo5000()
+    {
+        var s = new AppSettings { WindowRestoreDelay = 99999 };
+        Assert.Equal(5000, s.WindowRestoreDelay);
+    }
+
+    /// <summary>
+    /// HistoryCapacity 最小值為 1（不允許 0）。
+    /// </summary>
+    [Fact]
+    public void HistoryCapacity_Zero_ClampsToOne()
+    {
+        var s = new AppSettings { HistoryCapacity = 0 };
+        Assert.Equal(1, s.HistoryCapacity);
+    }
+
+    /// <summary>
+    /// HistoryCapacity 上限為 1000。
+    /// </summary>
+    [Fact]
+    public void HistoryCapacity_AboveMax_ClampsTo1000()
+    {
+        var s = new AppSettings { HistoryCapacity = 5000 };
+        Assert.Equal(1000, s.HistoryCapacity);
+    }
+
+    /// <summary>
+    /// ClipboardRetryDelay 下限為 0，上限為 1000。
+    /// </summary>
+    [Theory]
+    [InlineData(-10, 0)]
+    [InlineData(0, 0)]
+    [InlineData(500, 500)]
+    [InlineData(1000, 1000)]
+    [InlineData(9999, 1000)]
+    public void ClipboardRetryDelay_ClampsCorrectly(int input, int expected)
+    {
+        var s = new AppSettings { ClipboardRetryDelay = input };
+        Assert.Equal(expected, s.ClipboardRetryDelay);
+    }
+
+    /// <summary>
+    /// TouchKeyboardDismissDelay 下限為 0，上限為 5000。
+    /// </summary>
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(300, 300)]
+    [InlineData(5001, 5000)]
+    public void TouchKeyboardDismissDelay_ClampsCorrectly(int input, int expected)
+    {
+        var s = new AppSettings { TouchKeyboardDismissDelay = input };
+        Assert.Equal(expected, s.TouchKeyboardDismissDelay);
+    }
+
+    // ── 浮點屬性夾緊 ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// WindowOpacity 低於 0.1f 時應夾緊至 0.1f（防止視窗完全隱形）。
+    /// </summary>
+    [Fact]
+    public void WindowOpacity_BelowMin_ClampsTo01()
+    {
+        var s = new AppSettings { WindowOpacity = 0.0f };
+        Assert.Equal(0.1f, s.WindowOpacity, precision: 5);
+    }
+
+    /// <summary>
+    /// WindowOpacity 超過 1.0f 時應夾緊至 1.0f。
+    /// </summary>
+    [Fact]
+    public void WindowOpacity_AboveMax_ClampsTo10()
+    {
+        var s = new AppSettings { WindowOpacity = 1.5f };
+        Assert.Equal(1.0f, s.WindowOpacity, precision: 5);
+    }
+
+    /// <summary>
+    /// VibrationIntensity 下限為 0.0f，上限為 1.0f。
+    /// </summary>
+    [Theory]
+    [InlineData(-0.1f, 0.0f)]
+    [InlineData(0.5f, 0.5f)]
+    [InlineData(1.1f, 1.0f)]
+    public void VibrationIntensity_ClampsCorrectly(float input, float expected)
+    {
+        var s = new AppSettings { VibrationIntensity = input };
+        Assert.Equal(expected, s.VibrationIntensity, precision: 5);
+    }
+
+    // ── HotKeyKey null 守衛 ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// HotKeyKey 設為 null 時應回退至預設值 "I"。
+    /// </summary>
+    [Fact]
+    public void HotKeyKey_SetNull_FallsBackToDefaultI()
+    {
+        var s = new AppSettings { HotKeyKey = null! };
+        Assert.Equal("I", s.HotKeyKey);
+    }
+
+    /// <summary>
+    /// HotKeyKey 設為有效字串時應儲存原值。
+    /// </summary>
+    [Fact]
+    public void HotKeyKey_ValidString_StoredAsIs()
+    {
+        var s = new AppSettings { HotKeyKey = "F12" };
+        Assert.Equal("F12", s.HotKeyKey);
+    }
+
+    // ── GamepadConfigSnapshot 死區遲滯計算 ─────────────────────────────────
+
+    /// <summary>
+    /// 設定 ThumbDeadzoneEnter 後，快照中 ThumbDeadzoneEnter 應同步更新。
+    /// </summary>
+    [Fact]
+    public void ThumbDeadzoneEnter_Set_SnapshotReflectsNewValue()
+    {
+        var s = new AppSettings { ThumbDeadzoneEnter = 12000 };
+        Assert.Equal(12000, s.GamepadSettings.ThumbDeadzoneEnter);
+    }
+
+    /// <summary>
+    /// Exit 閾值過高（超過 Enter - margin）時應自動下調，以確保遲滯緩衝空間。
+    /// <para>Enter=10000, margin=Max(2000,3000)=3000 → Exit 上限為 7000。</para>
+    /// </summary>
+    [Fact]
+    public void ThumbDeadzoneExit_TooHigh_IsAdjustedByHysteresis()
+    {
+        var s = new AppSettings
+        {
+            ThumbDeadzoneEnter = 10000,
+            ThumbDeadzoneExit = 9000  // 9000 > 7000 → 下調至 7000
+        };
+        Assert.Equal(7000, s.GamepadSettings.ThumbDeadzoneExit);
+    }
+
+    /// <summary>
+    /// Exit 閾值在緩衝空間內（低於 Enter - margin）時應保留原值。
+    /// </summary>
+    [Fact]
+    public void ThumbDeadzoneExit_WithinHysteresis_KeptAsIs()
+    {
+        var s = new AppSettings
+        {
+            ThumbDeadzoneEnter = 10000,
+            ThumbDeadzoneExit = 5000  // 5000 < 7000 → 維持
+        };
+        Assert.Equal(5000, s.GamepadSettings.ThumbDeadzoneExit);
+    }
+
+    /// <summary>
+    /// Enter 值較小時，margin 使用最小值 2000，Exit 仍被正確下調。
+    /// <para>Enter=3000, margin=Max(2000,900)=2000 → Exit 上限為 1000。</para>
+    /// </summary>
+    [Fact]
+    public void ThumbDeadzoneExit_SmallEnter_UsesMinimumMargin()
+    {
+        var s = new AppSettings
+        {
+            ThumbDeadzoneEnter = 3000,
+            ThumbDeadzoneExit = 2500  // 2500 > 1000 → 下調至 1000
+        };
+        Assert.Equal(1000, s.GamepadSettings.ThumbDeadzoneExit);
+    }
+
+    /// <summary>
+    /// RepeatInitialDelayFrames 下限為 1，上限為 300，快照同步更新。
+    /// </summary>
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(30, 30)]
+    [InlineData(999, 300)]
+    public void RepeatInitialDelayFrames_ClampsAndUpdatesSnapshot(int input, int expected)
+    {
+        var s = new AppSettings { RepeatInitialDelayFrames = input };
+        Assert.Equal(expected, s.GamepadSettings.RepeatInitialDelayFrames);
+    }
+
+    /// <summary>
+    /// RepeatIntervalFrames 下限為 1，上限為 100，快照同步更新。
+    /// </summary>
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(5, 5)]
+    [InlineData(200, 100)]
+    public void RepeatIntervalFrames_ClampsAndUpdatesSnapshot(int input, int expected)
+    {
+        var s = new AppSettings { RepeatIntervalFrames = input };
+        Assert.Equal(expected, s.GamepadSettings.RepeatIntervalFrames);
+    }
+
+    // ── GamepadConfigSnapshot record ────────────────────────────────────────
+
+    /// <summary>
+    /// GamepadConfigSnapshot record 各屬性應如實反映建構時傳入的值。
+    /// </summary>
+    [Fact]
+    public void GamepadConfigSnapshot_Properties_MatchConstructorArgs()
+    {
+        var snap = new AppSettings.GamepadConfigSnapshot(7849, 2500, 30, 5);
+        Assert.Equal(7849, snap.ThumbDeadzoneEnter);
+        Assert.Equal(2500, snap.ThumbDeadzoneExit);
+        Assert.Equal(30, snap.RepeatInitialDelayFrames);
+        Assert.Equal(5, snap.RepeatIntervalFrames);
+    }
+
+    // ── 常數值驗證 ──────────────────────────────────────────────────────────
+
     /// <summary>
     /// MaxInputLength 應為 500，對齊 FFXIV 聊天框上限，確保片語內容不超出遊戲限制。
     /// </summary>
