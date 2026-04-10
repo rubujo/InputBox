@@ -875,6 +875,46 @@ Back + ↑／↓	透明度を調整（±5%）</value>
     <value>定型文の管理…</value>
     <comment>定型文管理ダイアログを開くメニュー項目。</comment>
   </data>
+  <data name="Menu_ExportPhrases" xml:space="preserve">
+    <value>定型文のエクスポート…</value>
+    <comment>すべての定型文をユーザー指定の JSON ファイルにエクスポートするメニュー項目。</comment>
+  </data>
+  <data name="Menu_ImportPhrases" xml:space="preserve">
+    <value>定型文のインポート…</value>
+    <comment>ユーザー指定の JSON ファイルから定型文をインポート（現在のリストを置換）するメニュー項目。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
+    <value>インポートすると既存の {0} 件の定型文が置き換えられます。続行しますか？</value>
+    <comment>定型文インポート前の確認メッセージ。{0} = 現在の定型文数。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Success" xml:space="preserve">
+    <value>{0} 件の定型文をインポートしました。</value>
+    <comment>定型文インポート成功後のメッセージ。{0} = インポートした定型文の数。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error" xml:space="preserve">
+    <value>定型文のインポートに失敗しました。ファイルが無効または破損している可能性があります。</value>
+    <comment>ファイルが無効または読み取れないためインポートが失敗した場合のエラーメッセージ。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
+    <value>定型文はインポートされましたが、ディスクへの書き込みに失敗しました。元の定型文に戻しました。</value>
+    <comment>メモリへのインポートは成功したが永続化できなかった場合のエラーメッセージ。データは元に戻ります。</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Success" xml:space="preserve">
+    <value>{0} 件の定型文をエクスポートしました。</value>
+    <comment>定型文エクスポート成功後のメッセージ。{0} = エクスポートした定型文の数。</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Error" xml:space="preserve">
+    <value>定型文のエクスポートに失敗しました。保存先のパスを確認してから再試行してください。</value>
+    <comment>定型文エクスポート失敗時のエラーメッセージ。</comment>
+  </data>
+  <data name="A11y_Phrases_Exported" xml:space="preserve">
+    <value>{0} 件の定型文をエクスポートしました。</value>
+    <comment>定型文エクスポート成功後のスクリーンリーダー読み上げ。{0} = 件数。</comment>
+  </data>
+  <data name="A11y_Phrases_Imported" xml:space="preserve">
+    <value>{0} 件の定型文をインポートしました。</value>
+    <comment>定型文インポート成功後のスクリーンリーダー読み上げ。{0} = 件数。</comment>
+  </data>
   <data name="Menu_PhraseEmpty" xml:space="preserve">
     <value>（定型文なし）</value>
     <comment>定型文サブメニューに定型文がない場合に表示されるテキスト。</comment>
