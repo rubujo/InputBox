@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # 追蹤主應用程式專案的 NuGet 套件更新。
+  - package-ecosystem: nuget
+    directory: /src/InputBox
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  # 追蹤測試專案的 NuGet 套件更新。
+  - package-ecosystem: nuget
+    directory: /tests/InputBox.Tests
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  # 追蹤 GitHub Actions 本身的版本更新（checkout、setup-dotnet 等）。
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
