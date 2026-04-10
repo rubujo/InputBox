@@ -30,4 +30,5 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="src/InputBox/InputBox.csproj" />
+  <Project Path="tests/InputBox.Tests/InputBox.Tests.csproj" />
 </Solution>
