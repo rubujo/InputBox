@@ -9,6 +9,11 @@
     <UseWindowsForms>true</UseWindowsForms>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!--
+      xUnit v3 使用 Microsoft Testing Platform (MTP)，需啟用 MTP runner。
+      global.json 的 test.runner=Microsoft.Testing.Platform 配合此屬性，讓 dotnet test 使用 MTP 原生模式。
+    -->
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,10 +22,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="8.0.1">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <!-- MTP 原生 coverage 套件，取代 coverlet.collector（與 xUnit v3 MTP 不相容）。
+         版本 17.14.2 需要 Microsoft.Testing.Platform >= 1.6.2，與 xunit.runner.visualstudio 帶入的 platform 1.9.x 相容。
+         18.x 版要求 platform >= 2.1.0，與目前 Test.Sdk 18.4.0 的 platform 1.9.x 不相容。 -->
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
   </ItemGroup>
 
