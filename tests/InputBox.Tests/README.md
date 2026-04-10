@@ -6,13 +6,22 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 
 | 測試類別 | 被測目標 | 測試數 |
 |---|---|---|
-| `AppSettingsTests` | `AppSettings` 關鍵常數（安全邊界、A11y 上限） | 7 |
+| `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊與 Dispose 行為 | 4 |
+| `AppSettingsTests` | `AppSettings` 關鍵常數（安全邊界、A11y 上限、Clamp 行為） | 22 |
+| `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
+| `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
+| `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載） | 12 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
-| `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 12 |
-| `PhraseServiceTests` | `PhraseService` CRUD（Add / Update / Remove / MoveUp / MoveDown） | 23 |
-| **合計** | | **72** |
+| `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 13 |
+| `GaussianDelayHelperTests` | `GaussianDelayHelper` 延遲計算 | 5 |
+| `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
+| `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
+| `PhraseServiceTests` | `PhraseService` CRUD 與匯出／匯入 | 35 |
+| `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法 | 9 |
+| `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
+| **合計** | | **188** |
 
 ## 執行測試
 
@@ -28,10 +37,10 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosi
 
 ## 注意事項
 
-### PhraseService 測試的資料隔離
+### PhraseService / InputHistoryService 測試的資料隔離
 
-`PhraseService` 的 CRUD 方法會寫入使用者的 `%AppData%\InputBox\phrases.json`。
-為了避免測試污染真實資料，`PhraseServiceTests` 採用以下策略：
+`PhraseService` 與 `InputHistoryService` 的方法會寫入使用者的 `%AppData%\InputBox\` 目錄下的 JSON 檔案。
+為了避免測試污染真實資料，這些測試類別採用以下策略：
 
 - **建構子**：若檔案存在，複製至 `phrases.json.testbackup`
 - **Dispose**：測試結束後自動還原備份（或刪除測試產生的檔案）
