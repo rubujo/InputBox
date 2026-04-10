@@ -70,7 +70,7 @@ jobs:
           Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
     - name: 上傳覆蓋率報告（Artifact）
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-report
         path: ${{ env.REPORT_DIR }}
