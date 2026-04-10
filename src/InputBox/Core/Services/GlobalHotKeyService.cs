@@ -6,7 +6,7 @@ namespace InputBox.Core.Services;
 /// <summary>
 /// 全域快速鍵服務
 /// </summary>
-internal class GlobalHotKeyService
+internal static class GlobalHotKeyService
 {
     /// <summary>
     /// 鎖物件，用於保護全域快速鍵註冊與註銷的執行緒安全

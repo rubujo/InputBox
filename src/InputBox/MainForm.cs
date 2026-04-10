@@ -412,7 +412,7 @@ public partial class MainForm : Form
     /// <returns>若在抑制窗內回傳 true。</returns>
     private bool IsGamepadReturnSuppressed()
     {
-        long untilTicks = Volatile.Read(ref _suppressGamepadReturnUntilUtcTicks);
+        long untilTicks = Interlocked.Read(ref _suppressGamepadReturnUntilUtcTicks);
 
         return untilTicks > DateTime.UtcNow.Ticks;
     }

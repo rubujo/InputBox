@@ -14,7 +14,7 @@ namespace InputBox.Core.Services;
 /// <remarks>
 /// 負責統一處理應用程式的音效播放與控制器震動邏輯。
 /// </remarks>
-internal class FeedbackService
+internal static class FeedbackService
 {
     /// <summary>
     /// 追蹤所有活躍的控制器實例（用於緊急停止）
