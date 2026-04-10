@@ -121,7 +121,7 @@ internal sealed class AnnouncementService : IDisposable
                     }
 
                     // 最終保護：忽略比 UI 已完成序號更舊的訊息。
-                    if (request.Id <= Volatile.Read(ref _lastProcessedAnnouncementId))
+                    if (request.Id <= Interlocked.Read(ref _lastProcessedAnnouncementId))
                     {
                         continue;
                     }
@@ -147,7 +147,7 @@ internal sealed class AnnouncementService : IDisposable
                             request.Interrupt,
                             cancellationToken);
 
-                        Volatile.Write(ref _lastProcessedAnnouncementId, request.Id);
+                        Interlocked.Exchange(ref _lastProcessedAnnouncementId, request.Id);
 
                         int waitDelay = request.Interrupt ?
                             100 :

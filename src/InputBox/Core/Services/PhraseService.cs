@@ -104,7 +104,7 @@ internal sealed class PhraseService
     /// <summary>
     /// 片語存取鎖
     /// </summary>
-    private static readonly Lock PhraseLock = new();
+    private readonly Lock PhraseLock = new();
 
     /// <summary>
     /// 片語清單
