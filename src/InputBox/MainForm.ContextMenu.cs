@@ -1614,6 +1614,161 @@ public partial class MainForm
         };
 
         _tsmiPhrases.DropDownItems.Add(tsmiManage);
+
+        // 匯出片語。
+        ToolStripMenuItem tsmiExport = new(ControlExtensions.GetMnemonicText(Strings.Menu_ExportPhrases, 'E'))
+        {
+            AccessibleName = Strings.Menu_ExportPhrases
+        };
+        tsmiExport.Click += (s, e) =>
+        {
+            try
+            {
+                ExportPhrases();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "匯出片語失敗");
+
+                Debug.WriteLine($"[選單] tsmiExport.Click 失敗：{ex.Message}");
+            }
+        };
+        _tsmiPhrases.DropDownItems.Add(tsmiExport);
+
+        // 匯入片語。
+        ToolStripMenuItem tsmiImport = new(ControlExtensions.GetMnemonicText(Strings.Menu_ImportPhrases, 'I'))
+        {
+            AccessibleName = Strings.Menu_ImportPhrases
+        };
+        tsmiImport.Click += (s, e) =>
+        {
+            try
+            {
+                ImportPhrases();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "匯入片語失敗");
+
+                Debug.WriteLine($"[選單] tsmiImport.Click 失敗：{ex.Message}");
+            }
+        };
+        _tsmiPhrases.DropDownItems.Add(tsmiImport);
+    }
+
+    /// <summary>
+    /// 匯出片語至使用者選定的路徑
+    /// </summary>
+    private void ExportPhrases()
+    {
+        using SaveFileDialog dlg = new()
+        {
+            Title = Strings.Menu_ExportPhrases,
+            Filter = "JSON|*.json",
+            FileName = "phrases.json",
+            DefaultExt = "json",
+            OverwritePrompt = true
+        };
+
+        if (dlg.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        PhraseService.ExportOutcome result = _phraseService.ExportToFile(dlg.FileName);
+
+        if (result.Success)
+        {
+            AnnounceA11y(string.Format(Strings.A11y_Phrases_Exported, result.Exported));
+
+            GamepadMessageBox.Show(
+                this,
+                string.Format(Strings.Msg_ExportPhrases_Success, result.Exported),
+                Strings.Menu_ExportPhrases,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                _gamepadController);
+        }
+        else
+        {
+            GamepadMessageBox.Show(
+                this,
+                Strings.Msg_ExportPhrases_Error,
+                Strings.Err_Title,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error,
+                MessageBoxDefaultButton.Button1,
+                _gamepadController);
+        }
+    }
+
+    /// <summary>
+    /// 從使用者選定的路徑匯入片語
+    /// </summary>
+    private void ImportPhrases()
+    {
+        using OpenFileDialog dlg = new()
+        {
+            Title = Strings.Menu_ImportPhrases,
+            Filter = "JSON|*.json",
+            DefaultExt = "json"
+        };
+
+        if (dlg.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        int currentCount = _phraseService.Count;
+
+        if (currentCount > 0)
+        {
+            DialogResult confirm = GamepadMessageBox.Show(
+                this,
+                string.Format(Strings.Msg_ImportPhrases_Confirm, currentCount),
+                Strings.Menu_ImportPhrases,
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2,
+                _gamepadController);
+
+            if (confirm != DialogResult.OK)
+            {
+                return;
+            }
+        }
+
+        PhraseService.ImportOutcome result = _phraseService.ImportFromFile(dlg.FileName);
+
+        if (result.Success)
+        {
+            AnnounceA11y(string.Format(Strings.A11y_Phrases_Imported, result.Imported));
+
+            GamepadMessageBox.Show(
+                this,
+                string.Format(Strings.Msg_ImportPhrases_Success, result.Imported),
+                Strings.Menu_ImportPhrases,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                _gamepadController);
+        }
+        else
+        {
+            string errorMsg = result.Error == PhraseService.ImportError.PersistenceFailed
+                ? Strings.Msg_ImportPhrases_Error_Persist
+                : Strings.Msg_ImportPhrases_Error;
+
+            GamepadMessageBox.Show(
+                this,
+                errorMsg,
+                Strings.Err_Title,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error,
+                MessageBoxDefaultButton.Button1,
+                _gamepadController);
+        }
     }
 
     /// <summary>

@@ -874,6 +874,46 @@
     <value>管理短语…</value>
     <comment>打开短语管理对话框的菜单项。</comment>
   </data>
+  <data name="Menu_ExportPhrases" xml:space="preserve">
+    <value>导出短语…</value>
+    <comment>将所有短语导出到用户指定 JSON 文件的菜单项。</comment>
+  </data>
+  <data name="Menu_ImportPhrases" xml:space="preserve">
+    <value>导入短语…</value>
+    <comment>从用户指定 JSON 文件导入短语（替换现有列表）的菜单项。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
+    <value>导入将替换现有的 {0} 个短语，确定继续？</value>
+    <comment>导入短语前的确认消息。{0} = 当前短语数量。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Success" xml:space="preserve">
+    <value>已导入 {0} 个短语。</value>
+    <comment>成功导入短语后的提示消息。{0} = 导入短语数量。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error" xml:space="preserve">
+    <value>短语导入失败，文件可能无效或已损坏。</value>
+    <comment>因文件无效或无法读取导致导入失败的错误消息。</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
+    <value>短语已导入但写入磁盘失败，已还原原有短语。</value>
+    <comment>内存中导入成功但无法持久化时的错误消息，数据已回退。</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Success" xml:space="preserve">
+    <value>已导出 {0} 个短语。</value>
+    <comment>成功导出短语后的提示消息。{0} = 导出短语数量。</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Error" xml:space="preserve">
+    <value>短语导出失败，请确认目标路径后再试。</value>
+    <comment>导出短语失败时的错误消息。</comment>
+  </data>
+  <data name="A11y_Phrases_Exported" xml:space="preserve">
+    <value>已导出 {0} 个短语。</value>
+    <comment>成功导出短语后的屏幕阅读器播报。{0} = 数量。</comment>
+  </data>
+  <data name="A11y_Phrases_Imported" xml:space="preserve">
+    <value>已导入 {0} 个短语。</value>
+    <comment>成功导入短语后的屏幕阅读器播报。{0} = 数量。</comment>
+  </data>
   <data name="Menu_PhraseEmpty" xml:space="preserve">
     <value>（无短语）</value>
     <comment>短语子菜单为空时显示的文字。</comment>

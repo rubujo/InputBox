@@ -875,6 +875,46 @@ Back + ↑ / ↓	Adjust window opacity (±5%)</value>
     <value>Manage Phrases…</value>
     <comment>Context menu item to open the phrase management dialog.</comment>
   </data>
+  <data name="Menu_ExportPhrases" xml:space="preserve">
+    <value>Export Phrases…</value>
+    <comment>Context menu item to export all phrases to a user-selected JSON file.</comment>
+  </data>
+  <data name="Menu_ImportPhrases" xml:space="preserve">
+    <value>Import Phrases…</value>
+    <comment>Context menu item to import phrases from a user-selected JSON file, replacing the current list.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
+    <value>Importing will replace all {0} existing phrase(s). Continue?</value>
+    <comment>Confirmation message before importing phrases. {0} = current phrase count.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Success" xml:space="preserve">
+    <value>Imported {0} phrase(s).</value>
+    <comment>Success message after importing phrases. {0} = number of phrases imported.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error" xml:space="preserve">
+    <value>Failed to import phrases. The file may be invalid or corrupted.</value>
+    <comment>Error message when importing phrases fails due to an invalid or unreadable file.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
+    <value>Failed to save imported phrases to disk. The previous phrases have been restored.</value>
+    <comment>Error message when the import succeeded in memory but could not be persisted. Data is reverted.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Success" xml:space="preserve">
+    <value>Exported {0} phrase(s).</value>
+    <comment>Success message after exporting phrases. {0} = number of phrases exported.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Error" xml:space="preserve">
+    <value>Failed to export phrases. Please check the destination path and try again.</value>
+    <comment>Error message when exporting phrases fails.</comment>
+  </data>
+  <data name="A11y_Phrases_Exported" xml:space="preserve">
+    <value>Exported {0} phrase(s).</value>
+    <comment>Screen reader announcement after successfully exporting phrases. {0} = count.</comment>
+  </data>
+  <data name="A11y_Phrases_Imported" xml:space="preserve">
+    <value>Imported {0} phrase(s).</value>
+    <comment>Screen reader announcement after successfully importing phrases. {0} = count.</comment>
+  </data>
   <data name="Menu_PhraseEmpty" xml:space="preserve">
     <value>(No phrases)</value>
     <comment>Displayed in the phrases submenu when no phrases exist.</comment>
