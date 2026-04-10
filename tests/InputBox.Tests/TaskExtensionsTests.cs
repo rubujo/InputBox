@@ -77,7 +77,7 @@ public class TaskExtensionsTests
         Task.CompletedTask.SafeFireAndForget(
             onException: _ => exceptionInvoked = true);
 
-        await Task.Delay(100);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         Assert.False(exceptionInvoked);
     }
@@ -92,14 +92,17 @@ public class TaskExtensionsTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
+        // 此處 cts.Token 是刻意已取消的 token，pragma 抑制 xUnit1051 以保持測試語意清晰
+#pragma warning disable xUnit1051
         Task cancelledTask = Task.Run(
             () => cts.Token.ThrowIfCancellationRequested(),
             cts.Token);
+#pragma warning restore xUnit1051
 
         cancelledTask.SafeFireAndForget(
             onException: _ => exceptionInvoked = true);
 
-        await Task.Delay(150);
+        await Task.Delay(150, TestContext.Current.CancellationToken);
 
         Assert.False(exceptionInvoked);
     }
@@ -112,13 +115,15 @@ public class TaskExtensionsTests
     {
         Exception? captured = null;
 
-        Task faultedTask = Task.Run(() => throw new InvalidOperationException("test-error"));
+        Task faultedTask = Task.Run(
+            () => throw new InvalidOperationException("test-error"),
+            TestContext.Current.CancellationToken);
 
         faultedTask.SafeFireAndForget(
             onException: ex => captured = ex);
 
         // 等待背景任務完成處理
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         Assert.NotNull(captured);
         Assert.IsType<InvalidOperationException>(captured);
@@ -133,12 +138,14 @@ public class TaskExtensionsTests
     {
         string? announced = null;
 
-        Task faultedTask = Task.Run(() => throw new Exception("announce-me"));
+        Task faultedTask = Task.Run(
+            () => throw new Exception("announce-me"),
+            TestContext.Current.CancellationToken);
 
         faultedTask.SafeFireAndForget(
             announceAction: msg => announced = msg);
 
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         Assert.NotNull(announced);
         Assert.Contains("announce-me", announced);
@@ -152,13 +159,15 @@ public class TaskExtensionsTests
     {
         string? announced = null;
 
-        Task faultedTask = Task.Run(() => throw new Exception("boom"));
+        Task faultedTask = Task.Run(
+            () => throw new Exception("boom"),
+            TestContext.Current.CancellationToken);
 
         faultedTask.SafeFireAndForget(
             announceAction: msg => announced = msg,
             errorMessageFormat: "錯誤：{0}");
 
-        await Task.Delay(300);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
 
         Assert.Equal("錯誤：boom", announced);
     }

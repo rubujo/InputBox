@@ -39,7 +39,7 @@ public class AnnouncementServiceTests : IDisposable
         _svc.Enqueue(string.Empty);
 
         // 等待足夠時間讓背景工作有機會執行
-        await Task.Delay(600);
+        await Task.Delay(600, TestContext.Current.CancellationToken);
 
         Assert.False(invoked);
     }
@@ -61,7 +61,7 @@ public class AnnouncementServiceTests : IDisposable
         _svc.Dispose();
         _svc.Enqueue("hello after dispose");
 
-        await Task.Delay(600);
+        await Task.Delay(600, TestContext.Current.CancellationToken);
 
         Assert.False(invoked);
     }
@@ -83,9 +83,10 @@ public class AnnouncementServiceTests : IDisposable
         _svc.Enqueue("測試廣播");
 
         // 等待最多 2 秒讓背景工作完成（含 ducking 延遲與 jitter）
-        string? received = await Task.WhenAny(tcs.Task, Task.Delay(2000)) == tcs.Task
-            ? tcs.Task.Result
-            : null;
+        Task<string> completionTask = tcs.Task;
+        Task timeoutTask = Task.Delay(2000, TestContext.Current.CancellationToken);
+        Task finished = await Task.WhenAny(completionTask, timeoutTask);
+        string? received = finished == completionTask ? await completionTask : null;
 
         Assert.Equal("測試廣播", received);
     }
