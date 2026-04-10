@@ -227,6 +227,36 @@ public sealed class PhraseServiceTests : IDisposable
         Assert.Equal(AppSettings.MaxPhraseNameLength, svc.Phrases[0].Name.Length);
     }
 
+    /// <summary>
+    /// 更新時內容為空字串，應回傳 false 且不修改現有片語。
+    /// </summary>
+    [Fact]
+    public void Update_EmptyContent_ReturnsFalse()
+    {
+        var svc = new PhraseService();
+        svc.Add("initial", "original content");
+
+        bool result = svc.Update(0, "initial", "");
+
+        Assert.False(result);
+        Assert.Equal("original content", svc.Phrases[0].Content);
+    }
+
+    /// <summary>
+    /// 更新時內容超過 MaxInputLength，應自動截斷至上限長度。
+    /// </summary>
+    [Fact]
+    public void Update_ContentExceedsMaxLength_TruncatesContent()
+    {
+        var svc = new PhraseService();
+        svc.Add("initial", "content");
+        string longContent = new('X', AppSettings.MaxInputLength + 10);
+
+        svc.Update(0, "initial", longContent);
+
+        Assert.Equal(AppSettings.MaxInputLength, svc.Phrases[0].Content.Length);
+    }
+
     // ── Remove ───────────────────────────────────────────────────────────
 
     /// <summary>
@@ -634,6 +664,69 @@ public sealed class PhraseServiceTests : IDisposable
         finally
         {
             if (File.Exists(exportPath)) File.Delete(exportPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入含有名稱空白或內容空白的 JSON 項目，這些無效項目應被過濾，只匯入有效項目。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_WithInvalidEntries_FiltersOutInvalidOnes()
+    {
+        var svc = new PhraseService();
+
+        string json = """
+            [
+              {"Name":"有效片語","Content":"有效內容"},
+              {"Name":"   ","Content":"空白名稱應被過濾"},
+              {"Name":"有效名稱","Content":""},
+              {"Name":"第二個有效","Content":"第二個內容"}
+            ]
+            """;
+
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            File.WriteAllText(importPath, json, System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.True(result.Success);
+            Assert.Equal(4, result.Total);
+            Assert.Equal(2, result.Imported);
+            Assert.Equal(2, svc.Phrases.Count);
+            Assert.Equal("有效片語", svc.Phrases[0].Name);
+            Assert.Equal("第二個有效", svc.Phrases[1].Name);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
+        }
+    }
+
+    /// <summary>
+    /// 匯入 JSON 為字面 "null"（反序列化結果為 null），應回傳 InvalidJson 錯誤。
+    /// </summary>
+    [Fact]
+    public void ImportFromFile_JsonNull_ReturnsInvalidJsonError()
+    {
+        var svc = new PhraseService();
+
+        string importPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            File.WriteAllText(importPath, "null", System.Text.Encoding.UTF8);
+
+            PhraseService.ImportOutcome result = svc.ImportFromFile(importPath);
+
+            Assert.False(result.Success);
+            Assert.Equal(PhraseService.ImportError.InvalidJson, result.Error);
+        }
+        finally
+        {
+            if (File.Exists(importPath)) File.Delete(importPath);
         }
     }
 }

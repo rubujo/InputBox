@@ -233,6 +233,69 @@ public class AppSettingsTests
         Assert.Equal(5, snap.RepeatIntervalFrames);
     }
 
+    // ── WindowSwitchBufferBase 夾緊 ─────────────────────────────────────────
+
+    /// <summary>
+    /// WindowSwitchBufferBase 下限為 0，上限為 5000。
+    /// </summary>
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(150, 150)]
+    [InlineData(9999, 5000)]
+    public void WindowSwitchBufferBase_ClampsCorrectly(int input, int expected)
+    {
+        var s = new AppSettings { WindowSwitchBufferBase = input };
+        Assert.Equal(expected, s.WindowSwitchBufferBase);
+    }
+
+    // ── ThumbDeadzoneEnter 夾緊 ──────────────────────────────────────────────
+
+    /// <summary>
+    /// ThumbDeadzoneEnter 下限為 0，上限為 30000。
+    /// </summary>
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(7849, 7849)]
+    [InlineData(30001, 30000)]
+    public void ThumbDeadzoneEnter_ClampsToRange(int input, int expected)
+    {
+        var s = new AppSettings { ThumbDeadzoneEnter = input };
+        Assert.Equal(expected, s.GamepadSettings.ThumbDeadzoneEnter);
+    }
+
+    // ── 預設值驗證 ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 新建 AppSettings 實例時，關鍵屬性應符合設計預設值。
+    /// </summary>
+    [Fact]
+    public void NewInstance_HasExpectedDefaults()
+    {
+        var s = new AppSettings();
+        Assert.Equal(50, s.WindowRestoreDelay);
+        Assert.Equal(20, s.ClipboardRetryDelay);
+        Assert.Equal(300, s.TouchKeyboardDismissDelay);
+        Assert.Equal(150, s.WindowSwitchBufferBase);
+        Assert.Equal(100, s.HistoryCapacity);
+        Assert.Equal(1.0f, s.WindowOpacity, precision: 5);
+        Assert.Equal(0.7f, s.VibrationIntensity, precision: 5);
+        Assert.Equal("I", s.HotKeyKey);
+        Assert.True(s.A11yInterruptEnabled);
+        Assert.False(s.EnableAnimatedVisualAlerts);
+    }
+
+    /// <summary>
+    /// 新建 AppSettings 實例時，GamepadConfigSnapshot 預設值應一致。
+    /// </summary>
+    [Fact]
+    public void NewInstance_GamepadSnapshotHasExpectedDefaults()
+    {
+        var s = new AppSettings();
+        Assert.Equal(7849, s.GamepadSettings.ThumbDeadzoneEnter);
+        Assert.Equal(30, s.GamepadSettings.RepeatInitialDelayFrames);
+        Assert.Equal(5, s.GamepadSettings.RepeatIntervalFrames);
+    }
+
     // ── 常數值驗證 ──────────────────────────────────────────────────────────
 
     /// <summary>
