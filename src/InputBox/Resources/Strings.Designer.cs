@@ -1447,6 +1447,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Adjust… 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Opacity_Adjust {
+            get {
+                return ResourceManager.GetString("Menu_Opacity_Adjust", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Open Folder 的當地語系化字串。
         /// </summary>
         internal static string Menu_OpenDataFolder {

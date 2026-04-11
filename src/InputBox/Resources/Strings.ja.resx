@@ -431,6 +431,10 @@
     <value>履歴の保持数: {0}</value>
     <comment>右クリックメニュー項目。履歴の保持数を表示および設定します。{0} は現在の保持数値です。</comment>
   </data>
+  <data name="Menu_Opacity_Adjust" xml:space="preserve">
+    <value>数値を設定…</value>
+    <comment>右クリックメニュー項目。不透明度調整ダイアログを開くために使用します（不透明度サブメニューの子項目）。</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>フォルダを開く</value>
     <comment>右クリックメニュー項目。AppData Roaming 内のアプリケーションフォルダを開くために使用します。</comment>

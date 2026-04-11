@@ -455,10 +455,9 @@ public partial class MainForm
         tsmiWinOps.DropDownItems.Add(tsmiOpacity);
 
         // 設定不透明度數值。
-        ToolStripMenuItem tsmiSetOpacity = new(string.Empty)
+        ToolStripMenuItem tsmiSetOpacity = new(ControlExtensions.GetMnemonicText(Strings.Menu_Opacity_Adjust, 'S'))
         {
-            AccessibleName = Strings.Settings_WindowOpacity,
-            Tag = new MenuMetadata(Strings.Settings_WindowOpacity, 'S', 10, 100)
+            AccessibleName = Strings.Menu_Opacity_Adjust,
         };
         tsmiSetOpacity.Click += (s, e) =>
         {
@@ -821,7 +820,8 @@ public partial class MainForm
 
         void AddProviderItem(AppSettings.GamepadProvider provider)
         {
-            ToolStripMenuItem item = new(provider.ToString())
+            char mnemonic = provider == AppSettings.GamepadProvider.GameInput ? 'G' : 'I';
+            ToolStripMenuItem item = new(ControlExtensions.GetMnemonicText(provider.ToString(), mnemonic))
             {
                 Checked = AppSettings.Current.GamepadProviderType == provider,
                 AccessibleName = provider.ToString(),

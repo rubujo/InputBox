@@ -431,6 +431,10 @@
     <value>历史记录容量: {0}</value>
     <comment>右键菜单项目，显示并设置历史记录容量。{0} 是目前的容量数值。</comment>
   </data>
+  <data name="Menu_Opacity_Adjust" xml:space="preserve">
+    <value>设置数值…</value>
+    <comment>右键菜单项目，用于打开不透明度调整对话框（不透明度子菜单的子项目）。</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>打开文件夹</value>
     <comment>右键菜单项目，用于打开应用程序在 AppData Roaming 中的文件夹。</comment>
