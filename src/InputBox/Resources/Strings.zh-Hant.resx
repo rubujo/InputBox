@@ -431,6 +431,10 @@
     <value>歷程記錄容量: {0}</value>
     <comment>右鍵選單項目，顯示並設定歷程記錄容量。{0} 是目前的容量數值。</comment>
   </data>
+  <data name="Menu_Opacity_Adjust" xml:space="preserve">
+    <value>設定數值…</value>
+    <comment>右鍵選單項目，用於開啟不透明度調整對話框（不透明度子選單的子項目）。</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>開啟資料夾</value>
     <comment>右鍵選單項目，用於開啟應用程式在 AppData Roaming 中的資料夾。</comment>
