@@ -1181,6 +1181,20 @@ internal sealed class PhraseEditDialog : Form
 
             if (tb == null)
             {
+                // 焦點在按鈕區：D-Pad 左向在確認/取消按鈕間循環。
+                if (_btnOk.Focused)
+                {
+                    _btnCancel.Focus();
+                    AnnounceA11y(_btnCancel.AccessibleName ?? _btnCancel.Text, interrupt: true);
+                    FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove, _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
+                }
+                else if (_btnCancel.Focused)
+                {
+                    _btnOk.Focus();
+                    AnnounceA11y(_btnOk.AccessibleName ?? _btnOk.Text, interrupt: true);
+                    FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove, _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
+                }
+
                 return;
             }
 
@@ -1238,6 +1252,20 @@ internal sealed class PhraseEditDialog : Form
 
             if (tb == null)
             {
+                // 焦點在按鈕區：D-Pad 右向在取消/確認按鈕間循環。
+                if (_btnCancel.Focused)
+                {
+                    _btnOk.Focus();
+                    AnnounceA11y(_btnOk.AccessibleName ?? _btnOk.Text, interrupt: true);
+                    FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove, _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
+                }
+                else if (_btnOk.Focused)
+                {
+                    _btnCancel.Focus();
+                    AnnounceA11y(_btnCancel.AccessibleName ?? _btnCancel.Text, interrupt: true);
+                    FeedbackService.VibrateAsync(_gamepadController, VibrationPatterns.CursorMove, _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
+                }
+
                 return;
             }
 
