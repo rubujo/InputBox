@@ -756,6 +756,29 @@
       gap: 0.5rem;
     }
 
+    .quick-setup-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .quick-setup-list li {
+      margin-bottom: 1rem;
+    }
+
+    .quick-setup-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .quick-setup-card {
+      padding-bottom: 1.25rem;
+      margin-bottom: 0;
+    }
+
+    .quick-setup-card + .table-wrapper {
+      margin-top: 1rem;
+    }
+
     /*
      * ========== 7. 表格設計 (Tables) ==========
      */
@@ -2256,7 +2279,7 @@
           <span class="lang-sc" lang="zh-Hans">快速操作 ⌨️</span>
         </h2>
 
-        <div class="feature-card">
+        <div class="feature-card quick-setup-card">
           <h3>
             <span class="lang-zh">一分鐘快速設定教學</span>
             <span class="lang-en" lang="en">One-Minute Quick Setup</span>
@@ -2269,7 +2292,7 @@
             <span class="lang-ja" lang="ja">ファイナルファンタジーXIV 繁体字中国語版で InputBox を使うには？InputBox は自動投稿ツールではなく、「入力」と「貼り付け」を分けた手動トリガー型の補助ツールです。各手順を順に実行するだけで、流れを把握しやすく、すぐ使い始められます。</span>
             <span class="lang-sc" lang="zh-Hans">如何在《FINAL FANTASY XIV 繁体中文版》游戏中使用输入框？输入框不是自动代打工具，而是将“输入”和“粘贴”拆分为两个步骤。你只需手动触发每一步，整体流程清晰、直观、容易上手。</span>
           </p>
-          <ol>
+          <ol class="quick-setup-list">
             <li>
               <span class="lang-zh"><strong>步驟一：叫出輸入框。</strong>在遊戲中按下您在 Windows 掌機公用程式（例如 Armory Crate SE）中預先設定的呼叫組合鍵，即可快速切換到輸入框。（使用前請先啟動輸入框。）</span>
               <span class="lang-en" lang="en"><strong>Step 1: Open InputBox.</strong> In-game, press the launcher shortcut you mapped in your Windows handheld utility (for example, Armory Crate SE) to switch to InputBox quickly. (Make sure InputBox is already running.)</span>
