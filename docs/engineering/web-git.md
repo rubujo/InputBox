@@ -17,4 +17,4 @@
   - 驗證所有 Landmark 結構正確，通過 A11y 檢測。
   - 驗證 Windows 高對比模式（`forced-colors: active`）下關鍵互動元素（`.skip-link`、`.cta-button`、導覽列 hover / active）可辨識。
   - 確認互動元素 hover/focus 邊框色對所有相鄰背景均達 WCAG 1.4.11（≥ 3:1 非文字對比度）。
-  - 執行 Playwright 測試套件（`npm test`）確認 44 項可及性與對比度驗證全部通過。
+  - 目前 `gh-pages` 尚未建置 Playwright 自動化測試；請完成人工驗證（符號全形化、`lang` 屬性、Landmark 導覽結構、四語內容一致性）。若未來導入測試，再以 `npm test` 作為強制檢查。

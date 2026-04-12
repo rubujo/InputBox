@@ -18,7 +18,7 @@
 - 焦點指示器：雙環 `outline: 5px solid #e67e00` + `box-shadow: var(--focus-companion)` 伴侶環（淺色模式）；深色模式單橘環 7.05:1。
 - 點擊目標 ≥ 44x44px。
 - 嚴格遵守「零佈局抖動」原則。
-- 提交前執行 `npm test`（Playwright 44 項全過），並檢查符號全形化、`lang` 屬性及 Landmark 導覽結構。
+- 目前 `gh-pages` 尚未建置 Playwright 自動化測試；提交前請完成人工驗證（符號全形化、`lang` 屬性、Landmark 導覽結構、四語內容一致性）。若未來導入測試，再以 `npm test` 作為強制檢查。
 
 ## 3. 參考索引
 - 文件入口：`ENGINEERING_GUIDELINES.md`
