@@ -17,6 +17,7 @@ node_modules/
 dist/
 build/
 .cache/
+tests/
 
 # 代理與開發工具 (Agents & Dev Tools)
 # 排除工具產生的暫存與記錄檔，但保留 .md 規範與 GitHub Workflow 檔案
