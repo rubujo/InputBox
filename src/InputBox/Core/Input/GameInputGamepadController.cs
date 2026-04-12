@@ -2168,12 +2168,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     Debug.WriteLine($"[GameInput] 取消後強制停止馬達失敗（已忽略）：{innerEx.Message}");
                 }
             }
+#if DEBUG
             catch (Exception ex)
             {
-#if DEBUG
                 LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=start outcome=failed exception={ex.GetType().Name} message={ex.Message}");
-#endif
             }
+#else
+            catch (Exception)
+            {
+
+            }
+#endif
         },
         ct);
     }
