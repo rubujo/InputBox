@@ -61,10 +61,13 @@ internal static class FeedbackService
         VibrationProfile profile,
         CancellationToken ct = default)
     {
+        VibrationPriority priority = ResolvePriority(profile);
+
         return VibrateAsync(
             controller,
             profile.Strength,
             profile.Duration,
+            priority,
             ct);
     }
 
@@ -74,23 +77,43 @@ internal static class FeedbackService
     /// <param name="controller">控制器實例（允許為 null）</param>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">毫秒</param>
+    /// <param name="priority">震動優先級</param>
     /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
     public static async Task VibrateAsync(
         IGamepadController? controller,
         ushort strength,
         int milliseconds,
+        VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default)
     {
+#if DEBUG
+    bool enableDebugDiagnostics =
+        AppSettings.Current.EnableVibration &&
+        AppSettings.Current.VibrationIntensity > 0f;
+#endif
+
         // 讀取設定檔開關。
         if (!AppSettings.Current.EnableVibration)
         {
+#if DEBUG
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=skip reason=disabled reqStrength={strength} reqMs={milliseconds} priority={priority}");
+            }
+#endif
             return;
         }
 
         // 若控制器未連接或未初始化，直接結束。
         if (controller == null)
         {
+#if DEBUG
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=skip reason=no-controller reqStrength={strength} reqMs={milliseconds} priority={priority}");
+            }
+#endif
             return;
         }
 
@@ -100,6 +123,12 @@ internal static class FeedbackService
         // 如果倍率是 0，直接視為不震動。
         if (multiplier <= 0f)
         {
+#if DEBUG
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=skip reason=zero-intensity reqStrength={strength} reqMs={milliseconds} priority={priority} multiplier={multiplier:F2}");
+            }
+#endif
             return;
         }
 
@@ -112,19 +141,38 @@ internal static class FeedbackService
         // 如果計算後太弱變成 0，也不用開啟了。
         if (finalStrength == 0)
         {
+    #if DEBUG
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=skip reason=clamped-zero reqStrength={strength} reqMs={milliseconds} priority={priority} multiplier={multiplier:F2}");
+            }
+    #endif
             return;
         }
+
+    #if DEBUG
+        if (enableDebugDiagnostics)
+        {
+            LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=dispatch controller={controller.GetType().Name} reqStrength={strength} reqMs={milliseconds} finalStrength={finalStrength} priority={priority} multiplier={multiplier:F2}");
+        }
+    #endif
 
         try
         {
             // 傳送震動指令。
             // 由於控制器實作（如 XInputGamepadController）內部已經具備完備的世代管理（Token）與自動停止邏輯，
             // Service 層級不應再介入細節控制，以免在多控制器環境下產生競態干擾。
-            await controller.VibrateAsync(finalStrength, milliseconds, ct);
+            await controller.VibrateAsync(finalStrength, milliseconds, priority, ct);
         }
         catch (OperationCanceledException)
         {
             // 正常取消。
+#if DEBUG
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=cancelled controller={controller.GetType().Name} priority={priority}");
+            }
+#endif
         }
         catch (Exception ex)
         {
@@ -146,7 +194,28 @@ internal static class FeedbackService
         }
 
         // 直接發送停止指令。
-        return controller.VibrateAsync(0, 0);
+        return controller.VibrateAsync(0, 0, VibrationPriority.Critical);
+    }
+
+    /// <summary>
+    /// 依震動設定檔映射優先級，讓高頻提示先被節流，關鍵 A11y 事件優先保留。
+    /// </summary>
+    /// <param name="profile">震動設定檔。</param>
+    /// <returns>對應的震動優先級。</returns>
+    private static VibrationPriority ResolvePriority(VibrationProfile profile)
+    {
+        if (profile == VibrationPatterns.CursorMove)
+        {
+            return VibrationPriority.Ambient;
+        }
+
+        if (profile == VibrationPatterns.ActionFail ||
+            profile == VibrationPatterns.ControllerConnected)
+        {
+            return VibrationPriority.Critical;
+        }
+
+        return VibrationPriority.Normal;
     }
 
     /// <summary>

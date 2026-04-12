@@ -8,6 +8,7 @@ using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Numerics;
 using UsbVendorsLibrary;
 
 namespace InputBox.Core.Input;
@@ -298,7 +299,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private const float RightStickBiasYMaxSmoothing = 0.07f;
 
     /// <summary>
-    /// 觸發全速學習的誤差閾值（bias 誤差達此值時使用 Max 係數）。
+    /// 觸發全速學習的誤差閾值（偏移誤差達此值時使用最大係數）。
     /// </summary>
     private const float BiasAdaptiveErrorRange = 0.05f;
 
@@ -321,6 +322,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 快取的震動支援狀態
     /// </summary>
     private bool _supportsRumble = false;
+
+    /// <summary>
+    /// 熱負載估算倍率（依支援馬達數量調整，2 馬達約 2.0、4 馬達約 4.0）。
+    /// </summary>
+    private double _rumbleThermalWeight = 2.0;
 
     /// <summary>
     /// 取得或設定搖桿進入死區閾值
@@ -516,6 +522,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private readonly Lock _vibrationLock = new();
 
     /// <summary>
+    /// 連續震動硬體保護器（每個控制器實例獨立）。
+    /// </summary>
+    private readonly VibrationSafetyLimiter _vibrationSafetyLimiter = new();
+
+#if DEBUG
+    /// <summary>
+    /// 震動診斷採樣計數（避免環境震動請求每次都寫檔造成訊息洪水）。
+    /// </summary>
+    private int _vibrationDiagSampleCounter;
+#endif
+
+    /// <summary>
     /// 私有建構子，透過 CreateAsync 建立實體。
     /// </summary>
     /// <param name="context">IInputContext</param>
@@ -617,6 +635,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             _rsRepeatCounter = 0;
             _rsRepeatDirection = 0;
+
+            // 連線中斷時清空熱狀態，避免重連後沿用舊熱負載造成過度保守。
+            _vibrationSafetyLimiter.Reset();
 
             ConnectionChanged?.Invoke(false);
         }
@@ -1400,6 +1421,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _cachedDeviceName = string.Empty;
 
             _supportsRumble = false;
+            _rumbleThermalWeight = 2.0;
 
             return;
         }
@@ -1410,6 +1432,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             // 更新震動支援狀態。
             _supportsRumble = info.SupportedRumbleMotors != GameInputRumbleMotors.None;
+            uint supportedMotorBits = Convert.ToUInt32(info.SupportedRumbleMotors);
+            int supportedMotorCount = BitOperations.PopCount(supportedMotorBits);
+            _rumbleThermalWeight = Math.Clamp(supportedMotorCount, 1, 4);
 
             // 更新裝置名稱。
             string displayName = string.Empty;
@@ -1435,6 +1460,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             Debug.WriteLine($"[GameInput] 取得裝置資訊失敗，使用預設值：{ex.Message}");
             _cachedDeviceName = "Unknown Gamepad";
             _supportsRumble = false;
+            _rumbleThermalWeight = 2.0;
         }
     }
 
@@ -1927,7 +1953,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _dpadRightRepeatDiagnosticCounter++;
 
-            if (_dpadRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.GameInput &&
+                _dpadRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
             {
                 LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=GameInput kind=DPad count={_dpadRightRepeatDiagnosticCounter} dpadDir={_repeatDirection?.ToString() ?? "None"}");
             }
@@ -1941,7 +1968,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             _rsRightRepeatDiagnosticCounter++;
 
-            if (_rsRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.GameInput &&
+                _rsRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
             {
                 LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=GameInput kind=RS count={_rsRightRepeatDiagnosticCounter} rsDir={_rsRepeatDirection}");
             }
@@ -1958,11 +1986,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">持續時間（毫秒），預設值為 60 毫秒</param>
+    /// <param name="priority">震動優先級</param>
     /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
     public Task VibrateAsync(
         ushort strength,
         int milliseconds = 60,
+        VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default)
     {
         GameInputDevice? dev = _device;
@@ -1978,6 +2008,47 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             StopVibration();
 
+            return Task.CompletedTask;
+        }
+
+        bool accepted = _vibrationSafetyLimiter.TryApplyWithDiagnostics(
+            strength,
+            milliseconds,
+            priority,
+            out ushort safeStrength,
+            out int safeDurationMs,
+            out VibrationLimiterDebugInfo limiterDiagnostics,
+            thermalCostMultiplier: _rumbleThermalWeight);
+
+#if DEBUG
+        bool enableDebugDiagnostics =
+            AppSettings.Current.EnableVibration &&
+            AppSettings.Current.VibrationIntensity > 0f;
+
+        bool shouldLogAccepted = priority != VibrationPriority.Ambient ||
+            safeStrength != strength ||
+            safeDurationMs != Math.Clamp(milliseconds, 1, 1000) ||
+            Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
+
+        if (!accepted)
+        {
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo(
+                    $"VibrationDiag source=GameInput stage=limiter decision=blocked priority={priority} reqStrength={strength} reqMs={milliseconds} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} ambientCooldownMs={limiterDiagnostics.AmbientCooldownRemainingMs} fwProtectionSuspect=no appProtection=true");
+            }
+        }
+        else if (enableDebugDiagnostics && shouldLogAccepted)
+        {
+            bool firmwareProtectionRisk = safeStrength >= 50000 && safeDurationMs >= 120 && priority != VibrationPriority.Critical;
+
+            LoggerService.LogInfo(
+                $"VibrationDiag source=GameInput stage=limiter decision=accepted priority={priority} reqStrength={strength} reqMs={milliseconds} safeStrength={safeStrength} safeMs={safeDurationMs} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} appProtection={(safeStrength != strength || safeDurationMs != Math.Clamp(milliseconds, 1, 1000))} fwProtectionSuspect={(firmwareProtectionRisk ? "possible" : "low")}");
+        }
+#endif
+
+        if (!accepted)
+        {
             return Task.CompletedTask;
         }
 
@@ -2016,7 +2087,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             CancellationToken ctsToken = finalCts.Token;
 
             // 強度。
-            float intensity = strength / 65535f;
+            float intensity = safeStrength / 65535f;
 
             GameInputRumbleParams rumble = new()
             {
@@ -2038,7 +2109,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 dev.SetRumbleState(rumble);
 
-                await Task.Delay(milliseconds, ctsToken).ConfigureAwait(false);
+#if DEBUG
+                bool shouldLogApiSuccess = priority != VibrationPriority.Ambient ||
+                    Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
+
+                if (enableDebugDiagnostics && shouldLogApiSuccess)
+                {
+                    LoggerService.LogInfo(
+                        $"VibrationDiag source=GameInput stage=api action=start outcome=ok strength={safeStrength} durationMs={safeDurationMs} priority={priority}");
+                }
+#endif
+
+                await Task.Delay(safeDurationMs, ctsToken).ConfigureAwait(false);
 
                 // 檢查是否已被處置、裝置是否已變更、或是否有更新的震動請求。
                 if (_disposed != 0 ||
@@ -2051,6 +2133,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 // 停止震動（全歸零）。
                 dev.SetRumbleState(new GameInputRumbleParams());
+
+#if DEBUG
+                if (enableDebugDiagnostics)
+                {
+                    LoggerService.LogInfo("VibrationDiag source=GameInput stage=api action=stop outcome=ok reason=normal-finish");
+                }
+#endif
             }
             catch (OperationCanceledException)
             {
@@ -2062,12 +2151,28 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     if (Interlocked.Read(ref _vibrationToken) == token)
                     {
                         dev.SetRumbleState(new GameInputRumbleParams());
+
+#if DEBUG
+                        if (enableDebugDiagnostics)
+                        {
+                            LoggerService.LogInfo("VibrationDiag source=GameInput stage=api action=stop outcome=ok reason=external-cancel");
+                        }
+#endif
                     }
                 }
                 catch (Exception innerEx)
                 {
+#if DEBUG
+                    LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=cancel-stop exception={innerEx.GetType().Name} message={innerEx.Message}");
+#endif
                     Debug.WriteLine($"[GameInput] 取消後強制停止馬達失敗（已忽略）：{innerEx.Message}");
                 }
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=start outcome=failed exception={ex.GetType().Name} message={ex.Message}");
+#endif
             }
         },
         ct);
@@ -2200,6 +2305,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch (Exception bgEx)
                 {
+#if DEBUG
+                    LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop-bg exception={bgEx.GetType().Name} message={bgEx.Message}");
+#endif
                     Debug.WriteLine($"[GameInput] 背景停止馬達失敗（已忽略）：{bgEx.Message}");
                 }
             });
@@ -2212,6 +2320,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
             catch (Exception ex)
             {
+#if DEBUG
+                LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop exception={ex.GetType().Name} message={ex.Message}");
+#endif
                 Debug.WriteLine($"GameInput 停止震動失敗：{ex.Message}");
             }
         }

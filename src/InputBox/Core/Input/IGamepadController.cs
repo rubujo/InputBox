@@ -170,11 +170,13 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">持續時間（毫秒），預設值為 60 毫秒</param>
+    /// <param name="priority">震動優先級</param>
     /// <param name="ct">取消權杖</param>
     /// <returns>Task。</returns>
     Task VibrateAsync(
         ushort strength,
         int milliseconds = 60,
+        VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default);
 
     /// <summary>

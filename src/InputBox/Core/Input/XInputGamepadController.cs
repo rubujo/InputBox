@@ -456,6 +456,18 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private readonly Lock _vibrationLock = new();
 
     /// <summary>
+    /// 連續震動硬體保護器（每個控制器實例獨立）。
+    /// </summary>
+    private readonly VibrationSafetyLimiter _vibrationSafetyLimiter = new();
+
+#if DEBUG
+    /// <summary>
+    /// 震動診斷採樣計數（避免環境震動請求每次都寫檔造成訊息洪水）。
+    /// </summary>
+    private int _vibrationDiagSampleCounter;
+#endif
+
+    /// <summary>
     /// XInputGamepadController
     /// </summary>
     /// <param name="context">IInputContext</param>
@@ -614,6 +626,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
             if (_hasPreviousState)
             {
                 _hasPreviousState = false;
+
+                // 連線中斷時清空熱狀態，避免重連後沿用舊熱負載造成過度保守。
+                _vibrationSafetyLimiter.Reset();
 
                 // 斷線時立即重置所有按住狀態，防止邏輯鎖死。
                 ResetHoldStates();
@@ -1353,7 +1368,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             _dpadRightRepeatDiagnosticCounter++;
 
-            if (_dpadRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.XInput &&
+                _dpadRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
             {
                 LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=XInput kind=DPad count={_dpadRightRepeatDiagnosticCounter} dpadDir={_repeatDirection?.ToString() ?? "None"}");
             }
@@ -1367,7 +1383,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             _rsRightRepeatDiagnosticCounter++;
 
-            if (_rsRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
+            if (AppSettings.Current.GamepadProviderType == AppSettings.GamepadProvider.XInput &&
+                _rsRightRepeatDiagnosticCounter % RepeatStormLogInterval == 0)
             {
                 LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=XInput kind=RS count={_rsRightRepeatDiagnosticCounter} rsDir={_rsRepeatDirection}");
             }
@@ -1527,10 +1544,21 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             XInput.XInputVibration stopVibration = default;
 
-            _ = XInput.XInputSetState(_userIndex, in stopVibration);
+            uint stopResult = XInput.XInputSetState(_userIndex, in stopVibration);
+
+#if DEBUG
+            if (stopResult != 0)
+            {
+                LoggerService.LogInfo(
+                    $"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=sync-stop result={stopResult} userIndex={_userIndex}");
+            }
+#endif
         }
         catch (Exception ex)
         {
+#if DEBUG
+            LoggerService.LogInfo($"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=sync-stop exception={ex.GetType().Name} message={ex.Message}");
+#endif
             Debug.WriteLine($"[XInput] StopVibration 失敗（已忽略）：{ex.Message}");
         }
     }
@@ -1540,11 +1568,13 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="strength">強度</param>
     /// <param name="milliseconds">毫秒，預設為 60</param>
+    /// <param name="priority">震動優先級</param>
     /// <param name="ct">取消權杖</param>
     /// <returns>Task</returns>
     public Task VibrateAsync(
         ushort strength,
         int milliseconds = 60,
+        VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default)
     {
         // 如果外部在呼叫前就已經要求取消，直接返回（Fast-path）。
@@ -1558,6 +1588,47 @@ internal sealed partial class XInputGamepadController : IGamepadController
         {
             StopVibration();
 
+            return Task.CompletedTask;
+        }
+
+        bool accepted = _vibrationSafetyLimiter.TryApplyWithDiagnostics(
+            strength,
+            milliseconds,
+            priority,
+            out ushort safeStrength,
+            out int safeDurationMs,
+            out VibrationLimiterDebugInfo limiterDiagnostics,
+            thermalCostMultiplier: 2.0);
+
+#if DEBUG
+        bool enableDebugDiagnostics =
+            AppSettings.Current.EnableVibration &&
+            AppSettings.Current.VibrationIntensity > 0f;
+
+        bool shouldLogAccepted = priority != VibrationPriority.Ambient ||
+            safeStrength != strength ||
+            safeDurationMs != Math.Clamp(milliseconds, 1, 1000) ||
+            Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
+
+        if (!accepted)
+        {
+            if (enableDebugDiagnostics)
+            {
+                LoggerService.LogInfo(
+                    $"VibrationDiag source=XInput stage=limiter decision=blocked priority={priority} reqStrength={strength} reqMs={milliseconds} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} ambientCooldownMs={limiterDiagnostics.AmbientCooldownRemainingMs} fwProtectionSuspect=no appProtection=true");
+            }
+        }
+        else if (enableDebugDiagnostics && shouldLogAccepted)
+        {
+            bool firmwareProtectionRisk = safeStrength >= 50000 && safeDurationMs >= 120 && priority != VibrationPriority.Critical;
+
+            LoggerService.LogInfo(
+                $"VibrationDiag source=XInput stage=limiter decision=accepted priority={priority} reqStrength={strength} reqMs={milliseconds} safeStrength={safeStrength} safeMs={safeDurationMs} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} appProtection={(safeStrength != strength || safeDurationMs != Math.Clamp(milliseconds, 1, 1000))} fwProtectionSuspect={(firmwareProtectionRisk ? "possible" : "low")}");
+        }
+#endif
+
+        if (!accepted)
+        {
             return Task.CompletedTask;
         }
 
@@ -1596,11 +1667,35 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             XInput.XInputVibration vibration = new()
             {
-                LeftMotorSpeed = strength,
-                RightMotorSpeed = strength
+                LeftMotorSpeed = safeStrength,
+                RightMotorSpeed = safeStrength
             };
 
-            _ = XInput.XInputSetState(userIndex, in vibration);
+            uint startResult = XInput.XInputSetState(userIndex, in vibration);
+
+#if DEBUG
+            if (startResult != 0)
+            {
+                LoggerService.LogInfo(
+                    $"VibrationDiag source=XInput stage=api action=start outcome=failed result={startResult} userIndex={userIndex} strength={safeStrength} durationMs={safeDurationMs} priority={priority}");
+
+                return;
+            }
+
+            bool shouldLogApiSuccess = priority != VibrationPriority.Ambient ||
+                Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
+
+            if (enableDebugDiagnostics && shouldLogApiSuccess)
+            {
+                LoggerService.LogInfo(
+                    $"VibrationDiag source=XInput stage=api action=start outcome=ok result={startResult} userIndex={userIndex} strength={safeStrength} durationMs={safeDurationMs} priority={priority}");
+            }
+#else
+            if (startResult != 0)
+            {
+                return;
+            }
+#endif
 
             // 將「內部震動覆蓋權杖」與「外部傳入的取消權杖」綁定在一起。
             using CancellationTokenSource linkedCts = CancellationTokenSource
@@ -1609,7 +1704,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             try
             {
                 // 只要有新震動進來，或外部要求取消，這裡的 Delay 就會立刻中斷。
-                await Task.Delay(milliseconds, linkedCts.Token).ConfigureAwait(false);
+                await Task.Delay(safeDurationMs, linkedCts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -1620,7 +1715,15 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     // 這種情況下，不會有新的震動來接管，我們必須「強制煞車」！
                     XInput.XInputVibration stop = default;
 
-                    _ = XInput.XInputSetState(userIndex, in stop);
+                    uint stopResult = XInput.XInputSetState(userIndex, in stop);
+
+#if DEBUG
+                    if (stopResult != 0)
+                    {
+                        LoggerService.LogInfo(
+                            $"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=external-cancel result={stopResult} userIndex={userIndex}");
+                    }
+#endif
                 }
 
                 // 狀況 B：外部 ct 沒事，是內部的 newCts 取消了
@@ -1640,7 +1743,15 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             XInput.XInputVibration stopVibration = default;
 
-            _ = XInput.XInputSetState(userIndex, in stopVibration);
+            uint stopFinalResult = XInput.XInputSetState(userIndex, in stopVibration);
+
+#if DEBUG
+            if (stopFinalResult != 0)
+            {
+                LoggerService.LogInfo(
+                    $"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=normal-finish result={stopFinalResult} userIndex={userIndex}");
+            }
+#endif
         }, ct);
     }
 
