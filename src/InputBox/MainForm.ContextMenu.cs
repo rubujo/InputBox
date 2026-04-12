@@ -689,6 +689,10 @@ public partial class MainForm
             {
                 AppSettings.Current.EnableVibration = tsmiVibEnable.Checked;
                 AppSettings.Save();
+
+#if DEBUG
+                LoggerService.LogInfo($"VibrationDiag source=Settings stage=toggle enableVibration={AppSettings.Current.EnableVibration}");
+#endif
             }
             catch (Exception ex)
             {
@@ -725,6 +729,10 @@ public partial class MainForm
                     VibrationPatterns.GlobalIntensityMultiplier = val.Value;
 
                     AppSettings.Save();
+
+#if DEBUG
+                    LoggerService.LogInfo($"VibrationDiag source=Settings stage=intensity vibrationIntensity={AppSettings.Current.VibrationIntensity:F2}");
+#endif
 
                     RefreshMenu();
 

@@ -21,7 +21,8 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `PhraseServiceTests` | `PhraseService` CRUD 與匯出／匯入 | 35 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法 | 9 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
-| **合計** | | **188** |
+| `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護與 Duty Cycle 限制器 | 6 |
+| **合計** | | **194** |
 
 ## 執行測試
 
@@ -29,10 +30,10 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
 ```
 
-加入詳細輸出：
+加入詳細輸出（MTP）：
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
+dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --output Detailed
 ```
 
 ## 注意事項
