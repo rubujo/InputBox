@@ -25,6 +25,7 @@ build/
 *.tsbuildinfo
 
 # 測試輸出
+tests/InputBox.Tests/
 playwright-report/
 test-results/
 
