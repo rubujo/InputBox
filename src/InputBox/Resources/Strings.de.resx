@@ -1,0 +1,1174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="A11y_Btn_Minus_Desc" xml:space="preserve">
+    <value>Verringert den numerischen Wert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Btn_Plus_Desc" xml:space="preserve">
+    <value>Erhöht den numerischen Wert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Minus" xml:space="preserve">
+    <value>－</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Plus" xml:space="preserve">
+    <value>＋</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_State_Focused" xml:space="preserve">
+    <value>Fokussiert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_State_Hover" xml:space="preserve">
+    <value>Hovering</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_State_Pressed" xml:space="preserve">
+    <value>gepresst</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_BtnCopyDesc" xml:space="preserve">
+    <value>Kopiert den Text aus dem Eingabefeld in die Zwischenablage.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_BtnCopyName" xml:space="preserve">
+    <value>In Zwischenablage kopieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>Kann zu Beginn nicht gelöscht werden.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Capture_Cancelled" xml:space="preserve">
+    <value>Kurztasten-Capture abgebrochen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
+    <value>Drücken Sie die ESC-Taste, um den Vorgang abzubrechen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>{0} gelöscht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
+    <value>gelöschter Zeichensatz</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_CurrentValue" xml:space="preserve">
+    <value>Aktueller Wert: {0}.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Hotkey_Captured" xml:space="preserve">
+    <value>Kurztaste auf {0} eingestellt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_MainFormDesc" xml:space="preserve">
+    <value>Drücken Sie A oder Start, um die Tastatur zu öffnen, wenn die Eingabe leer ist, oder kopieren Sie Text und kehren Sie zurück, wenn Text eingegeben wird. Verwenden Sie X, um die Rücktaste zu drücken, und das D-Pad, um den Cursor zu bewegen oder den Verlauf zu durchsuchen. Drücken Sie Zurück, um zurückzukehren. Drücken Sie LB + RB + B, um schnell zurückzukehren. Drücken Sie LB + RB + X, um zu beenden. Tastatur: Geben Sie ein, um die Tastatur zu kopieren oder zu öffnen, Esc, um zu löschen, Auf/Ab für den Verlauf, Alt + B, um zurückzukehren.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Returning" xml:space="preserve">
+    <value>Zurück zum vorherigen Fenster.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_MainFormName" xml:space="preserve">
+    <value>Texteingabe und -kopie</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>Ende des Textes erreicht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>Zurück zur letzten Eingabe.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>Keine älteren Verlaufselemente.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>Textanfang erreicht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Selected_Text" xml:space="preserve">
+    <value>Ausgewählt: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
+    <value>Text ausgewählt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Cursor_Move" xml:space="preserve">
+    <value>Cursor bei Zeichen {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
+    <value>Cursor bewegt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>Kein Text zum Kopieren.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_TBInputDesc" xml:space="preserve">
+    <value>Geben Sie hier den Text ein, den Sie in die Zwischenablage kopieren möchten.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_TBInputName" xml:space="preserve">
+    <value>Text eingeben</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Layout_Main" xml:space="preserve">
+    <value>Hauptlayout</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Layout_Main_Desc" xml:space="preserve">
+    <value>Container mit den Texteingabe- und Aktionstasten.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Layout_Input" xml:space="preserve">
+    <value>Eingabe-Bereich</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Layout_Input_Desc" xml:space="preserve">
+    <value>Container mit dem Texteingabefeld.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="App_Title" xml:space="preserve">
+    <value>Eingabefeld</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_CopyDefault" xml:space="preserve">
+    <value>In Zwischenablage kopieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Err_ConfigInvalid" xml:space="preserve">
+    <value>Das Format der Konfigurationsdatei ist ungültig. Die Anwendung startet mit den Standardeinstellungen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Err_HotkeyRegFail" xml:space="preserve">
+    <value>Globaler Hotkey {0} konnte nicht registriert werden.
+
+Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig ausgeführt werden oder dass nicht bereits eine andere Anwendung diesen Hotkey verwendet.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Err_Title" xml:space="preserve">
+    <value>Fehler</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
+    <value>Touch-Tastatur nicht gefunden.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_CaptureKey" xml:space="preserve">
+    <value>Schlüssel erfassen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_CaptureKey_Desc" xml:space="preserve">
+    <value>Beginnen Sie, eine neue Taste von der Tastatur zu erfassen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_ClearHistory" xml:space="preserve">
+    <value>Verlauf löschen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_ClearHistory_Desc" xml:space="preserve">
+    <value>Löschen Sie dauerhaft alle Eingabedatensätze, die sich derzeit im Speicher befinden.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_HotkeySettings" xml:space="preserve">
+    <value>Tastenkombinationen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
+    <value>Konfigurieren Sie globale Hotkeys, die InputBox öffnen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_PrivacyMode" xml:space="preserve">
+    <value>Datenschutzmodus</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
+    <value>Wenn diese Option aktiviert ist, werden neue Eingaben nicht in der Historie gespeichert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Mod_Alt" xml:space="preserve">
+    <value>Alt</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Mod_Ctrl" xml:space="preserve">
+    <value>Strg</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Mod_Shift" xml:space="preserve">
+    <value>Shift</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Mod_Win" xml:space="preserve">
+    <value>Sieg</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>Kopiert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_CopyFail" xml:space="preserve">
+    <value>Kopie fehlgeschlagen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_HotkeyUpdated" xml:space="preserve">
+    <value>Tastenkombination aktualisiert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_InputCleared" xml:space="preserve">
+    <value>Eingabe gelöscht</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie den Satz "{0}" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_PressAnyKey" xml:space="preserve">
+    <value>Taste drücken</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Pht_TBInput" xml:space="preserve">
+    <value>Text eingeben</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Wrn_Title" xml:space="preserve">
+    <value>Warnung</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Gamepad_Connected" xml:space="preserve">
+    <value>Controller {0} angeschlossen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
+    <value>Controller {0} getrennt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Delete_Multiple" xml:space="preserve">
+    <value>{0} Zeichen gelöscht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_New_Line" xml:space="preserve">
+    <value>Neue Zeile hinzugefügt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
+    <value>Hotkey-Registrierung fehlgeschlagen. Zur vorherigen Einstellung zurückgesetzt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Gamepad_Fallback" xml:space="preserve">
+    <value>GameInput-Initialisierung fehlgeschlagen. In den XInput-Kompatibilitätsmodus gewechselt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_PrivacyMode_On" xml:space="preserve">
+    <value>Datenschutzmodus aktiviert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_PrivacyMode_Off" xml:space="preserve">
+    <value>Datenschutzmodus deaktiviert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_History_Navigation" xml:space="preserve">
+    <value>Verlauf {0} von {1}: {2}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Startup_Status" xml:space="preserve">
+    <value>{0} Aktivierungs-Tastenkombination: {1}.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>Einstellungen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_Window" xml:space="preserve">
+    <value>Fensteraktionen-Menü</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_Feedback" xml:space="preserve">
+    <value>Feedback</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_Gamepad" xml:space="preserve">
+    <value>Gamepad</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_Vibration" xml:space="preserve">
+    <value>Vibration</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_Intensity" xml:space="preserve">
+    <value>Intensität: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_Provider" xml:space="preserve">
+    <value>Gamepad-Eingabe-API</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
+    <value>Verlaufskapazität: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Opacity_Adjust" xml:space="preserve">
+    <value>Anpassen ...</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_OpenDataFolder" xml:space="preserve">
+    <value>Ordner öffnen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
+    <value>Öffnen Sie den Ordner Anwendungsdaten in AppData.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_OpenLogFolder" xml:space="preserve">
+    <value>Protokollordner öffnen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
+    <value>Öffnen Sie den Ordner der Protokolldatei in AppData Local.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_FolderNotFound" xml:space="preserve">
+    <value>Diese Ordner existiert nicht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_WindowRestoreDelay" xml:space="preserve">
+    <value>Fensterwiederherstellungsverzögerung</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
+    <value>Zwischenablage Wiederholungsverzögerung</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
+    <value>Touch-Tastatur-Ausblendverzögerung</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
+    <value>Fensterschalter-Puffersockel</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_HistoryCapacity" xml:space="preserve">
+    <value>Historienkapazität</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
+    <value>Daumentotzone: Auslöseschwelle</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
+    <value>Thumb Deadzone: Schwellenwert zurücksetzen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_RepeatDelay" xml:space="preserve">
+    <value>Wiederholungs-Verzögerung:</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_RepeatSpeed" xml:space="preserve">
+    <value>Wiederholungs-Geschwindigkeit:</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_RestartRequired" xml:space="preserve">
+    <value>Diese Änderung erfordert einen Neustart, um wirksam zu werden. Jetzt neu starten?</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_EnterValue" xml:space="preserve">
+    <value>Bitte geben Sie einen neuen Wert für {0} ein:</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_OK" xml:space="preserve">
+    <value>OK</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_SetDefault" xml:space="preserve">
+    <value>Liste zurücksetzen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_VibrationIntensity" xml:space="preserve">
+    <value>Intensität</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_NumericDesc" xml:space="preserve">
+    <value>{0}. Aktuell: {1}, Bereich: {2} bis {3}.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
+    <value>Schalte {0} als Modifikator für die Kurztaste „Wecken“ ein.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Value_Max" xml:space="preserve">
+    <value>Maximalwert erreicht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Value_Min" xml:space="preserve">
+    <value>Mindestwert erreicht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Value_Range_Desc" xml:space="preserve">
+    <value>Aktueller Wert: {0}. Gültiger Bereich: {1} bis {2}.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Btn_OK_Desc" xml:space="preserve">
+    <value>Bestätigen Sie und wenden Sie den aktuellen Wert an.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>Änderungen abbrechen und Dialog schließen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
+    <value>Setzen Sie den Wert auf die Werkseinstellung zurück: {0}.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
+    <value>Setzen Sie alle Einstellungen in dieser Gruppe auf die Werkseinstellungen zurück.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
+    <value>Enthält das numerische Eingabefeld und die Inkrement/Dekrement-Tasten.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Mod_On" xml:space="preserve">
+    <value>{0} aktiviert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Mod_Off" xml:space="preserve">
+    <value>{0} deaktiviert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Mod_Key_Missing" xml:space="preserve">
+    <value>(Hauptschlüssel nicht gesetzt)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Clipboard_Retrying" xml:space="preserve">
+    <value>Zwischenablage belegt, erneuter Versuch...</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Cancelled" xml:space="preserve">
+    <value>Vorgang abgelehnt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Checked" xml:space="preserve">
+    <value>Geprüft</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Unchecked" xml:space="preserve">
+    <value>Deaktiviert</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Opening_Keyboard" xml:space="preserve">
+    <value>Touch-Tastatur öffnen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="App_Privacy_Suffix" xml:space="preserve">
+    <value>(🔒)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="App_Gamepad_Suffix" xml:space="preserve">
+    <value>GameInput: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="App_Gamepad_XInput_Format" xml:space="preserve">
+    <value>XInput: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Background_Error" xml:space="preserve">
+    <value>Fehler bei der Hintergrundaufgabe: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_ButtonArea" xml:space="preserve">
+    <value>Action Schaltfläche</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Exit" xml:space="preserve">
+    <value>Verlassen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
+    <value>Öffne erweiterte Einstellungen, einschließlich Fensterverhalten, Feedback und Gamepad-Optionen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
+    <value>Konfigurieren Sie die Fensterwiederherstellungsverzögerungen und die Einstellungen für Zwischenablage-Wiederholungen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
+    <value>Vibrationsrückmeldung und Intensitätsstufen konfigurieren.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
+    <value>Konfigurieren Sie Controller-Totzonen, Wiederholungsgeschwindigkeit und API-Anbieter.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
+    <value>Schalten Sie alle Vibrations-Effekte des Controllers ein oder aus.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
+    <value>Wählen Sie die zugrunde liegende API für die Controller-Eingabe (GameInput oder XInput).</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
+    <value>Verwenden Sie die moderne GameInput-API von Microsoft. Empfohlen für moderne Steuerungen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
+    <value>Legacy-XInput-API verwenden. Ideal für die Kompatibilität mit älteren Geräten.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Settings_RestartRequired" xml:space="preserve">
+    <value>Neustart erforderlich</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
+    <value>Beenden Sie die Anwendung und geben Sie alle Ressourcen frei.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_TargetWindowLost" xml:space="preserve">
+    <value>Kann nicht zurückkehren: Das Zielfenster wurde geschlossen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
+    <value>Fokus auf Texteingabe verschoben</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_SnapBack" xml:space="preserve">
+    <value>Fensterposition automatisch korrigiert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Settings_WindowOpacity" xml:space="preserve">
+    <value>Deckkraft</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
+    <value>{0}. Aktuell: {1:P0}. Mindestens 10 %.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Opacity_Changed" xml:space="preserve">
+    <value>Deckkraft eingestellt auf {0:P0}.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Opacity_HighContrast" xml:space="preserve">
+    <value>Der Modus für hohen Kontrast ist eingeschaltet, die Opazität ist auf 100 % gesperrt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn" xml:space="preserve">
+    <value>Die Einstellung der Deckkraft unter 50 % kann die Lesbarkeit verringern, wenn der Hintergrund komplex ist. Im High Contrast-Modus überschreibt InputBox dies immer auf 100%.
+
+Fortfahren?</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
+    <value>Warnung vor geringer Deckkraft</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Err_GamepadInitFail" xml:space="preserve">
+    <value>Die Initialisierung des Gamepad-Controllers ist fehlgeschlagen. Einige Funktionen sind möglicherweise nicht verfügbar.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_ApplyThemeRestart" xml:space="preserve">
+    <value>Systemthema anwenden (Neustart erforderlich)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
+    <value>Das Systemdesign hat sich geändert. Bitte wählen Sie "Systemthema anwenden" aus dem Kontextmenü, um die Anwendung neu zu starten und visuelle Effekte vollständig anzuwenden.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="App_ThemePending_Suffix" xml:space="preserve">
+    <value>🔄</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
+    <value>Aufrufen des Untermenüs {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
+    <value>Untermenü {0} wird beendet</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_A11yInterrupt" xml:space="preserve">
+    <value>Unterbrechungsansagen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
+    <value>Erlauben Sie Ansagen, die vorherige zu unterbrechen. Deaktivieren Sie diese Option, um jede Nachricht vollständig zu hören.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_On" xml:space="preserve">
+    <value>Durchsagen unterbrechen aktiviert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
+    <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
+    <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
+    <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
+    <value>Animierte visuelle Warnungen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
+    <value>Erlauben Sie 1 Hertz animierte visuelle Warnungen. Deaktivieren Sie die Verwendung eines einzelnen statischen Impulses, was für lichtempfindliche Benutzer sicherer ist.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
+    <value>Animierte visuelle Warnungen aktiviert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
+    <value>Animierte visuelle Warnungen deaktiviert. Warnungen verwenden einen einzigen statischen Impuls.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn" xml:space="preserve">
+    <value>Bei Rückgabe minimieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
+    <value>Minimieren Sie die Eingabebox, wenn Sie zum vorherigen Fenster zurückkehren.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
+    <value>Minimieren bei Rückgabe aktiviert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
+    <value>Minimieren bei Rückgabe deaktiviert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
+    <value>InputBox minimiert sich selbst, wenn Sie zum vorherigen Fenster zurückkehren. Möchten Sie diese Funktion aktivieren?</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
+    <value>Bei Rückgabe minimieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>Hilfe</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Help_Desc" xml:space="preserve">
+    <value>Tastenkombinationen und Gamepad-Steuerelemente anzeigen (F1)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Title" xml:space="preserve">
+    <value>Hilfe — Tastenkombinationen &amp; Gamepad-Steuerelemente</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Zeigt Tastenkombinationen und Gamepad-Steuerelemente an. Verwenden Sie die Pfeiltasten, Bild nach oben, Bild nach unten oder das Gamepad, um zu scrollen, und wählen Sie dann Schließen, um zurückzukehren.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Section_Keyboard" xml:space="preserve">
+    <value>Tastaturkürzel</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Section_Gamepad" xml:space="preserve">
+    <value>Gamepad-Steuerelemente</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Col_Key" xml:space="preserve">
+    <value>Kennungl</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Col_Button" xml:space="preserve">
+    <value>Schaltfläche</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Col_Action" xml:space="preserve">
+    <value>Handlung</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Btn_Close" xml:space="preserve">
+    <value>Schließen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
+    <value>Tastaturkürzel-Tabelle</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
+    <value>Listet die verfügbaren Tastenkombinationen und deren Aktionen auf.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
+    <value>Gamepad-Steuertabelle</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
+    <value>Listet die verfügbaren Gamepad-Schaltflächen und ihre Aktionen auf.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Keyboard_Rows" xml:space="preserve">
+    <value>Esc     Eingabe löschen / Zum vorherigen Fenster zurückkehren (wenn leer)
+Enter   In die Zwischenablage kopieren und zurückkehren (oder Bildschirmtastatur öffnen)
+Alt + A Entspricht Enter
+Shift + Enter   Neue Zeile einfügen
+F1      Dieses Hilfefenster öffnen
+↑ / ↓   Verlauf durchsuchen
+← / →   Cursor nach links / rechts bewegen
+Shift + ← / →   Text markieren
+Home / End      Cursor an Zeilenanfang / -ende setzen
+Ctrl + ← / →    Cursor wortweise bewegen
+Backspace       Vorheriges Zeichen oder Auswahl löschen
+Delete  Nächstes Zeichen löschen
+Alt + B Ohne Kopieren zum vorherigen Fenster zurückkehren
+Alt + ↑ / ↓     Deckkraft erhöhen / verringern (±5 %)
+Alt + 0 Deckkraft des Fensters zurücksetzen (100 %)
+Alt + P Datenschutzmodus umschalten
+F10 / Alt + M   Funktionsmenü öffnen
+Ctrl + M        Zum Texteingabefeld springen
+{0}     Eingabefeld ein-/ausblenden (global)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Help_Gamepad_Rows" xml:space="preserve">
+    <value>A / Start	Bestätigen &amp; Zurückgeben (oder OSK öffnen)
+B 	Eingabetext löschen
+LB + RB + B	Schnellrückkehr zum vorherigen Fenster
+Zurück (freigeben)	Zurück zum vorherigen Fenster
+Y 	Funktionsmenü öffnen
+X	Rücktaste (Zeichen/Auswahl löschen)
+LB + RB + X	Beenden Applikation
+Zurück + X	Fensterdeckkraft zurücksetzen
+↑ /	Verlauf ↓navigieren
+← /	 →Cursor nach links / rechts bewegen
+LB +←/	Cursor wortweise →springen
+RS ← /	Auswahl →erweitern oder verkleinern
+Zurück +↑/	 ↓Fensterdeckkraft anpassen (±5%)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+    <value>Feature Menü Typ</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_ContextMenu_Desc" xml:space="preserve">
+    <value>Enthält den Datenschutzmodus, Hotkey-Einstellungen, erweiterte Einstellungen und andere Anwendungsfunktionen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_Phrases" xml:space="preserve">
+    <value>verwendete Texte</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_ManagePhrases" xml:space="preserve">
+    <value>Verwalten von Ausdrücken</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_ExportPhrases" xml:space="preserve">
+    <value>Phrasen exportieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_ImportPhrases" xml:space="preserve">
+    <value>Phrasen importieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
+    <value>Der Import ersetzt alle {0} vorhandenen Phrasen. Fortfahren?</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Success" xml:space="preserve">
+    <value>{0} Phrase(n) importiert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error" xml:space="preserve">
+    <value>Phrasen konnten nicht importiert werden. Die Datei ist möglicherweise ungültig oder beschädigt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
+    <value>Importierte Phrasen konnten nicht auf Festplatte gespeichert werden. Die vorherigen Sätze wurden wiederhergestellt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Success" xml:space="preserve">
+    <value>{0} Phrase(n) exportiert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Error" xml:space="preserve">
+    <value>Phrasen konnten nicht exportiert werden. Bitte überprüfen Sie den Zielpfad und versuchen Sie es erneut.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
+    <value>Es gibt keine Phrasen zu exportieren. Bitte fügen Sie zuerst Sätze hinzu.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Phrases_Exported" xml:space="preserve">
+    <value>{0} Phrase(n) exportiert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="A11y_Phrases_Imported" xml:space="preserve">
+    <value>{0} Phrase(n) importiert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Menu_PhraseEmpty" xml:space="preserve">
+    <value>(Keine Phrasen)</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Title" xml:space="preserve">
+    <value>Phrasen-Manager</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_Add" xml:space="preserve">
+    <value>Hinzufügen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_Edit" xml:space="preserve">
+    <value>Bearbeiten</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_Delete" xml:space="preserve">
+    <value>Löschen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_MoveUp" xml:space="preserve">
+    <value>Nach oben</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_MoveDown" xml:space="preserve">
+    <value>Nach unten</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_Close" xml:space="preserve">
+    <value>Schließen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_Confirm" xml:space="preserve">
+    <value>OK</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Btn_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Add" xml:space="preserve">
+    <value>Wortlaut hinzufügen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
+    <value>Phrase bearbeiten</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Edit_Name" xml:space="preserve">
+    <value>Name:</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Edit_Content" xml:space="preserve">
+    <value>Inhalt:</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Formulierungen verwalten: hinzufügen, bearbeiten, löschen und neu anordnen. Verwenden Sie das Gamepad Y zum Hinzufügen, A zum Einfügen, X zum Löschen, Links/Rechts zum Nachbestellen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_List_Name" xml:space="preserve">
+    <value>Phrasenliste</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_List_Desc" xml:space="preserve">
+    <value>Wählen Sie eine Phrase aus und drücken Sie Enter oder Gamepad A, um sie in das Eingabefeld einzufügen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
+    <value>Phrasen-Aktionen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
+    <value>Enthält Aktionsschaltflächen für Phrasenoperationen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
+    <value>Vorherige Seite</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Next" xml:space="preserve">
+    <value>Nächste Seite</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Info" xml:space="preserve">
+    <value>Seite {0} von {1}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
+    <value>Fügen Sie einen neuen Satz hinzu. Gamepad: Y-Taste.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
+    <value>Bearbeiten Sie die ausgewählte Phrase.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
+    <value>Löschen Sie die ausgewählte Phrase. Gamepad: X-Taste.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
+    <value>Verschieben Sie den ausgewählten Satz nach oben. Gamepad: Linkes D-Pad.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
+    <value>Bewegen Sie die ausgewählte Phrase nach unten. Gamepad: Rechtes D-Pad.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
+    <value>Schließen Sie den Phrasenmanager. Gamepad: B-Taste.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
+    <value>Bestätigen und speichern Sie den Satz. Gamepad: Eine Taste.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>Bearbeitung abbrechen. Gamepad: B-Taste.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
+    <value>Geben Sie einen Namen und Inhalt für die Phrase ein. Drücken Sie zur Bestätigung auf Enter oder Gamepad A.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
+    <value>Geben Sie einen Anzeigenamen für diese Phrase ein (max. 50 Zeichen).</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
+    <value>Geben Sie den einzufügenden Textinhalt ein (max. 500 Zeichen). Unterstützt mehrere Zeilen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Selected" xml:space="preserve">
+    <value>Ausgewählt: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Added" xml:space="preserve">
+    <value>Satz hinzugefügt: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Updated" xml:space="preserve">
+    <value>Phrase aktualisiert: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted" xml:space="preserve">
+    <value>Satz gelöscht: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Moved" xml:space="preserve">
+    <value>In Position {0} verschoben</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Full" xml:space="preserve">
+    <value>Die Wortliste ist voll. Es können keine weiteren Sätze hinzugefügt werden.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted" xml:space="preserve">
+    <value>Phrase eingefügt: {0}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
+    <value>Phrase ausgewählt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
+    <value>Phrase hinzugefügt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
+    <value>Phrase aktualisiert.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
+    <value>Satz gelöscht.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
+    <value>Phrase eingefügt.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_NameRequired" xml:space="preserve">
+    <value>Bitte geben Sie einen Namen an.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
+    <value>Bitte tragen Sie ihren Inhalt ein.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
+    <value>Phrasenname eingeben...</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
+    <value>Phraseninhalt eingeben...</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>Ja</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>nein</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Abort" xml:space="preserve">
+    <value>Abbruch</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>Erneut versuchen</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="Btn_Ignore" xml:space="preserve">
+    <value>Ignorieren</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
+    <value>ERROR ICON</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
+    <value>Warnsymbol</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
+    <value>Informationssymbol</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
+    <value>Frage-Symbol.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Nachrichtendialog. Drücken Sie A für die primäre Aktion, B zum Abbrechen.</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+  <data name="GmBox_A11y_Hint" xml:space="preserve">
+    <value>A: {0} · B: {1}</value>
+    <comment>Deutsche Lokalisierung.</comment>
+  </data>
+</root>

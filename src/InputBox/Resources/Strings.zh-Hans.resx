@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -165,6 +165,14 @@
     <value>按 ESC 键即可取消。</value>
     <comment>无障碍消息，提示用户可以按下 ESC 键来取消捕获。</comment>
   </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>已删除 {0}。</value>
+    <comment>无障碍消息，当删除单一字符时播放。{0} 是被删除的字符。</comment>
+  </data>
+  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
+    <value>已删除字符。</value>
+    <comment>删除字符的隐私安全版本无障碍广播消息。</comment>
+  </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>当前数值：{0}。</value>
     <comment>无障碍消息，显示设置对话框中的当前数值。{0} 是当前的值。</comment>
@@ -200,14 +208,6 @@
   <data name="A11y_Nav_Top" xml:space="preserve">
     <value>已到顶端。</value>
     <comment>无障碍消息，当光标移动到文本开头时播放。</comment>
-  </data>
-  <data name="A11y_Delete_Char" xml:space="preserve">
-    <value>已删除 {0}。</value>
-    <comment>无障碍消息，当删除单一字符时播放。{0} 是被删除的字符。</comment>
-  </data>
-  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
-    <value>已删除字符。</value>
-    <comment>删除字符的隐私安全版本无障碍广播消息。</comment>
   </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
     <value>已选取：{0}</value>
@@ -729,6 +729,14 @@
     <value>已停用播报中断，所有消息将完整依序播报。</value>
     <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
   </data>
+  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
+    <value>已停用播报中断，所有消息将完整依序播报。</value>
+    <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
+    <value>已停用播报中断，所有消息将完整依序播报。</value>
+    <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
+  </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
     <value>动画式视觉警示</value>
     <comment>右键菜单项，切换警示与验证状态是否使用动画式视觉提示。</comment>
@@ -862,7 +870,8 @@
   RS ← / →	扩大或缩小选取范围
   Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
-  </data>  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+  </data>
+  <data name="A11y_ContextMenu_Name" xml:space="preserve">
     <value>功能菜单</value>
     <comment>右键菜单的无障碍名称。</comment>
   </data>

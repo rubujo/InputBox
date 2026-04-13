@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support text/value conversion serialized and stored with
-    the mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -254,7 +254,7 @@
     <comment>입력 영역 컨테이너의 접근성 설명입니다.</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
-    <value>InputBox</value>
+    <value>입력 상자</value>
     <comment>창 제목 및 메시지 대화 상자에서 사용되는 응용 프로그램 이름입니다.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
@@ -729,6 +729,14 @@
     <value>중단 알림이 비활성화되었습니다. 모든 메시지가 전체적으로 공지됩니다.</value>
     <comment>중단 알림 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
   </data>
+  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
+    <value>중단 알림이 비활성화되었습니다. 모든 메시지가 전체적으로 공지됩니다.</value>
+    <comment>중단 알림 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
+    <value>중단 알림이 비활성화되었습니다. 모든 메시지가 전체적으로 공지됩니다.</value>
+    <comment>중단 알림 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
+  </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
     <value>애니메이션 시각 알림</value>
     <comment>경고 및 검증 상태에 대한 애니메이션 시각 알림을 전환하는 상황에 맞는 메뉴 항목입니다.</comment>
@@ -844,7 +852,7 @@ Alt + 0	창 불투명도 재설정 (100%)
 Alt + P	개인정보 보호 모드 전환
 F10 / Alt + M	기능 메뉴 열기
 Ctrl + M	텍스트 입력으로 이동
-{0}	InputBox 표시 / 숨기기 (전역)</value>
+{0}	입력 상자 표시 / 숨기기 (전역)</value>
     <comment>도움말 대화 상자의 키보드 단축키 테이블의 탭 구분 행입니다. 형식: 키{tab}작업. 행당 한 줄씩입니다.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
@@ -1164,4 +1172,3 @@ Back + ↑ / ↓	창 불투명도 조정 (±5%)</value>
     <comment>GamepadMessageBox의 게임패드 힌트 레이블입니다. {0} = 주요 작업 레이블, {1} = 취소 작업 레이블.</comment>
   </data>
 </root>
-

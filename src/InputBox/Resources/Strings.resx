@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -182,7 +182,7 @@
     <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB + RB + B to quick return. LB + RB + X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt + B to return.</value>
+    <value>Press A or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use X to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + B for quick return. Press LB + RB + X to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
     <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -234,7 +234,7 @@
     <comment>Accessibility description for the input field, guiding users to enter content.</comment>
   </data>
   <data name="A11y_TBInputName" xml:space="preserve">
-    <value>Enter Text</value>
+    <value>Enter text</value>
     <comment>Accessibility name label for the input field.</comment>
   </data>
   <data name="A11y_Layout_Main" xml:space="preserve">
@@ -254,7 +254,7 @@
     <comment>Accessibility description for the input area container.</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
-    <value>InputBox</value>
+    <value>Input Box</value>
     <comment>Application name used in window titles and message dialogs.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
@@ -280,7 +280,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Error message when the system touch keyboard cannot be launched.</comment>
   </data>
   <data name="Menu_CaptureKey" xml:space="preserve">
-    <value>Capture Key...</value>
+    <value>Capture key...</value>
     <comment>Context menu item to start capturing a new wake-up key.</comment>
   </data>
   <data name="Menu_CaptureKey_Desc" xml:space="preserve">
@@ -300,7 +300,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Submenu name for hotkey related configurations.</comment>
   </data>
   <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
-    <value>Configure the global hotkeys to wake up the input box.</value>
+    <value>Configure global hotkeys that open InputBox.</value>
     <comment>Accessibility description for the hotkey settings submenu.</comment>
   </data>
   <data name="Menu_PrivacyMode" xml:space="preserve">
@@ -336,7 +336,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Status text shown on button when copy fails.</comment>
   </data>
   <data name="Msg_HotkeyUpdated" xml:space="preserve">
-    <value>Hotkey Updated</value>
+    <value>Hotkey updated</value>
     <comment>Status message shown when hotkey is successfully updated.</comment>
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
@@ -396,7 +396,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Accessibility message for navigating history records. {0} is index, {1} is total, {2} is content.</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
-    <value>{0} Wake up hotkey: {1}.</value>
+    <value>{0} Wake-up hotkey: {1}.</value>
     <comment>Startup accessibility status summary. {0} is privacy status, {1} is current hotkey.</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
@@ -729,6 +729,14 @@ Continue?</value>
     <value>Interrupt announcements disabled. All messages will be announced in full.</value>
     <comment>Screen reader announcement played when the interrupt-announcements setting is turned off.</comment>
   </data>
+  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
+    <value>Interrupt announcements disabled. All messages will be announced in full.</value>
+    <comment>Screen reader announcement played when the interrupt-announcements setting is turned off.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
+    <value>Interrupt announcements disabled. All messages will be announced in full.</value>
+    <comment>Screen reader announcement played when the interrupt-announcements setting is turned off.</comment>
+  </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
     <value>Animated Visual Alerts</value>
     <comment>Context menu item that toggles animated visual alerts for warnings and validation states.</comment>
@@ -844,7 +852,7 @@ Alt + 0	Reset window opacity (100%)
 Alt + P	Toggle privacy mode
 F10 / Alt + M	Open feature menu
 Ctrl + M	Jump to text input
-{0}	Show / Hide InputBox (Global)</value>
+{0}	Show / hide Input Box (global)</value>
     <comment>Tab-separated rows for the keyboard shortcut table in the Help dialog. Format: Key{tab}Action. One row per line.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

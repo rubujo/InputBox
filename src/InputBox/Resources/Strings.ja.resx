@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -165,6 +165,14 @@
     <value>ESC キーを押すとキャンセルされます。</value>
     <comment>アクセシビリティメッセージ。ESC キーを押してキャプチャをキャンセルできることをユーザーに通知します。</comment>
   </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>{0} を削除しました。</value>
+    <comment>アクセシビリティメッセージ。1文字削除されたときに再生されます。{0} は削除された文字です。</comment>
+  </data>
+  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
+    <value>文字を削除しました。</value>
+    <comment>文字削除のプライバシーセーフ版アクセシビリティメッセージです。</comment>
+  </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>現在の数値：{0}。</value>
     <comment>アクセシビリティメッセージ。設定ダイアログでの現在の数値を表示します。{0} は現在の値です。</comment>
@@ -200,14 +208,6 @@
   <data name="A11y_Nav_Top" xml:space="preserve">
     <value>先頭に到達しました。</value>
     <comment>アクセシビリティメッセージ。カーソルがテキストの先頭に到達したときに再生されます。</comment>
-  </data>
-  <data name="A11y_Delete_Char" xml:space="preserve">
-    <value>{0} を削除しました。</value>
-    <comment>アクセシビリティメッセージ。1文字削除されたときに再生されます。{0} は削除された文字です。</comment>
-  </data>
-  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
-    <value>文字を削除しました。</value>
-    <comment>文字削除のプライバシーセーフ版アクセシビリティメッセージです。</comment>
   </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
     <value>選択済み：{0}</value>
@@ -729,6 +729,14 @@
     <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
     <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
   </data>
+  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
+    <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
+    <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
+    <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
+    <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
+  </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
     <value>アニメーション視覚警告</value>
     <comment>警告や検証状態でアニメーション視覚通知を使うかどうかを切り替えるコンテキストメニュー項目です。</comment>
@@ -844,7 +852,7 @@ Alt + 0	ウィンドウの透明度をリセット（100%）
 Alt + P	プライバシーモードを切り替え
 F10／Alt + M	機能メニューを開く
 Ctrl + M	テキスト入力欄にジャンプ
-{0}	アプリを表示／非表示（グローバル）</value>
+{0}	入力ボックスを表示／非表示（グローバル）</value>
     <comment>ヘルプダイアログ内のキーボードショートカット表のデータ行。タブ区切り形式：キー{tab}操作、1行1項目。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">

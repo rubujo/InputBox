@@ -1,0 +1,1172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="A11y_Btn_Minus_Desc" xml:space="preserve">
+    <value>Diminue la valeur numérique.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Btn_Plus_Desc" xml:space="preserve">
+    <value>Augmente la valeur numérique.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Minus" xml:space="preserve">
+    <value>－</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Plus" xml:space="preserve">
+    <value>＋</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_State_Focused" xml:space="preserve">
+    <value>Concentré</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_State_Hover" xml:space="preserve">
+    <value>Survol</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_State_Pressed" xml:space="preserve">
+    <value>Pressé</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_BtnCopyDesc" xml:space="preserve">
+    <value>Copie le texte de la zone de saisie vers le presse-papiers.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_BtnCopyName" xml:space="preserve">
+    <value>Copier dans le presse-papier</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Cannot_Delete" xml:space="preserve">
+    <value>Impossible de supprimer au début.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Capture_Cancelled" xml:space="preserve">
+    <value>Capture de raccourci annulée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
+    <value>Appuyez sur la touche ESC pour annuler.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Delete_Char" xml:space="preserve">
+    <value>{0} supprimé.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
+    <value>Caractère supprimé.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_CurrentValue" xml:space="preserve">
+    <value>Valeur actuelle : {0}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Hotkey_Captured" xml:space="preserve">
+    <value>Raccourci clavier défini sur {0}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_MainFormDesc" xml:space="preserve">
+    <value>Appuyez sur A ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide, ou copiez le texte et revenez lorsque le texte est saisi. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Returning" xml:space="preserve">
+    <value>Retour à la fenêtre précédente.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_MainFormName" xml:space="preserve">
+    <value>Saisie et copie de texte</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Nav_Bottom" xml:space="preserve">
+    <value>Fin du texte atteinte.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Nav_Newest" xml:space="preserve">
+    <value>Revenu à la dernière entrée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Nav_Oldest" xml:space="preserve">
+    <value>Aucun élément historique plus ancien.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Nav_Top" xml:space="preserve">
+    <value>Début du texte atteint.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Selected_Text" xml:space="preserve">
+    <value>Sélectionné : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
+    <value>Texte sélectionné.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Cursor_Move" xml:space="preserve">
+    <value>Curseur sur le caractère {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
+    <value>Le curseur a bougé.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_No_Text_To_Copy" xml:space="preserve">
+    <value>Aucun texte à copier.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_TBInputDesc" xml:space="preserve">
+    <value>Entrez ici le texte que vous souhaitez copier dans le presse-papiers.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_TBInputName" xml:space="preserve">
+    <value>Saisir du texte</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Layout_Main" xml:space="preserve">
+    <value>Disposition principale</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Layout_Main_Desc" xml:space="preserve">
+    <value>Conteneur contenant les boutons de saisie de texte et d'action.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Layout_Input" xml:space="preserve">
+    <value>Zone de saisie</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Layout_Input_Desc" xml:space="preserve">
+    <value>Conteneur abritant le champ de saisie de texte.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="App_Title" xml:space="preserve">
+    <value>Boîte de saisie</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_CopyDefault" xml:space="preserve">
+    <value>Copier dans le Presse-papiers</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Err_ConfigInvalid" xml:space="preserve">
+    <value>Le format du fichier de configuration n'est pas valide. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Err_HotkeyRegFail" xml:space="preserve">
+    <value>Le raccourci clavier global {0} n'a pas pu être enregistré.
+
+</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Err_Title" xml:space="preserve">
+    <value>Erreur</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
+    <value>Clavier tactile introuvable.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_CaptureKey" xml:space="preserve">
+    <value>Clé de capture...</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_CaptureKey_Desc" xml:space="preserve">
+    <value>Commencez à capturer une nouvelle touche du clavier.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_ClearHistory" xml:space="preserve">
+    <value>Effacer l'historique</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_ClearHistory_Desc" xml:space="preserve">
+    <value>Effacer définitivement tous les enregistrements d’entrée actuellement en mémoire.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_HotkeySettings" xml:space="preserve">
+    <value>Paramètres des raccourcis clavier</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
+    <value>Configurez les raccourcis clavier globaux qui ouvrent InputBox.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_PrivacyMode" xml:space="preserve">
+    <value>Mode de confidentialité</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
+    <value>Lorsqu'elle est activée, les nouvelles entrées ne seront pas enregistrées dans l'historique.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Mod_Alt" xml:space="preserve">
+    <value>Alt</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Mod_Ctrl" xml:space="preserve">
+    <value>Ctrl</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Mod_Shift" xml:space="preserve">
+    <value>Changement</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Mod_Win" xml:space="preserve">
+    <value>Gagner</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_Copied" xml:space="preserve">
+    <value>Copié</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_CopyFail" xml:space="preserve">
+    <value>Échec de la copie</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_HotkeyUpdated" xml:space="preserve">
+    <value>Raccourci clavier mis à jour</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_InputCleared" xml:space="preserve">
+    <value>Entrée effacée</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer l'expression « {0} » ? </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_PressAnyKey" xml:space="preserve">
+    <value>Appuyez sur n'importe quelle touche...</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Pht_TBInput" xml:space="preserve">
+    <value>Saisissez le texte…</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Wrn_Title" xml:space="preserve">
+    <value>Avertissement</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Gamepad_Connected" xml:space="preserve">
+    <value>Contrôleur {0} connecté.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
+    <value>Contrôleur {0} déconnecté.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Delete_Multiple" xml:space="preserve">
+    <value>Caractères {0} supprimés.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_New_Line" xml:space="preserve">
+    <value>Nouvelle ligne ajoutée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
+    <value>L'enregistrement du raccourci clavier a échoué. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Gamepad_Fallback" xml:space="preserve">
+    <value>L'initialisation de GameInput a échoué. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_PrivacyMode_On" xml:space="preserve">
+    <value>Mode confidentialité activé</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_PrivacyMode_Off" xml:space="preserve">
+    <value>Mode confidentialité désactivé</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_History_Navigation" xml:space="preserve">
+    <value>Historique {0} sur {1} : {2}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Startup_Status" xml:space="preserve">
+    <value>{0} Raccourci de réveil : {1}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>Paramètres</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_Window" xml:space="preserve">
+    <value>Fenêtre et opérations</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_Feedback" xml:space="preserve">
+    <value>Retour</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_Gamepad" xml:space="preserve">
+    <value>Manette de jeu</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_Vibration" xml:space="preserve">
+    <value>Vibration</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_Intensity" xml:space="preserve">
+    <value>Intensité : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_Provider" xml:space="preserve">
+    <value>API d'entrée de manette de jeu</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
+    <value>Capacité d'historique : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Opacity_Adjust" xml:space="preserve">
+    <value>Ajuster…</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_OpenDataFolder" xml:space="preserve">
+    <value>Ouvrir le dossier</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
+    <value>Ouvrez le dossier de données d'application dans AppData.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_OpenLogFolder" xml:space="preserve">
+    <value>Ouvrir le dossier de journal</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
+    <value>Ouvrez le dossier du fichier journal dans AppData Local.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_FolderNotFound" xml:space="preserve">
+    <value>Le dossier n'existe pas encore.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_WindowRestoreDelay" xml:space="preserve">
+    <value>Délai de restauration de la fenêtre</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
+    <value>Délai de nouvelle tentative du Presse-papiers</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
+    <value>Délai de rejet du clavier tactile</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
+    <value>Base tampon pour interrupteur de fenêtre</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_HistoryCapacity" xml:space="preserve">
+    <value>Capacité historique</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
+    <value>Zone morte du pouce : seuil de déclenchement</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
+    <value>Thumb Deadzone : réinitialiser le seuil</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_RepeatDelay" xml:space="preserve">
+    <value>Délai de répétition</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_RepeatSpeed" xml:space="preserve">
+    <value>Vitesse de répétition</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_RestartRequired" xml:space="preserve">
+    <value>Cette modification nécessite un redémarrage pour prendre effet. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_EnterValue" xml:space="preserve">
+    <value>Veuillez saisir une nouvelle valeur pour {0} :</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_OK" xml:space="preserve">
+    <value>D'ACCORD</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Annuler</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_SetDefault" xml:space="preserve">
+    <value>Réinitialiser aux valeurs par défaut</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_VibrationIntensity" xml:space="preserve">
+    <value>Intensité</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_NumericDesc" xml:space="preserve">
+    <value>{0}. Actuel : {1}, plage : {2} à {3}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
+    <value>Activez {0} comme modificateur pour le raccourci clavier de réveil.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Value_Max" xml:space="preserve">
+    <value>Valeur maximale atteinte.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Value_Min" xml:space="preserve">
+    <value>Valeur minimale atteinte.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Value_Range_Desc" xml:space="preserve">
+    <value>Valeur actuelle : {0}. Plage valide : {1} à {2}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Btn_OK_Desc" xml:space="preserve">
+    <value>Confirmez et appliquez la valeur actuelle.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>Annulez les modifications et fermez la boîte de dialogue.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
+    <value>Réinitialisez la valeur par défaut : {0}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
+    <value>Réinitialisez tous les paramètres de ce groupe à leurs valeurs par défaut.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
+    <value>Contient le champ de saisie numérique et les boutons d'incrémentation/décrémentation.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Mod_On" xml:space="preserve">
+    <value>{0} activé</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Mod_Off" xml:space="preserve">
+    <value>{0} désactivé</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Mod_Key_Missing" xml:space="preserve">
+    <value>(Clé principale non définie)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Clipboard_Retrying" xml:space="preserve">
+    <value>Presse-papiers occupé, nouvelle tentative...</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Cancelled" xml:space="preserve">
+    <value>Opération annulée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Checked" xml:space="preserve">
+    <value>À carreaux</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Unchecked" xml:space="preserve">
+    <value>Décoché</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Opening_Keyboard" xml:space="preserve">
+    <value>Clavier tactile d'ouverture.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="App_Privacy_Suffix" xml:space="preserve">
+    <value>(🔒)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="App_Gamepad_Suffix" xml:space="preserve">
+    <value>Entrée de jeu : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="App_Gamepad_XInput_Format" xml:space="preserve">
+    <value>XEntrée : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Background_Error" xml:space="preserve">
+    <value>Erreur de tâche en arrière-plan : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_ButtonArea" xml:space="preserve">
+    <value>Zone des boutons d'action</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Exit" xml:space="preserve">
+    <value>Sortie</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
+    <value>Ouvrez les paramètres avancés, notamment le comportement de la fenêtre, les commentaires et les options de la manette de jeu.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
+    <value>Configurez les délais de restauration des fenêtres et les paramètres de nouvelle tentative du presse-papiers.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
+    <value>Configurez le retour de vibration et les niveaux d’intensité.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
+    <value>Configurez les zones mortes du contrôleur, la vitesse de répétition et le fournisseur d'API.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
+    <value>Activez ou désactivez tous les effets de vibration du contrôleur.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
+    <value>Sélectionnez l'API sous-jacente pour l'entrée du contrôleur (GameInput ou XInput).</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
+    <value>Utilisez l'API GameInput moderne de Microsoft. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
+    <value>Utilisez l'ancienne API XInput. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Settings_RestartRequired" xml:space="preserve">
+    <value>(Redémarrage requis)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
+    <value>Quittez l'application et libérez toutes les ressources.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_TargetWindowLost" xml:space="preserve">
+    <value>Retour impossible : la fenêtre cible a été fermée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
+    <value>Focus déplacé vers la saisie de texte</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_SnapBack" xml:space="preserve">
+    <value>Position de la fenêtre corrigée automatiquement.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Settings_WindowOpacity" xml:space="preserve">
+    <value>Opacité</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
+    <value>{0}. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Opacity_Changed" xml:space="preserve">
+    <value>Opacité définie sur {0:P0}.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Opacity_HighContrast" xml:space="preserve">
+    <value>Le mode Contraste élevé est activé, l'opacité est verrouillée à 100 %.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn" xml:space="preserve">
+    <value>Définir une opacité inférieure à 50 % peut réduire la lisibilité lorsque l'arrière-plan est complexe. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
+    <value>Avertissement de faible opacité</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Err_GamepadInitFail" xml:space="preserve">
+    <value>L'initialisation du contrôleur de manette de jeu a échoué. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_ApplyThemeRestart" xml:space="preserve">
+    <value>Appliquer le thème système (redémarrage requis)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
+    <value>Le thème du système a changé. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="App_ThemePending_Suffix" xml:space="preserve">
+    <value>🔄</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
+    <value>Accès au sous-menu {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
+    <value>Quitter le sous-menu {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_A11yInterrupt" xml:space="preserve">
+    <value>Annonces d'interruption</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
+    <value>Autoriser les annonces à interrompre la précédente. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_On" xml:space="preserve">
+    <value>Annonces d'interruption activées.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
+    <value>Annonces d'interruption désactivées. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
+    <value>Annonces d'interruption désactivées. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
+    <value>Annonces d'interruption désactivées. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
+    <value>Alertes visuelles animées</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
+    <value>Autoriser les alertes visuelles animées de 1 hertz. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
+    <value>Alertes visuelles animées activées.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
+    <value>Alertes visuelles animées désactivées. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn" xml:space="preserve">
+    <value>Réduire au retour</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
+    <value>Réduisez InputBox lorsque vous revenez à la fenêtre précédente.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
+    <value>Réduire au retour activé.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
+    <value>Réduire au retour désactivé.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
+    <value>InputBox se réduira lorsque vous reviendrez à la fenêtre précédente. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
+    <value>Réduire au retour</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>Aide</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Help_Desc" xml:space="preserve">
+    <value>Afficher les raccourcis clavier et les commandes de la manette de jeu (F1)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Title" xml:space="preserve">
+    <value>Aide — Raccourcis clavier et commandes de la manette de jeu</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Affiche les raccourcis clavier et les commandes de la manette de jeu. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Section_Keyboard" xml:space="preserve">
+    <value>Raccourcis clavier</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Section_Gamepad" xml:space="preserve">
+    <value>Commandes de la manette de jeu</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Col_Key" xml:space="preserve">
+    <value>Clé</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Col_Button" xml:space="preserve">
+    <value>Bouton</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Col_Action" xml:space="preserve">
+    <value>Action</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Btn_Close" xml:space="preserve">
+    <value>Fermer</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
+    <value>Tableau des raccourcis clavier</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
+    <value>Répertorie les raccourcis clavier disponibles et leurs actions.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
+    <value>Tableau des commandes de la manette de jeu</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
+    <value>Répertorie les boutons de manette de jeu disponibles et leurs actions.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Keyboard_Rows" xml:space="preserve">
+    <value>Esc     Effacer la saisie / Revenir à la fenêtre précédente (si vide)
+Entrée  Copier dans le Presse-papiers et revenir (ou ouvrir le clavier visuel)
+Alt + A Identique à Entrée
+Shift + Entrée  Insérer une nouvelle ligne
+F1      Ouvrir cette aide
+↑ / ↓   Parcourir l'historique
+← / →   Déplacer le curseur vers la gauche / droite
+Shift + ← / →   Sélectionner le texte
+Home / End      Aller au début / à la fin de la ligne
+Ctrl + ← / →    Déplacer le curseur mot par mot
+Backspace       Supprimer le caractère précédent ou la sélection
+Delete  Supprimer le caractère suivant
+Alt + B Revenir à la fenêtre précédente sans copier
+Alt + ↑ / ↓     Augmenter / diminuer l'opacité (±5 %)
+Alt + 0 Réinitialiser l'opacité de la fenêtre (100 %)
+Alt + P Basculer le mode confidentialité
+F10 / Alt + M   Ouvrir le menu des fonctionnalités
+Ctrl + M        Aller au champ de saisie
+{0}     Afficher / masquer Boîte de saisie (global)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Help_Gamepad_Rows" xml:space="preserve">
+    <value>A / Start       Confirmer et revenir (ou ouvrir le clavier visuel)
+B       Effacer le texte saisi
+LB + RB + B     Retour rapide à la fenêtre précédente
+Back (relâcher) Retour à la fenêtre précédente
+Y       Ouvrir le menu des fonctionnalités
+X       Retour arrière (supprimer caractère/sélection)
+LB + RB + X     Quitter l'application
+Back + X        Réinitialiser l'opacité de la fenêtre
+↑ / ↓   Parcourir l'historique
+← / →   Déplacer le curseur vers la gauche / droite
+LB + ← / →      Déplacer le curseur mot par mot
+RS ← / →        Étendre ou réduire la sélection
+Back + ↑ / ↓    Ajuster l'opacité de la fenêtre (±5 %)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_ContextMenu_Name" xml:space="preserve">
+    <value>Menu des fonctionnalités</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_ContextMenu_Desc" xml:space="preserve">
+    <value>Contient le mode de confidentialité, les paramètres de raccourci clavier, les paramètres avancés et d'autres fonctions d'application.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_Phrases" xml:space="preserve">
+    <value>Phrases</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_ManagePhrases" xml:space="preserve">
+    <value>Gérer les phrases…</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_ExportPhrases" xml:space="preserve">
+    <value>Exporter des phrases…</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_ImportPhrases" xml:space="preserve">
+    <value>Importer des phrases…</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
+    <value>L'importation remplacera toutes les {0} phrases existantes. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Success" xml:space="preserve">
+    <value>Phrase(s) {0} importée(s).</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error" xml:space="preserve">
+    <value>Échec de l'importation des expressions. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
+    <value>Échec de l'enregistrement des phrases importées sur le disque. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Success" xml:space="preserve">
+    <value>Phrase(s) {0} exportée(s).</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Error" xml:space="preserve">
+    <value>Échec de l'exportation des phrases. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
+    <value>Il n'y a aucune expression à exporter. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Phrases_Exported" xml:space="preserve">
+    <value>Phrase(s) {0} exportée(s).</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="A11y_Phrases_Imported" xml:space="preserve">
+    <value>Phrase(s) {0} importée(s).</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Menu_PhraseEmpty" xml:space="preserve">
+    <value>(Pas de phrases)</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Title" xml:space="preserve">
+    <value>Gestionnaire de phrases</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_Add" xml:space="preserve">
+    <value>Ajouter</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_Edit" xml:space="preserve">
+    <value>Modifier</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_Delete" xml:space="preserve">
+    <value>Supprimer</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_MoveUp" xml:space="preserve">
+    <value>Monter</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_MoveDown" xml:space="preserve">
+    <value>Descendre</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_Close" xml:space="preserve">
+    <value>Fermer</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_Confirm" xml:space="preserve">
+    <value>D'ACCORD</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Btn_Cancel" xml:space="preserve">
+    <value>Annuler</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Add" xml:space="preserve">
+    <value>Ajouter une phrase</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
+    <value>Modifier l'expression</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Edit_Name" xml:space="preserve">
+    <value>Nom:</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Edit_Content" xml:space="preserve">
+    <value>Contenu:</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Gérez les phrases : ajoutez, modifiez, supprimez et réorganisez. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_List_Name" xml:space="preserve">
+    <value>Liste d'expressions</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_List_Desc" xml:space="preserve">
+    <value>Sélectionnez une phrase et appuyez sur Entrée ou sur la manette de jeu A pour l'insérer dans la zone de saisie.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
+    <value>Actions d'expression</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
+    <value>Contient des boutons d’action pour les opérations sur les phrases.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
+    <value>Page précédente</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Next" xml:space="preserve">
+    <value>Page suivante</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Info" xml:space="preserve">
+    <value>Page {0} sur {1}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
+    <value>Ajoutez une nouvelle phrase. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
+    <value>Modifiez la phrase sélectionnée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
+    <value>Supprimez la phrase sélectionnée. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
+    <value>Déplace la phrase sélectionnée vers le haut. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
+    <value>Déplacez la phrase sélectionnée vers le bas. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
+    <value>Fermez le gestionnaire de phrases. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
+    <value>Confirmez et enregistrez la phrase. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
+    <value>Annuler l'édition. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
+    <value>Entrez un nom et un contenu pour la phrase. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
+    <value>Saisissez un nom d'affichage pour cette phrase (50 caractères maximum).</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
+    <value>Saisissez le contenu du texte à insérer (max 500 caractères). </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Selected" xml:space="preserve">
+    <value>Sélectionné : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Added" xml:space="preserve">
+    <value>Phrase ajoutée : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Updated" xml:space="preserve">
+    <value>Phrase mise à jour : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted" xml:space="preserve">
+    <value>Phrase supprimée : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Moved" xml:space="preserve">
+    <value>Déplacé à la position {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Full" xml:space="preserve">
+    <value>La liste de phrases est pleine. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted" xml:space="preserve">
+    <value>Phrase insérée : {0}</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
+    <value>Phrase sélectionnée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
+    <value>Phrase ajoutée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
+    <value>Phrase mise à jour.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
+    <value>Phrase supprimée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
+    <value>Phrase insérée.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_NameRequired" xml:space="preserve">
+    <value>Veuillez saisir un nom d'expression.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
+    <value>Veuillez saisir le contenu de la phrase.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
+    <value>Entrez le nom de l'expression...</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
+    <value>Saisissez le contenu de la phrase...</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>Oui</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>Non</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Abort" xml:space="preserve">
+    <value>Avorter</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>Réessayer</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="Btn_Ignore" xml:space="preserve">
+    <value>Ignorer</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
+    <value>Icône d'erreur.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
+    <value>Icône d'avertissement.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
+    <value>Icône d'informations.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
+    <value>Icône de questions.</value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
+    <value>Boîte de dialogue de messages. </value>
+    <comment>Traduction française.</comment>
+  </data>
+  <data name="GmBox_A11y_Hint" xml:space="preserve">
+    <value>A : {0} · B : {1}</value>
+    <comment>Traduction française.</comment>
+  </data>
+</root>

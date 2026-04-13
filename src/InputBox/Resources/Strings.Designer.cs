@@ -70,6 +70,24 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Interrupt announcements disabled. All messages will be announced in full. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_A11yInterrupt_Off1 {
+            get {
+                return ResourceManager.GetString("A11y_A11yInterrupt_Off1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Interrupt announcements disabled. All messages will be announced in full. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_A11yInterrupt_Off2 {
+            get {
+                return ResourceManager.GetString("A11y_A11yInterrupt_Off2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Interrupt announcements enabled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_A11yInterrupt_On {
@@ -403,7 +421,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press A or Start to open keyboard when empty, or copy and return when text is entered. Use X to backspace, D-pad to move cursor or history. Press Back to return. LB + RB + B to quick return. LB + RB + X to exit. Keyboard: Enter to copy/open, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
+        ///   查詢類似 Press A or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use X to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + B for quick return. Press LB + RB + X to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -763,7 +781,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 {0} Wake up hotkey: {1}. 的當地語系化字串。
+        ///   查詢類似 {0} Wake-up hotkey: {1}. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Startup_Status {
             get {
@@ -817,7 +835,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Enter Text 的當地語系化字串。
+        ///   查詢類似 Enter text 的當地語系化字串。
         /// </summary>
         internal static string A11y_TBInputName {
             get {
@@ -907,7 +925,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 InputBox 的當地語系化字串。
+        ///   查詢類似 Input Box 的當地語系化字串。
         /// </summary>
         internal static string App_Title {
             get {
@@ -1321,7 +1339,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Capture Key... 的當地語系化字串。
+        ///   查詢類似 Capture key... 的當地語系化字串。
         /// </summary>
         internal static string Menu_CaptureKey {
             get {
@@ -1402,7 +1420,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Configure the global hotkeys to wake up the input box. 的當地語系化字串。
+        ///   查詢類似 Configure global hotkeys that open InputBox. 的當地語系化字串。
         /// </summary>
         internal static string Menu_HotkeySettings_Desc {
             get {
@@ -1708,7 +1726,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Hotkey Updated 的當地語系化字串。
+        ///   查詢類似 Hotkey updated 的當地語系化字串。
         /// </summary>
         internal static string Msg_HotkeyUpdated {
             get {
