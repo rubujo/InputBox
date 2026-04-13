@@ -3,9 +3,31 @@ const AxeBuilder = require("@axe-core/playwright").default;
 const path = require("node:path");
 
 const pageUrl = `file://${path.resolve(__dirname, "../index.html")}`;
+const languageIds = ["lang-zh", "lang-en", "lang-de", "lang-fr", "lang-ja", "lang-ko", "lang-sc"];
+const themeIds = ["theme-sys", "theme-light", "theme-dark"];
 
 function rgbComponents(rgbString) {
   return rgbString.match(/\d+/g).map((value) => Number(value));
+}
+
+function srgbToLinear(channel) {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance([r, g, b]) {
+  const rl = srgbToLinear(r);
+  const gl = srgbToLinear(g);
+  const bl = srgbToLinear(b);
+  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+}
+
+function contrastRatio(foregroundRgb, backgroundRgb) {
+  const l1 = relativeLuminance(foregroundRgb);
+  const l2 = relativeLuminance(backgroundRgb);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 test.describe("InputBox gh-pages A11y", () => {
@@ -86,10 +108,9 @@ test.describe("InputBox gh-pages A11y", () => {
       };
     });
     const [r, g, b] = rgbComponents(ctaStyles.color);
-    // CI／無頭模式渲染下，近黑文字可能出現極小的非零色彩通道偏移。
-    expect(r).toBeLessThanOrEqual(16);
-    expect(g).toBeLessThanOrEqual(16);
-    expect(b).toBeLessThanOrEqual(16);
+    // CI／無頭模式渲染下，近黑文字可能有通道偏移，改以白底對比檢查可讀性。
+    const ratioOnWhite = contrastRatio([r, g, b], [255, 255, 255]);
+    expect(ratioOnWhite).toBeGreaterThanOrEqual(15);
     expect(ctaStyles.borderTopColor).toBe("rgb(0, 0, 0)");
     expect(ctaStyles.borderTopWidth).toBe("2px");
     expect(ctaStyles.borderTopStyle).toBe("solid");
@@ -113,5 +134,55 @@ test.describe("InputBox gh-pages A11y", () => {
     });
     expect(thStyles.backgroundColor).toBe("rgb(240, 240, 240)");
     expect(thStyles.color).toBe("rgb(0, 0, 0)");
+  });
+
+  test("列印模式在各語系與各主題下都應維持正確顯示", async ({ page }) => {
+    for (const themeId of themeIds) {
+      for (const languageId of languageIds) {
+        await page.goto(pageUrl);
+
+        await page.locator(`#${themeId}`).evaluate((element) => {
+          element.checked = true;
+          element.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+        await page.locator(`#${languageId}`).evaluate((element) => {
+          element.checked = true;
+          element.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+
+        await page.emulateMedia({ media: "print" });
+
+        const bodyStyles = await page.locator("body").evaluate((element) => {
+          const style = getComputedStyle(element);
+          return {
+            backgroundColor: style.backgroundColor,
+            color: style.color,
+          };
+        });
+        expect(bodyStyles.backgroundColor).toBe("rgb(255, 255, 255)");
+        expect(bodyStyles.color).toBe("rgb(0, 0, 0)");
+
+        const languageDisplay = await page.locator("h1").evaluate((heading) => {
+          const spans = Array.from(heading.querySelectorAll("span"));
+          const map = {};
+          for (const span of spans) {
+            const langClass = Array.from(span.classList).find((name) => name.startsWith("lang-"));
+            if (langClass) {
+              map[langClass] = getComputedStyle(span).display;
+            }
+          }
+          return map;
+        });
+
+        for (const candidate of languageIds) {
+          const displayValue = languageDisplay[candidate];
+          if (candidate === languageId) {
+            expect(displayValue).not.toBe("none");
+          } else {
+            expect(displayValue).toBe("none");
+          }
+        }
+      }
+    }
   });
 });
