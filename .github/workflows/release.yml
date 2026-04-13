@@ -218,7 +218,7 @@ jobs:
         Compress-Archive -Path $packDir -DestinationPath $zipName -CompressionLevel Optimal
 
     - name: 建立 GitHub Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         files: ${{ env.ZIP_FILENAME }}
         # 根據 Commit 與 PR 自動生成版本說明（Changelog）。
