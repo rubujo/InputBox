@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -835,40 +835,40 @@
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字 / 返回前一个窗口（已空时）
-  Enter	复制并返回前一个窗口（或打开键盘）
-  Alt + A	功能等同 Enter
-  Shift + Enter	换行
-  F1	打开帮助对话框
-  ↑ / ↓	浏览历史记录
-  ← / →	光标左移 / 右移
-  Shift + ← / →	选取文本
-  Home / End	光标跳至行首 / 行尾
-  Ctrl + ← / →	按单词跳转光标
-  Backspace	删除前一字符或选中内容
-  Delete	删除后一字符
-  Alt + B	返回前一个窗口（不复制）
-  Alt + ↑ / ↓	增加 / 减少窗口透明度（±5%）
-  Alt + 0	重置窗口透明度（100%）
-  Alt + P	切换隐私模式
-  F10 / Alt + M	打开功能菜单
-  Ctrl + M	跳至文本输入框
-  {0}	显示 / 隐藏输入框（全局）</value>
+Enter	复制并返回前一个窗口（或打开键盘）
+Alt + A	功能等同 Enter
+Shift + Enter	换行
+F1	打开帮助对话框
+↑ / ↓	浏览历史记录
+← / →	光标左移 / 右移
+Shift + ← / →	选取文本
+Home / End	光标跳至行首 / 行尾
+Ctrl + ← / →	按单词跳转光标
+Backspace	删除前一字符或选中内容
+Delete	删除后一字符
+Alt + B	返回前一个窗口（不复制）
+Alt + ↑ / ↓	增加 / 减少窗口透明度（±5%）
+Alt + 0	重置窗口透明度（100%）
+Alt + P	切换隐私模式
+F10 / Alt + M	打开功能菜单
+Ctrl + M	跳至文本输入框
+{0}	显示 / 隐藏输入框（全局）</value>
     <comment>帮助对话框中键盘快捷键表格的数据行，以 Tab 分隔列：按键{tab}功能，每行一条。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
     <value>A / Start	复制并返回前一个窗口（或打开键盘）
-  B	清除文字
-  LB + RB + B	快速返回前一个窗口
-  Back（松开）	返回前一个窗口
-  Y	打开功能菜单
-  X	退格（删除字符 / 选中内容）
-  LB + RB + X	退出程序
-  Back + X	重置窗口透明度
-  ↑ / ↓	浏览历史记录
-  ← / →	光标左移 / 右移
-  LB + ← / →	单词跳转
-  RS ← / →	扩大或缩小选取范围
-  Back + ↑ / ↓	调整窗口透明度（±5%）</value>
+B	清除文字
+LB + RB + B	快速返回前一个窗口
+Back（松开）	返回前一个窗口
+Y	打开功能菜单
+X	退格（删除字符 / 选中内容）
+LB + RB + X	退出程序
+Back + X	重置窗口透明度
+↑ / ↓	浏览历史记录
+← / →	光标左移 / 右移
+LB + ← / →	单词跳转
+RS ← / →	扩大或缩小选取范围
+Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">

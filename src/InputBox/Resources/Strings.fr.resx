@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -134,15 +134,15 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_State_Focused" xml:space="preserve">
-    <value>Concentré</value>
+    <value>Focalisé</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_State_Hover" xml:space="preserve">
-    <value>Survol</value>
+    <value>Survolé</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_State_Pressed" xml:space="preserve">
-    <value>Pressé</value>
+    <value>Enfoncé</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
@@ -182,7 +182,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Appuyez sur A ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide, ou copiez le texte et revenez lorsque le texte est saisi. </value>
+    <value>Appuyez sur A ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide. Si du texte est présent, le texte est copié puis vous revenez à la fenêtre précédente. Utilisez X pour supprimer en arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Appuyez sur Retour pour revenir. Appuyez sur LB + RB + B pour un retour rapide. Appuyez sur LB + RB + X pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -262,13 +262,13 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Err_ConfigInvalid" xml:space="preserve">
-    <value>Le format du fichier de configuration n'est pas valide. </value>
+    <value>Le format du fichier de configuration n'est pas valide. L'application démarrera avec les paramètres par défaut.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
     <value>Le raccourci clavier global {0} n'a pas pu être enregistré.
 
-</value>
+Vérifiez que plusieurs instances de cette application ne s'exécutent pas en même temps et qu'aucune autre application n'utilise déjà ce raccourci clavier.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
@@ -280,11 +280,11 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Menu_CaptureKey" xml:space="preserve">
-    <value>Clé de capture...</value>
+    <value>Capturer une touche...</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Menu_CaptureKey_Desc" xml:space="preserve">
-    <value>Commencez à capturer une nouvelle touche du clavier.</value>
+    <value>Commence la capture d'une nouvelle touche du clavier.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Menu_ClearHistory" xml:space="preserve">
@@ -320,11 +320,11 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Mod_Shift" xml:space="preserve">
-    <value>Changement</value>
+    <value>Maj</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Mod_Win" xml:space="preserve">
-    <value>Gagner</value>
+    <value>Win</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
@@ -344,7 +344,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
-    <value>Êtes-vous sûr de vouloir supprimer l'expression « {0} » ? </value>
+    <value>Voulez-vous vraiment supprimer la phrase « {0} » ? Cette action est irréversible.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
@@ -368,7 +368,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Delete_Multiple" xml:space="preserve">
-    <value>Caractères {0} supprimés.</value>
+    <value>{0} caractères supprimés.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_New_Line" xml:space="preserve">
@@ -376,11 +376,11 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
-    <value>L'enregistrement du raccourci clavier a échoué. </value>
+    <value>Échec de l'enregistrement du raccourci clavier. Retour au paramètre précédent.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Gamepad_Fallback" xml:space="preserve">
-    <value>L'initialisation de GameInput a échoué. </value>
+    <value>L'initialisation de GameInput a échoué. Basculement en mode de compatibilité XInput.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
@@ -492,7 +492,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
-    <value>Cette modification nécessite un redémarrage pour prendre effet. </value>
+    <value>Cette modification nécessite un redémarrage pour prendre effet. Redémarrer maintenant ?</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_EnterValue" xml:space="preserve">
@@ -500,7 +500,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Btn_OK" xml:space="preserve">
-    <value>D'ACCORD</value>
+    <value>OK</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Btn_Cancel" xml:space="preserve">
@@ -576,7 +576,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Checked" xml:space="preserve">
-    <value>À carreaux</value>
+    <value>Coché</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Unchecked" xml:space="preserve">
@@ -584,7 +584,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
-    <value>Clavier tactile d'ouverture.</value>
+    <value>Ouverture du clavier tactile.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="App_Privacy_Suffix" xml:space="preserve">
@@ -596,7 +596,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="App_Gamepad_XInput_Format" xml:space="preserve">
-    <value>XEntrée : {0}</value>
+    <value>XInput : {0}</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Background_Error" xml:space="preserve">
@@ -612,7 +612,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
-    <value>Ouvrez les paramètres avancés, notamment le comportement de la fenêtre, les commentaires et les options de la manette de jeu.</value>
+    <value>Ouvre les paramètres avancés, notamment le comportement de la fenêtre, le retour haptique et les options de manette.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
@@ -624,7 +624,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
-    <value>Configurez les zones mortes du contrôleur, la vitesse de répétition et le fournisseur d'API.</value>
+    <value>Configure les zones mortes de la manette, la vitesse de répétition et le fournisseur d'API.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
@@ -636,11 +636,11 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
-    <value>Utilisez l'API GameInput moderne de Microsoft. </value>
+    <value>Utilise l'API GameInput moderne de Microsoft. Recommandée pour les manettes récentes.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
-    <value>Utilisez l'ancienne API XInput. </value>
+    <value>Utilise l'ancienne API XInput. Idéale pour assurer la compatibilité avec les périphériques plus anciens.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Settings_RestartRequired" xml:space="preserve">
@@ -668,7 +668,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
-    <value>{0}. </value>
+    <value>{0}. Actuel : {1:P0}. Le minimum est de 10 %.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
@@ -680,7 +680,9 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn" xml:space="preserve">
-    <value>Définir une opacité inférieure à 50 % peut réduire la lisibilité lorsque l'arrière-plan est complexe. </value>
+    <value>Définir une opacité inférieure à 50 % peut réduire la lisibilité lorsque l'arrière-plan est complexe. En mode Contraste élevé, InputBox force toujours cette valeur à 100 %.
+
+Continuer ?</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
@@ -788,7 +790,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
-    <value>Affiche les raccourcis clavier et les commandes de la manette de jeu. </value>
+    <value>Affiche les raccourcis clavier et les commandes de la manette. Utilisez les touches fléchées, Page précédente, Page suivante ou la manette pour faire défiler, puis choisissez Fermer pour revenir.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
@@ -800,7 +802,7 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Help_Col_Key" xml:space="preserve">
-    <value>Clé</value>
+    <value>Touche</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Help_Col_Button" xml:space="preserve">
@@ -832,41 +834,41 @@
     <comment>Traduction française.</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
-    <value>Esc     Effacer la saisie / Revenir à la fenêtre précédente (si vide)
-Entrée  Copier dans le Presse-papiers et revenir (ou ouvrir le clavier visuel)
-Alt + A Identique à Entrée
-Shift + Entrée  Insérer une nouvelle ligne
-F1      Ouvrir cette aide
-↑ / ↓   Parcourir l'historique
-← / →   Déplacer le curseur vers la gauche / droite
-Shift + ← / →   Sélectionner le texte
-Home / End      Aller au début / à la fin de la ligne
-Ctrl + ← / →    Déplacer le curseur mot par mot
-Backspace       Supprimer le caractère précédent ou la sélection
-Delete  Supprimer le caractère suivant
-Alt + B Revenir à la fenêtre précédente sans copier
-Alt + ↑ / ↓     Augmenter / diminuer l'opacité (±5 %)
-Alt + 0 Réinitialiser l'opacité de la fenêtre (100 %)
-Alt + P Basculer le mode confidentialité
-F10 / Alt + M   Ouvrir le menu des fonctionnalités
-Ctrl + M        Aller au champ de saisie
-{0}     Afficher / masquer Boîte de saisie (global)</value>
+    <value>Esc	Effacer la saisie / Revenir à la fenêtre précédente (si vide)
+Entrée	Copier dans le Presse-papiers et revenir (ou ouvrir le clavier visuel)
+Alt + A	Identique à Entrée
+Shift + Entrée	Insérer une nouvelle ligne
+F1	Ouvrir cette aide
+↑ / ↓	Parcourir l'historique
+← / →	Déplacer le curseur vers la gauche / droite
+Shift + ← / →	Sélectionner le texte
+Origine / Fin	Aller au début / à la fin de la ligne
+Ctrl + ← / →	Déplacer le curseur mot par mot
+Retour arrière	Supprimer le caractère précédent ou la sélection
+Suppr	Supprimer le caractère suivant
+Alt + B	Revenir à la fenêtre précédente sans copier
+Alt + ↑ / ↓	Augmenter / diminuer l'opacité (±5 %)
+Alt + 0	Réinitialiser l'opacité de la fenêtre (100 %)
+Alt + P	Basculer le mode confidentialité
+F10 / Alt + M	Ouvrir le menu des fonctionnalités
+Ctrl + M	Aller au champ de saisie
+{0}	Afficher / masquer Boîte de saisie (global)</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A / Start       Confirmer et revenir (ou ouvrir le clavier visuel)
-B       Effacer le texte saisi
-LB + RB + B     Retour rapide à la fenêtre précédente
-Back (relâcher) Retour à la fenêtre précédente
-Y       Ouvrir le menu des fonctionnalités
-X       Retour arrière (supprimer caractère/sélection)
-LB + RB + X     Quitter l'application
-Back + X        Réinitialiser l'opacité de la fenêtre
-↑ / ↓   Parcourir l'historique
-← / →   Déplacer le curseur vers la gauche / droite
-LB + ← / →      Déplacer le curseur mot par mot
-RS ← / →        Étendre ou réduire la sélection
-Back + ↑ / ↓    Ajuster l'opacité de la fenêtre (±5 %)</value>
+    <value>A / Démarrer	Confirmer et revenir (ou ouvrir le clavier visuel)
+B	Effacer le texte saisi
+LB + RB + B	Retour rapide à la fenêtre précédente
+Retour (relâcher)	Revenir à la fenêtre précédente
+Y	Ouvrir le menu des fonctionnalités
+X	Retour arrière (supprimer caractère/sélection)
+LB + RB + X	Quitter l'application
+Retour + X	Réinitialiser l'opacité de la fenêtre
+↑ / ↓	Parcourir l'historique
+← / →	Déplacer le curseur vers la gauche / droite
+LB + ← / →	Déplacer le curseur mot par mot
+RS ← / →	Étendre ou réduire la sélection
+Retour + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">
@@ -962,7 +964,7 @@ Back + ↑ / ↓    Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_Btn_Confirm" xml:space="preserve">
-    <value>D'ACCORD</value>
+    <value>OK</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_Btn_Cancel" xml:space="preserve">
@@ -986,7 +988,7 @@ Back + ↑ / ↓    Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
-    <value>Gérez les phrases : ajoutez, modifiez, supprimez et réorganisez. </value>
+    <value>Gérez les phrases : ajoutez, modifiez, supprimez et réorganisez-les. Utilisez Y sur la manette pour ajouter, A pour insérer, X pour supprimer et Gauche/Droite pour réorganiser.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_List_Name" xml:space="preserve">
@@ -1018,39 +1020,39 @@ Back + ↑ / ↓    Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
-    <value>Ajoutez une nouvelle phrase. </value>
+    <value>Ajoute une nouvelle phrase. Manette : bouton Y.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
-    <value>Modifiez la phrase sélectionnée.</value>
+    <value>Modifie la phrase sélectionnée.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
-    <value>Supprimez la phrase sélectionnée. </value>
+    <value>Supprime la phrase sélectionnée. Manette : bouton X.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
-    <value>Déplace la phrase sélectionnée vers le haut. </value>
+    <value>Déplace la phrase sélectionnée vers le haut. Manette : croix directionnelle gauche.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
-    <value>Déplacez la phrase sélectionnée vers le bas. </value>
+    <value>Déplace la phrase sélectionnée vers le bas. Manette : croix directionnelle droite.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
-    <value>Fermez le gestionnaire de phrases. </value>
+    <value>Ferme le gestionnaire de phrases. Manette : bouton B.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
-    <value>Confirmez et enregistrez la phrase. </value>
+    <value>Confirme et enregistre la phrase. Manette : bouton A.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
-    <value>Annuler l'édition. </value>
+    <value>Annule la modification. Manette : bouton B.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
-    <value>Entrez un nom et un contenu pour la phrase. </value>
+    <value>Saisissez un nom et un contenu pour la phrase. Appuyez sur Entrée ou sur le bouton A de la manette pour confirmer.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
@@ -1058,7 +1060,7 @@ Back + ↑ / ↓    Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
-    <value>Saisissez le contenu du texte à insérer (max 500 caractères). </value>
+    <value>Saisissez le texte à insérer (500 caractères maximum). La saisie multiligne est prise en charge.</value>
     <comment>Traduction française.</comment>
   </data>
   <data name="Phrase_A11y_Selected" xml:space="preserve">
