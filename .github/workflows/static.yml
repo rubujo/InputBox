@@ -59,16 +59,8 @@ jobs:
       - name: 準備部署內容
         run: |
           mkdir -p _site
-          # 使用萬用字元排除所有點檔案、Markdown 規範與開發文件
-          rsync -av --progress ./ _site/ \
-            --exclude '.*' \
-            --exclude '*.md' \
-            --exclude 'docs/' \
-            --exclude 'tests/' \
-            --exclude 'package.json' \
-            --exclude 'package-lock.json' \
-            --exclude 'playwright.config.js' \
-            --exclude '_site/'
+          # 僅部署首頁檔案
+          cp index.html _site/index.html
 
           echo "--- 最終部署內容清單 ---"
           ls -R _site
