@@ -195,7 +195,10 @@
       /* 當單選鈕被鍵盤聚焦時，為對應的 Label 加入視覺回饋 */
       body:has(#lang-zh:focus-visible) .lang-switcher label[for="lang-zh"],
       body:has(#lang-en:focus-visible) .lang-switcher label[for="lang-en"],
+      body:has(#lang-de:focus-visible) .lang-switcher label[for="lang-de"],
+      body:has(#lang-fr:focus-visible) .lang-switcher label[for="lang-fr"],
       body:has(#lang-ja:focus-visible) .lang-switcher label[for="lang-ja"],
+      body:has(#lang-ko:focus-visible) .lang-switcher label[for="lang-ko"],
       body:has(#lang-sc:focus-visible) .lang-switcher label[for="lang-sc"] {
         outline: 5px solid var(--focus-ring);
         outline-offset: -4px;
@@ -206,7 +209,10 @@
 
     .lang-en,
     .lang-ja,
-    .lang-sc {
+    .lang-sc,
+    .lang-ko,
+    .lang-de,
+    .lang-fr {
       display: none;
     }
 
@@ -215,7 +221,13 @@
     }
 
     @supports selector(body:has(#lang-en:checked)) {
-      body:has(#lang-en:checked) .lang-zh {
+
+      body:has(#lang-en:checked) .lang-zh,
+      body:has(#lang-ja:checked) .lang-zh,
+      body:has(#lang-sc:checked) .lang-zh,
+      body:has(#lang-ko:checked) .lang-zh,
+      body:has(#lang-de:checked) .lang-zh,
+      body:has(#lang-fr:checked) .lang-zh {
         display: none;
       }
 
@@ -223,19 +235,23 @@
         display: inline-block;
       }
 
-      body:has(#lang-ja:checked) .lang-zh {
-        display: none;
-      }
-
       body:has(#lang-ja:checked) .lang-ja {
         display: inline-block;
       }
 
-      body:has(#lang-sc:checked) .lang-zh {
-        display: none;
+      body:has(#lang-sc:checked) .lang-sc {
+        display: inline-block;
       }
 
-      body:has(#lang-sc:checked) .lang-sc {
+      body:has(#lang-ko:checked) .lang-ko {
+        display: inline-block;
+      }
+
+      body:has(#lang-de:checked) .lang-de {
+        display: inline-block;
+      }
+
+      body:has(#lang-fr:checked) .lang-fr {
         display: inline-block;
       }
 
@@ -251,11 +267,23 @@
       body:has(#lang-sc:checked) .table-wrapper::after {
         content: "← 可横向滑动 →";
       }
+
+      body:has(#lang-ko:checked) .table-wrapper::after {
+        content: "← 좌우로 스크롤 →";
+      }
+
+      body:has(#lang-de:checked) .table-wrapper::after {
+        content: "← Seitlich scrollen →";
+      }
+
+      body:has(#lang-fr:checked) .table-wrapper::after {
+        content: "← Défilement horizontal →";
+      }
     }
 
     @supports not selector(body:has(#lang-en:checked)) {
 
-      /* 退化方案：不支援 :has 時仍可完整閱讀四語內容 */
+      /* 退化方案：不支援 :has 時仍可完整閱讀七語內容 */
       .lang-switcher {
         display: none;
       }
@@ -263,8 +291,20 @@
       .lang-zh,
       .lang-en,
       .lang-ja,
-      .lang-sc {
+      .lang-sc,
+      .lang-ko,
+      .lang-de,
+      .lang-fr {
         display: block;
+      }
+    }
+
+    /* iPhone SE 響應式布局 (≤544px) */
+    @media (max-width: 544px) {
+      .lang-switcher .lang-fieldset {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.25rem;
       }
     }
 
@@ -625,6 +665,12 @@
       gap: 0.5rem;
     }
 
+    .lang-switcher .language-switcher-fieldset {
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: 0;
+    }
+
     .lang-switcher label {
       cursor: pointer;
       padding: 0 0.75rem;
@@ -639,7 +685,10 @@
 
     #lang-zh:checked+label[for="lang-zh"],
     #lang-en:checked+label[for="lang-en"],
+    #lang-de:checked+label[for="lang-de"],
+    #lang-fr:checked+label[for="lang-fr"],
     #lang-ja:checked+label[for="lang-ja"],
+    #lang-ko:checked+label[for="lang-ko"],
     #lang-sc:checked+label[for="lang-sc"] {
       color: var(--link-color);
       border-bottom-color: var(--focus-ring);
@@ -775,7 +824,7 @@
       margin-bottom: 0;
     }
 
-    .quick-setup-card + .table-wrapper {
+    .quick-setup-card+.table-wrapper {
       margin-top: 1rem;
     }
 
@@ -1526,6 +1575,18 @@
         justify-content: center;
       }
 
+      .lang-switcher .language-switcher-fieldset {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.25rem;
+      }
+
+      .lang-switcher .language-switcher-fieldset label {
+        justify-content: center;
+        font-size: 0.85rem;
+        padding: 0.2rem 0.35rem;
+      }
+
       .lang-switcher .theme-switcher-fieldset {
         border-right: none;
         border-bottom: 1px solid var(--border-color);
@@ -1855,6 +1916,9 @@
     <span class="lang-en" lang="en">Skip Navigation, go to main content</span>
     <span class="lang-ja" lang="ja">ナビゲーションをスキップして、メインコンテンツへ</span>
     <span class="lang-sc" lang="zh-Hans">跳过导航，直接进入主要内容</span>
+    <span class="lang-de" lang="de">Navigation überspringen, zum Hauptinhalt wechseln</span>
+    <span class="lang-fr" lang="fr">Passer la navigation, aller au contenu principal</span>
+    <span class="lang-ko" lang="ko">탐색을 건너뛰고 본문으로 이동</span>
   </a> <a href="#top" class="back-to-top">
     <span class="arrow" aria-hidden="true">↑</span>
     <span class="text" aria-hidden="true">
@@ -1862,12 +1926,18 @@
       <span class="lang-en" lang="en">Top</span>
       <span class="lang-ja" lang="ja">トップ</span>
       <span class="lang-sc" lang="zh-Hans">顶部</span>
+      <span class="lang-de" lang="de">Oben</span>
+      <span class="lang-fr" lang="fr">Haut</span>
+      <span class="lang-ko" lang="ko">위</span>
     </span>
     <span class="visually-hidden">
       <span class="lang-zh">回到頂端</span>
       <span class="lang-en" lang="en">Back to Top</span>
       <span class="lang-ja" lang="ja">トップへ戻る</span>
       <span class="lang-sc" lang="zh-Hans">回到顶部</span>
+      <span class="lang-de" lang="de">Zum Seitenanfang</span>
+      <span class="lang-fr" lang="fr">Retour en haut de page</span>
+      <span class="lang-ko" lang="ko">맨 위로 돌아가기</span>
     </span>
   </a>
 
@@ -1877,6 +1947,9 @@
       <span class="lang-en" lang="en">Language Selection 🌐</span>
       <span class="lang-ja" lang="ja">言語切替 🌐</span>
       <span class="lang-sc" lang="zh-Hans">语言切换 🌐</span>
+      <span class="lang-de" lang="de">Sprachauswahl 🌐</span>
+      <span class="lang-fr" lang="fr">Sélection de la langue 🌐</span>
+      <span class="lang-ko" lang="ko">언어 선택 🌐</span>
     </span>
     <fieldset class="theme-switcher-fieldset">
       <legend class="visually-hidden">
@@ -1884,6 +1957,9 @@
         <span class="lang-en" lang="en">Color Theme</span>
         <span class="lang-ja" lang="ja">カラーテーマ</span>
         <span class="lang-sc" lang="zh-Hans">色彩主题</span>
+        <span class="lang-de" lang="de">Farbthema</span>
+        <span class="lang-fr" lang="fr">Thème de couleur</span>
+        <span class="lang-ko" lang="ko">색상 테마</span>
       </legend>
       <input type="radio" name="theme" id="theme-sys" checked class="lang-nav-hidden">
       <label for="theme-sys">
@@ -1893,6 +1969,9 @@
           <span class="lang-en" lang="en">Auto</span>
           <span class="lang-ja" lang="ja">自動</span>
           <span class="lang-sc" lang="zh-Hans">跟随系统</span>
+          <span class="lang-de" lang="de">Systemeinstellung</span>
+          <span class="lang-fr" lang="fr">Système</span>
+          <span class="lang-ko" lang="ko">시스템 설정</span>
         </span>
       </label>
       <input type="radio" name="theme" id="theme-light" class="lang-nav-hidden">
@@ -1903,6 +1982,9 @@
           <span class="lang-en" lang="en">Light</span>
           <span class="lang-ja" lang="ja">ライト</span>
           <span class="lang-sc" lang="zh-Hans">浅色模式</span>
+          <span class="lang-de" lang="de">Hell</span>
+          <span class="lang-fr" lang="fr">Clair</span>
+          <span class="lang-ko" lang="ko">밝은 모드</span>
         </span>
       </label>
       <input type="radio" name="theme" id="theme-dark" class="lang-nav-hidden">
@@ -1913,15 +1995,21 @@
           <span class="lang-en" lang="en">Dark</span>
           <span class="lang-ja" lang="ja">ダーク</span>
           <span class="lang-sc" lang="zh-Hans">深色模式</span>
+          <span class="lang-de" lang="de">Dunkel</span>
+          <span class="lang-fr" lang="fr">Sombre</span>
+          <span class="lang-ko" lang="ko">어두운 모드</span>
         </span>
       </label>
     </fieldset>
-    <fieldset>
+    <fieldset class="language-switcher-fieldset">
       <legend class="visually-hidden">
         <span class="lang-zh">選擇顯示語言</span>
         <span class="lang-en" lang="en">Select Display Language</span>
         <span class="lang-ja" lang="ja">表示言語を選択</span>
         <span class="lang-sc" lang="zh-Hans">选择显示语言</span>
+        <span class="lang-ko" lang="ko">표시 언어 선택</span>
+        <span class="lang-de" lang="de">Anzeigesprache wählen</span>
+        <span class="lang-fr" lang="fr">Choisir la langue d'affichage</span>
       </legend>
       <input type="radio" name="lang" id="lang-zh" checked class="lang-state lang-nav-hidden">
       <label for="lang-zh" id="label-lang-zh">
@@ -1935,10 +2023,28 @@
         <span class="visually-hidden lang-en"> (Current)</span>
       </label>
 
+      <input type="radio" name="lang" id="lang-de" class="lang-state lang-nav-hidden">
+      <label for="lang-de" lang="de" id="label-lang-de">
+        Deutsch
+        <span class="visually-hidden lang-de">（aktuelle Sprache）</span>
+      </label>
+
+      <input type="radio" name="lang" id="lang-fr" class="lang-state lang-nav-hidden">
+      <label for="lang-fr" lang="fr" id="label-lang-fr">
+        Français
+        <span class="visually-hidden lang-fr">（Langue actuelle）</span>
+      </label>
+
       <input type="radio" name="lang" id="lang-ja" class="lang-state lang-nav-hidden">
       <label for="lang-ja" lang="ja" id="label-lang-ja">
         日本語
         <span class="visually-hidden lang-ja">（現在の言語）</span>
+      </label>
+
+      <input type="radio" name="lang" id="lang-ko" class="lang-state lang-nav-hidden">
+      <label for="lang-ko" lang="ko" id="label-lang-ko">
+        한국어
+        <span class="visually-hidden lang-ko">（현재 언어）</span>
       </label>
 
       <input type="radio" name="lang" id="lang-sc" class="lang-state lang-nav-hidden">
@@ -1954,6 +2060,9 @@
       <span class="lang-en" lang="en">Header</span>
       <span class="lang-ja" lang="ja">ヘッダー</span>
       <span class="lang-sc" lang="zh-Hans">页首</span>
+      <span class="lang-de" lang="de">Kopfzeile</span>
+      <span class="lang-fr" lang="fr">En-tête</span>
+      <span class="lang-ko" lang="ko">헤더</span>
     </span>
     <div class="header-glow"></div>
     <div class="container">
@@ -1962,6 +2071,9 @@
         <span class="lang-en" lang="en">InputBox ⌨️</span>
         <span class="lang-ja" lang="ja">入力ボックス ⌨️</span>
         <span class="lang-sc" lang="zh-Hans">输入框 ⌨️</span>
+        <span class="lang-de" lang="de">Eingabefeld ⌨️</span>
+        <span class="lang-fr" lang="fr">Zone de saisie ⌨️</span>
+        <span class="lang-ko" lang="ko">입력 상자 ⌨️</span>
       </h1>
       <p class="desc">
         <span class="lang-zh">一款適用於 Windows 電競掌機的文字輸入輔助應用程式，用於改善在《FINAL FANTASY XIV
@@ -1973,6 +2085,14 @@
           繁体字中国語版』のゲーム環境において、特定の操作状況下で Windows タッチ キーボードによる中国語入力ができない問題を改善します。✨</span>
         <span class="lang-sc" lang="zh-Hans">一款适用于 Windows 电竞掌机的文字输入辅助应用程序，用于改善在《FINAL FANTASY XIV
           繁體中文版》游戏环境中，于特定操作情景下无法直接使用 Windows 触摸键盘输入中文的使用体验。✨</span>
+        <span class="lang-de" lang="de">Eine Eingabehilfe-Anwendung für Windows-Gaming-Handhelds, die das chinesische
+          Eingabeerlebnis über die Windows-Touch-Tastatur in FINAL FANTASY XIV (Traditionelles Chinesisch) in Szenarien
+          verbessert, in denen eine direkte Eingabe nicht möglich ist. ✨</span>
+        <span class="lang-fr" lang="fr">Application d'assistance à la saisie pour PC portables Windows, améliorant
+          l'expérience de saisie chinoise via le clavier tactile Windows dans FINAL FANTASY XIV (version chinois
+          traditionnel), dans les scénarios où la saisie directe est impossible. ✨</span>
+        <span class="lang-ko" lang="ko">Windows 게이밍 휴대용 PC를 위한 입력 보조 애플리케이션으로，직접 입력이 불가능한 상황에서 FINAL FANTASY XIV（번체 중국어
+          버전）의 Windows 터치 키보드를 통한 중국어 입력 경험을 개선합니다。✨</span>
       </p>
 
       <ul class="requirement-list">
@@ -1981,6 +2101,9 @@
           <span class="lang-en" lang="en">Requirements & Limitations 🛠️</span>
           <span class="lang-ja" lang="ja">必要条件と制限 🛠️</span>
           <span class="lang-sc" lang="zh-Hans">核心需求与环境限制 🛠️</span>
+          <span class="lang-de" lang="de">Anforderungen & Einschränkungen 🛠️</span>
+          <span class="lang-fr" lang="fr">Configuration requise & Limites 🛠️</span>
+          <span class="lang-ko" lang="ko">요구 사항 및 제한 🛠️</span>
         </li>
         <li>
           <span class="lang-zh">需配合 Windows 11 內建輸入法（微軟注音、微軟倉頡或速成）使用</span>
@@ -1988,12 +2111,20 @@
             Quick).</span>
           <span class="lang-ja" lang="ja">Windows 11 標準 IME（注音、倉頡、速成）と併用する必要があります。</span>
           <span class="lang-sc" lang="zh-Hans">需配合 Windows 11 内置输入法（微软注音、微软仓颉或速成）使用</span>
+          <span class="lang-de" lang="de">Erfordert Windows 11-Standard-IMEs (Microsoft Bopomofo, Changjie oder
+            Quick).</span>
+          <span class="lang-fr" lang="fr">Nécessite les IME intégrés de Windows 11 (Microsoft Bopomofo, Changjie ou
+            Quick).</span>
+          <span class="lang-ko" lang="ko">Windows 11 기본 제공 IME(Microsoft 주음, 창힐 또는 속성)가 필요합니다.</span>
         </li>
         <li>
           <span class="lang-zh">需開啟該輸入法之「遊戲控制器」鍵盤配置</span>
           <span class="lang-en" lang="en">Must enable the "Game Controller" keyboard layout in IME.</span>
           <span class="lang-ja" lang="ja">IME の「ゲーム コントローラー」キーボード レイアウトを有効にする必要があります。</span>
           <span class="lang-sc" lang="zh-Hans">需开启该输入法的「游戏控制器」键盘布局</span>
+          <span class="lang-de" lang="de">Erfordert die aktivierte Tastaturansicht „Gamecontroller" in der IME.</span>
+          <span class="lang-fr" lang="fr">Doit activer le layout clavier « Contrôleur de jeu » dans l'IME.</span>
+          <span class="lang-ko" lang="ko">IME에서 "게임 컨트롤러" 키보드 레이아웃을 활성화해야 합니다.</span>
         </li>
         <li>
           <span class="lang-zh">可用性取決於 Windows 11 版本與微軟的分階段功能推出進度</span>
@@ -2001,6 +2132,11 @@
             phased rollout.</span>
           <span class="lang-ja" lang="ja">可用性は Windows 11 のバージョンと Microsoft の段階的な機能展開の状況に依存します。</span>
           <span class="lang-sc" lang="zh-Hans">可用性取决于 Windows 11 版本与微软的分阶段功能推广进度</span>
+          <span class="lang-de" lang="de">Die Verfügbarkeit hängt von der Windows 11-Version und dem phasenweisen
+            Rollout von Microsoft ab.</span>
+          <span class="lang-fr" lang="fr">La disponibilité dépend de la version de Windows 11 et du déploiement
+            progressif de Microsoft.</span>
+          <span class="lang-ko" lang="ko">가용성은 Windows 11 버전과 Microsoft의 단계적 출시에 따라 다릅니다.</span>
         </li>
       </ul>
 
@@ -2011,6 +2147,9 @@
           <span class="lang-en" lang="en">Download Latest 🚀</span>
           <span class="lang-ja" lang="ja">最新版をダウンロード 🚀</span>
           <span class="lang-sc" lang="zh-Hans">下载最新版本 🚀</span>
+          <span class="lang-de" lang="de">Neueste Version herunterladen 🚀</span>
+          <span class="lang-fr" lang="fr">Télécharger la dernière version 🚀</span>
+          <span class="lang-ko" lang="ko">최신 버전 다운로드 🚀</span>
         </a>
         <a href="https://github.com/rubujo/InputBox" class="cta-button secondary" target="_blank"
           rel="noopener noreferrer">
@@ -2018,12 +2157,18 @@
           <span class="lang-en" lang="en">Source Code 💻</span>
           <span class="lang-ja" lang="ja">ソースコード 💻</span>
           <span class="lang-sc" lang="zh-Hans">取得源码 💻</span>
+          <span class="lang-de" lang="de">Quellcode 💻</span>
+          <span class="lang-fr" lang="fr">Code source 💻</span>
+          <span class="lang-ko" lang="ko">소스 코드 💻</span>
         </a>
         <span class="download-hint">
           <span class="lang-zh">獨立執行檔，無需安裝，解壓縮後即可執行</span>
           <span class="lang-en" lang="en">Portable executable, no installation required.</span>
           <span class="lang-ja" lang="ja">インストール不要、解凍するだけで実行可能なスタンドアロン形式です。</span>
           <span class="lang-sc" lang="zh-Hans">独立可执行文件，无需安装，解压缩后即可执行</span>
+          <span class="lang-de" lang="de">Portable ausführbare Datei, keine Installation erforderlich.</span>
+          <span class="lang-fr" lang="fr">Exécutable portable, aucune installation requise.</span>
+          <span class="lang-ko" lang="ko">이동식 실행 파일, 설치 불필요.</span>
         </span>
       </div>
     </div>
@@ -2035,6 +2180,9 @@
       <span class="lang-en" lang="en">Main Navigation</span>
       <span class="lang-ja" lang="ja">メインナビゲーション</span>
       <span class="lang-sc" lang="zh-Hans">主要导航链接</span>
+      <span class="lang-de" lang="de">Hauptnavigation</span>
+      <span class="lang-fr" lang="fr">Navigation principale</span>
+      <span class="lang-ko" lang="ko">주요 탐색</span>
     </span>
     <ul>
       <li><a href="#about" class="nav-default-active">
@@ -2042,36 +2190,54 @@
           <span class="lang-en" lang="en">Key Features ✨</span>
           <span class="lang-ja" lang="ja">主な特徴 ✨</span>
           <span class="lang-sc" lang="zh-Hans">功能特色 ✨</span>
+          <span class="lang-de" lang="de">Hauptfunktionen ✨</span>
+          <span class="lang-fr" lang="fr">Fonctionnalités clés ✨</span>
+          <span class="lang-ko" lang="ko">주요 기능 ✨</span>
         </a></li>
       <li><a href="#handheld">
           <span class="lang-zh">掌機最佳化方案 🎮</span>
           <span class="lang-en" lang="en">Handheld PC Optimization 🎮</span>
           <span class="lang-ja" lang="ja">携帯型 PC 最適化 🎮</span>
           <span class="lang-sc" lang="zh-Hans">掌机优化方案 🎮</span>
+          <span class="lang-de" lang="de">Handheld-PC-Optimierung 🎮</span>
+          <span class="lang-fr" lang="fr">Optimisation PC portable 🎮</span>
+          <span class="lang-ko" lang="ko">휴대용 PC 최적화 🎮</span>
         </a></li>
       <li><a href="#usage">
           <span class="lang-zh">快速操作 ⌨️</span>
           <span class="lang-en" lang="en">Quick Guide ⌨️</span>
           <span class="lang-ja" lang="ja">操作方法 ⌨️</span>
           <span class="lang-sc" lang="zh-Hans">快速操作 ⌨️</span>
+          <span class="lang-de" lang="de">Schnellanleitung ⌨️</span>
+          <span class="lang-fr" lang="fr">Guide rapide ⌨️</span>
+          <span class="lang-ko" lang="ko">빠른 가이드 ⌨️</span>
         </a></li>
       <li><a href="#spec">
           <span class="lang-zh">要求聲明 📋</span>
           <span class="lang-en" lang="en">Specifications 📋</span>
           <span class="lang-ja" lang="ja">動作要件 📋</span>
           <span class="lang-sc" lang="zh-Hans">运行要求 📋</span>
+          <span class="lang-de" lang="de">Spezifikationen 📋</span>
+          <span class="lang-fr" lang="fr">Spécifications 📋</span>
+          <span class="lang-ko" lang="ko">사양 📋</span>
         </a></li>
       <li><a href="#vibration">
           <span class="lang-zh">震動回饋說明 📳</span>
           <span class="lang-en" lang="en">Vibration Feedback 📳</span>
           <span class="lang-ja" lang="ja">振動フィードバック 📳</span>
           <span class="lang-sc" lang="zh-Hans">震动反馈说明 📳</span>
+          <span class="lang-de" lang="de">Vibrationsfeedback 📳</span>
+          <span class="lang-fr" lang="fr">Retour haptique 📳</span>
+          <span class="lang-ko" lang="ko">진동 피드백 📳</span>
         </a></li>
       <li><a href="#faq">
           <span class="lang-zh">常見問題與故障排除 🔍</span>
           <span class="lang-en" lang="en">FAQ & Troubleshooting 🔍</span>
           <span class="lang-ja" lang="ja">よくあるご質問とトラブルシューティング 🔍</span>
           <span class="lang-sc" lang="zh-Hans">常见问题与故障排除 🔍</span>
+          <span class="lang-de" lang="de">FAQ & Fehlerbehebung 🔍</span>
+          <span class="lang-fr" lang="fr">FAQ & Dépannage 🔍</span>
+          <span class="lang-ko" lang="ko">FAQ 및 문제 해결 🔍</span>
         </a></li>
     </ul>
   </nav>
@@ -2082,6 +2248,9 @@
       <span class="lang-en" lang="en">Main Content</span>
       <span class="lang-ja" lang="ja">メインコンテンツ</span>
       <span class="lang-sc" lang="zh-Hans">主要内容</span>
+      <span class="lang-de" lang="de">Hauptinhalt</span>
+      <span class="lang-fr" lang="fr">Contenu principal</span>
+      <span class="lang-ko" lang="ko">주요 콘텐츠</span>
     </span>
     <section id="about">
       <div class="container">
@@ -2090,6 +2259,9 @@
           <span class="lang-en" lang="en">Key Features ✨</span>
           <span class="lang-ja" lang="ja">主な特徴 ✨</span>
           <span class="lang-sc" lang="zh-Hans">功能特色 ✨</span>
+          <span class="lang-de" lang="de">Hauptfunktionen ✨</span>
+          <span class="lang-fr" lang="fr">Fonctionnalités clés ✨</span>
+          <span class="lang-ko" lang="ko">주요 기능 ✨</span>
         </h2>
 
         <div class="feature-grid">
@@ -2099,17 +2271,33 @@
               <span class="lang-en" lang="en">UI & Helper Mechanism 🧩</span>
               <span class="lang-ja" lang="ja">補助入力と UI 🧩</span>
               <span class="lang-sc" lang="zh-Hans">辅助输入与界面机制 🧩</span>
+              <span class="lang-de" lang="de">UI & Hilfsmechanismus 🧩</span>
+              <span class="lang-fr" lang="fr">Interface & mécanismes d'aide 🧩</span>
+              <span class="lang-ko" lang="ko">UI 및 보조 메커니즘 🧩</span>
             </h3>
             <p>
-              <span class="lang-zh">專為控制器設計的單一文字方塊介面，可一鍵喚醒系統觸控鍵盤。具備智慧邊界彈回機制，確保輸入框在拖曳或解析度變更下始終位於可視區域。支援不透明度調整（10% ~ 100%），低於 50% 時會顯示可讀性警告。</span>
+              <span class="lang-zh">專為控制器設計的單一文字方塊介面，可一鍵喚醒系統觸控鍵盤。具備智慧邊界彈回機制，確保輸入框在拖曳或解析度變更下始終位於可視區域。支援不透明度調整（10% ~
+                100%），低於 50% 時會顯示可讀性警告。</span>
               <span class="lang-en" lang="en">Dedicated text box interface for controllers. One-click
                 touch keyboard activation. Smart boundary mechanism ensures visibility during dragging
                 or resolution changes. Supports window opacity adjustment (10%–100%), with a
                 readability warning below 50%.</span>
               <span class="lang-ja"
-                lang="ja">コントローラー向けに設計された単一のテキストボックスインターフェース。解像度変更やドラッグ操作時でも、入力エリアが常に画面内に収まるよう自動調整されます。ウィンドウの不透明度を 10% ～ 100% で調整でき、50% 未満では可読性の警告が表示されます。</span>
+                lang="ja">コントローラー向けに設計された単一のテキストボックスインターフェース。解像度変更やドラッグ操作時でも、入力エリアが常に画面内に収まるよう自動調整されます。ウィンドウの不透明度を 10% ～
+                100% で調整でき、50% 未満では可読性の警告が表示されます。</span>
               <span class="lang-sc"
-                lang="zh-Hans">专为控制器设计的单一文字方块界面，可一键唤醒系统触控键盘。具备智慧边界弹回机制，确保输入框在拖曳或分辨率变更下始终位于可视区域。支持不透明度调整（10% ~ 100%），低于 50% 时会显示可读性警告。</span>
+                lang="zh-Hans">专为控制器设计的单一文字方块界面，可一键唤醒系统触控键盘。具备智慧边界弹回机制，确保输入框在拖曳或分辨率变更下始终位于可视区域。支持不透明度调整（10% ~ 100%），低于
+                50% 时会显示可读性警告。</span>
+              <span class="lang-de" lang="de">Dedizierte Texteingabe-Oberfläche für Controller.
+                Ein-Klick-Touch-Tastatur-Aktivierung. Intelligenter Grenzrahmen sorgt dafür, dass das Eingabefenster
+                beim Ziehen oder bei Auflösungsänderungen stets sichtbar bleibt. Unterstützt Transparenzanpassung
+                (10–100 %), mit Lesbarkeitswarnung unter 50 %.</span>
+              <span class="lang-fr" lang="fr">Interface de saisie dédiée aux contrôleurs. Activation du clavier tactile
+                en un clic. Mécanisme de bordure intelligent garantissant la visibilité lors du déplacement ou des
+                changements de résolution. Réglage de l'opacité (10–100 %), avec avertissement de lisibilité en dessous
+                de 50 %.</span>
+              <span class="lang-ko" lang="ko">컨트롤러를 위한 전용 텍스트 입력 인터페이스. 터치 키보드 원 클릭 활성화. 드래그나 해상도 변경 시에도 입력 창의 가시성을 유지하는
+                스마트 경계 메커니즘. 창 불투명도 조정 지원 (10~100%), 50% 미만 시 가독성 경고.</span>
             </p>
           </div>
 
@@ -2119,6 +2307,9 @@
               <span class="lang-en" lang="en">Controller Integration 🎮</span>
               <span class="lang-ja" lang="ja">コントローラーの統合 🎮</span>
               <span class="lang-sc" lang="zh-Hans">控制器深度整合 🎮</span>
+              <span class="lang-de" lang="de">Controller-Integration 🎮</span>
+              <span class="lang-fr" lang="fr">Intégration de manette 🎮</span>
+              <span class="lang-ko" lang="ko">컨트롤러 통합 🎮</span>
             </h3>
             <p>
               <span class="lang-zh">原生支援 XInput 與 GameInput
@@ -2130,6 +2321,12 @@
                 をネイティブサポートし、自動フォールバック機能を搭載。細やかな振動フィードバックと複数デバイスの自動切り替えに対応。</span>
               <span class="lang-sc" lang="zh-Hans">原生支持 XInput 与 GameInput
                 并具备自动退避机制。提供细腻震动反馈，并支持多设备自动侦测与切换，确保最佳兼容性。</span>
+              <span class="lang-de" lang="de">Nativer XInput- und GameInput-Support mit automatischem Fallback. Taktiles
+                Vibrationsfeedback und automatische Multi-Geräte-Umschaltung für maximale Kompatibilität.</span>
+              <span class="lang-fr" lang="fr">Support natif XInput et GameInput avec retour automatique. Retour haptique
+                et commutation automatique multi-appareils pour une compatibilité maximale.</span>
+              <span class="lang-ko" lang="ko">자동 폴백이 있는 네이티브 XInput 및 GameInput 지원. 촉각 진동 피드백 및 다중 장치 자동 전환으로 최대 호환성
+                보장.</span>
             </p>
           </div>
 
@@ -2139,6 +2336,9 @@
               <span class="lang-en" lang="en">Phrase Management 📝</span>
               <span class="lang-ja" lang="ja">定型文管理 📝</span>
               <span class="lang-sc" lang="zh-Hans">短语管理 📝</span>
+              <span class="lang-de" lang="de">Phrasen-Verwaltung 📝</span>
+              <span class="lang-fr" lang="fr">Gestion des phrases 📝</span>
+              <span class="lang-ko" lang="ko">구문 관리 📝</span>
             </h3>
             <p>
               <span class="lang-zh">可預先儲存常用文字片段，透過功能選單快速插入。支援最近使用項目置頂與分頁導覽，最多可儲存 50
@@ -2150,6 +2350,14 @@
                 件まで登録できます。JSON ファイルのエクスポート・インポートでデバイス間のバックアップと移行も簡単です。</span>
               <span class="lang-sc" lang="zh-Hans">可预先储存常用文字片段，透过功能菜单快速插入。支持最近使用项目置顶与分页导航，最多可储存 50
                 笔自定义短语。支持导出与导入 JSON 文件，方便跨设备备份与迁移。</span>
+              <span class="lang-de" lang="de">Vordefinierte Phrasen speichern und über das Menü einfügen. Unterstützt
+                MRU-Anheften und Paginierung, bis zu 50 benutzerdefinierte Phrasen. JSON-Export/-Import für einfache
+                Gerätesicherung und -übertragung.</span>
+              <span class="lang-fr" lang="fr">Enregistrez des phrases prédéfinies et insérez-les via le menu. Prise en
+                charge de l'ancrage MRU et de la pagination, jusqu'à 50 phrases personnalisées. Export et import JSON
+                pour une sauvegarde multi-appareils facile.</span>
+              <span class="lang-ko" lang="ko">구문을 미리 저장하고 메뉴를 통해 삽입. MRU 고정 및 페이징 지원, 최대 50개의 사용자 지정 구문. 쉬운 장치 간 백업 및
+                전송을 위한 JSON 내보내기/가져오기.</span>
             </p>
           </div>
 
@@ -2159,6 +2367,9 @@
               <span class="lang-en" lang="en">Security & Privacy 🛡️</span>
               <span class="lang-ja" lang="ja">安全とプライバシー 🛡️</span>
               <span class="lang-sc" lang="zh-Hans">安全与隐私模式 🛡️</span>
+              <span class="lang-de" lang="de">Sicherheit & Datenschutz 🛡️</span>
+              <span class="lang-fr" lang="fr">Sécurité & Confidentialité 🛡️</span>
+              <span class="lang-ko" lang="ko">보안 및 개인 정보 보호 🛡️</span>
             </h3>
             <p>
               <span class="lang-zh">遵循「不注入、不修改」原則。隱私模式開啟後會立即清空目前內容與歷程記錄，且無障礙廣播將自動改為隱私安全訊息，不朗讀實際文字，確保最高安全性。</span>
@@ -2169,6 +2380,14 @@
                 モード有効時は履歴を即座に消去し、読み上げ機能も入力内容を保護する安全なメッセージに切り替わります。</span>
               <span class="lang-sc"
                 lang="zh-Hans">遵循「不注入、不修改」原则。隐私模式开启后会立即清空目前内容与历史记录，且无障碍广播将自动改为隐私安全信息，不朗读实际文字，确保最高安全性。</span>
+              <span class="lang-de" lang="de">Folgt dem Prinzip „Kein Eingriff, keine Änderung". Der Datenschutzmodus
+                löscht sofort alle Inhalte und den Verlauf; Barrierefreiheits-Meldungen wechseln zu sicheren
+                Nachrichten, ohne den tatsächlichen Text vorzulesen.</span>
+              <span class="lang-fr" lang="fr">Suit les principes « Aucune injection, aucune modification ». Le mode
+                Confidentiel efface instantanément contenu et historique, tandis que les annonces d'accessibilité
+                basculent sur des messages sécurisés sans lire le texte réel.</span>
+              <span class="lang-ko" lang="ko">"비개입, 비수정" 원칙을 따릅니다. 개인 정보 보호 모드는 모든 콘텐츠와 기록을 즉시 지우며, 접근성 알림은 실제 텍스트를 읽지
+                않는 보안 메시지로 전환됩니다.</span>
             </p>
           </div>
 
@@ -2178,6 +2397,9 @@
               <span class="lang-en" lang="en">Global Hotkey & History Safety 🎹</span>
               <span class="lang-ja" lang="ja">グローバルホットキーと履歴保護 🎹</span>
               <span class="lang-sc" lang="zh-Hans">全局快捷键与历史保护 🎹</span>
+              <span class="lang-de" lang="de">Globaler Hotkey & Verlaufssicherheit 🎹</span>
+              <span class="lang-fr" lang="fr">Raccourci global & Sécurité historique 🎹</span>
+              <span class="lang-ko" lang="ko">전역 단축키 및 기록 안전 🎹</span>
             </h3>
             <p>
               <span class="lang-zh">支援全域快速鍵喚出與衝突自動回退。輸入歷程僅保留於記憶體，關閉程式即清除，降低殘留風險。</span>
@@ -2185,6 +2407,13 @@
                 history is memory-only and cleared when the app exits.</span>
               <span class="lang-ja" lang="ja">グローバルホットキー起動と競合時の自動フォールバックに対応。入力履歴はメモリ内のみに保持され、終了時に消去されます。</span>
               <span class="lang-sc" lang="zh-Hans">支持全局快捷键唤出与冲突自动回退。输入历史仅保留于内存中，关闭程序即清除，降低残留风险。</span>
+              <span class="lang-de" lang="de">Unterstützt globale Hotkey-Aktivierung mit automatischem
+                Konflikt-Fallback. Die Eingabehistorie ist ausschließlich im Speicher und wird beim Beenden der App
+                gelöscht.</span>
+              <span class="lang-fr" lang="fr">Prise en charge de l'activation par raccourci global avec retour
+                automatique en cas de conflit. L'historique de saisie est uniquement en mémoire et effacé à la fermeture
+                de l'application.</span>
+              <span class="lang-ko" lang="ko">자동 충돌 폴백이 있는 전역 단축키 호출 지원. 입력 기록은 메모리에만 보관되며 앱 종료 시 지워집니다.</span>
             </p>
           </div>
 
@@ -2194,6 +2423,9 @@
               <span class="lang-en" lang="en">Live Status & Single Instance 🔐</span>
               <span class="lang-ja" lang="ja">動的ステータスと単一起動保護 🔐</span>
               <span class="lang-sc" lang="zh-Hans">动态状态与单实例保护 🔐</span>
+              <span class="lang-de" lang="de">Live-Status & Einzelinstanzschutz 🔐</span>
+              <span class="lang-fr" lang="fr">Statut en temps réel & Instance unique 🔐</span>
+              <span class="lang-ko" lang="ko">실시간 상태 및 단일 인스턴스 🔐</span>
             </h3>
             <p>
               <span class="lang-zh">標題列會即時顯示控制器輸入 API 與裝置名稱。重複啟動時會自動喚醒既有視窗，避免多開造成焦點混亂。</span>
@@ -2202,6 +2434,14 @@
               <span class="lang-ja" lang="ja">タイトルバーに使用中の入力 API
                 とデバイス名をリアルタイム表示します。重複起動時は既存ウィンドウを自動的に呼び出し、多重起動によるフォーカス競合を防ぎます。</span>
               <span class="lang-sc" lang="zh-Hans">标题栏会实时显示当前控制器输入 API 与设备名称。重复启动时会自动唤醒既有窗口，避免多开造成焦点混乱。</span>
+              <span class="lang-de" lang="de">Die Titelleiste zeigt die aktive Controller-Eingabe-API und den
+                Gerätenamen in Echtzeit an. Ein erneutes Starten aktiviert das vorhandene Fenster, um Fokuskonflikte bei
+                mehreren Instanzen zu vermeiden.</span>
+              <span class="lang-fr" lang="fr">La barre de titre affiche en temps réel l'API de saisie et le nom du
+                périphérique actif. Un second lancement réactive la fenêtre existante afin d'éviter les conflits de
+                focus multi-instances.</span>
+              <span class="lang-ko" lang="ko">제목 표시줄은 활성 컨트롤러 입력 API와 장치 이름을 실시간으로 표시합니다. 다시 시작하면 기존 창을 활성화하여 다중 인스턴스
+                포커스 충돌을 방지합니다.</span>
             </p>
           </div>
         </div>
@@ -2215,6 +2455,9 @@
           <span class="lang-en" lang="en">Handheld PC Optimization 🎮</span>
           <span class="lang-ja" lang="ja">携帯型 PC 最適化 🎮</span>
           <span class="lang-sc" lang="zh-Hans">掌机优化方案 🎮</span>
+          <span class="lang-de" lang="de">Handheld-PC-Optimierung 🎮</span>
+          <span class="lang-fr" lang="fr">Optimisation PC portable 🎮</span>
+          <span class="lang-ko" lang="ko">휴대용 PC 최적화 🎮</span>
         </h2>
         <p>
           <span class="lang-zh">針對玩家在使用 Windows
@@ -2226,6 +2469,14 @@
             全画面エクスペリエンスにおいても、スムーズなチャット体験を提供します。</span>
           <span class="lang-sc" lang="zh-Hans">针对玩家在使用 Windows
             触摸键盘时，不论是在 Windows 桌面或是 Xbox 全屏体验下，常遇到无法正常输出或选取文字的痛点进行优化，让社交体验更加流畅。</span>
+          <span class="lang-de" lang="de">Optimiert, um Probleme zu lösen, bei denen die Windows-Touch-Tastatur
+            Texteingaben oder -markierungen nicht korrekt verarbeitet. Diese Anwendung sorgt für ein reibungsloses
+            Sozialerlebnis auf dem Windows-Desktop und in der Xbox-Vollbildoberfläche.</span>
+          <span class="lang-fr" lang="fr">Optimisé pour résoudre les problèmes où le clavier tactile Windows ne saisit
+            ou ne sélectionne pas correctement le texte sur le bureau Windows ou dans l'interface plein écran
+            Xbox.</span>
+          <span class="lang-ko" lang="ko">Windows 터치 키보드가 텍스트를 올바르게 입력하거나 선택하지 못하는 문제를 해결하도록 최적화. Windows 데스크톱과 Xbox 전체
+            화면 환경 모두에서 원활한 소셜 경험을 보장합니다.</span>
         </p>
 
         <div class="feature-grid">
@@ -2235,6 +2486,9 @@
               <span class="lang-en" lang="en">Back Buttons Mapping 🔗</span>
               <span class="lang-ja" lang="ja">背面ボタンとショートカット 🔗</span>
               <span class="lang-sc" lang="zh-Hans">背键与组合键对应 🔗</span>
+              <span class="lang-de" lang="de">Hintere Tasten belegen 🔗</span>
+              <span class="lang-fr" lang="fr">Mapping des touches arrière 🔗</span>
+              <span class="lang-ko" lang="ko">뒤 버튼 매핑 🔗</span>
             </h3>
             <p>
               <span class="lang-zh">建議透過掌機管理軟體將本應用程式的呼叫組合鍵對應至背鍵。實現遊戲中一鍵喚醒，無需連接實體鍵盤。</span>
@@ -2243,6 +2497,11 @@
               <span class="lang-ja" lang="ja">携帯型 PC
                 管理ソフトウェアを使用して、本アプリケーションの呼び出しショートカットを背面ボタンに割り當てることをお勧めします。</span>
               <span class="lang-sc" lang="zh-Hans">建议透过掌机管理软件将本应用程序的呼叫组合键对应至背键。实现游戏中一键唤醒，无需连接实体键盘。</span>
+              <span class="lang-de" lang="de">Weisen Sie den App-Aufrufbefehl über die Handheld-Verwaltungssoftware den
+                hinteren Tasten zu, um die App ohne externe Tastatur per Knopfdruck zu öffnen.</span>
+              <span class="lang-fr" lang="fr">Associez le raccourci de lancement aux touches arrière via le logiciel du
+                handheld pour une activation en un clic sans clavier.</span>
+              <span class="lang-ko" lang="ko">키보드 없이 한 번에 활성화하려면 휴대용 PC 관리 소프트웨어를 통해 앱 호출 단축키를 뒤 버튼에 매핑하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -2251,6 +2510,9 @@
               <span class="lang-en" lang="en">Use In-game Paste Feature ⚡</span>
               <span class="lang-ja" lang="ja">ゲーム内ペースト機能の活用 ⚡</span>
               <span class="lang-sc" lang="zh-Hans">善用游戏内置粘贴功能 ⚡</span>
+              <span class="lang-de" lang="de">Einfügen im Spiel verwenden ⚡</span>
+              <span class="lang-fr" lang="fr">Utiliser la fonction Coller du jeu ⚡</span>
+              <span class="lang-ko" lang="ko">게임 내 붙여넣기 기능 활용 ⚡</span>
             </h3>
             <p>
               <span class="lang-zh">本應用程式會自動將文字複製至剪貼簿。玩家返回《FINAL FANTASY XIV 繁體中文版》後，只需使用遊戲內建的控制器貼上組合鍵（LB
@@ -2264,6 +2526,14 @@
               <span class="lang-sc" lang="zh-Hans">本应用程序会自动将文字复制至剪贴簿。玩家返回《FINAL FANTASY XIV 繁体中文版》后，只需使用游戏内置的控制器粘贴组合键（LB
                 +
                 RB）即可快速完成输入。</span>
+              <span class="lang-de" lang="de">Die Anwendung kopiert Text automatisch in die Zwischenablage. In FINAL
+                FANTASY XIV (Traditionelles Chinesisch) können Spieler einfach den eingebauten Controller-Kurzbefehl des
+                Spiels (LB + RB) verwenden, um einzufügen und die Eingabe abzuschließen.</span>
+              <span class="lang-fr" lang="fr">L'application copie automatiquement le texte dans le presse-papiers. Dans
+                FINAL FANTASY XIV (version chinois traditionnel), utilisez simplement le raccourci manette intégré du
+                jeu (LB + RB) pour coller et terminer la saisie.</span>
+              <span class="lang-ko" lang="ko">애플리케이션은 텍스트를 자동으로 클립보드에 복사합니다. FINAL FANTASY XIV (번체 중국어 버전)로 돌아간 후 게임의 기본
+                컨트롤러 붙여넣기 단축키 (LB + RB)로 붙여넣고 입력을 완료합니다.</span>
             </p>
           </div>
         </div>
@@ -2277,6 +2547,9 @@
           <span class="lang-en" lang="en">Quick Guide ⌨️</span>
           <span class="lang-ja" lang="ja">操作方法 ⌨️</span>
           <span class="lang-sc" lang="zh-Hans">快速操作 ⌨️</span>
+          <span class="lang-de" lang="de">Schnellanleitung ⌨️</span>
+          <span class="lang-fr" lang="fr">Guide rapide ⌨️</span>
+          <span class="lang-ko" lang="ko">빠른 가이드 ⌨️</span>
         </h2>
 
         <div class="feature-card quick-setup-card">
@@ -2285,31 +2558,92 @@
             <span class="lang-en" lang="en">One-Minute Quick Setup</span>
             <span class="lang-ja" lang="ja">1分クイック設定ガイド</span>
             <span class="lang-sc" lang="zh-Hans">一分钟快速设置教程</span>
+            <span class="lang-de" lang="de">Einminütige Schnelleinrichtung</span>
+            <span class="lang-fr" lang="fr">Configuration rapide en une minute</span>
+            <span class="lang-ko" lang="ko">1분 빠른 설정 안내</span>
           </h3>
           <p>
-            <span class="lang-zh">如何在《FINAL FANTASY XIV 繁體中文版》遊戲中使用輸入框？輸入框不是自動代打工具，而是將「輸入」與「貼上」拆分為兩個步驟。您只需手動觸發每一步，整體流程清楚、直覺、容易上手。</span>
-            <span class="lang-en" lang="en">How do you use InputBox in FINAL FANTASY XIV (Traditional Chinese Version)? InputBox is not an auto-chat bot. It separates typing and pasting into two user-triggered steps, keeping the workflow clear and easy to follow.</span>
-            <span class="lang-ja" lang="ja">『FINAL FANTASY XIV 繁体字中国語版』で本アプリケーションを使うには？本アプリケーションは自動投稿ツールではなく、「入力」と「貼り付け」を分けた手動トリガー型の補助ツールです。各手順を順に実行するだけで、流れを把握しやすく、すぐ使い始められます。</span>
-            <span class="lang-sc" lang="zh-Hans">如何在《FINAL FANTASY XIV 繁体中文版》游戏中使用输入框？输入框不是自动代打工具，而是将“输入”和“粘贴”拆分为两个步骤。你只需手动触发每一步，整体流程清晰、直观、容易上手。</span>
+            <span class="lang-zh">如何在《FINAL FANTASY XIV
+              繁體中文版》遊戲中使用輸入框？輸入框不是自動代打工具，而是將「輸入」與「貼上」拆分為兩個步驟。您只需手動觸發每一步，整體流程清楚、直覺、容易上手。</span>
+            <span class="lang-en" lang="en">How do you use InputBox in FINAL FANTASY XIV (Traditional Chinese Version)?
+              InputBox is not an auto-chat bot. It separates typing and pasting into two user-triggered steps, keeping
+              the workflow clear and easy to follow.</span>
+            <span class="lang-ja" lang="ja">『FINAL FANTASY XIV
+              繁体字中国語版』で本アプリケーションを使うには？本アプリケーションは自動投稿ツールではなく、「入力」と「貼り付け」を分けた手動トリガー型の補助ツールです。各手順を順に実行するだけで、流れを把握しやすく、すぐ使い始められます。</span>
+            <span class="lang-sc" lang="zh-Hans">如何在《FINAL FANTASY XIV
+              繁体中文版》游戏中使用输入框？输入框不是自动代打工具，而是将“输入”和“粘贴”拆分为两个步骤。你只需手动触发每一步，整体流程清晰、直观、容易上手。</span>
+            <span class="lang-de" lang="de">Wie verwendet man Eingabefeld in FINAL FANTASY XIV (Traditionelles
+              Chinesisch)? Eingabefeld ist kein automatischer Chat-Bot. Es teilt Tippen und Einfügen in zwei manuell
+              ausgelöste Schritte auf, damit der Ablauf klar und leicht verständlich bleibt.</span>
+            <span class="lang-fr" lang="fr">Comment utiliser Zone de saisie dans FINAL FANTASY XIV (version chinois
+              traditionnel) ? Zone de saisie n’est pas un bot de chat automatique. Elle sépare la saisie et le collage
+              en deux étapes déclenchées manuellement, pour un flux de travail clair et facile à suivre.</span>
+            <span class="lang-ko" lang="ko">FINAL FANTASY XIV (번체 중국어 버전)에서 입력 상자를 어떻게 사용하나요? 입력 상자는 자동 채팅 봇이 아닙니다. 사용자가
+              각각 트리거하는 두 단계(입력과 붙여넣기)로 분리하여 작업 흐름을 명확하고 따라하기 쉽게 만듭니다.</span>
           </p>
           <ol class="quick-setup-list">
             <li>
-              <span class="lang-zh"><strong>步驟一：叫出輸入框。</strong>在遊戲中按下您在 Windows 掌機公用程式（例如 Armory Crate SE）中預先設定的呼叫組合鍵，即可快速切換到輸入框。（使用前請先啟動輸入框。）</span>
-              <span class="lang-en" lang="en"><strong>Step 1: Open InputBox.</strong> In-game, press the launcher shortcut you mapped in your Windows handheld utility (for example, Armory Crate SE) to switch to InputBox quickly. (Make sure InputBox is already running.)</span>
-              <span class="lang-ja" lang="ja"><strong>手順1：本アプリケーションを呼び出す。</strong>ゲーム内で、Windows 携帯型 PC 用ユーティリティ（例：Armory Crate SE）に事前設定した呼び出しショートカットを押すと、すばやく本アプリケーションに切り替えられます。（事前に本アプリケーションを起動してください。）</span>
-              <span class="lang-sc" lang="zh-Hans"><strong>步骤一：唤出输入框。</strong>在游戏中按下你在 Windows 掌机公用程序（例如 Armory Crate SE）中预先设置的呼叫组合键，即可快速切换到输入框。（使用前请先启动输入框。）</span>
+              <span class="lang-zh"><strong>步驟一：叫出輸入框。</strong>在遊戲中按下您在 Windows 掌機公用程式（例如 Armory Crate
+                SE）中預先設定的呼叫組合鍵，即可快速切換到輸入框。（使用前請先啟動輸入框。）</span>
+              <span class="lang-en" lang="en"><strong>Step 1: Open InputBox.</strong> In-game, press the launcher
+                shortcut you mapped in your Windows handheld utility (for example, Armory Crate SE) to switch to
+                InputBox quickly. (Make sure InputBox is already running.)</span>
+              <span class="lang-ja" lang="ja"><strong>手順1：本アプリケーションを呼び出す。</strong>ゲーム内で、Windows 携帯型 PC 用ユーティリティ（例：Armory
+                Crate SE）に事前設定した呼び出しショートカットを押すと、すばやく本アプリケーションに切り替えられます。（事前に本アプリケーションを起動してください。）</span>
+              <span class="lang-sc" lang="zh-Hans"><strong>步骤一：唤出输入框。</strong>在游戏中按下你在 Windows 掌机公用程序（例如 Armory Crate
+                SE）中预先设置的呼叫组合键，即可快速切换到输入框。（使用前请先启动输入框。）</span>
+              <span class="lang-de" lang="de"><strong>Schritt 1: Eingabefeld öffnen.</strong> Drücken Sie im Spiel die
+                Verknüpfung, die Sie in Ihrem Windows-Handheld-Dienstprogramm (z. B. Armory Crate SE) konfiguriert
+                haben, um schnell zu Eingabefeld zu wechseln. (Stellen Sie sicher, dass Eingabefeld bereits ausgeführt
+                wird.)</span>
+              <span class="lang-fr" lang="fr"><strong>Étape 1 : Ouvrir Zone de saisie.</strong> Pendant le jeu, appuyez
+                sur le raccourci configuré dans votre utilitaire Windows pour PC portable (par exemple, Armory Crate SE)
+                pour basculer rapidement vers Zone de saisie. (Assurez-vous que Zone de saisie est déjà en cours
+                d'exécution.)</span>
+              <span class="lang-ko" lang="ko"><strong>1단계：입력 상자 열기.</strong> 게임 중에 Windows 휴대용 PC 유틸리티(예: Armory Crate
+                SE)에서 설정한 실행 단축키를 눌러 입력 상자로 빠르게 전환합니다. (입력 상자가 이미 실행 중인지 확인하세요.)</span>
             </li>
             <li>
-              <span class="lang-zh"><strong>步驟二：輸入後按遊戲控制器的 A 鍵。</strong>使用 Windows 觸控式鍵盤完成輸入與選字後，先關閉 Windows 觸控式鍵盤，再按下遊戲控制器 A 鍵。系統會將文字複製到 Windows 剪貼簿，並返回前一個視窗。</span>
-              <span class="lang-en" lang="en"><strong>Step 2: Type, then press the controller A button.</strong> After typing and confirming text with the Windows touch keyboard, close the touch keyboard first, then press A. The text is copied to Windows clipboard and InputBox returns to the previous window.</span>
-              <span class="lang-ja" lang="ja"><strong>手順2：入力後にコントローラーの A ボタンを押す。</strong>Windows タッチ キーボードで入力と変換確定を終えたら、先にタッチ キーボードを閉じてから A ボタンを押します。文字列は Windows クリップボードへコピーされ、前のウィンドウへ戻ります。</span>
-              <span class="lang-sc" lang="zh-Hans"><strong>步骤二：输入后按游戏控制器 A 键。</strong>使用 Windows 触摸键盘完成输入与选字后，先关闭 Windows 触摸键盘，再按下游戏控制器 A 键。系统会将文字复制到 Windows 剪贴板，并返回前一个窗口。</span>
+              <span class="lang-zh"><strong>步驟二：輸入後按遊戲控制器的 A 鍵。</strong>使用 Windows 觸控式鍵盤完成輸入與選字後，先關閉 Windows
+                觸控式鍵盤，再按下遊戲控制器 A 鍵。系統會將文字複製到 Windows 剪貼簿，並返回前一個視窗。</span>
+              <span class="lang-en" lang="en"><strong>Step 2: Type, then press the controller A button.</strong> After
+                typing and confirming text with the Windows touch keyboard, close the touch keyboard first, then press
+                A. The text is copied to Windows clipboard and InputBox returns to the previous window.</span>
+              <span class="lang-ja" lang="ja"><strong>手順2：入力後にコントローラーの A ボタンを押す。</strong>Windows タッチ
+                キーボードで入力と変換確定を終えたら、先にタッチ キーボードを閉じてから A ボタンを押します。文字列は Windows クリップボードへコピーされ、前のウィンドウへ戻ります。</span>
+              <span class="lang-sc" lang="zh-Hans"><strong>步骤二：输入后按游戏控制器 A 键。</strong>使用 Windows 触摸键盘完成输入与选字后，先关闭
+                Windows 触摸键盘，再按下游戏控制器 A 键。系统会将文字复制到 Windows 剪贴板，并返回前一个窗口。</span>
+              <span class="lang-de" lang="de"><strong>Schritt 2: Tippen, dann A-Taste drücken.</strong> Nach der
+                Texteingabe und -bestätigung mit der Windows-Touch-Tastatur schließen Sie zunächst die Touch-Tastatur,
+                dann drücken Sie A. Der Text wird in die Windows-Zwischenablage kopiert und Eingabefeld kehrt zum
+                vorherigen Fenster zurück.</span>
+              <span class="lang-fr" lang="fr"><strong>Étape 2 : Saisir, puis appuyer sur le bouton A.</strong> Après
+                avoir saisi et confirmé le texte avec le clavier tactile Windows, fermez d'abord le clavier tactile,
+                puis appuyez sur A. Le texte est copié dans le presse-papiers Windows et Zone de saisie retourne à la
+                fenêtre précédente.</span>
+              <span class="lang-ko" lang="ko"><strong>2단계：입력 후 컨트롤러 A 버튼 누르기.</strong> Windows 터치 키보드로 텍스트를 입력하고 확인한 후
+                터치 키보드를 먼저 닫고 A를 누릅니다. 텍스트가 Windows 클립보드에 복사되고 입력 상자는 이전 창으로 돌아갑니다.</span>
             </li>
             <li>
-              <span class="lang-zh"><strong>步驟三：在遊戲中按貼上組合鍵。</strong>回到《FINAL FANTASY XIV 繁體中文版》遊戲後，在遊戲內的聊天輸入框按下遊戲中預設的貼上組合鍵（需先於遊戲設定中啟用），貼上剛才複製的文字，最後送出即可。</span>
-              <span class="lang-en" lang="en"><strong>Step 3: Use the in-game paste shortcut.</strong> Back in FINAL FANTASY XIV (Traditional Chinese Version), open the chat input field and press the game's default paste shortcut (enable it in game settings first) to paste your copied text, then send it.</span>
-              <span class="lang-ja" lang="ja"><strong>手順3：ゲーム内で貼り付けショートカットを押す。</strong>『FINAL FANTASY XIV 繁体字中国語版』に戻ったら、チャット入力欄でゲーム標準のコントローラー用ペーストショートカット（事前にゲーム設定で有効化）を押し、コピーした文字を貼り付けて送信します。</span>
-              <span class="lang-sc" lang="zh-Hans"><strong>步骤三：在游戏中按粘贴组合键。</strong>回到《FINAL FANTASY XIV 繁体中文版》游戏后，在游戏内的聊天输入框按下游戏默认的粘贴组合键（需先在游戏设置中启用），粘贴刚才复制的文字，最后送出即可。</span>
+              <span class="lang-zh"><strong>步驟三：在遊戲中按貼上組合鍵。</strong>回到《FINAL FANTASY XIV
+                繁體中文版》遊戲後，在遊戲內的聊天輸入框按下遊戲中預設的貼上組合鍵（需先於遊戲設定中啟用），貼上剛才複製的文字，最後送出即可。</span>
+              <span class="lang-en" lang="en"><strong>Step 3: Use the in-game paste shortcut.</strong> Back in FINAL
+                FANTASY XIV (Traditional Chinese Version), open the chat input field and press the game's default paste
+                shortcut (enable it in game settings first) to paste your copied text, then send it.</span>
+              <span class="lang-ja" lang="ja"><strong>手順3：ゲーム内で貼り付けショートカットを押す。</strong>『FINAL FANTASY XIV
+                繁体字中国語版』に戻ったら、チャット入力欄でゲーム標準のコントローラー用ペーストショートカット（事前にゲーム設定で有効化）を押し、コピーした文字を貼り付けて送信します。</span>
+              <span class="lang-sc" lang="zh-Hans"><strong>步骤三：在游戏中按粘贴组合键。</strong>回到《FINAL FANTASY XIV
+                繁体中文版》游戏后，在游戏内的聊天输入框按下游戏默认的粘贴组合键（需先在游戏设置中启用），粘贴刚才复制的文字，最后送出即可。</span>
+              <span class="lang-de" lang="de"><strong>Schritt 3: Einfügebefehl im Spiel verwenden.</strong> Zurück in
+                FINAL FANTASY XIV (Traditionelles Chinesisch): Öffnen Sie das Chat-Eingabefeld und drücken Sie den
+                vorher in den Spieleinstellungen aktivierten Standard-Einfügebefehl, um den kopierten Text einzufügen
+                und zu senden.</span>
+              <span class="lang-fr" lang="fr"><strong>Étape 3 : Utiliser le raccourci Coller en jeu.</strong> De retour
+                dans FINAL FANTASY XIV (version chinois traditionnel), ouvrez le champ de saisie du chat et appuyez sur
+                le raccourci Coller par défaut du jeu (à activer d'abord dans les paramètres) pour coller votre texte,
+                puis envoyez-le.</span>
+              <span class="lang-ko" lang="ko"><strong>3단계：게임 내 붙여넣기 단축키 사용.</strong> FINAL FANTASY XIV (번체 중국어 버전)로 돌아간
+                후 채팅 입력 필드를 열고 게임의 기본 붙여넣기 단축키(게임 설정에서 먼저 활성화)를 눌러 복사한 텍스트를 붙여넣고 전송합니다.</span>
             </li>
           </ol>
         </div>
@@ -2323,18 +2657,27 @@
                   <span class="lang-en" lang="en">Action</span>
                   <span class="lang-ja" lang="ja">項目</span>
                   <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                 </th>
                 <th scope="col">
                   <span class="lang-zh">遊戲控制器 🎮</span>
                   <span class="lang-en" lang="en">Controller 🎮</span>
                   <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                   <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                  <span class="lang-de" lang="de">Controller 🎮</span>
+                  <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                  <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                 </th>
                 <th scope="col">
                   <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                   <span class="lang-en" lang="en">Keyboard ⌨️</span>
                   <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                   <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                 </th>
               </tr>
             </thead>
@@ -2347,22 +2690,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">切換隱私模式</span>
                   <span class="lang-en" lang="en">Toggle Privacy Mode</span>
                   <span class="lang-ja" lang="ja">プライバシーモード切替</span>
                   <span class="lang-sc" lang="zh-Hans">切换隐私模式</span>
+                  <span class="lang-de" lang="de">Datenschutzmodus umschalten</span>
+                  <span class="lang-fr" lang="fr">Activer/Désactiver le mode Confidentiel</span>
+                  <span class="lang-ko" lang="ko">개인 정보 보호 모드 전환</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh">於智慧功能選單切換</span>
                   <span class="lang-en" lang="en">Toggle in Smart Menu</span>
                   <span class="lang-ja" lang="ja">スマートメニューで切替</span>
                   <span class="lang-sc" lang="zh-Hans">在智能功能菜单中切换</span>
+                  <span class="lang-de" lang="de">Im Smart-Menü umschalten</span>
+                  <span class="lang-fr" lang="fr">Basculer dans le menu intelligent</span>
+                  <span class="lang-ko" lang="ko">스마트 메뉴에서 전환</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2371,10 +2729,16 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Alt</kbd> + <kbd>P</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>P</kbd></span>
                   <span class="lang-ja" lang="ja"><kbd>Alt</kbd> + <kbd>P</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> + <kbd>P</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Alt</kbd> + <kbd>P</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Alt</kbd> + <kbd>P</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Alt</kbd> + <kbd>P</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2385,17 +2749,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">歷程瀏覽／快速定位</span>
                   <span class="lang-en" lang="en">History Browse / Quick Position</span>
                   <span class="lang-ja" lang="ja">履歴参照／高速移動</span>
                   <span class="lang-sc" lang="zh-Hans">历史浏览／快速定位</span>
+                  <span class="lang-de" lang="de">Verlauf / Schnellpositionierung</span>
+                  <span class="lang-fr" lang="fr">Historique / Position rapide</span>
+                  <span class="lang-ko" lang="ko">기록 탐색 / 빠른 위치</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 或 <span class="xbox-btn xbox-stick">L</span> 左搖桿（歷程）<br><span
@@ -2411,6 +2787,18 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 或 <span class="xbox-btn xbox-stick">L</span> 左摇杆（历史）<br><span
                       class="xbox-btn xbox-dpad">←</span>／<span class="xbox-btn xbox-dpad">→</span>（光标）</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> oder <span class="xbox-btn xbox-stick">L</span> Linker Stick
+                    (Verlauf)<br><span class="xbox-btn xbox-dpad">←</span>/<span class="xbox-btn xbox-dpad">→</span>
+                    (Cursor)</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> ou <span class="xbox-btn xbox-stick">L</span> Stick gauche
+                    (historique)<br><span class="xbox-btn xbox-dpad">←</span>/<span class="xbox-btn xbox-dpad">→</span>
+                    (curseur)</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 또는 <span class="xbox-btn xbox-stick">L</span> 왼쪽 스틱
+                    (기록)<br><span class="xbox-btn xbox-dpad">←</span>/<span class="xbox-btn xbox-dpad">→</span>
+                    (커서)</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2419,6 +2807,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>↑</kbd>／<kbd>↓</kbd> 或
                     滑鼠滾輪（歷程）<br><kbd>Home</kbd>／<kbd>End</kbd>（行首／行尾）</span>
                   <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> or mouse wheel
@@ -2427,6 +2818,12 @@
                     またはマウスホイール（履歴）<br><kbd>Home</kbd>／<kbd>End</kbd>（行頭／行末）</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>↑</kbd>／<kbd>↓</kbd>
                     或鼠标滚轮（历史）<br><kbd>Home</kbd>／<kbd>End</kbd>（行首／行尾）</span>
+                  <span class="lang-de" lang="de"><kbd>↑</kbd>/<kbd>↓</kbd> oder Mausrad
+                    (Verlauf)<br><kbd>Home</kbd>/<kbd>End</kbd> (Zeilenanfang/-ende)</span>
+                  <span class="lang-fr" lang="fr"><kbd>↑</kbd>/<kbd>↓</kbd> ou molette de souris
+                    (historique)<br><kbd>Home</kbd>/<kbd>End</kbd> (début/fin de ligne)</span>
+                  <span class="lang-ko" lang="ko"><kbd>↑</kbd>/<kbd>↓</kbd> 또는 마우스 휠
+                    (기록)<br><kbd>Home</kbd>/<kbd>End</kbd> (줄 시작/끝)</span>
                 </td>
               </tr>
               <tr>
@@ -2437,22 +2834,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">說明／聚焦輸入框</span>
                   <span class="lang-en" lang="en">Help / Focus Input</span>
                   <span class="lang-ja" lang="ja">ヘルプ／入力欄フォーカス</span>
                   <span class="lang-sc" lang="zh-Hans">说明／聚焦输入框</span>
+                  <span class="lang-de" lang="de">Hilfe / Eingabe fokussieren</span>
+                  <span class="lang-fr" lang="fr">Aide / Mise en focus de la saisie</span>
+                  <span class="lang-ko" lang="ko">도움말 / 입력 포커스</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh">於智慧功能選單選擇「說明」</span>
                   <span class="lang-en" lang="en">Select "Help" in Smart Menu</span>
                   <span class="lang-ja" lang="ja">スマートメニューで「ヘルプ」を選択</span>
                   <span class="lang-sc" lang="zh-Hans">在智能功能菜单中选择「说明」</span>
+                  <span class="lang-de" lang="de">„Hilfe" im Smart-Menü auswählen</span>
+                  <span class="lang-fr" lang="fr">Sélectionner « Aide » dans le menu intelligent</span>
+                  <span class="lang-ko" lang="ko">스마트 메뉴에서 "도움말" 선택</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2461,10 +2873,17 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>F1</kbd>（說明）／<kbd>Ctrl</kbd> + <kbd>M</kbd>（聚焦）</span>
                   <span class="lang-en" lang="en"><kbd>F1</kbd> (help) / <kbd>Ctrl</kbd> + <kbd>M</kbd> (focus)</span>
                   <span class="lang-ja" lang="ja"><kbd>F1</kbd>（ヘルプ）／<kbd>Ctrl</kbd> + <kbd>M</kbd>（フォーカス）</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>F1</kbd>（说明）／<kbd>Ctrl</kbd> + <kbd>M</kbd>（聚焦）</span>
+                  <span class="lang-de" lang="de"><kbd>F1</kbd> (Hilfe) / <kbd>Ctrl</kbd> + <kbd>M</kbd> (Fokus)</span>
+                  <span class="lang-fr" lang="fr"><kbd>F1</kbd> (aide) / <kbd>Ctrl</kbd> + <kbd>M</kbd> (mise en
+                    focus)</span>
+                  <span class="lang-ko" lang="ko"><kbd>F1</kbd> (도움말) / <kbd>Ctrl</kbd> + <kbd>M</kbd> (포커스)</span>
                 </td>
               </tr>
               <tr>
@@ -2475,17 +2894,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">喚醒應用程式</span>
                   <span class="lang-en" lang="en">Call Application</span>
                   <span class="lang-ja" lang="ja">アプリ呼び出し</span>
                   <span class="lang-sc" lang="zh-Hans">唤醒应用程序</span>
+                  <span class="lang-de" lang="de">App aufrufen</span>
+                  <span class="lang-fr" lang="fr">Lancer l'application</span>
+                  <span class="lang-ko" lang="ko">앱 호출</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-pill">M</span> 背鍵／<span
                       class="xbox-btn xbox-pill">Custom</span> 鍵</span>
@@ -2495,6 +2926,12 @@
                       class="xbox-btn xbox-pill">Custom</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill">M</span> 背键／<span
                       class="xbox-btn xbox-pill">Custom</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-pill">M</span> Taste Zurück / <span
+                      class="xbox-btn xbox-pill">Custom</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> / Touche
+                    <span class="xbox-btn xbox-pill">Custom</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-pill">M</span> Back 버튼 / <span
+                      class="xbox-btn xbox-pill">Custom</span> 키</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2503,6 +2940,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
                     <kbd>Shift</kbd> + <kbd>I</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd>
@@ -2511,6 +2951,12 @@
                     <kbd>Shift</kbd> + <kbd>I</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
                     <kbd>Shift</kbd> + <kbd>I</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+                    <kbd>I</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+                    <kbd>I</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+                    <kbd>I</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2521,17 +2967,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">確認並複製</span>
                   <span class="lang-en" lang="en">Confirm & Copy</span>
                   <span class="lang-ja" lang="ja">確定・コピー</span>
                   <span class="lang-sc" lang="zh-Hans">确认并复制</span>
+                  <span class="lang-de" lang="de">Bestätigen & Kopieren</span>
+                  <span class="lang-fr" lang="fr">Confirmer et copier</span>
+                  <span class="lang-ko" lang="ko">확인 및 복사</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-round xbox-a">A</span> 鍵／<span
                       class="xbox-btn xbox-pill xbox-start">Start</span> 鍵</span>
@@ -2541,6 +2999,12 @@
                       class="xbox-btn xbox-pill xbox-start">Start</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-a">A</span> 键／<span
                       class="xbox-btn xbox-pill xbox-start">Start</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-round xbox-a">A</span>-Taste / <span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-round xbox-a">A</span> / Bouton
+                    <span class="xbox-btn xbox-pill xbox-start">Start</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-round xbox-a">A</span> 버튼 / <span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2549,6 +3013,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Enter</kbd>／<kbd>Alt</kbd> +
                     <kbd>A</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> / <kbd>Alt</kbd> +
@@ -2557,6 +3024,9 @@
                     <kbd>A</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd>／<kbd>Alt</kbd> +
                     <kbd>A</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Enter</kbd> / <kbd>Alt</kbd> + <kbd>A</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Enter</kbd> / <kbd>Alt</kbd> + <kbd>A</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Enter</kbd> / <kbd>Alt</kbd> + <kbd>A</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2567,22 +3037,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">清除文字框</span>
                   <span class="lang-en" lang="en">Clear Input Box</span>
                   <span class="lang-ja" lang="ja">入力欄をクリア</span>
                   <span class="lang-sc" lang="zh-Hans">清除文字框</span>
+                  <span class="lang-de" lang="de">Eingabefeld leeren</span>
+                  <span class="lang-fr" lang="fr">Effacer la saisie</span>
+                  <span class="lang-ko" lang="ko">입력 상자 지우기</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-round xbox-b">B</span> 鍵</span>
                   <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-b">B</span> Button</span>
                   <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-b">B</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-b">B</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-round xbox-b">B</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-round xbox-b">B</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-round xbox-b">B</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2591,10 +3076,16 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Esc</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Esc</kbd></span>
                   <span class="lang-ja" lang="ja"><kbd>Esc</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Esc</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Esc</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Esc</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Esc</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2605,22 +3096,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">刪除單一字元</span>
                   <span class="lang-en" lang="en">Delete Character</span>
                   <span class="lang-ja" lang="ja">1文字削除</span>
                   <span class="lang-sc" lang="zh-Hans">删除单一字符</span>
+                  <span class="lang-de" lang="de">Zeichen löschen</span>
+                  <span class="lang-fr" lang="fr">Supprimer un caractère</span>
+                  <span class="lang-ko" lang="ko">문자 삭제</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span>
                   <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-x">X</span> Button</span>
                   <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-x">X</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-x">X</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-round xbox-x">X</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-round xbox-x">X</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-round xbox-x">X</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2629,10 +3135,16 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Backspace</kbd>／<kbd>Delete</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Backspace</kbd> / <kbd>Delete</kbd></span>
                   <span class="lang-ja" lang="ja"><kbd>Backspace</kbd>／<kbd>Delete</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Backspace</kbd>／<kbd>Delete</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Backspace</kbd> / <kbd>Delete</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Backspace</kbd> / <kbd>Delete</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Backspace</kbd> / <kbd>Delete</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2643,17 +3155,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">返回前一個視窗（關閉）</span>
                   <span class="lang-en" lang="en">Return to Previous Window (Close)</span>
                   <span class="lang-ja" lang="ja">前のウィンドウに戻る（閉じる）</span>
                   <span class="lang-sc" lang="zh-Hans">返回前一个窗口（关闭）</span>
+                  <span class="lang-de" lang="de">Zum vorherigen Fenster (Schließen)</span>
+                  <span class="lang-fr" lang="fr">Fenêtre précédente (Fermer)</span>
+                  <span class="lang-ko" lang="ko">이전 창으로 돌아가기 (닫기)</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵／<span
                       class="xbox-btn xbox-bumper">LB</span> +
@@ -2671,6 +3195,15 @@
                       class="xbox-btn xbox-bumper">LB</span> +
                     <span class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-b">B</span>
                     键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-pill xbox-back">Back</span>-Taste / <span
+                      class="xbox-btn xbox-bumper">LB</span> + <span class="xbox-btn xbox-bumper">RB</span> + <span
+                      class="xbox-btn xbox-round xbox-b">B</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> / <span
+                      class="xbox-btn xbox-bumper">LB</span> + <span class="xbox-btn xbox-bumper">RB</span> + Bouton
+                    <span class="xbox-btn xbox-round xbox-b">B</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-pill xbox-back">Back</span> 버튼 / <span
+                      class="xbox-btn xbox-bumper">LB</span> + <span class="xbox-btn xbox-bumper">RB</span> + <span
+                      class="xbox-btn xbox-round xbox-b">B</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2679,6 +3212,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Esc</kbd>（無字時）／<kbd>Alt</kbd> +
                     <kbd>B</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Esc</kbd> (when empty) / <kbd>Alt</kbd> +
@@ -2687,6 +3223,9 @@
                     <kbd>B</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Esc</kbd>（无字时）／<kbd>Alt</kbd> +
                     <kbd>B</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Esc</kbd> (wenn leer) / <kbd>Alt</kbd> + <kbd>B</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Esc</kbd> (si vide) / <kbd>Alt</kbd> + <kbd>B</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Esc</kbd> (비어 있을 때) / <kbd>Alt</kbd> + <kbd>B</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2697,22 +3236,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">開啟觸控鍵盤</span>
                   <span class="lang-en" lang="en">Open Touch Keyboard</span>
                   <span class="lang-ja" lang="ja">タッチ キーボードを起動</span>
                   <span class="lang-sc" lang="zh-Hans">开启触摸键盘</span>
+                  <span class="lang-de" lang="de">Bildschirmtastatur öffnen</span>
+                  <span class="lang-fr" lang="fr">Ouvrir le clavier tactile</span>
+                  <span class="lang-ko" lang="ko">터치 키보드 열기</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-pill xbox-start">Start</span> 鍵</span>
                   <span class="lang-en" lang="en"><span class="xbox-btn xbox-pill xbox-start">Start</span> Button</span>
                   <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-pill xbox-start">Start</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-start">Start</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-pill xbox-start">Start</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-pill xbox-start">Start</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-pill xbox-start">Start</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2721,10 +3275,16 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Enter</kbd>（無字時）</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> (when empty)</span>
                   <span class="lang-ja" lang="ja"><kbd>Enter</kbd>（未入力時）</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd>（无字时）</span>
+                  <span class="lang-de" lang="de"><kbd>Enter</kbd> (wenn leer)</span>
+                  <span class="lang-fr" lang="fr"><kbd>Enter</kbd> (si vide)</span>
+                  <span class="lang-ko" lang="ko"><kbd>Enter</kbd> (비어 있을 때)</span>
                 </td>
               </tr>
               <tr>
@@ -2735,22 +3295,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">智慧功能選單</span>
                   <span class="lang-en" lang="en">Smart Menu</span>
                   <span class="lang-ja" lang="ja">スマート メニュー</span>
                   <span class="lang-sc" lang="zh-Hans">智能功能菜单</span>
+                  <span class="lang-de" lang="de">Smart-Menü</span>
+                  <span class="lang-fr" lang="fr">Menu intelligent</span>
+                  <span class="lang-ko" lang="ko">스마트 메뉴</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-round xbox-y">Y</span> 鍵</span>
                   <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-y">Y</span> Button</span>
                   <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-y">Y</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-round xbox-y">Y</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-round xbox-y">Y</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-round xbox-y">Y</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2759,6 +3334,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>F10</kbd>／<kbd>Alt</kbd> +
                     <kbd>M</kbd></span>
                   <span class="lang-en" lang="en"><kbd>F10</kbd> / <kbd>Alt</kbd> +
@@ -2767,6 +3345,9 @@
                     <kbd>M</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>F10</kbd>／<kbd>Alt</kbd> +
                     <kbd>M</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>F10</kbd> / <kbd>Alt</kbd> + <kbd>M</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>F10</kbd> / <kbd>Alt</kbd> + <kbd>M</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>F10</kbd> / <kbd>Alt</kbd> + <kbd>M</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2777,17 +3358,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">調整不透明度</span>
                   <span class="lang-en" lang="en">Adjust Opacity</span>
                   <span class="lang-ja" lang="ja">不透明度を調整</span>
                   <span class="lang-sc" lang="zh-Hans">调整不透明度</span>
+                  <span class="lang-de" lang="de">Transparenz anpassen</span>
+                  <span class="lang-fr" lang="fr">Régler l'opacité</span>
+                  <span class="lang-ko" lang="ko">불투명도 조정</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵 +
                     <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
@@ -2798,6 +3391,12 @@
                     <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-back">Back</span> 键 +
                     <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad">↓</span></span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-pill xbox-back">Back</span>-Taste + <span
+                      class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad">↓</span></span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> + <span
+                      class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad">↓</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-pill xbox-back">Back</span> 버튼 + <span
+                      class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad">↓</span></span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2806,6 +3405,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Alt</kbd> +
                     <kbd>↑</kbd>／<kbd>↓</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></span>
@@ -2813,6 +3415,9 @@
                     <kbd>↑</kbd>／<kbd>↓</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> +
                     <kbd>↑</kbd>／<kbd>↓</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2823,17 +3428,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">重設不透明度 100%</span>
                   <span class="lang-en" lang="en">Reset Opacity to 100%</span>
                   <span class="lang-ja" lang="ja">不透明度を 100% にリセット</span>
                   <span class="lang-sc" lang="zh-Hans">重置不透明度 100%</span>
+                  <span class="lang-de" lang="de">Transparenz auf 100 % zurücksetzen</span>
+                  <span class="lang-fr" lang="fr">Réinitialiser l'opacité à 100 %</span>
+                  <span class="lang-ko" lang="ko">불투명도 100% 초기화</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵 +
                     <span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span>
@@ -2843,6 +3460,12 @@
                       class="xbox-btn xbox-round xbox-x">X</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-pill xbox-back">Back</span> 键 +
                     <span class="xbox-btn xbox-round xbox-x">X</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-pill xbox-back">Back</span>-Taste + <span
+                      class="xbox-btn xbox-round xbox-x">X</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> + Bouton
+                    <span class="xbox-btn xbox-round xbox-x">X</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-pill xbox-back">Back</span> 버튼 + <span
+                      class="xbox-btn xbox-round xbox-x">X</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2851,10 +3474,16 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                   <span class="lang-ja" lang="ja"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> + <kbd>0</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Alt</kbd> + <kbd>0</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Alt</kbd> + <kbd>0</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2865,17 +3494,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">單字跳轉／虛擬選取</span>
                   <span class="lang-en" lang="en">Word Jump / Selection</span>
                   <span class="lang-ja" lang="ja">単語ジャンプ／仮想選択</span>
                   <span class="lang-sc" lang="zh-Hans">单词跳转／虚拟选取</span>
+                  <span class="lang-de" lang="de">Wortsprung / Auswahl</span>
+                  <span class="lang-fr" lang="fr">Saut de mot / Sélection</span>
+                  <span class="lang-ko" lang="ko">단어 이동 / 선택</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-bumper">LB</span>／<span
                       class="xbox-btn xbox-stick">R</span> 右搖桿</span>
@@ -2885,6 +3526,12 @@
                       class="xbox-btn xbox-stick">R</span> 右スティック</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-bumper">LB</span>／<span
                       class="xbox-btn xbox-stick">R</span> 右摇杆</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-bumper">LB</span> / <span
+                      class="xbox-btn xbox-stick">R</span> Rechter Stick</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-bumper">LB</span> / <span
+                      class="xbox-btn xbox-stick">R</span> Stick droit</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-bumper">LB</span> / <span
+                      class="xbox-btn xbox-stick">R</span> 오른쪽 스틱</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2893,6 +3540,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Ctrl</kbd>／<kbd>Shift</kbd> +
                     <kbd>←</kbd>／<kbd>→</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Ctrl</kbd> / <kbd>Shift</kbd> + <kbd>←</kbd> /
@@ -2901,6 +3551,12 @@
                     <kbd>←</kbd>／<kbd>→</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Ctrl</kbd>／<kbd>Shift</kbd> +
                     <kbd>←</kbd>／<kbd>→</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Ctrl</kbd> / <kbd>Shift</kbd> + <kbd>←</kbd> /
+                    <kbd>→</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Ctrl</kbd> / <kbd>Shift</kbd> + <kbd>←</kbd> /
+                    <kbd>→</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Ctrl</kbd> / <kbd>Shift</kbd> + <kbd>←</kbd> /
+                    <kbd>→</kbd></span>
                 </td>
               </tr>
               <tr>
@@ -2911,17 +3567,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">結束應用程式</span>
                   <span class="lang-en" lang="en">Exit Application</span>
                   <span class="lang-ja" lang="ja">アプリを終了</span>
                   <span class="lang-sc" lang="zh-Hans">结束应用程序</span>
+                  <span class="lang-de" lang="de">Anwendung beenden</span>
+                  <span class="lang-fr" lang="fr">Quitter l'application</span>
+                  <span class="lang-ko" lang="ko">앱 종료</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-bumper">LB</span> + <span
                       class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
@@ -2935,6 +3603,14 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-bumper">LB</span> + <span
                       class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
                     键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span
+                      class="xbox-btn xbox-round xbox-x">X</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-bumper">LB</span> + <span
+                      class="xbox-btn xbox-bumper">RB</span> + <span class="xbox-btn xbox-round xbox-x">X</span>
+                    버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -2943,10 +3619,16 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
                   <span class="lang-en" lang="en"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
                   <span class="lang-ja" lang="ja"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
+                  <span class="lang-de" lang="de"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
+                  <span class="lang-fr" lang="fr"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
+                  <span class="lang-ko" lang="ko"><kbd>Alt</kbd> + <kbd>F4</kbd></span>
                 </td>
               </tr>
             </tbody>
@@ -2962,6 +3644,9 @@
           <span class="lang-en" lang="en">Context Menu & Dialog Controls</span>
           <span class="lang-ja" lang="ja">右クリックメニューとダイアログ操作</span>
           <span class="lang-sc" lang="zh-Hans">右键菜单与对话框操作</span>
+          <span class="lang-de" lang="de">Kontextmenü & Dialogsteuerung</span>
+          <span class="lang-fr" lang="fr">Menu contextuel & Contrôles de dialogue</span>
+          <span class="lang-ko" lang="ko">컨텍스트 메뉴 및 대화 상자 조작</span>
         </h3>
         <div class="table-wrapper">
           <table aria-labelledby="usage-advanced-heading">
@@ -2972,18 +3657,30 @@
                   <span class="lang-en" lang="en">Action</span>
                   <span class="lang-ja" lang="ja">項目</span>
                   <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                 </th>
                 <th scope="col">
                   <span class="lang-zh">遊戲控制器 🎮</span>
                   <span class="lang-en" lang="en">Controller 🎮</span>
+                  <span class="lang-de" lang="de">Controller 🎮</span>
+                  <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                  <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                   <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                  <span class="lang-de" lang="de">Controller 🎮</span>
+                  <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                  <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                 </th>
                 <th scope="col">
                   <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
                   <span class="lang-en" lang="en">Keyboard ⌨️</span>
                   <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                   <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                 </th>
               </tr>
             </thead>
@@ -2996,22 +3693,37 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">開啟功能選單</span>
                   <span class="lang-en" lang="en">Open Context Menu</span>
                   <span class="lang-ja" lang="ja">機能メニューを開く</span>
                   <span class="lang-sc" lang="zh-Hans">打开功能菜单</span>
+                  <span class="lang-de" lang="de">Kontextmenü öffnen</span>
+                  <span class="lang-fr" lang="fr">Ouvrir le menu contextuel</span>
+                  <span class="lang-ko" lang="ko">컨텍스트 메뉴 열기</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-round xbox-y">Y</span> 鍵</span>
                   <span class="lang-en" lang="en"><span class="xbox-btn xbox-round xbox-y">Y</span> Button</span>
                   <span class="lang-ja" lang="ja"><span class="xbox-btn xbox-round xbox-y">Y</span> ボタン</span>
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-round xbox-y">Y</span>-Taste</span>
+                  <span class="lang-fr" lang="fr">Bouton <span class="xbox-btn xbox-round xbox-y">Y</span></span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-round xbox-y">Y</span> 버튼</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -3020,6 +3732,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh">僅於複製按鈕上按下滑鼠右鍵／<kbd>F10</kbd>／<kbd>Alt</kbd>
                     + <kbd>M</kbd>（輸入框右鍵為系統預設選單）</span>
                   <span class="lang-en" lang="en">Right Click (on Copy button only) / <kbd>F10</kbd> /
@@ -3029,6 +3744,13 @@
                     <kbd>M</kbd>（入力欄の右クリックは標準メニュー）</span>
                   <span class="lang-sc" lang="zh-Hans">仅在复制按钮上按鼠标右键／<kbd>F10</kbd>／<kbd>Alt</kbd>
                     + <kbd>M</kbd>（输入框右键为系统默认菜单）</span>
+                  <span class="lang-de" lang="de">Rechtsklick (nur auf Kopieren-Schaltfläche) / <kbd>F10</kbd> /
+                    <kbd>Alt</kbd> + <kbd>M</kbd> (Rechtsklick auf das Eingabefeld öffnet das
+                    Windows-Standardmenü)</span>
+                  <span class="lang-fr" lang="fr">Clic droit (sur le bouton Copier uniquement) / <kbd>F10</kbd> /
+                    <kbd>Alt</kbd> + <kbd>M</kbd> (clic droit sur la zone de saisie : menu Windows standard)</span>
+                  <span class="lang-ko" lang="ko">마우스 오른쪽 클릭 (복사 버튼 위에서만) / <kbd>F10</kbd> / <kbd>Alt</kbd> +
+                    <kbd>M</kbd> (입력 상자 오른쪽 클릭은 Windows 기본 메뉴)</span>
                 </td>
               </tr>
               <tr>
@@ -3039,17 +3761,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">選單導覽與操作</span>
                   <span class="lang-en" lang="en">Menu Navigation</span>
                   <span class="lang-ja" lang="ja">メニュー操作</span>
                   <span class="lang-sc" lang="zh-Hans">菜单导航与操作</span>
+                  <span class="lang-de" lang="de">Menünavigation</span>
+                  <span class="lang-fr" lang="fr">Navigation dans le menu</span>
+                  <span class="lang-ko" lang="ko">메뉴 탐색 및 조작</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 移動<br><span class="xbox-btn xbox-round xbox-a">A</span> 鍵
@@ -3063,6 +3797,17 @@
                   <span class="lang-sc" lang="zh-Hans"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span> 移动<br><span class="xbox-btn xbox-round xbox-a">A</span> 键
                     执行<br><span class="xbox-btn xbox-round xbox-b">B</span> 键 关闭</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Bewegen<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>-Taste Ausführen<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>-Taste Schließen</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Déplacer<br>Bouton <span
+                      class="xbox-btn xbox-round xbox-a">A</span> Sélectionner<br>Bouton <span
+                      class="xbox-btn xbox-round xbox-b">B</span> Fermer</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 이동<br><span class="xbox-btn xbox-round xbox-a">A</span> 버튼
+                    선택<br><span class="xbox-btn xbox-round xbox-b">B</span> 버튼 닫기</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -3071,6 +3816,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Enter</kbd> 執行<br><kbd>Esc</kbd>
                     關閉</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> Select<br><kbd>Esc</kbd>
@@ -3078,6 +3826,9 @@
                   <span class="lang-ja" lang="ja"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd> 閉じる</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 执行<br><kbd>Esc</kbd>
                     关闭</span>
+                  <span class="lang-de" lang="de"><kbd>Enter</kbd> Ausführen<br><kbd>Esc</kbd> Schließen</span>
+                  <span class="lang-fr" lang="fr"><kbd>Enter</kbd> Exécuter<br><kbd>Esc</kbd> Fermer</span>
+                  <span class="lang-ko" lang="ko"><kbd>Enter</kbd> 실행<br><kbd>Esc</kbd> 닫기</span>
                 </td>
               </tr>
               <tr>
@@ -3088,17 +3839,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">數值輸入對話框</span>
                   <span class="lang-en" lang="en">Numeric Dialog</span>
                   <span class="lang-ja" lang="ja">数値入力ダイアログ</span>
                   <span class="lang-sc" lang="zh-Hans">数值输入对话框</span>
+                  <span class="lang-de" lang="de">Numerischer Dialog</span>
+                  <span class="lang-fr" lang="fr">Boîte de dialogue numérique</span>
+                  <span class="lang-ko" lang="ko">숫자 입력 대화 상자</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span>
@@ -3138,6 +3901,33 @@
                       class="xbox-btn xbox-round xbox-b">B</span>／<span class="xbox-btn xbox-pill xbox-back">Back</span>
                     取消<br><span class="xbox-btn xbox-round xbox-x">X</span> 退格<br><span
                       class="xbox-btn xbox-round xbox-y">Y</span> 重置为默认值</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Anpassen<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> (oder <span class="xbox-btn xbox-bumper">LB</span> + D-Pad)
+                    Bewegen<br><span class="xbox-btn xbox-stick">R</span> Virtuelle Auswahl<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> OK<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Abbrechen<br><span class="xbox-btn xbox-round xbox-x">X</span> Rücktaste<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> Standard</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Ajuster<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> (ou <span class="xbox-btn xbox-bumper">LB</span> + pavé dir.)
+                    Déplacer<br><span class="xbox-btn xbox-stick">R</span> Sélection virtuelle<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> OK<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Annuler<br><span class="xbox-btn xbox-round xbox-x">X</span> Retour arrière<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> Réinitialiser</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 조정<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> (또는 <span class="xbox-btn xbox-bumper">LB</span> + 방향 패드)
+                    이동<br><span class="xbox-btn xbox-stick">R</span> 가상 선택<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 확인<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    취소<br><span class="xbox-btn xbox-round xbox-x">X</span> 백스페이스<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 기본값으로 초기화</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -3146,6 +3936,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd> 取消<br><kbd>Alt</kbd>
                     + <kbd>Y</kbd> 重設為預設值</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd>
@@ -3154,6 +3947,12 @@
                     キャンセル<br><kbd>Alt</kbd> + <kbd>Y</kbd> 既定値にリセット</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 确定<br><kbd>Esc</kbd>
                     取消<br><kbd>Alt</kbd> + <kbd>Y</kbd> 重置为默认值</span>
+                  <span class="lang-de" lang="de"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd> Abbrechen<br><kbd>Alt</kbd> +
+                    <kbd>Y</kbd> Standard</span>
+                  <span class="lang-fr" lang="fr"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd> Annuler<br><kbd>Alt</kbd> +
+                    <kbd>Y</kbd> Réinitialiser</span>
+                  <span class="lang-ko" lang="ko"><kbd>Enter</kbd> 확인<br><kbd>Esc</kbd> 취소<br><kbd>Alt</kbd> +
+                    <kbd>Y</kbd> 기본값으로 초기화</span>
                 </td>
               </tr>
               <tr>
@@ -3164,17 +3963,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">說明對話框</span>
                   <span class="lang-en" lang="en">Help Dialog</span>
                   <span class="lang-ja" lang="ja">説明ダイアログ</span>
                   <span class="lang-sc" lang="zh-Hans">说明对话框</span>
+                  <span class="lang-de" lang="de">Hilfedialog</span>
+                  <span class="lang-fr" lang="fr">Boîte de dialogue d'aide</span>
+                  <span class="lang-ko" lang="ko">도움말 대화 상자</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span>
@@ -3204,6 +4015,27 @@
                       class="xbox-btn xbox-round xbox-b">B</span>／<span
                       class="xbox-btn xbox-pill xbox-start">Start</span>／<span
                       class="xbox-btn xbox-pill xbox-back">Back</span> 关闭</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Scrollen<br><span
+                      class="xbox-btn xbox-trigger">LT</span>/<span class="xbox-btn xbox-trigger">RT</span> Seite
+                    wechseln<br><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> Schließen</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Faire défiler<br><span
+                      class="xbox-btn xbox-trigger">LT</span>/<span class="xbox-btn xbox-trigger">RT</span> Page
+                    préc./suiv.<br><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> Fermer</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 스크롤<br><span class="xbox-btn xbox-trigger">LT</span>/<span
+                      class="xbox-btn xbox-trigger">RT</span> 페이지 전환<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 닫기</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -3212,6 +4044,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>↑</kbd>／<kbd>↓</kbd>
                     捲動<br><kbd>PgUp</kbd>／<kbd>PgDn</kbd> 翻頁<br><kbd>F1</kbd>／<kbd>Esc</kbd> 關閉</span>
                   <span class="lang-en" lang="en"><kbd>↑</kbd>/<kbd>↓</kbd> Scroll<br><kbd>PgUp</kbd>/<kbd>PgDn</kbd>
@@ -3220,6 +4055,13 @@
                     スクロール<br><kbd>PgUp</kbd>／<kbd>PgDn</kbd> ページ切替<br><kbd>F1</kbd>／<kbd>Esc</kbd> 閉じる</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>↑</kbd>／<kbd>↓</kbd>
                     滚动<br><kbd>PgUp</kbd>／<kbd>PgDn</kbd> 翻页<br><kbd>F1</kbd>／<kbd>Esc</kbd> 关闭</span>
+                  <span class="lang-de" lang="de"><kbd>↑</kbd>/<kbd>↓</kbd> Scrollen<br><kbd>PgUp</kbd>/<kbd>PgDn</kbd>
+                    Seite wechseln<br><kbd>F1</kbd>/<kbd>Esc</kbd> Schließen</span>
+                  <span class="lang-fr" lang="fr"><kbd>↑</kbd>/<kbd>↓</kbd> Faire
+                    défiler<br><kbd>PgUp</kbd>/<kbd>PgDn</kbd> Page préc./suiv.<br><kbd>F1</kbd>/<kbd>Esc</kbd>
+                    Fermer</span>
+                  <span class="lang-ko" lang="ko"><kbd>↑</kbd>/<kbd>↓</kbd> 스크롤<br><kbd>PgUp</kbd>/<kbd>PgDn</kbd> 페이지
+                    전환<br><kbd>F1</kbd>/<kbd>Esc</kbd> 닫기</span>
                 </td>
               </tr>
               <tr>
@@ -3230,17 +4072,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">片語管理對話框</span>
                   <span class="lang-en" lang="en">Phrase Manager</span>
                   <span class="lang-ja" lang="ja">定型文管理</span>
                   <span class="lang-sc" lang="zh-Hans">短语管理对话框</span>
+                  <span class="lang-de" lang="de">Textbaustein-Verwaltung</span>
+                  <span class="lang-fr" lang="fr">Gestionnaire de phrases</span>
+                  <span class="lang-ko" lang="ko">구문 관리자 대화 상자</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span>
@@ -3276,6 +4130,30 @@
                       class="xbox-btn xbox-pill xbox-back">Back</span> 关闭<br><span
                       class="xbox-btn xbox-round xbox-x">X</span> 删除<br><span
                       class="xbox-btn xbox-round xbox-y">Y</span> 添加</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Wechseln/Nav<br><span
+                      class="xbox-btn xbox-dpad">←</span>/<span class="xbox-btn xbox-dpad">→</span>
+                    Sortieren/Fokus<br><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> Einfügen<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Schließen<br><span class="xbox-btn xbox-round xbox-x">X</span> Löschen<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> Hinzufügen</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Changer/Navig.<br><span
+                      class="xbox-btn xbox-dpad">←</span>/<span class="xbox-btn xbox-dpad">→</span>
+                    Réordr./Focus<br><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> Insérer<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    Fermer<br><span class="xbox-btn xbox-round xbox-x">X</span> Supprimer<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> Ajouter</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 전환/탐색<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> 재정렬/포커스<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 삽입<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span>/<span class="xbox-btn xbox-pill xbox-back">Back</span>
+                    닫기<br><span class="xbox-btn xbox-round xbox-x">X</span> 삭제<br><span
+                      class="xbox-btn xbox-round xbox-y">Y</span> 추가</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -3284,6 +4162,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Enter</kbd> 插入／確定<br><kbd>Esc</kbd>
                     關閉<br><kbd>Delete</kbd> 刪除<br><kbd>Alt</kbd> + <kbd>Y</kbd> 添加<br><kbd>Alt</kbd> +
                     <kbd>E</kbd> 編輯</span>
@@ -3296,6 +4177,14 @@
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 插入／确定<br><kbd>Esc</kbd>
                     关闭<br><kbd>Delete</kbd> 删除<br><kbd>Alt</kbd> + <kbd>Y</kbd> 添加<br><kbd>Alt</kbd> +
                     <kbd>E</kbd> 编辑</span>
+                  <span class="lang-de" lang="de"><kbd>Enter</kbd> Einfügen/OK<br><kbd>Esc</kbd>
+                    Schließen<br><kbd>Delete</kbd> Löschen<br><kbd>Alt</kbd> + <kbd>Y</kbd> Hinzufügen<br><kbd>Alt</kbd>
+                    + <kbd>E</kbd> Bearbeiten</span>
+                  <span class="lang-fr" lang="fr"><kbd>Enter</kbd> Insérer/OK<br><kbd>Esc</kbd>
+                    Fermer<br><kbd>Delete</kbd> Supprimer<br><kbd>Alt</kbd> + <kbd>Y</kbd> Ajouter<br><kbd>Alt</kbd> +
+                    <kbd>E</kbd> Modifier</span>
+                  <span class="lang-ko" lang="ko"><kbd>Enter</kbd> 삽입/확인<br><kbd>Esc</kbd> 닫기<br><kbd>Delete</kbd>
+                    삭제<br><kbd>Alt</kbd> + <kbd>Y</kbd> 추가<br><kbd>Alt</kbd> + <kbd>E</kbd> 편집</span>
                 </td>
               </tr>
               <tr>
@@ -3306,17 +4195,29 @@
                     <span class="lang-ja" lang="ja">項目</span>
                     <span class="lang-sc" lang="zh-Hans">功能项目</span>
                   </span>
+                  <span class="lang-de" lang="de">Funktion</span>
+                  <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                  <span class="lang-ko" lang="ko">기능</span>
                   <span class="lang-zh">片語編輯對話框</span>
                   <span class="lang-en" lang="en">Phrase Edit</span>
                   <span class="lang-ja" lang="ja">定型文編集</span>
                   <span class="lang-sc" lang="zh-Hans">短语编辑对话框</span>
+                  <span class="lang-de" lang="de">Textbaustein bearbeiten</span>
+                  <span class="lang-fr" lang="fr">Modification de phrase</span>
+                  <span class="lang-ko" lang="ko">구문 편집 대화 상자</span>
                 </th>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
                     <span class="lang-zh">遊戲控制器 🎮</span>
                     <span class="lang-en" lang="en">Controller 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                     <span class="lang-ja" lang="ja">コントローラー 🎮</span>
                     <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    <span class="lang-de" lang="de">Controller 🎮</span>
+                    <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                    <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
                   </span>
                   <span class="lang-zh"><span class="xbox-btn xbox-dpad">↑</span>／<span
                       class="xbox-btn xbox-dpad">↓</span>
@@ -3350,6 +4251,27 @@
                     确定<br><span class="xbox-btn xbox-round xbox-b">B</span> 清空<br><span
                       class="xbox-btn xbox-pill xbox-back">Back</span> 取消<br><span
                       class="xbox-btn xbox-pill xbox-start">Start</span> 键盘</span>
+                  <span class="lang-de" lang="de"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Fokus<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> Bewegen<br><span class="xbox-btn xbox-stick">R</span>
+                    Auswahl<br><span class="xbox-btn xbox-round xbox-a">A</span> Bestätigen<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span> Löschen<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> Abbrechen<br><span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> Tastatur</span>
+                  <span class="lang-fr" lang="fr"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> Focus<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> Déplacer<br><span class="xbox-btn xbox-stick">R</span>
+                    Sélection<br><span class="xbox-btn xbox-round xbox-a">A</span> Confirmer<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span> Effacer<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> Annuler<br><span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> Clavier</span>
+                  <span class="lang-ko" lang="ko"><span class="xbox-btn xbox-dpad">↑</span>/<span
+                      class="xbox-btn xbox-dpad">↓</span> 포커스<br><span class="xbox-btn xbox-dpad">←</span>/<span
+                      class="xbox-btn xbox-dpad">→</span> 이동<br><span class="xbox-btn xbox-stick">R</span> 선택<br><span
+                      class="xbox-btn xbox-round xbox-a">A</span> 확인<br><span
+                      class="xbox-btn xbox-round xbox-b">B</span> 지우기<br><span
+                      class="xbox-btn xbox-pill xbox-back">Back</span> 취소<br><span
+                      class="xbox-btn xbox-pill xbox-start">Start</span> 키보드</span>
                 </td>
                 <td>
                   <span class="mobile-label" aria-hidden="true">
@@ -3358,6 +4280,9 @@
                     <span class="lang-ja" lang="ja">キーボード ⌨️</span>
                     <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
                   </span>
+                  <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                  <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                  <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
                   <span class="lang-zh"><kbd>Enter</kbd> 確定<br><kbd>Esc</kbd>
                     取消<br><kbd>Alt</kbd> + <kbd>A</kbd> 儲存<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 換行</span>
                   <span class="lang-en" lang="en"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd>
@@ -3367,6 +4292,12 @@
                     キャンセル<br><kbd>Alt</kbd> + <kbd>A</kbd> 保存<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 改行</span>
                   <span class="lang-sc" lang="zh-Hans"><kbd>Enter</kbd> 确定<br><kbd>Esc</kbd>
                     取消<br><kbd>Alt</kbd> + <kbd>A</kbd> 保存<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 换行</span>
+                  <span class="lang-de" lang="de"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd> Abbrechen<br><kbd>Alt</kbd> +
+                    <kbd>A</kbd> Speichern<br><kbd>Shift</kbd> + <kbd>Enter</kbd> Zeilenumbruch</span>
+                  <span class="lang-fr" lang="fr"><kbd>Enter</kbd> OK<br><kbd>Esc</kbd> Annuler<br><kbd>Alt</kbd> +
+                    <kbd>A</kbd> Enregistrer<br><kbd>Shift</kbd> + <kbd>Enter</kbd> Saut de ligne</span>
+                  <span class="lang-ko" lang="ko"><kbd>Enter</kbd> 확인<br><kbd>Esc</kbd> 취소<br><kbd>Alt</kbd> +
+                    <kbd>A</kbd> 저장<br><kbd>Shift</kbd> + <kbd>Enter</kbd> 줄 바꿈</span>
                 </td>
               </tr>
             </tbody>
@@ -3382,6 +4313,9 @@
           <span class="lang-en" lang="en">Specifications 📋</span>
           <span class="lang-ja" lang="ja">動作要件 📋</span>
           <span class="lang-sc" lang="zh-Hans">运行要求 📋</span>
+          <span class="lang-de" lang="de">Spezifikationen 📋</span>
+          <span class="lang-fr" lang="fr">Spécifications 📋</span>
+          <span class="lang-ko" lang="ko">사양 📋</span>
         </h2>
         <div class="feature-grid">
           <div class="feature-card">
@@ -3390,6 +4324,9 @@
               <span class="lang-en" lang="en">OS & Environment 🖥️</span>
               <span class="lang-ja" lang="ja">OS と動作環境 🖥️</span>
               <span class="lang-sc" lang="zh-Hans">操作系统与环境 🖥️</span>
+              <span class="lang-de" lang="de">Betriebssystem & Umgebung 🖥️</span>
+              <span class="lang-fr" lang="fr">Système & Environnement 🖥️</span>
+              <span class="lang-ko" lang="ko">운영 체제 및 환경 🖥️</span>
             </h3>
             <p>
               <span class="lang-zh">Windows 11 22H2 以上。發佈版本採獨立封裝，無需預先安裝環境。</span>
@@ -3397,6 +4334,11 @@
                 pre-installation required.</span>
               <span class="lang-ja" lang="ja">Windows 11 22H2 以降。ランタイム不要のスタンドアロン形式。</span>
               <span class="lang-sc" lang="zh-Hans">Windows 11 22H2 以上。发布版本采独立封装，无需预先安装环境。</span>
+              <span class="lang-de" lang="de">Windows 11 22H2 oder höher. Eigenständige ausführbare Datei, keine
+                Vorinstallation erforderlich.</span>
+              <span class="lang-fr" lang="fr">Windows 11 22H2 ou version ultérieure. Exécutable autonome, aucune
+                pré-installation requise.</span>
+              <span class="lang-ko" lang="ko">Windows 11 22H2 이상. 독립 실행 파일, 사전 설치 불필요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3405,6 +4347,9 @@
               <span class="lang-en" lang="en">IME Settings ⌨️</span>
               <span class="lang-ja" lang="ja">入力設定 ⌨️</span>
               <span class="lang-sc" lang="zh-Hans">输入环境设置 ⌨️</span>
+              <span class="lang-de" lang="de">Eingabe-Einstellungen ⌨️</span>
+              <span class="lang-fr" lang="fr">Paramètres IME ⌨️</span>
+              <span class="lang-ko" lang="ko">IME 설정 ⌨️</span>
             </h3>
             <p>
               <span class="lang-zh">需配合系統內建輸入法（注音、倉頡、速成）之「遊戲控制器」鍵盤配置使用。</span>
@@ -3412,6 +4357,11 @@
                 IMEs.</span>
               <span class="lang-ja" lang="ja">標準 IME の「ゲーム コントローラー」キーボード レイアウトを有効にする必要があります。</span>
               <span class="lang-sc" lang="zh-Hans">需配合系统内置输入法（注音、仓颉、速成）之「游戏控制器」键盘布局使用。</span>
+              <span class="lang-de" lang="de">Erfordert das Tastaturlayout „Gamecontroller" der integrierten Windows
+                11-Eingabemethoden (Zhuyin, Cangjie, Quick).</span>
+              <span class="lang-fr" lang="fr">Nécessite le layout clavier « Contrôleur de jeu » pour les IME intégrés de
+                Windows 11 (Zhuyin, Cangjie, Quick).</span>
+              <span class="lang-ko" lang="ko">Windows 11 기본 제공 입력 방법(주음, 창힐, 속성)의 "게임 컨트롤러" 키보드 레이아웃이 필요합니다.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3420,6 +4370,9 @@
               <span class="lang-en" lang="en">Compatibility 🎮</span>
               <span class="lang-ja" lang="ja">ハードウェア互換性 🎮</span>
               <span class="lang-sc" lang="zh-Hans">硬件兼容性 🎮</span>
+              <span class="lang-de" lang="de">Hardwarekompatibilität 🎮</span>
+              <span class="lang-fr" lang="fr">Compatibilité matérielle 🎮</span>
+              <span class="lang-ko" lang="ko">하드웨어 호환성 🎮</span>
             </h3>
             <p>
               <span class="lang-zh">支援 XInput 或 GameInput 相容之控制器（如 ROG Ally X、Xbox
@@ -3431,6 +4384,14 @@
                 コントローラーなど）。GameInput を使用する場合は対応ランタイムが必要です。未提供または読み込み失敗時は自動的に XInput へフォールバックします。</span>
               <span class="lang-sc" lang="zh-Hans">支持 XInput 或 GameInput 兼容之控制器（如 ROG Ally X、Xbox
                 控制器等）。若使用 GameInput，系统需具备对应运行时；未提供或加载失败时，程序会自动退避至 XInput。</span>
+              <span class="lang-de" lang="de">Unterstützt XInput- oder GameInput-kompatible Controller (z. B. ROG Ally
+                X, Xbox-Controller). Bei Verwendung von GameInput ist die entsprechende Laufzeit erforderlich; bei
+                Nichtverfügbarkeit oder Ladefehler wechselt die App automatisch zu XInput.</span>
+              <span class="lang-fr" lang="fr">Prend en charge les contrôleurs compatibles XInput ou GameInput (comme le
+                ROG Ally X, les manettes Xbox, etc.). L'utilisation de GameInput nécessite le runtime correspondant ; en
+                cas d'indisponibilité ou d'échec de chargement, l'application bascule automatiquement sur XInput.</span>
+              <span class="lang-ko" lang="ko">XInput 또는 GameInput 호환 컨트롤러 지원 (ROG Ally X, Xbox 컨트롤러 등). GameInput 사용 시
+                해당 런타임이 필요하며, 사용 불가 또는 로드 실패 시 자동으로 XInput으로 폴백됩니다.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3439,6 +4400,9 @@
               <span class="lang-en" lang="en">Safety Statement 🛡️</span>
               <span class="lang-ja" lang="ja">安全性に関する声明 🛡️</span>
               <span class="lang-sc" lang="zh-Hans">安全声明 🛡️</span>
+              <span class="lang-de" lang="de">Sicherheitserklärung 🛡️</span>
+              <span class="lang-fr" lang="fr">Déclaration de sécurité 🛡️</span>
+              <span class="lang-ko" lang="ko">보안 선언 🛡️</span>
             </h3>
             <p>
               <span class="lang-zh">不讀取遊戲記憶體、不攔截網路封包、不模擬按鍵輸入到遊戲。</span>
@@ -3446,6 +4410,11 @@
                 keystroke simulation.</span>
               <span class="lang-ja" lang="ja">メモリ読み取り、パケット傍受、ゲームへの直接送信は一切行いません。</span>
               <span class="lang-sc" lang="zh-Hans">不读取游戏内存、不拦截网络封包、不模拟按键输入到游戏。</span>
+              <span class="lang-de" lang="de">Kein Speicher-Lesen, keine Paketabfangung, keine direkte Tastenemulation
+                im Spiel.</span>
+              <span class="lang-fr" lang="fr">Aucune lecture de mémoire, aucune interception de paquets, aucune
+                simulation directe de touches dans le jeu.</span>
+              <span class="lang-ko" lang="ko">메모리 읽기 없음, 패킷 가로채기 없음, 게임에 키 입력 직접 시뮬레이션 없음.</span>
             </p>
           </div>
         </div>
@@ -3459,6 +4428,9 @@
           <span class="lang-en" lang="en">Vibration Feedback 📳</span>
           <span class="lang-ja" lang="ja">振動フィードバック 📳</span>
           <span class="lang-sc" lang="zh-Hans">震动反馈说明 📳</span>
+          <span class="lang-de" lang="de">Vibrationsfeedback 📳</span>
+          <span class="lang-fr" lang="fr">Retour haptique 📳</span>
+          <span class="lang-ko" lang="ko">진동 피드백 📳</span>
         </h2>
         <div class="feature-grid">
           <div class="feature-card">
@@ -3467,6 +4439,9 @@
               <span class="lang-en" lang="en">Short Click 🖱️</span>
               <span class="lang-ja" lang="ja">短いクリック感 🖱️</span>
               <span class="lang-sc" lang="zh-Hans">短促点击感 🖱️</span>
+              <span class="lang-de" lang="de">Kurzes Klickgefühl 🖱️</span>
+              <span class="lang-fr" lang="fr">Clic bref 🖱️</span>
+              <span class="lang-ko" lang="ko">짧은 클릭감 🖱️</span>
             </h3>
             <p>
               <span class="lang-zh">移動游標、導覽歷程或在選單中切換項目時觸發。</span>
@@ -3474,6 +4449,11 @@
                 switching menu items.</span>
               <span class="lang-ja" lang="ja">カーソル移動、履歴ナビゲート、メニュー項目切り替え時に発生。</span>
               <span class="lang-sc" lang="zh-Hans">移动游标、导航历史或在菜单中切换项目时触发。</span>
+              <span class="lang-de" lang="de">Ausgelöst beim Bewegen des Cursors, Navigieren in der Verlaufsliste oder
+                Wechseln von Menüpunkten.</span>
+              <span class="lang-fr" lang="fr">Déclenché lors du déplacement du curseur, de la navigation dans
+                l'historique ou du changement d'élément de menu.</span>
+              <span class="lang-ko" lang="ko">커서 이동, 기록 탐색, 메뉴 항목 전환 시 발생합니다.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3482,6 +4462,9 @@
               <span class="lang-en" lang="en">Clear Confirmation ✅</span>
               <span class="lang-ja" lang="ja">明確な確認感 ✅</span>
               <span class="lang-sc" lang="zh-Hans">明确确认感 ✅</span>
+              <span class="lang-de" lang="de">Deutliche Bestätigung ✅</span>
+              <span class="lang-fr" lang="fr">Confirmation nette ✅</span>
+              <span class="lang-ko" lang="ko">명확한 확인감 ✅</span>
             </h3>
             <p>
               <span class="lang-zh">文字成功複製到剪貼簿、或成功切換回目標視窗時觸發。</span>
@@ -3489,6 +4472,11 @@
                 is successful.</span>
               <span class="lang-ja" lang="ja">クリップボードへのコピー成功時、またはウィンドウの切り替え成功時に発生。</span>
               <span class="lang-sc" lang="zh-Hans">文字成功复制到剪贴簿、或成功切换回目标窗口时触发。</span>
+              <span class="lang-de" lang="de">Ausgelöst bei erfolgreichem Kopieren in die Zwischenablage oder
+                erfolgreichem Fensterwechsel.</span>
+              <span class="lang-fr" lang="fr">Déclenché lorsque le texte est copié avec succès dans le presse-papiers ou
+                lors d'un changement de fenêtre réussi.</span>
+              <span class="lang-ko" lang="ko">텍스트가 클립보드에 성공적으로 복사되거나 창 전환이 성공했을 때 발생합니다.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3497,6 +4485,9 @@
               <span class="lang-en" lang="en">State Reset 🔄</span>
               <span class="lang-ja" lang="ja">状態リセット感 🔄</span>
               <span class="lang-sc" lang="zh-Hans">状态重置感 🔄</span>
+              <span class="lang-de" lang="de">Status-Reset-Gefühl 🔄</span>
+              <span class="lang-fr" lang="fr">Sensation de réinitialisation 🔄</span>
+              <span class="lang-ko" lang="ko">상태 초기화감 🔄</span>
             </h3>
             <p>
               <span class="lang-zh">清空文字輸入框、或將不透明度重設為 100% 時觸發。</span>
@@ -3504,6 +4495,11 @@
                 100%.</span>
               <span class="lang-ja" lang="ja">入力ボックスの消去、または不透明度のリセット時に発生。</span>
               <span class="lang-sc" lang="zh-Hans">清空文字输入框、或将不透明度重置为 100% 时触发。</span>
+              <span class="lang-de" lang="de">Ausgelöst beim Leeren des Texteingabefeldes oder beim Zurücksetzen der
+                Transparenz auf 100 %.</span>
+              <span class="lang-fr" lang="fr">Déclenché lors de la suppression du contenu de la zone de saisie ou de la
+                réinitialisation de l'opacité à 100 %.</span>
+              <span class="lang-ko" lang="ko">텍스트 입력 상자를 지우거나 불투명도를 100%로 초기화할 때 발생합니다.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3512,6 +4508,9 @@
               <span class="lang-en" lang="en">Strong Warning ⚠️</span>
               <span class="lang-ja" lang="ja">強い警告感 ⚠️</span>
               <span class="lang-sc" lang="zh-Hans">强烈警告感 ⚠️</span>
+              <span class="lang-de" lang="de">Starke Warnung ⚠️</span>
+              <span class="lang-fr" lang="fr">Avertissement fort ⚠️</span>
+              <span class="lang-ko" lang="ko">강한 경고감 ⚠️</span>
             </h3>
             <p>
               <span class="lang-zh">操作發生錯誤、歷程記錄到達邊界、或寫入剪貼簿失敗時觸發。</span>
@@ -3519,6 +4518,11 @@
                 failures.</span>
               <span class="lang-ja" lang="ja">エラー発生時、履歴の境界到達時、またはコピー失敗時に発生。</span>
               <span class="lang-sc" lang="zh-Hans">操作发生错误、历史记录到达边界、或写入剪贴簿失败时触发。</span>
+              <span class="lang-de" lang="de">Ausgelöst bei Fehlern, Verlaufsgrenzen oder fehlgeschlagenem Kopieren in
+                die Zwischenablage.</span>
+              <span class="lang-fr" lang="fr">Déclenché en cas d'erreurs, de limites d'historique ou d'échec de copie
+                dans le presse-papiers.</span>
+              <span class="lang-ko" lang="ko">오류 발생, 기록 경계 도달, 또는 클립보드 복사 실패 시 발생합니다.</span>
             </p>
           </div>
         </div>
@@ -3532,6 +4536,9 @@
           <span class="lang-en" lang="en">FAQ & Troubleshooting 🔍</span>
           <span class="lang-ja" lang="ja">よくあるご質問とトラブルシューティング 🔍</span>
           <span class="lang-sc" lang="zh-Hans">常见问题与故障排除 🔍</span>
+          <span class="lang-de" lang="de">FAQ & Fehlerbehebung 🔍</span>
+          <span class="lang-fr" lang="fr">FAQ & Dépannage 🔍</span>
+          <span class="lang-ko" lang="ko">FAQ 및 문제 해결 🔍</span>
         </h2>
         <div class="feature-grid">
           <div class="feature-card">
@@ -3540,6 +4547,9 @@
               <span class="lang-en" lang="en">Touch Keyboard Stays Open ⌨️</span>
               <span class="lang-ja" lang="ja">タッチ キーボードが自動で閉じない ⌨️</span>
               <span class="lang-sc" lang="zh-Hans">触摸键盘不会自动关闭 ⌨️</span>
+              <span class="lang-de" lang="de">Touch-Tastatur schließt nicht automatisch ⌨️</span>
+              <span class="lang-fr" lang="fr">Le clavier tactile ne se ferme pas automatiquement ⌨️</span>
+              <span class="lang-ko" lang="ko">터치 키보드가 자동으로 닫히지 않음 ⌨️</span>
             </h3>
             <p>
               <span class="lang-zh">這是 Windows 觸控式鍵盤（<kbd>TabTip.exe</kbd>）的系統行為。若需關閉，可按右上角 <kbd>X</kbd>，或使用控制器 <span
@@ -3551,6 +4561,14 @@
                 <kbd>X</kbd> を押すか、コントローラーの <span class="xbox-btn xbox-round xbox-b">B</span> ボタンを使用してください。</span>
               <span class="lang-sc" lang="zh-Hans">这是 Windows 触摸键盘（<kbd>TabTip.exe</kbd>）的系统行为。若需关闭，可按右上角
                 <kbd>X</kbd>，或使用控制器 <span class="xbox-btn xbox-round xbox-b">B</span> 键。</span>
+              <span class="lang-de" lang="de">Dies ist das normale Systemverhalten der Windows-Touch-Tastatur
+                (<kbd>TabTip.exe</kbd>). Zum Schließen klicken Sie auf das <kbd>X</kbd> oben rechts oder verwenden Sie
+                die Controller-<span class="xbox-btn xbox-round xbox-b">B</span>-Taste.</span>
+              <span class="lang-fr" lang="fr">Ce comportement est normal du clavier tactile Windows
+                (<kbd>TabTip.exe</kbd>). Pour le fermer, cliquez sur le <kbd>X</kbd> en haut à droite ou utilisez le
+                bouton <span class="xbox-btn xbox-round xbox-b">B</span> du contrôleur.</span>
+              <span class="lang-ko" lang="ko">이는 Windows 터치 키보드(<kbd>TabTip.exe</kbd>)의 정상적인 시스템 동작입니다. 닫으려면 오른쪽 상단의
+                <kbd>X</kbd>를 누르거나 컨트롤러의 <span class="xbox-btn xbox-round xbox-b">B</span> 버튼을 사용하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3559,6 +4577,9 @@
               <span class="lang-en" lang="en">Window Too Large After Switching 📺</span>
               <span class="lang-ja" lang="ja">デスクトップ復帰後にウィンドウが大きすぎる 📺</span>
               <span class="lang-sc" lang="zh-Hans">切回桌面后窗口过大 📺</span>
+              <span class="lang-de" lang="de">Fenster nach Rückkehr zu groß 📺</span>
+              <span class="lang-fr" lang="fr">Fenêtre trop grande après retour 📺</span>
+              <span class="lang-ko" lang="ko">전환 후 창이 너무 큼 📺</span>
             </h3>
             <p>
               <span class="lang-zh">若從 Xbox 全螢幕體驗切回 Windows 桌面後視窗尺寸異常，可直接以觸控或滑鼠手動縮放視窗。</span>
@@ -3567,6 +4588,12 @@
               <span class="lang-ja" lang="ja">Xbox 全画面エクスペリエンスから Windows
                 デスクトップへ戻した後にサイズが不自然な場合は、タッチまたはマウスで手動リサイズしてください。</span>
               <span class="lang-sc" lang="zh-Hans">若从 Xbox 全屏体验切回 Windows 桌面后窗口尺寸异常，可直接用触控或鼠标手动缩放窗口。</span>
+              <span class="lang-de" lang="de">Falls das Fenster nach dem Wechsel von der Xbox-Vollbildoberfläche zurück
+                zum Windows-Desktop eine abnormale Größe hat, passen Sie es manuell per Touch oder Maus an.</span>
+              <span class="lang-fr" lang="fr">Si la fenêtre est anormalement grande après le retour de l'interface plein
+                écran Xbox vers le bureau Windows, redimensionnez-la manuellement avec le tactile ou la souris.</span>
+              <span class="lang-ko" lang="ko">Xbox 전체 화면 환경에서 Windows 데스크톱으로 전환한 후 창 크기가 비정상적이면 터치 또는 마우스로 수동으로
+                조절하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3575,6 +4602,9 @@
               <span class="lang-en" lang="en">Security Warnings ⚠️</span>
               <span class="lang-ja" lang="ja">セキュリティ警告 ⚠️</span>
               <span class="lang-sc" lang="zh-Hans">安全性警告提示 ⚠️</span>
+              <span class="lang-de" lang="de">Sicherheitswarnungen ⚠️</span>
+              <span class="lang-fr" lang="fr">Avertissements de sécurité ⚠️</span>
+              <span class="lang-ko" lang="ko">보안 경고 ⚠️</span>
             </h3>
             <p>
               <span class="lang-zh">初次執行時，Microsoft SmartScreen
@@ -3586,6 +4616,14 @@
                 やウイルス対策ソフトが警告を表示する場合がありますが、署名未取得によるものです。内容を確認の上、実行してください。</span>
               <span class="lang-sc" lang="zh-Hans">初次运行时，Microsoft SmartScreen
                 或防病毒软件可能会显示「未受信任」警告。由于本应用程序未经商业签名，请依个人评估运行。</span>
+              <span class="lang-de" lang="de">Microsoft SmartScreen oder Antivirenprogramme zeigen beim ersten Start
+                möglicherweise „Nicht vertrauenswürdig"-Warnungen an, da diese App nicht kommerziell signiert ist.
+                Nutzen Sie sie nach eigenem Ermessen.</span>
+              <span class="lang-fr" lang="fr">Microsoft SmartScreen ou l'antivirus peut afficher des avertissements «
+                Non approuvé » au premier lancement, car cette application n'est pas signée commercialement. Utilisez-la
+                à votre propre discrétion.</span>
+              <span class="lang-ko" lang="ko">이 앱은 상업적으로 서명되지 않았기 때문에 첫 실행 시 Microsoft SmartScreen 또는 바이러스 백신이 "신뢰할 수
+                없음" 경고를 표시할 수 있습니다. 판단에 따라 사용하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3594,6 +4632,9 @@
               <span class="lang-en" lang="en">Keyboard Not Showing ⌨️</span>
               <span class="lang-ja" lang="ja">キーボードが表示されない ⌨️</span>
               <span class="lang-sc" lang="zh-Hans">触摸键盘未显示 ⌨️</span>
+              <span class="lang-de" lang="de">Tastatur wird nicht angezeigt ⌨️</span>
+              <span class="lang-fr" lang="fr">Clavier tactile non affiché ⌨️</span>
+              <span class="lang-ko" lang="ko">키보드가 표시되지 않음 ⌨️</span>
             </h3>
             <p>
               <span class="lang-zh">請檢查 Windows 設定中的「時間與語言 > 輸入 >
@@ -3604,6 +4645,11 @@
                 キーボードを表示する」を「常に」に設定してください。</span>
               <span class="lang-sc" lang="zh-Hans">请检查 Windows 设置中的「时间与语言 > 输入 >
                 触摸键盘」，确保「显示触摸键盘」选项设置为「始终」。</span>
+              <span class="lang-de" lang="de">Öffnen Sie Windows-Einstellungen: „Zeit & Sprache > Eingabe >
+                Touch-Tastatur" und setzen Sie „Touch-Tastatur anzeigen" auf „Immer".</span>
+              <span class="lang-fr" lang="fr">Dans les paramètres Windows : « Heure et langue > Saisie > Clavier tactile
+                », définissez « Afficher le clavier tactile » sur « Toujours ».</span>
+              <span class="lang-ko" lang="ko">Windows 설정 > "시간 및 언어 > 입력 > 터치 키보드"에서 "터치 키보드 표시"를 "항상"으로 설정하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3612,6 +4658,9 @@
               <span class="lang-en" lang="en">Stick-Mouse Conflict 🖱️</span>
               <span class="lang-ja" lang="ja">スティック操作の競合 🖱️</span>
               <span class="lang-sc" lang="zh-Hans">摇杆模拟鼠标失效 🖱️</span>
+              <span class="lang-de" lang="de">Stick-Maus-Konflikt 🖱️</span>
+              <span class="lang-fr" lang="fr">Conflit stick-souris 🖱️</span>
+              <span class="lang-ko" lang="ko">스틱 마우스 충돌 🖱️</span>
             </h3>
             <p>
               <span class="lang-zh">若使用 ROG Ally 等掌機且 Armory Crate SE
@@ -3623,6 +4672,14 @@
                 が「自動」の場合、スティック操作が競合することがあります。制御モードを「デスクトップ」に手動で切り替えてください。</span>
               <span class="lang-sc" lang="zh-Hans">若使用 ROG Ally 等掌机且 Armory Crate SE
                 设为「自动」，本应用程序可能会接管控制器信号。建议手动将控制模式切换为「桌面」。</span>
+              <span class="lang-de" lang="de">Auf Geräten wie dem ROG Ally kann die App bei auf „Auto" eingestelltem
+                Armory Crate SE die Steuerung übernehmen. Wechseln Sie den Steuerungsmodus manuell auf „Desktop", um die
+                Mausemulation wiederherzustellen.</span>
+              <span class="lang-fr" lang="fr">Sur des appareils comme le ROG Ally, si Armory Crate SE est réglé sur «
+                Auto », cette application peut prendre le contrôle. Basculez manuellement en mode « Bureau » pour
+                restaurer l'émulation de souris.</span>
+              <span class="lang-ko" lang="ko">ROG Ally 등의 기기에서 Armory Crate SE가 "자동"으로 설정되어 있으면 이 앱이 제어권을 가져갈 수 있습니다.
+                "데스크톱" 모드로 수동 전환하여 마우스 에뮬레이션을 복원하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3631,6 +4688,9 @@
               <span class="lang-en" lang="en">Logs & Error Reporting 📜</span>
               <span class="lang-ja" lang="ja">ログとエラー報告 📜</span>
               <span class="lang-sc" lang="zh-Hans">日志文件与报错 📜</span>
+              <span class="lang-de" lang="de">Protokolle & Fehlerberichte 📜</span>
+              <span class="lang-fr" lang="fr">Journaux & Rapports d'erreur 📜</span>
+              <span class="lang-ko" lang="ko">로그 및 오류 보고 📜</span>
             </h3>
             <p>
               <span class="lang-zh">若程式發生嚴重錯誤，詳細資訊將記錄於
@@ -3640,9 +4700,19 @@
                 menu under Settings → Open Log Folder, or browse to the path manually to review the log
                 file.</span>
               <span class="lang-ja" lang="ja">重大なエラーが発生した場合、詳細なログが
-                <kbd>%LocalAppData%\InputBox\Logs\</kbd> に記録されます。右クリックメニューの「設定」→「ログフォルダーを開く」からすぐに移動できます。または手動でパスを参照してログファイルをご確認ください。</span>
+                <kbd>%LocalAppData%\InputBox\Logs\</kbd>
+                に記録されます。右クリックメニューの「設定」→「ログフォルダーを開く」からすぐに移動できます。または手動でパスを参照してログファイルをご確認ください。</span>
               <span class="lang-sc" lang="zh-Hans">若程序发生严重错误，详细信息将记录于
                 <kbd>%LocalAppData%\InputBox\Logs\</kbd>。可通过右键菜单「设置」→「打开日志文件夹」快速跳转至此路径，或手动浏览后查看日志文件进行初步排查。</span>
+              <span class="lang-de" lang="de">Schwerwiegende Fehler werden in <kbd>%LocalAppData%\InputBox\Logs\</kbd>
+                protokolliert. Sie können dorthin schnell über das Kontextmenü unter Einstellungen → Protokollordner
+                öffnen navigieren oder den Pfad manuell aufrufen.</span>
+              <span class="lang-fr" lang="fr">Les erreurs graves sont enregistrées dans
+                <kbd>%LocalAppData%\InputBox\Logs\</kbd>. Naviguez rapidement via le menu contextuel : Paramètres →
+                Ouvrir le dossier de journaux, ou parcourez le chemin manuellement pour consulter le fichier
+                journal.</span>
+              <span class="lang-ko" lang="ko">심각한 오류는 <kbd>%LocalAppData%\InputBox\Logs\</kbd>에 기록됩니다. 컨텍스트 메뉴의 설정 → 로그
+                폴더 열기를 통해 빠르게 이동하거나 경로를 직접 탐색하여 로그 파일을 확인하세요.</span>
             </p>
           </div>
           <div class="feature-card">
@@ -3651,9 +4721,21 @@
               <span class="lang-en" lang="en">Visual Alerts & Theme Apply 🎛️</span>
               <span class="lang-ja" lang="ja">視覚警示とテーマ適用 🎛️</span>
               <span class="lang-sc" lang="zh-Hans">视觉警示与主题套用 🎛️</span>
+              <span class="lang-de" lang="de">Visuelle Warnungen & Thema anwenden 🎛️</span>
+              <span class="lang-fr" lang="fr">Alertes visuelles & Application du thème 🎛️</span>
+              <span class="lang-ko" lang="ko">시각적 경고 및 테마 적용 🎛️</span>
             </h3>
             <p>
               <span class="lang-zh">右鍵選單可切換「動畫式視覺警示」（預設關閉）。若系統主題已變更，請由右鍵選單執行「套用系統主題」並重新啟動程式，以完整套用新配色。</span>
+              <span class="lang-de" lang="de">Sie können „Animierte visuelle Warnungen" im Kontextmenü umschalten
+                (standardmäßig deaktiviert). Wenn sich das Systemthema geändert hat, verwenden Sie im Kontextmenü
+                „Systemdesign anwenden" und starten Sie die App neu, um die neuen Farben vollständig anzuwenden.</span>
+              <span class="lang-fr" lang="fr">Vous pouvez activer/désactiver les « Alertes visuelles animées » dans le
+                menu contextuel (désactivées par défaut). Si le thème système a changé, utilisez « Appliquer le thème
+                système » dans le menu contextuel et redémarrez l'application pour appliquer entièrement les nouvelles
+                couleurs.</span>
+              <span class="lang-ko" lang="ko">컨텍스트 메뉴에서 "애니메이션 시각적 경고"를 전환할 수 있습니다(기본값: 꺼짐). 시스템 테마가 변경된 경우 컨텍스트 메뉴의
+                "시스템 테마 적용"을 사용하고 앱을 재시작하여 새 색상을 완전히 적용하세요.</span>
               <span class="lang-en" lang="en">You can toggle "Animated Visual Alerts" from the context menu (off by
                 default). If the system theme has changed, use "Apply System Theme" from the context menu and restart
                 the app to fully apply the new colors.</span>
@@ -3661,6 +4743,14 @@
                 lang="ja">右クリックメニューで「アニメーション視覚警告」を切り替えできます（既定はオフ）。システムテーマが変更された場合は、右クリックメニューの「システムテーマを適用」を実行し、アプリを再起動して新しい配色を完全に反映してください。</span>
               <span class="lang-sc"
                 lang="zh-Hans">右键菜单可切换「动画式视觉警示」（默认关闭）。若系统主题已变更，请通过右键菜单执行「应用系统主题」并重启程序，以完整套用新配色。</span>
+              <span class="lang-de" lang="de">Sie können „Animierte visuelle Warnungen" im Kontextmenü umschalten
+                (standardmäßig deaktiviert). Bei geändertem Systemthema: „Systemdesign anwenden" im Kontextmenü klicken
+                und App neu starten.</span>
+              <span class="lang-fr" lang="fr">Vous pouvez activer/désactiver les « Alertes visuelles animées » dans le
+                menu contextuel (désactivé par défaut). Si le thème système a changé, utilisez « Appliquer le thème
+                système » et redémarrez l'application.</span>
+              <span class="lang-ko" lang="ko">컨텍스트 메뉴에서 「애니메이션 시각적 경고」를 전환할 수 있습니다（기본값：꺼짐）。시스템 테마가 변경된 경우 컨텍스트 메뉴의 「시스템
+                테마 적용」을 실행하고 앱을 재시작하여 새 색상을 완전히 반영하세요。</span>
             </p>
           </div>
         </div>
@@ -3675,6 +4765,9 @@
       <span class="lang-en" lang="en">Footer</span>
       <span class="lang-ja" lang="ja">フッター</span>
       <span class="lang-sc" lang="zh-Hans">页尾</span>
+      <span class="lang-de" lang="de">Fußzeile</span>
+      <span class="lang-fr" lang="fr">Pied de page</span>
+      <span class="lang-ko" lang="ko">바닥글</span>
     </span>
     <div class="container">
       <p class="footer-text">
@@ -3683,6 +4776,11 @@
           translation, icon generation, documentation, and website creation.</span>
         <span class="lang-ja" lang="ja">本プロジェクトは、開発、翻訳、アイコン生成、ドキュメント作成、ウェブサイト制作に AI サービスを活用しています。</span>
         <span class="lang-sc" lang="zh-Hans">本项目使用 AI 服务辅助开发、翻译、图标生成、文档撰写以及网页制作。</span>
+        <span class="lang-de" lang="de">Dieses Projekt nutzt KI-Dienste zur Unterstützung bei Entwicklung, Übersetzung,
+          Icon-Generierung, Dokumentation und Website-Erstellung.</span>
+        <span class="lang-fr" lang="fr">Ce projet utilise des services d'IA pour aider au développement, à la
+          traduction, à la génération d'icônes, à la documentation et à la création du site web.</span>
+        <span class="lang-ko" lang="ko">이 프로젝트는 개발, 번역, 아이콘 생성, 문서 작성 및 웹사이트 제작 보조에 AI 서비스를 활용합니다.</span>
       </p>
       <p class="footer-text">
         <span
@@ -3696,6 +4794,17 @@
           lang="ja">本アプリケーションは非公式のサードパーティ製アプリケーションであり、いかなるゲームやサービスの開発元、発売元、代理店、または運営主体とも提携・関連はありません。また、特定のゲームやサービス環境において、利用者の操作上の要求や使用状況に適合することを保証するものではありません。本アプリケーションの使用によって生じたいかなる結果についても、利用者がその責任を負うものとします。</span>
         <span class="lang-sc"
           lang="zh-Hans">本应用程序为非官方第三方应用程序，与任何游戏或服务的开发商、发行商、代理商或运营单位皆无关联，且无法保证在任何特定游戏或服务环境中皆能符合用户的操作需求或使用情境。使用本应用程序所产生的任何后果，皆由用户自行承担。</span>
+        <span class="lang-de" lang="de">Diese Anwendung ist eine inoffizielle Drittanbieter-Anwendung und hat keine
+          Verbindung zu den Entwicklern, Publishern oder Betreibern von Spielen oder Diensten. Es kann nicht garantiert
+          werden, dass die Anwendung den Anforderungen des Nutzers in einer bestimmten Spiel- oder Dienstumgebung
+          entspricht. Jegliche Folgen aus der Nutzung dieser Anwendung liegen in der alleinigen Verantwortung des
+          Nutzers.</span>
+        <span class="lang-fr" lang="fr">Cette application est une application tierce non officielle sans affiliation
+          avec les développeurs, éditeurs ou opérateurs de jeux ou services. Il n'est pas garanti qu'elle répondra aux
+          besoins de l'utilisateur dans un environnement de jeu ou de service spécifique. Toute conséquence résultant de
+          l'utilisation est de la seule responsabilité de l'utilisateur.</span>
+        <span class="lang-ko" lang="ko">이 애플리케이션은 비공식 타사 애플리케이션으로, 어떤 게임이나 서비스의 개발사, 퍼블리셔, 운영사와도 无관합니다. 특정 게임이나 서비스 환경에서
+          사용자의 운영 요구 사항을 충족한다는 보장은 없습니다. 이 애플리케이션 사용으로 발생하는 모든 결과는 전적으로 사용자의 책임입니다.</span>
       </p>
       <p class="footer-text">
         <span class="lang-zh">本專案的本體採用 <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hant"
@@ -3714,6 +4823,21 @@
             href="https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hans" target="_blank"
             rel="noopener noreferrer">CC0 1.0 Universal</a>
           宣告释放至公有领域，并在适用法律允许的最大范围内不主张任何著作权或相关权利。您可以自由地复制、修改、发布或运行本应用程序（含源码、文档以及网页等资源），完全无需取得授权。🕊️</span>
+        <span class="lang-de" lang="de">Der Hauptteil dieses Projekts wird im Rahmen der <a
+            href="https://creativecommons.org/publicdomain/zero/1.0/deed.de" target="_blank"
+            rel="noopener noreferrer">CC0 1.0 Universal</a>-Widmung gemeinfrei, wobei alle Urheberrechte und verwandten
+          Rechte im gesetzlich zulässigen Umfang aufgegeben werden. Sie können die Anwendung (einschließlich Quellcode,
+          Dokumentation und Website-Ressourcen) frei kopieren, ändern, verteilen oder ausführen, ohne Genehmigung.
+          🕊️</span>
+        <span class="lang-fr" lang="fr">Le corps principal de ce projet est dédié au domaine public sous la <a
+            href="https://creativecommons.org/publicdomain/zero/1.0/deed.fr" target="_blank"
+            rel="noopener noreferrer">CC0 1.0 Universal</a>, renonçant à tous les droits d'auteur et droits connexes
+          dans toute la mesure permise par la loi. Vous êtes libre de copier, modifier, distribuer ou exécuter cette
+          application (y compris le code source, la documentation et les ressources du site web) sans autorisation.
+          🕊️</span>
+        <span class="lang-ko" lang="ko">이 프로젝트의 본체는 <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.ko"
+            target="_blank" rel="noopener noreferrer">CC0 1.0 Universal</a> 헌정에 따라 공용 도메인에 배포되며, 법이 허용하는 최대 범위에서 모든 저작권
+          및 관련 권리를 포기합니다. 허가 없이 이 애플리케이션(소스 코드, 문서 및 웹사이트 리소스 포함)을 자유롭게 복사, 수정, 배포 또는 실행할 수 있습니다. 🕊️</span>
       </p>
       <div class="footer-text footer-notice">
         <p>
@@ -3722,6 +4846,9 @@
             <span class="lang-en" lang="en">Third-Party License Notices ⚖️</span>
             <span class="lang-ja" lang="ja">サードパーティ ライブラリのライセンス通知 ⚖️</span>
             <span class="lang-sc" lang="zh-Hans">第三方库授权声明 ⚖️</span>
+            <span class="lang-de" lang="de">Drittanbieter-Lizenzhinweise ⚖️</span>
+            <span class="lang-fr" lang="fr">Mentions légales tierce partie ⚖️</span>
+            <span class="lang-ko" lang="ko">타사 라이선스 고지 ⚖️</span>
           </strong>
         </p>
         <p>
@@ -3730,6 +4857,11 @@
             respective licenses:</span>
           <span class="lang-ja" lang="ja">本アプリケーションには、それぞれのライセンスに基づいたサードパーティ コンポーネントが含まれています。</span>
           <span class="lang-sc" lang="zh-Hans">本应用程序包含以下第三方组件，其权利归原作者所有并遵循各自授权：</span>
+          <span class="lang-de" lang="de">Diese Anwendung enthält folgende Drittanbieter-Komponenten, deren Rechte beim
+            jeweiligen Autor verbleiben und die den jeweiligen Lizenzen unterliegen:</span>
+          <span class="lang-fr" lang="fr">Cette application contient les composants tiers suivants, dont les droits
+            appartiennent à leurs auteurs respectifs et sont soumis à leurs licences respectives :</span>
+          <span class="lang-ko" lang="ko">이 애플리케이션에는 다음 타사 구성 요소가 포함되어 있으며, 해당 권리는 각 저자에게 귀속되고 각자의 라이선스를 따릅니다:</span>
         </p>
         <p>
           <span class="lang-zh">本應用程式採自包含部署（self-contained）發佈。以下第三方元件不屬於 CC0 授權範圍，並依其各自授權條款提供。</span>
@@ -3738,25 +4870,47 @@
           <span class="lang-ja" lang="ja">本アプリケーションは self-contained 形式で配布されます。以下のサードパーティ コンポーネントは CC0
             の対象外であり、それぞれのライセンスに従います。</span>
           <span class="lang-sc" lang="zh-Hans">本应用程序采用 self-contained 形式发布。以下第三方组件不属于 CC0 授权范围，并依其各自授权条款提供。</span>
+          <span class="lang-de" lang="de">Diese Anwendung wird im Self-Contained-Modus vertrieben. Die nachstehenden
+            Drittanbieter-Komponenten sind NICHT durch CC0 abgedeckt und werden unter ihren eigenen Lizenzen
+            bereitgestellt.</span>
+          <span class="lang-fr" lang="fr">Cette application est distribuée en mode autonome (self-contained). Les
+            composants tiers ci-dessous ne sont PAS couverts par CC0 et sont fournis sous leurs propres licences.</span>
+          <span class="lang-ko" lang="ko">이 애플리케이션은 Self-Contained 방식으로 배포됩니다. 아래의 타사 구성 요소는 CC0에 포함되지 않으며 각자의 라이선스에 따라
+            제공됩니다.</span>
         </p>
         <p class="footer-license-links">
           <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener noreferrer">.NET Runtime（MIT）</a> |
           <a href="https://github.com/dotnet/winforms" target="_blank" rel="noopener noreferrer">WinForms（MIT）</a> |
-          <a href="https://github.com/Cephy314/GameInputNet" target="_blank" rel="noopener noreferrer">GameInput.Net（MIT）</a> |
+          <a href="https://github.com/Cephy314/GameInputNet" target="_blank"
+            rel="noopener noreferrer">GameInput.Net（MIT）</a> |
           <a href="https://github.com/Cephy314/UsbVendorsLibrary" target="_blank"
             rel="noopener noreferrer">UsbVendorsLibrary（MIT）</a> |
           <a href="http://www.linux-usb.org/usb-ids.html" target="_blank" rel="noopener noreferrer">USB ID
             Database（Dual-License）</a>
         </p>
         <p>
-          <span class="lang-zh">發佈檔 <strong>Licenses/</strong> 資料夾內含 <strong>ThirdPartyNotices.txt</strong>（NuGet 套件授權聲明清單）及各元件完整授權文字。</span>
-          <span class="lang-en" lang="en">The <strong>Licenses/</strong> folder in the release package contains <strong>ThirdPartyNotices.txt</strong> (a NuGet package license summary) and the full license text for each component.</span>
-          <span class="lang-ja" lang="ja">配布物内の <strong>Licenses/</strong> フォルダーには、<strong>ThirdPartyNotices.txt</strong>（NuGet パッケージ ライセンス サマリー）と各コンポーネントの完全なライセンス本文が含まれています。</span>
-          <span class="lang-sc" lang="zh-Hans">发布包内的 <strong>Licenses/</strong> 文件夹包含 <strong>ThirdPartyNotices.txt</strong>（NuGet 套件授权声明清单）及各组件完整授权文本。</span>
+          <span class="lang-zh">發佈檔 <strong>Licenses/</strong> 資料夾內含 <strong>ThirdPartyNotices.txt</strong>（NuGet
+            套件授權聲明清單）及各元件完整授權文字。</span>
+          <span class="lang-en" lang="en">The <strong>Licenses/</strong> folder in the release package contains
+            <strong>ThirdPartyNotices.txt</strong> (a NuGet package license summary) and the full license text for each
+            component.</span>
+          <span class="lang-ja" lang="ja">配布物内の <strong>Licenses/</strong>
+            フォルダーには、<strong>ThirdPartyNotices.txt</strong>（NuGet パッケージ ライセンス サマリー）と各コンポーネントの完全なライセンス本文が含まれています。</span>
+          <span class="lang-sc" lang="zh-Hans">发布包内的 <strong>Licenses/</strong> 文件夹包含
+            <strong>ThirdPartyNotices.txt</strong>（NuGet 套件授权声明清单）及各组件完整授权文本。</span>
+          <span class="lang-de" lang="de">Der <strong>Licenses/</strong>-Ordner im Release-Paket enthält
+            <strong>ThirdPartyNotices.txt</strong> (eine NuGet-Paket-Lizenzzusammenfassung) und den vollständigen
+            Lizenztext jeder Komponente.</span>
+          <span class="lang-fr" lang="fr">Le dossier <strong>Licenses/</strong> dans le package de publication contient
+            <strong>ThirdPartyNotices.txt</strong> (un résumé des licences de packages NuGet) et le texte de licence
+            complet de chaque composant.</span>
+          <span class="lang-ko" lang="ko">릴리스 패키지의 <strong>Licenses/</strong> 폴더에는
+            <strong>ThirdPartyNotices.txt</strong>(NuGet 패키지 라이선스 요약) 및 각 구성 요소의 전체 라이선스 텍스트가 포함되어 있습니다.</span>
         </p>
         <p>
           <span class="lang-zh">本專案透過 UsbVendorsLibrary 使用 USB ID Database（usb.ids）。該資料庫採雙重授權（<a
-              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public License（第
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public
+              License（第
               2 版或更新版本）</a>／<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
               rel="noopener noreferrer">3-clause BSD License</a>）；本專案依照官方雙重授權所明示之選項，以 3-clause BSD 條款隨附發佈。歸因聲明請參閱發佈檔內
             <strong>Licenses/usb_ids_LICENSE.txt</strong>。</span>
@@ -3764,18 +4918,38 @@
             database is dual-licensed under <a href="https://opensource.org/license/GPL-2.0" target="_blank"
               rel="noopener noreferrer">GNU General Public License (version 2 or later)</a> and the <a
               href="https://opensource.org/license/bsd-3-clause" target="_blank" rel="noopener noreferrer">3-clause BSD
-              License</a>; this project ships it under the 3-clause BSD terms, as one of the official dual-license options. For the attribution notice, see
+              License</a>; this project ships it under the 3-clause BSD terms, as one of the official dual-license
+            options. For the attribution notice, see
             <strong>Licenses/usb_ids_LICENSE.txt</strong> in the release package.</span>
           <span class="lang-ja" lang="ja">本プロジェクトは UsbVendorsLibrary を通じて USB ID Database（usb.ids）を利用しています。同データベースは <a
               href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public
               License（Version 2 以降）</a>と<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
-              rel="noopener noreferrer">3-clause BSD License</a> のデュアルライセンスで提供されており、本プロジェクトは公式デュアルライセンスで明示された選択肢に基づき、3-clause BSD
+              rel="noopener noreferrer">3-clause BSD License</a>
+            のデュアルライセンスで提供されており、本プロジェクトは公式デュアルライセンスで明示された選択肢に基づき、3-clause BSD
             条項で同梱配布します。帰属表示（Attribution Notice）は、配布物内の <strong>Licenses/usb_ids_LICENSE.txt</strong> を参照してください。</span>
           <span class="lang-sc" lang="zh-Hans">本项目通过 UsbVendorsLibrary 使用 USB ID Database（usb.ids）。该数据库采用双重授权（<a
-              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public License（第
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU General Public
+              License（第
               2 版或更新版本）</a>／<a href="https://opensource.org/license/bsd-3-clause" target="_blank"
               rel="noopener noreferrer">3-clause BSD License</a>）；本项目依照官方双重授权所明示之选项，以 3-clause BSD 条款随附发布。归因声明请参阅发布包内
             <strong>Licenses/usb_ids_LICENSE.txt</strong>。</span>
+          <span class="lang-de" lang="de">Dieses Projekt verwendet USB ID Database (usb.ids) über UsbVendorsLibrary. Die
+            Datenbank steht unter Doppellizenz: <a href="https://opensource.org/license/GPL-2.0" target="_blank"
+              rel="noopener noreferrer">GNU General Public License (Version 2 oder höher)</a> und <a
+              href="https://opensource.org/license/bsd-3-clause" target="_blank" rel="noopener noreferrer">3-clause BSD
+              License</a>; dieses Projekt liefert sie unter den 3-clause BSD-Bedingungen. Attribution-Hinweis:
+            <strong>Licenses/usb_ids_LICENSE.txt</strong>.</span>
+          <span class="lang-fr" lang="fr">Ce projet utilise USB ID Database (usb.ids) via UsbVendorsLibrary. La base de
+            données est sous double licence : <a href="https://opensource.org/license/GPL-2.0" target="_blank"
+              rel="noopener noreferrer">GNU GPL (version 2 ou ultérieure)</a> et <a
+              href="https://opensource.org/license/bsd-3-clause" target="_blank" rel="noopener noreferrer">licence BSD 3
+              clauses</a> ; ce projet la distribue sous les termes BSD 3 clauses. Mention d'attribution :
+            <strong>Licenses/usb_ids_LICENSE.txt</strong>.</span>
+          <span class="lang-ko" lang="ko">이 프로젝트는 UsbVendorsLibrary를 통해 USB ID Database(usb.ids)를 사용합니다. 해당 데이터베이스는 <a
+              href="https://opensource.org/license/GPL-2.0" target="_blank" rel="noopener noreferrer">GNU GPL (버전 2
+              이상)</a>과 <a href="https://opensource.org/license/bsd-3-clause" target="_blank"
+              rel="noopener noreferrer">3-clause BSD 라이선스</a> 이중 라이선스로 제공되며, 이 프로젝트는 3-clause BSD 조건으로 배포합니다. 귀속 고지:
+            <strong>Licenses/usb_ids_LICENSE.txt</strong>.</span>
         </p>
       </div>
     </div>

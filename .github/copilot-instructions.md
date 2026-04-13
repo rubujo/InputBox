@@ -20,7 +20,8 @@
 - 點擊目標 ≥ 44x44px。
 - Hover／Focus 禁止造成實體尺寸變化（Zero-Jitter）。
 - 動畫頻率需為低頻（≤ 1Hz）。
-- 目前 `gh-pages` 尚未建置 Playwright 自動化測試；提交前請完成人工驗證（符號全形化、`lang` 屬性、Landmark 導覽結構、四語內容一致性）。若未來導入測試，再以 `npm test` 作為強制檢查。
+- 已導入 Playwright + axe-core 自動化 A11y 測試；提交前必須執行 `npm test` 並通過。
+- 自動化測試之外仍需完成人工驗證（符號全形化、`lang` 屬性、Landmark 導覽結構、四語內容一致性）。
 
 ## 3. 參考文件
 - 文件入口：`ENGINEERING_GUIDELINES.md`

@@ -1,0 +1,13 @@
+{
+  "name": "inputbox-gh-pages-a11y",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Playwright accessibility checks for InputBox gh-pages",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.55.0"
+  }
+}

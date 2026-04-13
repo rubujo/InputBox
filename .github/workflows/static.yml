@@ -21,7 +21,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test-a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢出原始碼
+        uses: actions/checkout@v6
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安裝測試依賴
+        run: npm install
+
+      - name: 安裝 Playwright 瀏覽器
+        run: npx playwright install --with-deps chromium
+
+      - name: 執行 A11y 測試
+        run: npm test
+
   deploy:
+    needs:
+      - test-a11y
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -41,6 +64,10 @@ jobs:
             --exclude '.*' \
             --exclude '*.md' \
             --exclude 'docs/' \
+            --exclude 'tests/' \
+            --exclude 'package.json' \
+            --exclude 'package-lock.json' \
+            --exclude 'playwright.config.js' \
             --exclude '_site/'
 
           echo "--- 最終部署內容清單 ---"
