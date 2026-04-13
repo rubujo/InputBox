@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -680,7 +680,7 @@
     <comment>고대비로 인해 불투명도가 100%로 강제될 때 재생되는 접근성 음성 프롬프트입니다.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn" xml:space="preserve">
-    <value>불투명도를 50% 미만으로 설정하면 배경이 복잡할 때 가독성이 감소할 수 있습니다. 고대비 모드에서 InputBox는 항상 이를 100%로 재정의합니다.
+    <value>불투명도를 50% 미만으로 설정하면 배경이 복잡할 때 가독성이 감소할 수 있습니다. 고대비 모드에서 입력 상자는 항상 이를 100%로 재정의합니다.
 
 계속하시겠습니까?</value>
     <comment>사용자가 불투명도를 50% 미만으로 설정할 때 표시되는 경고 대화 상자 본문입니다. 가독성 영향 및 고대비 모드가 이 설정을 재정의함을 사용자에게 알립니다.</comment>
@@ -758,7 +758,7 @@
     <comment>이전 창으로 돌아갈 때 InputBox가 최소화되는지 여부를 전환하는 상황에 맞는 메뉴 항목입니다.</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
-    <value>이전 창으로 돌아갈 때 InputBox를 최소화합니다.</value>
+    <value>이전 창으로 돌아갈 때 입력 상자를 최소화합니다.</value>
     <comment>반환 시 최소화 전환 메뉴 항목의 접근 가능한 설명입니다.</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
@@ -770,7 +770,7 @@
     <comment>반환 시 최소화 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>InputBox는 이전 창으로 돌아갈 때 자신을 최소화합니다. 이 기능을 활성화하시겠습니까?</value>
+    <value>입력 상자는 이전 창으로 돌아갈 때 자신을 최소화합니다. 이 기능을 활성화하시겠습니까?</value>
     <comment>사용자가 반환 시 최소화 기능을 활성화하려고 할 때 표시되는 확인 대화 상자 본문입니다.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">

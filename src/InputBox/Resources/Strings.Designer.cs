@@ -925,7 +925,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Input Box 的當地語系化字串。
+        ///   查詢類似 InputBox 的當地語系化字串。
         /// </summary>
         internal static string App_Title {
             get {

@@ -119,719 +119,719 @@
   </resheader>
   <data name="A11y_Btn_Minus_Desc" xml:space="preserve">
     <value>Diminue la valeur numérique.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du bouton moins dans la boîte de dialogue de saisie numérique.</comment>
   </data>
   <data name="A11y_Btn_Plus_Desc" xml:space="preserve">
     <value>Augmente la valeur numérique.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton plus dans la boîte de dialogue de saisie numérique.</comment>
   </data>
   <data name="Btn_Minus" xml:space="preserve">
     <value>－</value>
-    <comment>Traduction française.</comment>
+    <comment>Afficher le texte du bouton moins.</comment>
   </data>
   <data name="Btn_Plus" xml:space="preserve">
     <value>＋</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte affiché pour le bouton plus.</comment>
   </data>
   <data name="A11y_State_Focused" xml:space="preserve">
     <value>Focalisé</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte d’état ajouté à AccessibleDescription lorsque le bouton reçoit le focus.</comment>
   </data>
   <data name="A11y_State_Hover" xml:space="preserve">
     <value>Survolé</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte d’état ajouté à la description d’accessibilité lorsque le contrôle est en état de survol.</comment>
   </data>
   <data name="A11y_State_Pressed" xml:space="preserve">
     <value>Enfoncé</value>
-    <comment>Traduction française.</comment>
+    <comment>Lorsque le bouton est physiquement enfoncé (MouseDown), le texte d&apos;état est ajouté au dos de la description d&apos;accessibilité. Contrairement à « concentré », permet aux utilisateurs de technologies d&apos;assistance de faire la distinction entre la mise au point du clavier et la pression physique.</comment>
   </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>Copie le texte de la zone de saisie vers le presse-papiers.</value>
-    <comment>Traduction française.</comment>
+    <comment>Copiez une description d&apos;accessibilité du bouton qui explique ce que fait le bouton (copier dans le presse-papiers).</comment>
   </data>
   <data name="A11y_BtnCopyName" xml:space="preserve">
     <value>Copier dans le presse-papier</value>
-    <comment>Traduction française.</comment>
+    <comment>Copiez l&apos;étiquette du nom d&apos;accessibilité du bouton.</comment>
   </data>
   <data name="A11y_Cannot_Delete" xml:space="preserve">
     <value>Impossible de supprimer au début.</value>
-    <comment>Traduction française.</comment>
+    <comment>Le message d&apos;accessibilité, diffusé lorsque vous appuyez sur la touche retour arrière au début du texte, ne peut pas être supprimé.</comment>
   </data>
   <data name="A11y_Capture_Cancelled" xml:space="preserve">
     <value>Capture de raccourci annulée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque l&apos;utilisateur annule le processus de récupération de la touche de raccourci.</comment>
   </data>
   <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
     <value>Appuyez sur la touche ESC pour annuler.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité indiquant que les utilisateurs peuvent appuyer sur la touche ÉCHAP pour annuler la capture.</comment>
   </data>
   <data name="A11y_Delete_Char" xml:space="preserve">
     <value>{0} supprimé.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, joué lorsqu&apos;un seul personnage est supprimé. {0} est le caractère supprimé.</comment>
   </data>
   <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
     <value>Caractère supprimé.</value>
-    <comment>Traduction française.</comment>
+    <comment>Supprimez la version confidentielle du personnage du message diffusé accessible.</comment>
   </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>Valeur actuelle : {0}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité affichant la valeur actuelle dans la boîte de dialogue des paramètres. {0} est la valeur actuelle.</comment>
   </data>
   <data name="A11y_Hotkey_Captured" xml:space="preserve">
     <value>Raccourci clavier défini sur {0}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une nouvelle touche de raccourci est récupérée avec succès. {0} est la chaîne de touches de raccourci définie.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
     <value>Appuyez sur A ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide. Si du texte est présent, le texte est copié puis vous revenez à la fenêtre précédente. Utilisez X pour supprimer en arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Appuyez sur Retour pour revenir. Appuyez sur LB + RB + B pour un retour rapide. Appuyez sur LB + RB + X pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description détaillée de l&apos;accessibilité de la fenêtre principale, expliquant le fonctionnement des différents contrôleurs et claviers.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>Retour à la fenêtre précédente.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque vous avez terminé d&apos;effectuer une action (telle que la copie) et que vous êtes prêt à revenir à la fenêtre précédente.</comment>
   </data>
   <data name="A11y_MainFormName" xml:space="preserve">
     <value>Saisie et copie de texte</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette de nom accessible pour la fenêtre principale.</comment>
   </data>
   <data name="A11y_Nav_Bottom" xml:space="preserve">
     <value>Fin du texte atteinte.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque le curseur se déplace à la fin du texte.</comment>
   </data>
   <data name="A11y_Nav_Newest" xml:space="preserve">
     <value>Revenu à la dernière entrée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lors de la navigation dans l&apos;historique et du retour à la dernière entrée.</comment>
   </data>
   <data name="A11y_Nav_Oldest" xml:space="preserve">
     <value>Aucun élément historique plus ancien.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque l&apos;historique de navigation atteint l&apos;enregistrement le plus ancien et qu&apos;il n&apos;y a plus d&apos;enregistrement.</comment>
   </data>
   <data name="A11y_Nav_Top" xml:space="preserve">
     <value>Début du texte atteint.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque le curseur se déplace au début du texte.</comment>
   </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
     <value>Sélectionné : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Signaler le contenu du texte actuellement sélectionné</comment>
   </data>
   <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
     <value>Texte sélectionné.</value>
-    <comment>Traduction française.</comment>
+    <comment>Sélectionnez une version privée et sécurisée du texte pour un message diffusé accessible.</comment>
   </data>
   <data name="A11y_Cursor_Move" xml:space="preserve">
     <value>Curseur sur le caractère {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Signaler la position absolue actuelle du curseur</comment>
   </data>
   <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
     <value>Le curseur a bougé.</value>
-    <comment>Traduction française.</comment>
+    <comment>Version sécurisée du mouvement du curseur pour les messages diffusés accessibles.</comment>
   </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>Aucun texte à copier.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lors de la tentative de copie d&apos;un texte vide.</comment>
   </data>
   <data name="A11y_TBInputDesc" xml:space="preserve">
     <value>Entrez ici le texte que vous souhaitez copier dans le presse-papiers.</value>
-    <comment>Traduction française.</comment>
+    <comment>La description d&apos;accessibilité de la zone de saisie guide les utilisateurs dans la saisie du contenu du texte.</comment>
   </data>
   <data name="A11y_TBInputName" xml:space="preserve">
     <value>Saisir du texte</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette de nom accessible pour la zone de saisie.</comment>
   </data>
   <data name="A11y_Layout_Main" xml:space="preserve">
     <value>Disposition principale</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette d’accessibilité pour le conteneur de mise en page principal.</comment>
   </data>
   <data name="A11y_Layout_Main_Desc" xml:space="preserve">
     <value>Conteneur contenant les boutons de saisie de texte et d'action.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du conteneur de mise en page principal.</comment>
   </data>
   <data name="A11y_Layout_Input" xml:space="preserve">
     <value>Zone de saisie</value>
-    <comment>Traduction française.</comment>
+    <comment>Entrez l’étiquette d’accessibilité du conteneur de zones.</comment>
   </data>
   <data name="A11y_Layout_Input_Desc" xml:space="preserve">
     <value>Conteneur abritant le champ de saisie de texte.</value>
-    <comment>Traduction française.</comment>
+    <comment>Entrez une description d&apos;accessibilité pour le conteneur de zones.</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
     <value>Zone de saisie</value>
-    <comment>Traduction française.</comment>
+    <comment>Nom de l&apos;application, utilisé pour les titres des fenêtres et les boîtes de dialogue de messages.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>Copier dans le Presse-papiers</value>
-    <comment>Traduction française.</comment>
+    <comment>Copiez le texte d&apos;affichage par défaut du bouton.</comment>
   </data>
   <data name="Err_ConfigInvalid" xml:space="preserve">
     <value>Le format du fichier de configuration n'est pas valide. L'application démarrera avec les paramètres par défaut.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;erreur affiché lorsque le fichier de configuration est endommagé ou mal formaté.</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
     <value>Le raccourci clavier global {0} n'a pas pu être enregistré.
 
 Vérifiez que plusieurs instances de cette application ne s'exécutent pas en même temps et qu'aucune autre application n'utilise déjà ce raccourci clavier.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;erreur détaillé, affiché lorsque l&apos;enregistrement de la touche de raccourci globale échoue. {0} est la touche de raccourci pour tenter de s&apos;inscrire.</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
     <value>Erreur</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte du titre de la boîte de dialogue d&apos;erreur.</comment>
   </data>
   <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
     <value>Clavier tactile introuvable.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;erreur affiché lorsque le clavier tactile du système ne peut pas être lancé.</comment>
   </data>
   <data name="Menu_CaptureKey" xml:space="preserve">
     <value>Capturer une touche...</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel utilisé pour commencer à récupérer de nouveaux boutons de réveil.</comment>
   </data>
   <data name="Menu_CaptureKey_Desc" xml:space="preserve">
     <value>Commence la capture d'une nouvelle touche du clavier.</value>
-    <comment>Traduction française.</comment>
+    <comment>Récupérez la description d’accessibilité d’un élément de menu de bouton.</comment>
   </data>
   <data name="Menu_ClearHistory" xml:space="preserve">
     <value>Effacer l'historique</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l&apos;élément de menu pour effacer les enregistrements de l&apos;historique des entrées.</comment>
   </data>
   <data name="Menu_ClearHistory_Desc" xml:space="preserve">
     <value>Effacer définitivement tous les enregistrements d’entrée actuellement en mémoire.</value>
-    <comment>Traduction française.</comment>
+    <comment>Effacez la description d’accessibilité de l’élément de menu historique.</comment>
   </data>
   <data name="Menu_HotkeySettings" xml:space="preserve">
     <value>Paramètres des raccourcis clavier</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom du sous-menu du menu contextuel, utilisé pour les paramètres liés aux touches de raccourci.</comment>
   </data>
   <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
-    <value>Configurez les raccourcis clavier globaux qui ouvrent InputBox.</value>
-    <comment>Traduction française.</comment>
+    <value>Configurez les raccourcis clavier globaux qui ouvrent Zone de saisie.</value>
+    <comment>Description de l&apos;accessibilité pour le sous-menu des paramètres des touches de raccourci.</comment>
   </data>
   <data name="Menu_PrivacyMode" xml:space="preserve">
     <value>Mode de confidentialité</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel, utilisé pour passer en mode confidentialité (l&apos;entrée n&apos;est pas enregistrée).</comment>
   </data>
   <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
     <value>Lorsqu'elle est activée, les nouvelles entrées ne seront pas enregistrées dans l'historique.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour l&apos;élément de menu du mode de confidentialité.</comment>
   </data>
   <data name="Mod_Alt" xml:space="preserve">
     <value>Alt</value>
-    <comment>Traduction française.</comment>
+    <comment>Définit le nom d&apos;affichage de la touche de modification Alt dans les menus.</comment>
   </data>
   <data name="Mod_Ctrl" xml:space="preserve">
     <value>Ctrl</value>
-    <comment>Traduction française.</comment>
+    <comment>Définit le nom d&apos;affichage de la touche de modification Ctrl dans le menu.</comment>
   </data>
   <data name="Mod_Shift" xml:space="preserve">
     <value>Maj</value>
-    <comment>Traduction française.</comment>
+    <comment>Définit le nom d&apos;affichage de la touche de modification Maj dans le menu des paramètres.</comment>
   </data>
   <data name="Mod_Win" xml:space="preserve">
     <value>Win</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom d’affichage de la touche de modification de la touche du logo Windows dans le menu des paramètres.</comment>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
     <value>Copié</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte d&apos;état temporairement affiché sur le bouton après une copie réussie.</comment>
   </data>
   <data name="Msg_CopyFail" xml:space="preserve">
     <value>Échec de la copie</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte d&apos;état affiché sur le bouton après l&apos;échec de la copie.</comment>
   </data>
   <data name="Msg_HotkeyUpdated" xml:space="preserve">
     <value>Raccourci clavier mis à jour</value>
-    <comment>Traduction française.</comment>
+    <comment>Le message d&apos;état affiché sur le titre de la fenêtre ou sur le bouton après la mise à jour réussie de la touche de raccourci.</comment>
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>Entrée effacée</value>
-    <comment>Traduction française.</comment>
+    <comment>Le message d&apos;état affiché une fois le contenu de la zone de saisie effacé.</comment>
   </data>
   <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
     <value>Voulez-vous vraiment supprimer la phrase « {0} » ? Cette action est irréversible.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message de confirmation avant de supprimer la phrase. {0} = Nom de l&apos;expression.</comment>
   </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>Appuyez sur n'importe quelle touche...</value>
-    <comment>Traduction française.</comment>
+    <comment>Un message invitant l&apos;utilisateur à appuyer sur un bouton lorsqu&apos;il passe en mode capture.</comment>
   </data>
   <data name="Pht_TBInput" xml:space="preserve">
     <value>Saisissez le texte…</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte d&apos;invite (espace réservé) affiché lorsque la zone de saisie est vide.</comment>
   </data>
   <data name="Wrn_Title" xml:space="preserve">
     <value>Avertissement</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte du titre de la boîte de dialogue d&apos;avertissement.</comment>
   </data>
   <data name="A11y_Gamepad_Connected" xml:space="preserve">
     <value>Contrôleur {0} connecté.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une connexion de contrôleur est détectée. {0} est le numéro ou le nom du contrôleur.</comment>
   </data>
   <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
     <value>Contrôleur {0} déconnecté.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque la manette est déconnectée. {0} est le numéro ou le nom du contrôleur.</comment>
   </data>
   <data name="A11y_Delete_Multiple" xml:space="preserve">
     <value>{0} caractères supprimés.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque plusieurs personnages sont supprimés à la fois. {0} est le nombre de caractères supprimés.</comment>
   </data>
   <data name="A11y_New_Line" xml:space="preserve">
     <value>Nouvelle ligne ajoutée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une nouvelle ligne est ajoutée à la zone de saisie.</comment>
   </data>
   <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
     <value>Échec de l'enregistrement du raccourci clavier. Retour au paramètre précédent.</value>
-    <comment>Traduction française.</comment>
+    <comment>Un bref message d&apos;erreur s&apos;affiche lorsque l&apos;enregistrement de la touche de raccourci échoue et que les paramètres précédents sont restaurés.</comment>
   </data>
   <data name="A11y_Gamepad_Fallback" xml:space="preserve">
     <value>L'initialisation de GameInput a échoué. Basculement en mode de compatibilité XInput.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque GameInput n&apos;est pas disponible et passe automatiquement en mode de compatibilité XInput.</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
     <value>Mode confidentialité activé</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque le mode confidentialité est activé.</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
     <value>Mode confidentialité désactivé</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque le mode de confidentialité est désactivé.</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
     <value>Historique {0} sur {1} : {2}</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité à lire lors de la navigation entre les sessions. {0} est l&apos;index actuel, {1} est le nombre total de transactions et {2} est le contenu de la transaction.</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
     <value>{0} Raccourci de réveil : {1}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Résumé de l’état d’accessibilité au démarrage. {0} est l&apos;état du mode confidentialité, {1} est la touche de raccourci de réveil actuelle.</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
     <value>Paramètres</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom du sous-menu du menu contextuel, comprenant diverses options de paramètres avancés.</comment>
   </data>
   <data name="Menu_Settings_Window" xml:space="preserve">
     <value>Fenêtre et opérations</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel, utilisé pour saisir les paramètres liés à la fenêtre et au fonctionnement.</comment>
   </data>
   <data name="Menu_Settings_Feedback" xml:space="preserve">
     <value>Retour</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel, utilisé pour saisir les paramètres liés au retour de vibration.</comment>
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
     <value>Manette de jeu</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel, utilisé pour saisir les paramètres liés au contrôleur de jeu.</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>Vibration</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel, utilisé pour activer et désactiver la fonction de vibration.</comment>
   </data>
   <data name="Menu_Settings_Intensity" xml:space="preserve">
     <value>Intensité : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l’élément de menu pour afficher et définir l’intensité des vibrations. {0} est la valeur actuelle en pourcentage.</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
     <value>API d'entrée de manette de jeu</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l&apos;élément de menu pour afficher les informations actuelles de l&apos;API d&apos;entrée du contrôleur de jeu.</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>Capacité d'historique : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l&apos;élément de menu pour afficher et définir la capacité d&apos;enregistrement de l&apos;historique. {0} est la valeur de capacité actuelle.</comment>
   </data>
   <data name="Menu_Opacity_Adjust" xml:space="preserve">
     <value>Ajuster…</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel utilisé pour ouvrir la boîte de dialogue de réglage de l&apos;opacité (un sous-élément du sous-menu d&apos;opacité).</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>Ouvrir le dossier</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel utilisé pour ouvrir le dossier de l&apos;application dans AppData Roaming.</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
     <value>Ouvrez le dossier de données d'application dans AppData.</value>
-    <comment>Traduction française.</comment>
+    <comment>Activez les descriptions d&apos;accessibilité pour les éléments du menu des dossiers.</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier de journal</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel utilisé pour ouvrir le dossier de journaux situé dans AppData Local.</comment>
   </data>
   <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
     <value>Ouvrez le dossier du fichier journal dans AppData Local.</value>
-    <comment>Traduction française.</comment>
+    <comment>Activez les descriptions d&apos;accessibilité pour les éléments de menu du dossier de journaux.</comment>
   </data>
   <data name="Msg_FolderNotFound" xml:space="preserve">
     <value>Le dossier n'existe pas encore.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité lorsque le dossier cible n&apos;a pas encore été créé.</comment>
   </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>Délai de restauration de la fenêtre</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom du projet, qui fait référence au délai de restauration de la fenêtre.</comment>
   </data>
   <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
     <value>Délai de nouvelle tentative du Presse-papiers</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom de l&apos;élément, qui fait référence à l&apos;intervalle de nouvelle tentative en cas d&apos;échec de l&apos;accès au presse-papiers.</comment>
   </data>
   <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
     <value>Délai de rejet du clavier tactile</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom de l&apos;élément, qui fait référence au délai de fermeture du clavier tactile.</comment>
   </data>
   <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
     <value>Base tampon pour interrupteur de fenêtre</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom du projet, qui fait référence au temps tampon de base lors du changement de fenêtre.</comment>
   </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>Capacité historique</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom du projet, qui fait référence à la limite du nombre d&apos;enregistrements d&apos;historique.</comment>
   </data>
   <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
     <value>Zone morte du pouce : seuil de déclenchement</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom du projet, qui fait référence au seuil de déclenchement lorsque le joystick entre dans la zone morte.</comment>
   </data>
   <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
     <value>Thumb Deadzone : réinitialiser le seuil</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom du projet, qui fait référence au seuil de réinitialisation du joystick sortant de la zone morte.</comment>
   </data>
   <data name="Settings_RepeatDelay" xml:space="preserve">
     <value>Délai de répétition</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom de l&apos;élément de réglage fait référence au temps de retard pour la saisie répétée des touches du contrôleur.</comment>
   </data>
   <data name="Settings_RepeatSpeed" xml:space="preserve">
     <value>Vitesse de répétition</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom de l&apos;élément, qui fait référence à la vitesse de saisie répétée des touches du contrôleur.</comment>
   </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>Cette modification nécessite un redémarrage pour prendre effet. Redémarrer maintenant ?</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;invite informant l&apos;utilisateur que certaines modifications de paramètres nécessitent le redémarrage du programme pour prendre effet.</comment>
   </data>
   <data name="Msg_EnterValue" xml:space="preserve">
     <value>Veuillez saisir une nouvelle valeur pour {0} :</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte d&apos;invite pour la boîte de dialogue de saisie numérique. {0} est le nom du projet en cours de définition.</comment>
   </data>
   <data name="Btn_OK" xml:space="preserve">
     <value>OK</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte du bouton OK dans la boîte de dialogue.</comment>
   </data>
   <data name="Btn_Cancel" xml:space="preserve">
     <value>Annuler</value>
-    <comment>Traduction française.</comment>
+    <comment>Annuler le texte du bouton dans la boîte de dialogue.</comment>
   </data>
   <data name="Btn_SetDefault" xml:space="preserve">
     <value>Réinitialiser aux valeurs par défaut</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte du bouton de réinitialisation des paramètres par défaut dans la boîte de dialogue.</comment>
   </data>
   <data name="Settings_VibrationIntensity" xml:space="preserve">
     <value>Intensité</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom de l’élément pour régler l’intensité des vibrations.</comment>
   </data>
   <data name="A11y_Menu_NumericDesc" xml:space="preserve">
     <value>{0}. Actuel : {1}, plage : {2} à {3}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Modèle de description d&apos;accessibilité pour les éléments de menu numériques. {0} est le nom du projet, {1} est la valeur actuelle, {2} est la valeur minimale et {3} est la valeur maximale.</comment>
   </data>
   <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
     <value>Activez {0} comme modificateur pour le raccourci clavier de réveil.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité de l&apos;élément à bascule de la touche de modification. {0} est le nom de la touche de modification.</comment>
   </data>
   <data name="A11y_Value_Max" xml:space="preserve">
     <value>Valeur maximale atteinte.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message diffusé A11y diffusé lorsque la saisie numérique atteint la limite maximale.</comment>
   </data>
   <data name="A11y_Value_Min" xml:space="preserve">
     <value>Valeur minimale atteinte.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message diffusé A11y diffusé lorsque l&apos;entrée numérique atteint la limite minimale.</comment>
   </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>Valeur actuelle : {0}. Plage valide : {1} à {2}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité de la zone de saisie numérique, y compris les informations de plage valides. {0} est la valeur actuelle, {1} est la valeur minimale et {2} est la valeur maximale.</comment>
   </data>
   <data name="A11y_Btn_OK_Desc" xml:space="preserve">
     <value>Confirmez et appliquez la valeur actuelle.</value>
-    <comment>Traduction française.</comment>
+    <comment>Déterminez la description d’accessibilité du bouton.</comment>
   </data>
   <data name="A11y_Btn_Cancel_Desc" xml:space="preserve">
     <value>Annulez les modifications et fermez la boîte de dialogue.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du bouton Annuler.</comment>
   </data>
   <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
     <value>Réinitialisez la valeur par défaut : {0}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton de réinitialisation des paramètres par défaut. {0} est la valeur par défaut d&apos;usine pour cet élément.</comment>
   </data>
   <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
     <value>Réinitialisez tous les paramètres de ce groupe à leurs valeurs par défaut.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour un bouton de réinitialisation qui réinitialise plusieurs paramètres en même temps (par exemple, opérations de fenêtre, commentaires, paramètres du contrôleur).</comment>
   </data>
   <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
     <value>Contient le champ de saisie numérique et les boutons d'incrémentation/décrémentation.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du conteneur de grille de saisie numérique dans NumericInputDialog.</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} activé</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque les touches de modification sont activées. {0} est le nom de la touche de modification.</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
     <value>{0} désactivé</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque les touches de modification sont désactivées. {0} est le nom de la touche de modification.</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">
     <value>(Clé principale non définie)</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité pour rappeler à l&apos;utilisateur que le bouton de réveil principal n&apos;a pas encore été défini.</comment>
   </data>
   <data name="A11y_Clipboard_Retrying" xml:space="preserve">
     <value>Presse-papiers occupé, nouvelle tentative...</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque le presse-papiers est occupé et réessaye automatiquement.</comment>
   </data>
   <data name="A11y_Cancelled" xml:space="preserve">
     <value>Opération annulée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lorsque les opérations normales sont annulées.</comment>
   </data>
   <data name="A11y_Checked" xml:space="preserve">
     <value>Coché</value>
-    <comment>Traduction française.</comment>
+    <comment>Statut d&apos;accessibilité des éléments de menu cochés.</comment>
   </data>
   <data name="A11y_Unchecked" xml:space="preserve">
     <value>Décoché</value>
-    <comment>Traduction française.</comment>
+    <comment>L’état d’accessibilité des éléments de menu n’est pas coché.</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>Ouverture du clavier tactile.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;accessibilité, diffusé lors de la préparation du lancement du clavier tactile.</comment>
   </data>
   <data name="App_Privacy_Suffix" xml:space="preserve">
     <value>(🔒)</value>
-    <comment>Traduction française.</comment>
+    <comment>L&apos;icône ajoutée au titre de la fenêtre lorsque le mode de confidentialité est activé.</comment>
   </data>
   <data name="App_Gamepad_Suffix" xml:space="preserve">
     <value>Entrée de jeu : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Informations sur le contrôleur affichées dans le titre de la fenêtre. {0} est le nom du contrôleur.</comment>
   </data>
   <data name="App_Gamepad_XInput_Format" xml:space="preserve">
     <value>XInput : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>XEntrez le format du nom de périphérique. {0} est le numéro d&apos;index du contrôleur.</comment>
   </data>
   <data name="A11y_Background_Error" xml:space="preserve">
     <value>Erreur de tâche en arrière-plan : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Messages d&apos;accessibilité, signalant les erreurs de travail en arrière-plan. {0} est une information erronée.</comment>
   </data>
   <data name="A11y_ButtonArea" xml:space="preserve">
     <value>Zone des boutons d'action</value>
-    <comment>Traduction française.</comment>
+    <comment>Nom de l’étiquette du groupe d’accessibilité pour la zone du bouton principal.</comment>
   </data>
   <data name="Menu_Exit" xml:space="preserve">
     <value>Sortie</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu contextuel, utilisé pour fermer et terminer le processus de candidature.</comment>
   </data>
   <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
     <value>Ouvre les paramètres avancés, notamment le comportement de la fenêtre, le retour haptique et les options de manette.</value>
-    <comment>Traduction française.</comment>
+    <comment>Définit la description d’accessibilité pour le menu.</comment>
   </data>
   <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
     <value>Configurez les délais de restauration des fenêtres et les paramètres de nouvelle tentative du presse-papiers.</value>
-    <comment>Traduction française.</comment>
+    <comment>Descriptions d&apos;accessibilité des fenêtres et des menus.</comment>
   </data>
   <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
     <value>Configurez le retour de vibration et les niveaux d’intensité.</value>
-    <comment>Traduction française.</comment>
+    <comment>Donnez votre avis sur la description de l&apos;accessibilité du menu des paramètres.</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
     <value>Configure les zones mortes de la manette, la vitesse de répétition et le fournisseur d'API.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du menu des paramètres du contrôleur.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Activez ou désactivez tous les effets de vibration du contrôleur.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description d&apos;accessibilité du projet d&apos;interrupteur de vibration.</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
     <value>Sélectionnez l'API sous-jacente pour l'entrée du contrôleur (GameInput ou XInput).</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du projet de fournisseur d&apos;API.</comment>
   </data>
   <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
     <value>Utilise l'API GameInput moderne de Microsoft. Recommandée pour les manettes récentes.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accès aux options du fournisseur GameInput.</comment>
   </data>
   <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
     <value>Utilise l'ancienne API XInput. Idéale pour assurer la compatibilité avec les périphériques plus anciens.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description d’accès aux options du fournisseur XInput.</comment>
   </data>
   <data name="A11y_Settings_RestartRequired" xml:space="preserve">
     <value>(Redémarrage requis)</value>
-    <comment>Traduction française.</comment>
+    <comment>Suffixe de description d&apos;accès ajouté aux éléments de configuration qui nécessitent un redémarrage du programme.</comment>
   </data>
   <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
     <value>Quittez l'application et libérez toutes les ressources.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité de l&apos;élément de menu de sortie.</comment>
   </data>
   <data name="A11y_TargetWindowLost" xml:space="preserve">
     <value>Retour impossible : la fenêtre cible a été fermée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Invite vocale d&apos;accessibilité lorsque l&apos;utilisateur tente de revenir à la fenêtre précédente, mais que cette fenêtre n&apos;existe plus.</comment>
   </data>
   <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
     <value>Focus déplacé vers la saisie de texte</value>
-    <comment>Traduction française.</comment>
+    <comment>Annonce d&apos;accessibilité lorsque vous appuyez sur Ctrl+M pour accéder à la zone de saisie de texte principale (WCAG 2.4.1 ignore la navigation).</comment>
   </data>
   <data name="A11y_SnapBack" xml:space="preserve">
     <value>Position de la fenêtre corrigée automatiquement.</value>
-    <comment>Traduction française.</comment>
+    <comment>Annonce vocale accessible, jouée lorsque la fenêtre dépasse les limites de l&apos;écran et rebondit automatiquement.</comment>
   </data>
   <data name="Settings_WindowOpacity" xml:space="preserve">
     <value>Opacité</value>
-    <comment>Traduction française.</comment>
+    <comment>Définissez le nom de l&apos;élément, qui fait référence à la transparence de la fenêtre.</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
     <value>{0}. Actuel : {1:P0}. Le minimum est de 10 %.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour l&apos;élément de menu Opacité. {0} est le nom de l&apos;étiquette et {1} est le pourcentage actuel.</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
     <value>Opacité définie sur {0:P0}.</value>
-    <comment>Traduction française.</comment>
+    <comment>Annonce vocale accessible, jouée lorsque l&apos;opacité change. {0} est le nouveau pourcentage.</comment>
   </data>
   <data name="A11y_Opacity_HighContrast" xml:space="preserve">
     <value>Le mode Contraste élevé est activé, l'opacité est verrouillée à 100 %.</value>
-    <comment>Traduction française.</comment>
+    <comment>Annonce vocale accessible, diffusée lorsque l&apos;opacité est verrouillée de force en mode contraste élevé.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn" xml:space="preserve">
-    <value>Définir une opacité inférieure à 50 % peut réduire la lisibilité lorsque l'arrière-plan est complexe. En mode Contraste élevé, InputBox force toujours cette valeur à 100 %.
+    <value>Définir une opacité inférieure à 50 % peut réduire la lisibilité lorsque l'arrière-plan est complexe. En mode Contraste élevé, Zone de saisie force toujours cette valeur à 100 %.
 
 Continuer ?</value>
-    <comment>Traduction française.</comment>
+    <comment>Le contenu de la boîte de dialogue d&apos;avertissement affiché lorsque l&apos;utilisateur définit l&apos;opacité en dessous de 50 %. Informez les utilisateurs que la lisibilité peut être affectée et expliquez-leur que le mode contraste élevé remplacera ce paramètre.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
     <value>Avertissement de faible opacité</value>
-    <comment>Traduction française.</comment>
+    <comment>Titre de la boîte de dialogue d&apos;avertissement affichée lorsque l&apos;opacité est inférieure à 50 %.</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>L'initialisation du contrôleur de manette de jeu a échoué. </value>
-    <comment>Traduction française.</comment>
+    <comment>Le contenu du message vocal diffusé via A11y après l&apos;échec de l&apos;initialisation du contrôleur au démarrage.</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
     <value>Appliquer le thème système (redémarrage requis)</value>
-    <comment>Traduction française.</comment>
+    <comment>Un élément de menu contextuel qui invite l&apos;utilisateur à redémarrer le programme pour appliquer entièrement les modifications du thème sombre/clair.</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
     <value>Le thème du système a changé. </value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion vocale accessible, diffusée lorsqu&apos;un changement de thème est détecté et nécessite un redémarrage manuel de l&apos;utilisateur.</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>Traduction française.</comment>
+    <comment>L&apos;icône affichée derrière le nom de l&apos;application dans la barre de titre lorsqu&apos;un changement de thème du système est détecté mais n&apos;a pas encore été redémarré.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>Accès au sous-menu {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Message de diffusion d’accessibilité lors de l’utilisation d’un contrôleur pour accéder à un sous-menu.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
     <value>Quitter le sous-menu {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Message diffusé d’accessibilité lors de la sortie d’un sous-menu à l’aide d’un contrôleur.</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
     <value>Annonces d'interruption</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l’élément de menu pour choisir d’autoriser ou non la diffusion d’accessibilité à interrompre le message précédent (WCAG 2.2.4).</comment>
   </data>
   <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
     <value>Autoriser les annonces à interrompre la précédente. </value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour l&apos;élément de menu à bascule « Autoriser la diffusion d&apos;interruption ».</comment>
   </data>
   <data name="A11y_A11yInterrupt_On" xml:space="preserve">
     <value>Annonces d'interruption activées.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Autoriser l&apos;interruption de diffusion » est activé.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
     <value>Annonces d'interruption désactivées. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Autoriser la diffusion par interruption » est désactivé.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
     <value>Annonces d'interruption désactivées. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Autoriser la diffusion par interruption » est désactivé.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
     <value>Annonces d'interruption désactivées. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Autoriser la diffusion par interruption » est désactivé.</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
     <value>Alertes visuelles animées</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l&apos;élément de menu pour changer l&apos;état d&apos;avertissement et de vérification afin d&apos;utiliser des invites visuelles animées.</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
     <value>Autoriser les alertes visuelles animées de 1 hertz. </value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour l&apos;élément de menu à bascule « Alerte visuelle animée ».</comment>
   </data>
   <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
     <value>Alertes visuelles animées activées.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Alertes visuelles animées » est activé.</comment>
   </data>
   <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
     <value>Alertes visuelles animées désactivées. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre Alertes visuelles animées est désactivé.</comment>
   </data>
   <data name="Menu_MinimizeOnReturn" xml:space="preserve">
     <value>Réduire au retour</value>
-    <comment>Traduction française.</comment>
+    <comment>Cliquez avec le bouton droit sur l&apos;élément de menu pour choisir de réduire ou non la zone de saisie lors du retour à la fenêtre précédente.</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
-    <value>Réduisez InputBox lorsque vous revenez à la fenêtre précédente.</value>
-    <comment>Traduction française.</comment>
+    <value>Réduisez Zone de saisie lorsque vous revenez à la fenêtre précédente.</value>
+    <comment>Description de l&apos;accessibilité pour l&apos;élément de menu à bascule « Réduire au retour ».</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
     <value>Réduire au retour activé.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Réduire au retour » est activé.</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
     <value>Réduire au retour désactivé.</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;annonce d&apos;accessibilité diffusé lorsque le paramètre « Réduire au retour » est désactivé.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>InputBox se réduira lorsque vous reviendrez à la fenêtre précédente. </value>
-    <comment>Traduction française.</comment>
+    <value>Zone de saisie se réduira lorsque vous reviendrez à la fenêtre précédente. </value>
+    <comment>Ce texte est la boîte de dialogue de confirmation affichée lorsqu&apos;un utilisateur tente d&apos;activer « Réduire au retour ».</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
     <value>Réduire au retour</value>
-    <comment>Traduction française.</comment>
+    <comment>Titre de la boîte de dialogue de confirmation affichée lorsque « Réduire au retour » est activé.</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>Aide</value>
-    <comment>Traduction française.</comment>
+    <comment>Ouvrez l&apos;élément de menu contextuel de la boîte de dialogue d&apos;aide (WCAG 3.3.5).</comment>
   </data>
   <data name="Menu_Help_Desc" xml:space="preserve">
     <value>Afficher les raccourcis clavier et les commandes de la manette de jeu (F1)</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour l&apos;élément de menu Aide.</comment>
   </data>
   <data name="Help_Title" xml:space="preserve">
     <value>Aide — Raccourcis clavier et commandes de la manette de jeu</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte de la barre de titre de la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
     <value>Affiche les raccourcis clavier et les commandes de la manette. Utilisez les touches fléchées, Page précédente, Page suivante ou la manette pour faire défiler, puis choisissez Fermer pour revenir.</value>
-    <comment>Traduction française.</comment>
+    <comment>Décrit la description de l&apos;accessibilité de la boîte de dialogue elle-même.</comment>
   </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
     <value>Raccourcis clavier</value>
-    <comment>Traduction française.</comment>
+    <comment>Titre de section du tableau des raccourcis clavier dans la boîte de dialogue Description.</comment>
   </data>
   <data name="Help_Section_Gamepad" xml:space="preserve">
     <value>Commandes de la manette de jeu</value>
-    <comment>Traduction française.</comment>
+    <comment>Le titre de la section du tableau correspondant à la clé du contrôleur dans la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_Col_Key" xml:space="preserve">
     <value>Touche</value>
-    <comment>Traduction française.</comment>
+    <comment>Le titre de la colonne « Touches » du tableau des raccourcis clavier dans la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_Col_Button" xml:space="preserve">
     <value>Bouton</value>
-    <comment>Traduction française.</comment>
+    <comment>Le titre de la colonne &quot;Bouton&quot; du tableau correspondant aux touches du contrôleur dans la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_Col_Action" xml:space="preserve">
     <value>Action</value>
-    <comment>Traduction française.</comment>
+    <comment>Description des titres des colonnes &quot;Fonction&quot; des deux tables de la boîte de dialogue.</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
     <value>Fermer</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte du libellé décrivant le bouton Fermer dans la boîte de dialogue.</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
     <value>Tableau des raccourcis clavier</value>
-    <comment>Traduction française.</comment>
+    <comment>Nom d&apos;accessibilité du conteneur de section de raccourcis clavier dans la boîte de dialogue Description.</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
     <value>Répertorie les raccourcis clavier disponibles et leurs actions.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le conteneur de la section des raccourcis clavier dans la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
     <value>Tableau des commandes de la manette de jeu</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom d&apos;accessibilité du conteneur de section correspondant à la clé du contrôleur dans la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
     <value>Répertorie les boutons de manette de jeu disponibles et leurs actions.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description d&apos;accessibilité du conteneur de section correspondant à la clé du contrôleur dans la boîte de dialogue de description.</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	Effacer la saisie / Revenir à la fenêtre précédente (si vide)
@@ -853,7 +853,7 @@ Alt + P	Basculer le mode confidentialité
 F10 / Alt + M	Ouvrir le menu des fonctionnalités
 Ctrl + M	Aller au champ de saisie
 {0}	Afficher / masquer Boîte de saisie (global)</value>
-    <comment>Traduction française.</comment>
+    <comment>Les colonnes de données du tableau des raccourcis clavier de la boîte de dialogue de description sont séparées par Tab : la fonction {tab}, une colonne par ligne.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
     <value>A / Démarrer	Confirmer et revenir (ou ouvrir le clavier visuel)
@@ -869,306 +869,306 @@ Retour + X	Réinitialiser l'opacité de la fenêtre
 LB + ← / →	Déplacer le curseur mot par mot
 RS ← / →	Étendre ou réduire la sélection
 Retour + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
-    <comment>Traduction française.</comment>
+    <comment>Les touches du contrôleur dans la boîte de dialogue de description correspondent aux colonnes de données de la table, et les champs sont séparés par Tab : bouton {tab} fonction, une colonne par ligne.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">
     <value>Menu des fonctionnalités</value>
-    <comment>Traduction française.</comment>
+    <comment>Nom d&apos;accessibilité pour le menu contextuel.</comment>
   </data>
   <data name="A11y_ContextMenu_Desc" xml:space="preserve">
     <value>Contient le mode de confidentialité, les paramètres de raccourci clavier, les paramètres avancés et d'autres fonctions d'application.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le menu contextuel.</comment>
   </data>
   <data name="Menu_Phrases" xml:space="preserve">
     <value>Phrases</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette du sous-menu de phrase dans le menu contextuel.</comment>
   </data>
   <data name="Menu_ManagePhrases" xml:space="preserve">
     <value>Gérer les phrases…</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu qui ouvre la boîte de dialogue de gestion des phrases.</comment>
   </data>
   <data name="Menu_ExportPhrases" xml:space="preserve">
     <value>Exporter des phrases…</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu qui exporte toutes les phrases vers un fichier JSON spécifié par l&apos;utilisateur.</comment>
   </data>
   <data name="Menu_ImportPhrases" xml:space="preserve">
     <value>Importer des phrases…</value>
-    <comment>Traduction française.</comment>
+    <comment>Élément de menu qui importe des phrases à partir d&apos;un fichier JSON spécifié par l&apos;utilisateur (en remplacement de la liste existante).</comment>
   </data>
   <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
     <value>L'importation remplacera toutes les {0} phrases existantes. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message de confirmation avant d&apos;importer la phrase. {0} = Nombre actuel de phrases.</comment>
   </data>
   <data name="Msg_ImportPhrases_Success" xml:space="preserve">
     <value>Phrase(s) {0} importée(s).</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;invite après l&apos;importation réussie de la phrase. {0} = Nombre de phrases importées.</comment>
   </data>
   <data name="Msg_ImportPhrases_Error" xml:space="preserve">
     <value>Échec de l'importation des expressions. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;erreur indiquant que l&apos;importation a échoué car le fichier n&apos;est pas valide ou ne peut pas être lu.</comment>
   </data>
   <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
     <value>Échec de l'enregistrement des phrases importées sur le disque. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;erreur lorsque la mémoire est importée avec succès mais ne peut pas être conservée. Les données ont été restaurées.</comment>
   </data>
   <data name="Msg_ExportPhrases_Success" xml:space="preserve">
     <value>Phrase(s) {0} exportée(s).</value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;invite après avoir exporté avec succès la phrase. {0} = Nombre de phrases exportées.</comment>
   </data>
   <data name="Msg_ExportPhrases_Error" xml:space="preserve">
     <value>Échec de l'exportation des phrases. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;erreur lors de l&apos;échec de l&apos;exportation d&apos;une phrase.</comment>
   </data>
   <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
     <value>Il n'y a aucune expression à exporter. </value>
-    <comment>Traduction française.</comment>
+    <comment>Message d&apos;avertissement lorsque l&apos;utilisateur tente d&apos;exporter mais que la liste de phrases est vide.</comment>
   </data>
   <data name="A11y_Phrases_Exported" xml:space="preserve">
     <value>Phrase(s) {0} exportée(s).</value>
-    <comment>Traduction française.</comment>
+    <comment>Notification du lecteur d&apos;écran après l&apos;exportation réussie d&apos;une phrase. {0} = quantité.</comment>
   </data>
   <data name="A11y_Phrases_Imported" xml:space="preserve">
     <value>Phrase(s) {0} importée(s).</value>
-    <comment>Traduction française.</comment>
+    <comment>Notification du lecteur d&apos;écran après l&apos;importation réussie d&apos;une phrase. {0} = quantité.</comment>
   </data>
   <data name="Menu_PhraseEmpty" xml:space="preserve">
     <value>(Pas de phrases)</value>
-    <comment>Traduction française.</comment>
+    <comment>Texte affiché lorsqu&apos;il n&apos;y a aucune phrase dans le sous-menu de phrases.</comment>
   </data>
   <data name="Phrase_Title" xml:space="preserve">
     <value>Gestionnaire de phrases</value>
-    <comment>Traduction française.</comment>
+    <comment>Le titre de la boîte de dialogue de gestion des expressions.</comment>
   </data>
   <data name="Phrase_Btn_Add" xml:space="preserve">
     <value>Ajouter</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : Ajouter une phrase.</comment>
   </data>
   <data name="Phrase_Btn_Edit" xml:space="preserve">
     <value>Modifier</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : modifiez la phrase sélectionnée.</comment>
   </data>
   <data name="Phrase_Btn_Delete" xml:space="preserve">
     <value>Supprimer</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : supprime la phrase sélectionnée.</comment>
   </data>
   <data name="Phrase_Btn_MoveUp" xml:space="preserve">
     <value>Monter</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : déplace la phrase sélectionnée vers le haut.</comment>
   </data>
   <data name="Phrase_Btn_MoveDown" xml:space="preserve">
     <value>Descendre</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : déplace la phrase sélectionnée vers le bas.</comment>
   </data>
   <data name="Phrase_Btn_Close" xml:space="preserve">
     <value>Fermer</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : Fermez la boîte de dialogue de gestion des phrases.</comment>
   </data>
   <data name="Phrase_Btn_Confirm" xml:space="preserve">
     <value>OK</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : Confirmez l’édition de la phrase.</comment>
   </data>
   <data name="Phrase_Btn_Cancel" xml:space="preserve">
     <value>Annuler</value>
-    <comment>Traduction française.</comment>
+    <comment>Libellé du bouton : Annuler la modification de la phrase.</comment>
   </data>
   <data name="Phrase_Edit_Title_Add" xml:space="preserve">
     <value>Ajouter une phrase</value>
-    <comment>Traduction française.</comment>
+    <comment>Le titre de la boîte de dialogue d&apos;édition lors de l&apos;ajout d&apos;une phrase.</comment>
   </data>
   <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
     <value>Modifier l'expression</value>
-    <comment>Traduction française.</comment>
+    <comment>Le titre de la boîte de dialogue d&apos;édition lors de l&apos;édition d&apos;une phrase existante.</comment>
   </data>
   <data name="Phrase_Edit_Name" xml:space="preserve">
     <value>Nom:</value>
-    <comment>Traduction française.</comment>
+    <comment>L&apos;étiquette du champ de saisie du nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>Contenu:</value>
-    <comment>Traduction française.</comment>
+    <comment>L’étiquette du champ de saisie du contenu de l’expression.</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>Gérez les phrases : ajoutez, modifiez, supprimez et réorganisez-les. Utilisez Y sur la manette pour ajouter, A pour insérer, X pour supprimer et Gauche/Droite pour réorganiser.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour la boîte de dialogue de gestion des phrases.</comment>
   </data>
   <data name="Phrase_A11y_List_Name" xml:space="preserve">
     <value>Liste d'expressions</value>
-    <comment>Traduction française.</comment>
+    <comment>Noms accessibles pour les listes de phrases.</comment>
   </data>
   <data name="Phrase_A11y_List_Desc" xml:space="preserve">
     <value>Sélectionnez une phrase et appuyez sur Entrée ou sur la manette de jeu A pour l'insérer dans la zone de saisie.</value>
-    <comment>Traduction française.</comment>
+    <comment>Descriptions accessibles des listes de phrases.</comment>
   </data>
   <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
     <value>Actions d'expression</value>
-    <comment>Traduction française.</comment>
+    <comment>Nom d’accessibilité pour la zone du bouton d’action de la phrase.</comment>
   </data>
   <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
     <value>Contient des boutons d’action pour les opérations sur les phrases.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l’accessibilité pour le conteneur de groupe de zones de boutons d’action d’expression.</comment>
   </data>
   <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
     <value>Page précédente</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom d’accessibilité du bouton sur la page précédente de l’onglet du sous-menu Phrase.</comment>
   </data>
   <data name="Phrase_A11y_Page_Next" xml:space="preserve">
     <value>Page suivante</value>
-    <comment>Traduction française.</comment>
+    <comment>Le nom d&apos;accessibilité du bouton de la page suivante dans la pagination du sous-menu de phrases.</comment>
   </data>
   <data name="Phrase_A11y_Page_Info" xml:space="preserve">
     <value>Page {0} sur {1}</value>
-    <comment>Traduction française.</comment>
+    <comment>Nom d&apos;accessibilité de l&apos;élément d&apos;information de pagination dans le sous-menu d&apos;expression. {0} = numéro de page actuel, {1} = nombre total de pages.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
     <value>Ajoute une nouvelle phrase. Manette : bouton Y.</value>
-    <comment>Traduction française.</comment>
+    <comment>Ajout d&apos;une description d&apos;accessibilité pour le bouton.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
     <value>Modifie la phrase sélectionnée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité du bouton d&apos;édition.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
     <value>Supprime la phrase sélectionnée. Manette : bouton X.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton Supprimer.</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
     <value>Déplace la phrase sélectionnée vers le haut. Manette : croix directionnelle gauche.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton Monter.</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
     <value>Déplace la phrase sélectionnée vers le bas. Manette : croix directionnelle droite.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton de déplacement vers le bas.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
     <value>Ferme le gestionnaire de phrases. Manette : bouton B.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description d&apos;accessibilité du bouton de fermeture.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
     <value>Confirme et enregistre la phrase. Manette : bouton A.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton OK dans la boîte de dialogue d&apos;édition.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
     <value>Annule la modification. Manette : bouton B.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour le bouton Annuler dans la boîte de dialogue d&apos;édition.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
     <value>Saisissez un nom et un contenu pour la phrase. Appuyez sur Entrée ou sur le bouton A de la manette pour confirmer.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité pour la boîte de dialogue d&apos;édition de phrases.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
     <value>Saisissez un nom d'affichage pour cette phrase (50 caractères maximum).</value>
-    <comment>Traduction française.</comment>
+    <comment>Description d&apos;accessibilité pour la zone de texte du nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
     <value>Saisissez le texte à insérer (500 caractères maximum). La saisie multiligne est prise en charge.</value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité de la zone de texte du contenu de la phrase.</comment>
   </data>
   <data name="Phrase_A11y_Selected" xml:space="preserve">
     <value>Sélectionné : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Rapports accessibles lors de la sélection d&apos;une phrase. {0} = Nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_A11y_Added" xml:space="preserve">
     <value>Phrase ajoutée : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion accessible après ajout de phrases. {0} = Nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_A11y_Updated" xml:space="preserve">
     <value>Phrase mise à jour : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Accessibilité diffusée après mise à jour de la phrase. {0} = Nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_A11y_Deleted" xml:space="preserve">
     <value>Phrase supprimée : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion accessible après suppression de la phrase. {0} = Nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_A11y_Moved" xml:space="preserve">
     <value>Déplacé à la position {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion accessible après phrases triées. {0} = nouvelle position (basée sur 1).</comment>
   </data>
   <data name="Phrase_A11y_Full" xml:space="preserve">
     <value>La liste de phrases est pleine. </value>
-    <comment>Traduction française.</comment>
+    <comment>La liste de phrases a atteint la limite de diffusion accessible.</comment>
   </data>
   <data name="Phrase_A11y_Inserted" xml:space="preserve">
     <value>Phrase insérée : {0}</value>
-    <comment>Traduction française.</comment>
+    <comment>Rapports accessibles lors de l&apos;insertion de phrases dans les zones de saisie. {0} = Nom de l&apos;expression.</comment>
   </data>
   <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
     <value>Phrase sélectionnée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Rapports sûrs et accessibles lors de la sélection de phrases en mode confidentialité.</comment>
   </data>
   <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
     <value>Phrase ajoutée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion sûre et sans obstacle après l&apos;ajout de nouvelles phrases en mode confidentialité.</comment>
   </data>
   <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
     <value>Phrase mise à jour.</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion sûre et accessible après des phrases mises à jour en mode confidentialité.</comment>
   </data>
   <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
     <value>Phrase supprimée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion sûre et accessible après suppression de phrases en mode confidentialité.</comment>
   </data>
   <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
     <value>Phrase insérée.</value>
-    <comment>Traduction française.</comment>
+    <comment>Diffusion sûre et accessible lors de l&apos;insertion de phrases en mode confidentialité.</comment>
   </data>
   <data name="Phrase_A11y_NameRequired" xml:space="preserve">
     <value>Veuillez saisir un nom d'expression.</value>
-    <comment>Traduction française.</comment>
+    <comment>Rapport d&apos;accessibilité lorsqu&apos;un utilisateur tente de confirmer sans saisir de nom.</comment>
   </data>
   <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
     <value>Veuillez saisir le contenu de la phrase.</value>
-    <comment>Traduction française.</comment>
+    <comment>Rapport d&apos;accessibilité lorsqu&apos;un utilisateur tente de confirmer sans taper.</comment>
   </data>
   <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
     <value>Entrez le nom de l'expression...</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte réservé pour la zone de saisie du nom de la boîte de dialogue d&apos;édition de phrase.</comment>
   </data>
   <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
     <value>Saisissez le contenu de la phrase...</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte réservé pour la zone de saisie de contenu de la boîte de dialogue d&apos;édition de phrase.</comment>
   </data>
   <data name="Btn_Yes" xml:space="preserve">
     <value>Oui</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte de l&apos;étiquette du bouton « Oui » de GamepadMessageBox.</comment>
   </data>
   <data name="Btn_No" xml:space="preserve">
     <value>Non</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte de l&apos;étiquette du bouton « Non » de GamepadMessageBox.</comment>
   </data>
   <data name="Btn_Abort" xml:space="preserve">
     <value>Avorter</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte de l&apos;étiquette du bouton « Abort » de GamepadMessageBox (combinaison AbortRetryIgnore).</comment>
   </data>
   <data name="Btn_Retry" xml:space="preserve">
     <value>Réessayer</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte de l&apos;étiquette du bouton &quot;Retry&quot; de GamepadMessageBox (combinaison RetryCancel / AbortRetryIgnore).</comment>
   </data>
   <data name="Btn_Ignore" xml:space="preserve">
     <value>Ignorer</value>
-    <comment>Traduction française.</comment>
+    <comment>Le texte de l&apos;étiquette du bouton « skip » de GamepadMessageBox (combinaison AbortRetryIgnore).</comment>
   </data>
   <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
     <value>Icône d'erreur.</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette d’accessibilité de l’icône GamepadMessageBox lors de l’affichage de MessageBoxIcon.Error, ajoutée avant la description de l’accessibilité.</comment>
   </data>
   <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
     <value>Icône d'avertissement.</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette d’accessibilité de l’icône GamepadMessageBox lors de l’affichage de MessageBoxIcon.Warning, ajoutée avant la description de l’accessibilité.</comment>
   </data>
   <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
     <value>Icône d'informations.</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette d’accessibilité de l’icône GamepadMessageBox lors de l’affichage de MessageBoxIcon.Information, ajoutée avant la description de l’accessibilité.</comment>
   </data>
   <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
     <value>Icône de questions.</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette d’accessibilité de l’icône GamepadMessageBox lors de l’affichage de MessageBoxIcon.Question, ajoutée avant la description de l’accessibilité.</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>Boîte de dialogue de messages. </value>
-    <comment>Traduction française.</comment>
+    <comment>Description de l&apos;accessibilité de GamepadMessageBox, qui est prononcée par les lecteurs d&apos;écran lorsque la boîte de dialogue est ouverte.</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
     <value>A : {0} · B : {1}</value>
-    <comment>Traduction française.</comment>
+    <comment>Étiquette d&apos;invite du guidon de GamepadMessageBox. {0} est la balise d&apos;action principale et {1} est la balise d&apos;action d&apos;annulation.</comment>
   </data>
 </root>

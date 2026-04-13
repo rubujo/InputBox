@@ -119,719 +119,719 @@
   </resheader>
   <data name="A11y_Btn_Minus_Desc" xml:space="preserve">
     <value>Verringert den numerischen Wert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Minus-Schaltfläche im numerischen Eingabedialogfeld.</comment>
   </data>
   <data name="A11y_Btn_Plus_Desc" xml:space="preserve">
     <value>Erhöht den numerischen Wert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Plus-Schaltfläche im numerischen Eingabedialogfeld.</comment>
   </data>
   <data name="Btn_Minus" xml:space="preserve">
     <value>－</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Anzeigetext für die Minus-Schaltfläche.</comment>
   </data>
   <data name="Btn_Plus" xml:space="preserve">
     <value>＋</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Anzeigetext für die Plus-Schaltfläche.</comment>
   </data>
   <data name="A11y_State_Focused" xml:space="preserve">
     <value>Fokussiert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Statustext, der an die AccessibleDescription angehängt wird, wenn die Schaltfläche den Fokus erhält.</comment>
   </data>
   <data name="A11y_State_Hover" xml:space="preserve">
     <value>Schwebend</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Statustext, der an die Barrierefreiheitsbeschreibung angehängt wird, wenn sich das Steuerelement im Hover-Zustand befindet.</comment>
   </data>
   <data name="A11y_State_Pressed" xml:space="preserve">
     <value>Gedrückt</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Wenn die Taste physisch gedrückt wird (MouseDown), wird der Statustext an die Rückseite der Barrierefreiheitsbeschreibung angehängt. Im Gegensatz zu „fokussiert“ können Benutzer unterstützender Technologien zwischen Tastaturfokus und physischem Drücken unterscheiden.</comment>
   </data>
   <data name="A11y_BtnCopyDesc" xml:space="preserve">
     <value>Kopiert den Text aus dem Eingabefeld in die Zwischenablage.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Kopieren Sie eine Barrierefreiheitsbeschreibung der Schaltfläche, die erklärt, was die Schaltfläche bewirkt (in die Zwischenablage kopieren).</comment>
   </data>
   <data name="A11y_BtnCopyName" xml:space="preserve">
     <value>In Zwischenablage kopieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Kopieren Sie die Beschriftung mit dem Barrierefreiheitsnamen der Schaltfläche.</comment>
   </data>
   <data name="A11y_Cannot_Delete" xml:space="preserve">
     <value>Kann zu Beginn nicht gelöscht werden.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Meldung zur Barrierefreiheit, die beim Drücken der Rücktaste am Textanfang abgespielt wird, kann nicht gelöscht werden.</comment>
   </data>
   <data name="A11y_Capture_Cancelled" xml:space="preserve">
     <value>Erfassung der Tastenkombination abgebrochen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn der Benutzer den Vorgang zum Abrufen der Tastenkombination abbricht.</comment>
   </data>
   <data name="A11y_Capture_Esc_Cancel" xml:space="preserve">
     <value>Drücken Sie die ESC-Taste, um den Vorgang abzubrechen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, dass Benutzer die ESC-Taste drücken können, um die Aufnahme abzubrechen.</comment>
   </data>
   <data name="A11y_Delete_Char" xml:space="preserve">
     <value>{0} gelöscht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn ein einzelnes Zeichen gelöscht wird. {0} ist das gelöschte Zeichen.</comment>
   </data>
   <data name="A11y_Delete_Char_PrivacySafe" xml:space="preserve">
     <value>Zeichen gelöscht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Entfernen Sie die datenschutzsichere Version der zugänglichen Broadcast-Nachricht des Charakters.</comment>
   </data>
   <data name="A11y_CurrentValue" xml:space="preserve">
     <value>Aktueller Wert: {0}.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung mit dem aktuellen Wert im Einstellungsdialogfeld. {0} ist der aktuelle Wert.</comment>
   </data>
   <data name="A11y_Hotkey_Captured" xml:space="preserve">
     <value>Tastenkombination auf {0} festgelegt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn eine neue Tastenkombination erfolgreich abgerufen wurde. {0} ist die festgelegte Tastenkombinationszeichenfolge.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
     <value>Drücken Sie A oder Start, um die Bildschirmtastatur zu öffnen, wenn das Eingabefeld leer ist. Wenn bereits Text vorhanden ist, wird er kopiert und Sie kehren zum vorherigen Fenster zurück. Mit X löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Drücken Sie Zurück, um zurückzukehren. Drücken Sie LB + RB + B für eine schnelle Rückkehr. Drücken Sie LB + RB + X, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>Zurück zum vorherigen Fenster.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn Sie die Ausführung einer Aktion (z. B. Kopieren) abgeschlossen haben und bereit sind, zum vorherigen Fenster zurückzukehren.</comment>
   </data>
   <data name="A11y_MainFormName" xml:space="preserve">
     <value>Texteingabe und Kopieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreies Namensschild für das Hauptfenster.</comment>
   </data>
   <data name="A11y_Nav_Bottom" xml:space="preserve">
     <value>Ende des Textes erreicht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn der Cursor an das Ende des Textes bewegt wird.</comment>
   </data>
   <data name="A11y_Nav_Newest" xml:space="preserve">
     <value>Zurück zur letzten Eingabe.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die beim Durchsuchen des Verlaufs und beim Zurückkehren zur letzten Eingabe abgespielt wird.</comment>
   </data>
   <data name="A11y_Nav_Oldest" xml:space="preserve">
     <value>Keine älteren Verlaufselemente.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn der Browserverlauf den ältesten Datensatz erreicht und keine weiteren Datensätze vorhanden sind.</comment>
   </data>
   <data name="A11y_Nav_Top" xml:space="preserve">
     <value>Textanfang erreicht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn der Cursor an den Anfang des Textes bewegt wird.</comment>
   </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
     <value>Ausgewählt: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Melden Sie den aktuell ausgewählten Textinhalt</comment>
   </data>
   <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
     <value>Text ausgewählt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Wählen Sie eine private und sichere Version des Textes für eine barrierefreie Broadcast-Nachricht.</comment>
   </data>
   <data name="A11y_Cursor_Move" xml:space="preserve">
     <value>Cursor bei Zeichen {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Melden Sie die aktuelle absolute Position des Cursors</comment>
   </data>
   <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
     <value>Cursor bewegt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Datenschutzsichere Version der Cursorbewegung für zugängliche Broadcast-Nachrichten.</comment>
   </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>Kein Text zum Kopieren.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die beim Versuch, leeren Text zu kopieren, abgespielt wird.</comment>
   </data>
   <data name="A11y_TBInputDesc" xml:space="preserve">
     <value>Geben Sie hier den Text ein, den Sie in die Zwischenablage kopieren möchten.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Barrierefreiheitsbeschreibung des Eingabefelds leitet Benutzer bei der Eingabe von Textinhalten an.</comment>
   </data>
   <data name="A11y_TBInputName" xml:space="preserve">
     <value>Text eingeben</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreies Namensschild für das Eingabefeld.</comment>
   </data>
   <data name="A11y_Layout_Main" xml:space="preserve">
     <value>Hauptlayout</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbezeichnung für den Hauptlayout-Container.</comment>
   </data>
   <data name="A11y_Layout_Main_Desc" xml:space="preserve">
     <value>Container mit den Texteingabe- und Aktionstasten.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit des Hauptlayout-Containers.</comment>
   </data>
   <data name="A11y_Layout_Input" xml:space="preserve">
     <value>Eingabe-Bereich</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Geben Sie die Barrierefreiheitsbezeichnung für den Zonencontainer ein.</comment>
   </data>
   <data name="A11y_Layout_Input_Desc" xml:space="preserve">
     <value>Container mit dem Texteingabefeld.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Geben Sie eine Barrierefreiheitsbeschreibung für den Zonencontainer ein.</comment>
   </data>
   <data name="App_Title" xml:space="preserve">
     <value>Eingabefeld</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Anwendungsname, der für Fenstertitel und Meldungsdialogfelder verwendet wird.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>In Zwischenablage kopieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Kopieren Sie den Standardanzeigetext der Schaltfläche.</comment>
   </data>
   <data name="Err_ConfigInvalid" xml:space="preserve">
     <value>Das Format der Konfigurationsdatei ist ungültig. Die Anwendung startet mit den Standardeinstellungen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Fehlermeldung wird angezeigt, wenn die Konfigurationsdatei beschädigt oder falsch formatiert ist.</comment>
   </data>
   <data name="Err_HotkeyRegFail" xml:space="preserve">
     <value>Die globale Tastenkombination {0} konnte nicht registriert werden.
 
 Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig ausgeführt werden oder dass nicht bereits eine andere Anwendung diese Tastenkombination verwendet.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Detaillierte Fehlermeldung, die angezeigt wird, wenn die globale Tastenkombinationsregistrierung fehlschlägt. {0} ist die Tastenkombination für den Registrierungsversuch.</comment>
   </data>
   <data name="Err_Title" xml:space="preserve">
     <value>Fehler</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Titeltext des Fehlerdialogfelds.</comment>
   </data>
   <data name="Err_TouchKeyboardNotFound" xml:space="preserve">
     <value>Touch-Tastatur nicht gefunden.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Fehlermeldung wird angezeigt, wenn die Touch-Tastatur des Systems nicht gestartet werden kann.</comment>
   </data>
   <data name="Menu_CaptureKey" xml:space="preserve">
     <value>Taste erfassen...</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf ein Menüelement, mit dem das Abrufen neuer Aktivierungsschaltflächen gestartet wird.</comment>
   </data>
   <data name="Menu_CaptureKey_Desc" xml:space="preserve">
     <value>Startet die Erfassung einer neuen Taste von der Tastatur.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Rufen Sie die Barrierefreiheitsbeschreibung eines Schaltflächenmenüelements ab.</comment>
   </data>
   <data name="Menu_ClearHistory" xml:space="preserve">
     <value>Verlauf löschen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um Eingabeverlaufsdatensätze zu löschen.</comment>
   </data>
   <data name="Menu_ClearHistory_Desc" xml:space="preserve">
     <value>Löschen Sie dauerhaft alle Eingabedatensätze, die sich derzeit im Speicher befinden.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Löschen Sie die Barrierefreiheitsbeschreibung des Verlaufsmenüelements.</comment>
   </data>
   <data name="Menu_HotkeySettings" xml:space="preserve">
     <value>Tastenkombinationen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Name des Rechtsklick-Menü-Untermenüs, das für Einstellungen im Zusammenhang mit Tastenkombinationen verwendet wird.</comment>
   </data>
   <data name="Menu_HotkeySettings_Desc" xml:space="preserve">
-    <value>Konfigurieren Sie globale Tastenkombinationen, die InputBox öffnen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <value>Konfigurieren Sie globale Tastenkombinationen, die Eingabefeld öffnen.</value>
+    <comment>Beschreibung der Barrierefreiheit für das Untermenü „Tastenkombinationseinstellungen“.</comment>
   </data>
   <data name="Menu_PrivacyMode" xml:space="preserve">
     <value>Datenschutzmodus</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um in den Datenschutzmodus zu wechseln (Eingaben werden nicht aufgezeichnet).</comment>
   </data>
   <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
     <value>Wenn diese Option aktiviert ist, werden neue Eingaben nicht in der Historie gespeichert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für das Menüelement „Datenschutzmodus“.</comment>
   </data>
   <data name="Mod_Alt" xml:space="preserve">
     <value>Alt</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legt den Anzeigenamen der Alt-Modifikatortaste in Menüs fest.</comment>
   </data>
   <data name="Mod_Ctrl" xml:space="preserve">
     <value>Strg</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legt den Anzeigenamen der Strg-Modifikatortaste im Menü fest.</comment>
   </data>
   <data name="Mod_Shift" xml:space="preserve">
     <value>Shift</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legt den Anzeigenamen der Umschalttaste im Einstellungsmenü fest.</comment>
   </data>
   <data name="Mod_Win" xml:space="preserve">
     <value>Windows</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Anzeigename der Windows-Logo-Tasten-Modifizierertaste im Einstellungsmenü.</comment>
   </data>
   <data name="Msg_Copied" xml:space="preserve">
     <value>Kopiert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Nach erfolgreichem Kopieren wird vorübergehend Statustext auf der Schaltfläche angezeigt.</comment>
   </data>
   <data name="Msg_CopyFail" xml:space="preserve">
     <value>Kopie fehlgeschlagen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Statustext, der auf der Schaltfläche angezeigt wird, nachdem das Kopieren fehlgeschlagen ist.</comment>
   </data>
   <data name="Msg_HotkeyUpdated" xml:space="preserve">
     <value>Tastenkombination aktualisiert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Statusmeldung, die im Fenstertitel oder auf der Schaltfläche angezeigt wird, nachdem die Tastenkombination erfolgreich aktualisiert wurde.</comment>
   </data>
   <data name="Msg_InputCleared" xml:space="preserve">
     <value>Eingabe gelöscht</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Statusmeldung, die angezeigt wird, nachdem der Inhalt des Eingabefelds gelöscht wurde.</comment>
   </data>
   <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
     <value>Sind Sie sicher, dass Sie den Satz "{0}" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Bestätigungsnachricht vor dem Löschen der Phrase. {0} = Phrasenname.</comment>
   </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>Taste drücken</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Eine Meldung, die den Benutzer auffordert, beim Aufrufen des Aufnahmemodus eine Taste zu drücken.</comment>
   </data>
   <data name="Pht_TBInput" xml:space="preserve">
     <value>Text eingeben</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Eingabeaufforderungstext (Platzhalter), der angezeigt wird, wenn das Eingabefeld leer ist.</comment>
   </data>
   <data name="Wrn_Title" xml:space="preserve">
     <value>Warnung</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Titeltext des Warndialogfelds.</comment>
   </data>
   <data name="A11y_Gamepad_Connected" xml:space="preserve">
     <value>Controller {0} angeschlossen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn eine Controller-Verbindung erkannt wird. {0} ist die Nummer oder der Name des Controllers.</comment>
   </data>
   <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
     <value>Controller {0} getrennt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn die Verbindung zum Controller getrennt wird. {0} ist die Nummer oder der Name des Controllers.</comment>
   </data>
   <data name="A11y_Delete_Multiple" xml:space="preserve">
     <value>{0} Zeichen gelöscht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn mehrere Zeichen gleichzeitig gelöscht werden. {0} ist die Anzahl der gelöschten Zeichen.</comment>
   </data>
   <data name="A11y_New_Line" xml:space="preserve">
     <value>Neue Zeile hinzugefügt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn dem Eingabefeld eine neue Zeile hinzugefügt wird.</comment>
   </data>
   <data name="Err_HotkeyRegFail_Brief" xml:space="preserve">
     <value>Registrierung der Tastenkombination fehlgeschlagen. Zur vorherigen Einstellung zurückgesetzt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Eine kurze Fehlermeldung wird angezeigt, wenn die Registrierung der Tastenkombination fehlschlägt und die vorherigen Einstellungen wiederhergestellt werden.</comment>
   </data>
   <data name="A11y_Gamepad_Fallback" xml:space="preserve">
     <value>GameInput-Initialisierung fehlgeschlagen. In den XInput-Kompatibilitätsmodus gewechselt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn GameInput nicht verfügbar ist und automatisch in den XInput-Kompatibilitätsmodus wechselt.</comment>
   </data>
   <data name="A11y_PrivacyMode_On" xml:space="preserve">
     <value>Datenschutzmodus aktiviert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, abgespielt, wenn der Datenschutzmodus aktiviert ist.</comment>
   </data>
   <data name="A11y_PrivacyMode_Off" xml:space="preserve">
     <value>Datenschutzmodus deaktiviert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn der Datenschutzmodus deaktiviert ist.</comment>
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
     <value>Verlauf {0} von {1}: {2}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung zum Abspielen beim Durchsuchen zwischen Sitzungen. {0} ist der aktuelle Index, {1} ist die Gesamtzahl der Transaktionen und {2} ist der Inhalt der Transaktion.</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
     <value>{0} Aktivierungs-Tastenkombination: {1}.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zusammenfassung des Barrierefreiheitsstatus beim Start. {0} ist der Status des Datenschutzmodus, {1} ist die aktuelle Wecktaste.</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
     <value>Einstellungen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Name des Untermenüs des Rechtsklick-Menüs, einschließlich verschiedener erweiterter Einstellungsoptionen.</comment>
   </data>
   <data name="Menu_Settings_Window" xml:space="preserve">
     <value>Fensteraktionen-Menü</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Rechtsklick-Menüelement zur Eingabe fenster- und betriebsbezogener Einstellungen.</comment>
   </data>
   <data name="Menu_Settings_Feedback" xml:space="preserve">
     <value>Feedback</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf einen Menüpunkt, der zum Eingeben von Vibrationsfeedback-bezogenen Einstellungen verwendet wird.</comment>
   </data>
   <data name="Menu_Settings_Gamepad" xml:space="preserve">
     <value>Gamepad</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf einen Menüpunkt, der zum Eingeben von Gamecontroller-bezogenen Einstellungen verwendet wird.</comment>
   </data>
   <data name="Menu_Settings_Vibration" xml:space="preserve">
     <value>Vibration</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Rechtsklick-Menüpunkt zum Ein- und Ausschalten der Vibrationsfunktion.</comment>
   </data>
   <data name="Menu_Settings_Intensity" xml:space="preserve">
     <value>Intensität: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um die Vibrationsintensität anzuzeigen und einzustellen. {0} ist der aktuelle Prozentwert.</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
     <value>Gamepad-Eingabe-API</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um die aktuellen API-Informationen zur Gamecontroller-Eingabe anzuzeigen.</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>Verlaufskapazität: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um die Kapazität der Verlaufsaufzeichnung anzuzeigen und festzulegen. {0} ist der aktuelle Kapazitätswert.</comment>
   </data>
   <data name="Menu_Opacity_Adjust" xml:space="preserve">
     <value>Anpassen ...</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um das Dialogfeld zur Anpassung der Deckkraft zu öffnen (ein Unterpunkt des Untermenüs „Deckkraft“).</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>Ordner öffnen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Rechtsklick-Menüelement zum Öffnen des Anwendungsordners in AppData Roaming.</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
     <value>Öffnen Sie den Ordner Anwendungsdaten in AppData.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Aktivieren Sie Barrierefreiheitsbeschreibungen für Ordnermenüelemente.</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>Protokollordner öffnen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf das Menüelement, um den Protokollordner in AppData Local zu öffnen.</comment>
   </data>
   <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
     <value>Öffnen Sie den Ordner der Protokolldatei in AppData Local.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Aktivieren Sie Barrierefreiheitsbeschreibungen für Menüelemente des Protokollordners.</comment>
   </data>
   <data name="Msg_FolderNotFound" xml:space="preserve">
     <value>Dieser Ordner existiert noch nicht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, wenn der Zielordner noch nicht erstellt wurde.</comment>
   </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>Fensterwiederherstellungsverzögerung</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Projektnamen fest, der sich auf die Verzögerungszeit beim Wiederherstellen des Fensters bezieht.</comment>
   </data>
   <data name="Settings_ClipboardRetryDelay" xml:space="preserve">
     <value>Zwischenablage Wiederholungsverzögerung</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Elementnamen fest, der sich auf das Wiederholungsintervall bezieht, wenn der Zugriff auf die Zwischenablage fehlschlägt.</comment>
   </data>
   <data name="Settings_TouchKeyboardDismissDelay" xml:space="preserve">
     <value>Touch-Tastatur-Ausblendverzögerung</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Elementnamen fest, der sich auf die Verzögerungszeit beim Schließen der Touch-Tastatur bezieht.</comment>
   </data>
   <data name="Settings_WindowSwitchBufferBase" xml:space="preserve">
     <value>Fensterschalter-Puffersockel</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Projektnamen fest, der sich auf die grundlegende Pufferzeit beim Fensterwechsel bezieht.</comment>
   </data>
   <data name="Settings_HistoryCapacity" xml:space="preserve">
     <value>Historienkapazität</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Projektnamen fest, der sich auf die Begrenzung der Anzahl der Verlaufsdatensätze bezieht.</comment>
   </data>
   <data name="Settings_ThumbDeadzoneEnter" xml:space="preserve">
     <value>Daumentotzone: Auslöseschwelle</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Projektnamen fest, der sich auf den Auslöseschwellenwert bezieht, wenn der Joystick in die Totzone eintritt.</comment>
   </data>
   <data name="Settings_ThumbDeadzoneExit" xml:space="preserve">
     <value>Daumentotzone: Schwellenwert zurücksetzen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Projektnamen fest, der sich auf die Rücksetzschwelle des Joysticks beim Verlassen der Totzone bezieht.</comment>
   </data>
   <data name="Settings_RepeatDelay" xml:space="preserve">
     <value>Wiederholungs-Verzögerung:</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Name des Einstellungselements bezieht sich auf die Verzögerungszeit für die wiederholte Eingabe von Controller-Tasten.</comment>
   </data>
   <data name="Settings_RepeatSpeed" xml:space="preserve">
     <value>Wiederholungs-Geschwindigkeit:</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Elementnamen fest, der sich auf die Geschwindigkeit der wiederholten Eingabe der Controller-Tasten bezieht.</comment>
   </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>Diese Änderung erfordert einen Neustart, um wirksam zu werden. Jetzt neu starten?</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Aufforderungsmeldung, die den Benutzer darüber informiert, dass bestimmte Einstellungsänderungen einen Neustart des Programms erfordern, damit sie wirksam werden.</comment>
   </data>
   <data name="Msg_EnterValue" xml:space="preserve">
     <value>Bitte geben Sie einen neuen Wert für {0} ein:</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Eingabeaufforderungstext für das numerische Eingabedialogfeld. {0} ist der Name des Projekts, das festgelegt wird.</comment>
   </data>
   <data name="Btn_OK" xml:space="preserve">
     <value>OK</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Text der Schaltfläche „OK“ im Dialogfeld.</comment>
   </data>
   <data name="Btn_Cancel" xml:space="preserve">
     <value>Abbrechen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Text der Schaltfläche „Abbrechen“ im Dialogfeld.</comment>
   </data>
   <data name="Btn_SetDefault" xml:space="preserve">
     <value>Liste zurücksetzen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Text der Schaltfläche „Standardeinstellungen zurücksetzen“ im Dialogfeld.</comment>
   </data>
   <data name="Settings_VibrationIntensity" xml:space="preserve">
     <value>Intensität</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Elementnamen zum Anpassen der Vibrationsintensität fest.</comment>
   </data>
   <data name="A11y_Menu_NumericDesc" xml:space="preserve">
     <value>{0}. Aktuell: {1}, Bereich: {2} bis {3}.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Vorlage zur Beschreibung der Barrierefreiheit für numerische Menüelemente. {0} ist der Projektname, {1} ist der aktuelle Wert, {2} ist der Minimalwert und {3} ist der Maximalwert.</comment>
   </data>
   <data name="A11y_Mod_Toggle_Desc" xml:space="preserve">
     <value>Schalte {0} als Modifikator für die Kurztaste „Wecken“ ein.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit des Umschaltelements der Zusatztaste. {0} ist der Name der Modifikatortaste.</comment>
   </data>
   <data name="A11y_Value_Max" xml:space="preserve">
     <value>Maximalwert erreicht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>A11y-Broadcast-Nachricht wird abgespielt, wenn die numerische Eingabe den maximalen Grenzwert erreicht.</comment>
   </data>
   <data name="A11y_Value_Min" xml:space="preserve">
     <value>Mindestwert erreicht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>A11y-Broadcast-Nachricht wird abgespielt, wenn die numerische Eingabe die Mindestgrenze erreicht.</comment>
   </data>
   <data name="A11y_Value_Range_Desc" xml:space="preserve">
     <value>Aktueller Wert: {0}. Gültiger Bereich: {1} bis {2}.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung des numerischen Eingabefelds, einschließlich gültiger Bereichsinformationen. {0} ist der aktuelle Wert, {1} ist der Minimalwert und {2} ist der Maximalwert.</comment>
   </data>
   <data name="A11y_Btn_OK_Desc" xml:space="preserve">
     <value>Bestätigen Sie und wenden Sie den aktuellen Wert an.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Bestimmen Sie die Barrierefreiheitsbeschreibung der Schaltfläche.</comment>
   </data>
   <data name="A11y_Btn_Cancel_Desc" xml:space="preserve">
     <value>Änderungen abbrechen und Dialog schließen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung der Schaltfläche „Abbrechen“.</comment>
   </data>
   <data name="A11y_Btn_SetDefault_Desc" xml:space="preserve">
     <value>Setzen Sie den Wert auf die Werkseinstellung zurück: {0}.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche „Standardeinstellungen zurücksetzen“. {0} ist der werkseitige Standardwert für dieses Element.</comment>
   </data>
   <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
     <value>Setzen Sie alle Einstellungen in dieser Gruppe auf die Werkseinstellungen zurück.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung für eine Reset-Taste, die mehrere Einstellungen gleichzeitig zurücksetzt (z. B. Fensterbedienung, Rückmeldung, Controller-Einstellungen).</comment>
   </data>
   <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
     <value>Enthält das numerische Eingabefeld und die Inkrement/Dekrement-Tasten.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung des numerischen Eingaberastercontainers in NumericInputDialog.</comment>
   </data>
   <data name="A11y_Mod_On" xml:space="preserve">
     <value>{0} aktiviert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, die abgespielt wird, wenn Zusatztasten aktiviert sind. {0} ist der Name des Modifikatorschlüssels.</comment>
   </data>
   <data name="A11y_Mod_Off" xml:space="preserve">
     <value>{0} deaktiviert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn Zusatztasten deaktiviert sind. {0} ist der Name des Modifikatorschlüssels.</comment>
   </data>
   <data name="A11y_Mod_Key_Missing" xml:space="preserve">
     <value>(Hauptschlüssel nicht gesetzt)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsmeldung, um den Benutzer daran zu erinnern, dass die primäre Aktivierungstaste noch nicht festgelegt wurde.</comment>
   </data>
   <data name="A11y_Clipboard_Retrying" xml:space="preserve">
     <value>Zwischenablage belegt, erneuter Versuch...</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, wird abgespielt, wenn die Zwischenablage belegt ist, und versucht es automatisch erneut.</comment>
   </data>
   <data name="A11y_Cancelled" xml:space="preserve">
     <value>Vorgang abgebrochen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn der normale Betrieb abgebrochen wird.</comment>
   </data>
   <data name="A11y_Checked" xml:space="preserve">
     <value>Geprüft</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsstatus der aktivierten Menüelemente.</comment>
   </data>
   <data name="A11y_Unchecked" xml:space="preserve">
     <value>Deaktiviert</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Barrierefreiheitsstatus von Menüelementen ist deaktiviert.</comment>
   </data>
   <data name="A11y_Opening_Keyboard" xml:space="preserve">
     <value>Touch-Tastatur öffnen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldung zur Barrierefreiheit, die beim Vorbereiten des Starts der Touch-Tastatur abgespielt wird.</comment>
   </data>
   <data name="App_Privacy_Suffix" xml:space="preserve">
     <value>(🔒)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Symbolmarkierung wird an den Fenstertitel angehängt, wenn der Datenschutzmodus aktiviert ist.</comment>
   </data>
   <data name="App_Gamepad_Suffix" xml:space="preserve">
     <value>GameInput: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Controller-Informationen werden im Fenstertitel angezeigt. {0} ist der Name des Controllers.</comment>
   </data>
   <data name="App_Gamepad_XInput_Format" xml:space="preserve">
     <value>XInput: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>XFormat des Gerätenamens eingeben. {0} ist die Indexnummer des Controllers.</comment>
   </data>
   <data name="A11y_Background_Error" xml:space="preserve">
     <value>Fehler bei der Hintergrundaufgabe: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Meldungen zur Barrierefreiheit, Meldung von Hintergrundarbeitsfehlern. {0} ist die falsche Information.</comment>
   </data>
   <data name="A11y_ButtonArea" xml:space="preserve">
     <value>Bereich der Aktionsschaltflächen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Bezeichnungsname der Barrierefreiheitsgruppe für den Hauptschaltflächenbereich.</comment>
   </data>
   <data name="Menu_Exit" xml:space="preserve">
     <value>Verlassen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um den Bewerbungsprozess zu schließen und zu beenden.</comment>
   </data>
   <data name="A11y_Menu_Settings_Desc" xml:space="preserve">
     <value>Öffnet die erweiterten Einstellungen, einschließlich Fensterverhalten, Feedback und Gamepad-Optionen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legt die Barrierefreiheitsbeschreibung für das Menü fest.</comment>
   </data>
   <data name="A11y_Menu_WinOps_Desc" xml:space="preserve">
     <value>Konfigurieren Sie die Fensterwiederherstellungsverzögerungen und die Einstellungen für Zwischenablage-Wiederholungen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibungen zur Barrierefreiheit von Fenstern und Menüs.</comment>
   </data>
   <data name="A11y_Menu_Feedback_Desc" xml:space="preserve">
     <value>Vibrationsrückmeldung und Intensitätsstufen konfigurieren.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Feedback zur Barrierefreiheitsbeschreibung des Einstellungsmenüs.</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
     <value>Konfigurieren Sie Controller-Totzonen, Wiederholungsgeschwindigkeit und API-Anbieter.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit des Controller-Einstellungsmenüs.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Schalten Sie alle Vibrations-Effekte des Controllers ein oder aus.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit des Vibrationsschalterprojekts.</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
     <value>Wählen Sie die zugrunde liegende API für die Controller-Eingabe (GameInput oder XInput).</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung des API-Anbieterprojekts.</comment>
   </data>
   <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
     <value>Verwenden Sie die moderne GameInput-API von Microsoft. Empfohlen für moderne Steuerungen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugriffsbeschreibung der GameInput-Anbieteroptionen.</comment>
   </data>
   <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
     <value>Verwenden Sie die ältere XInput-API. Ideal für die Kompatibilität mit älteren Geräten.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugriffsbeschreibung für XInput-Anbieteroptionen.</comment>
   </data>
   <data name="A11y_Settings_RestartRequired" xml:space="preserve">
     <value>Neustart erforderlich</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugriffsbeschreibungssuffix, das an Einstellungselemente angehängt wird, die einen Programmneustart erfordern.</comment>
   </data>
   <data name="A11y_Menu_Exit_Desc" xml:space="preserve">
     <value>Beenden Sie die Anwendung und geben Sie alle Ressourcen frei.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Barrierefreiheitsbeschreibung des Exit-Menüelements.</comment>
   </data>
   <data name="A11y_TargetWindowLost" xml:space="preserve">
     <value>Kann nicht zurückkehren: Das Zielfenster wurde geschlossen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sprachansage zur Barrierefreiheit, wenn der Benutzer versucht, zum vorherigen Fenster zurückzukehren, dieses Fenster jedoch nicht mehr existiert.</comment>
   </data>
   <data name="A11y_SkipNav_JumpToInput" xml:space="preserve">
     <value>Fokus auf Texteingabe verschoben</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ansage zur Barrierefreiheit, wenn Sie Strg+M drücken, um zum Haupttexteingabefeld zu springen (WCAG 2.4.1 überspringt die Navigation).</comment>
   </data>
   <data name="A11y_SnapBack" xml:space="preserve">
     <value>Fensterposition automatisch korrigiert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreie Sprachansage, die abgespielt wird, wenn das Fenster die Grenzen des Bildschirms überschreitet, und automatisch zurückspringt.</comment>
   </data>
   <data name="Settings_WindowOpacity" xml:space="preserve">
     <value>Deckkraft</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Legen Sie den Elementnamen fest, der sich auf die Transparenz des Fensters bezieht.</comment>
   </data>
   <data name="A11y_Menu_OpacityDesc" xml:space="preserve">
     <value>{0}. Aktuell: {1:P0}. Mindestens 10 %.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für das Menüelement „Deckkraft“. {0} ist der Labelname und {1} ist der aktuelle Prozentsatz.</comment>
   </data>
   <data name="A11y_Opacity_Changed" xml:space="preserve">
     <value>Deckkraft eingestellt auf {0:P0}.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreie Sprachansage, abgespielt, wenn sich die Deckkraft ändert. {0} ist der neue Prozentsatz.</comment>
   </data>
   <data name="A11y_Opacity_HighContrast" xml:space="preserve">
     <value>Der Modus für hohen Kontrast ist eingeschaltet, die Opazität ist auf 100 % gesperrt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreie Sprachansage, die abgespielt wird, wenn die Deckkraft im Modus mit hohem Kontrast erzwungen wird.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn" xml:space="preserve">
-    <value>Die Einstellung der Deckkraft unter 50 % kann die Lesbarkeit verringern, wenn der Hintergrund komplex ist. Im Hochkontrastmodus setzt InputBox dies immer auf 100 %.
+    <value>Die Einstellung der Deckkraft unter 50 % kann die Lesbarkeit verringern, wenn der Hintergrund komplex ist. Im Hochkontrastmodus setzt Eingabefeld dies immer auf 100 %.
 
 Fortfahren?</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Inhalt des Warndialogs, der angezeigt wird, wenn der Benutzer die Deckkraft auf unter 50 % einstellt. Informieren Sie Benutzer darüber, dass die Lesbarkeit beeinträchtigt sein kann, und erklären Sie, dass der Modus mit hohem Kontrast diese Einstellung außer Kraft setzt.</comment>
   </data>
   <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
     <value>Warnung vor geringer Deckkraft</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Titel des Warndialogs, der angezeigt wird, wenn die Deckkraft unter 50 % eingestellt ist.</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
     <value>Die Initialisierung des Gamepad-Controllers ist fehlgeschlagen. Einige Funktionen sind möglicherweise nicht verfügbar.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Inhalt der über A11y gesendeten Sprachnachricht, nachdem die Initialisierung des Controllers beim Start fehlgeschlagen ist.</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
     <value>Systemthema anwenden (Neustart erforderlich)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ein Rechtsklick-Menüelement, das den Benutzer auffordert, das Programm neu zu starten, um die Änderungen im Dunkel-/Hell-Design vollständig anzuwenden.</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
     <value>Das Systemdesign hat sich geändert. Bitte wählen Sie "Systemthema anwenden" aus dem Kontextmenü, um die Anwendung neu zu starten und visuelle Effekte vollständig anzuwenden.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Sprachübertragung, die abgespielt wird, wenn ein Themenwechsel erkannt wird und einen manuellen Neustart durch den Benutzer erfordert.</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Symbolmarkierung wird hinter dem Anwendungsnamen in der Titelleiste angezeigt, wenn eine Änderung des Systemdesigns erkannt, aber noch nicht neu gestartet wurde.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>Aufrufen des Untermenüs {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Broadcast-Nachricht zur Barrierefreiheit, wenn ein Controller zum Aufrufen eines Untermenüs verwendet wird.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Exit" xml:space="preserve">
     <value>Untermenü {0} wird beendet</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Broadcast-Meldung zur Barrierefreiheit beim Verlassen eines Untermenüs mit einem Controller.</comment>
   </data>
   <data name="Menu_A11yInterrupt" xml:space="preserve">
     <value>Unterbrechungsansagen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um zu ändern, ob die Barrierefreiheitsübertragung die vorherige Nachricht unterbrechen soll (WCAG 2.2.4).</comment>
   </data>
   <data name="Menu_A11yInterrupt_Desc" xml:space="preserve">
     <value>Erlauben Sie Ansagen, die vorherige zu unterbrechen. Deaktivieren Sie diese Option, um jede Nachricht vollständig zu hören.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung für den Umschaltmenüpunkt „Interrupt-Broadcast zulassen“.</comment>
   </data>
   <data name="A11y_A11yInterrupt_On" xml:space="preserve">
     <value>Durchsagen unterbrechen aktiviert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Ansage zur Barrierefreiheit wird abgespielt, wenn die Einstellung „Übertragungsunterbrechung zulassen“ aktiviert ist.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
     <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Unterbrechungsübertragung zulassen“ deaktiviert ist.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
     <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Unterbrechungsübertragung zulassen“ deaktiviert ist.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
     <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Unterbrechungsübertragung zulassen“ deaktiviert ist.</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts" xml:space="preserve">
     <value>Animierte visuelle Warnungen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um den Warn- und Überprüfungsstatus so umzuschalten, dass animierte visuelle Eingabeaufforderungen verwendet werden.</comment>
   </data>
   <data name="Menu_AnimatedVisualAlerts_Desc" xml:space="preserve">
     <value>Erlauben Sie 1 Hertz animierte visuelle Warnungen. Deaktivieren Sie die Verwendung eines einzelnen statischen Impulses, was für lichtempfindliche Benutzer sicherer ist.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für den Umschaltmenüpunkt „Animierter visueller Alarm“.</comment>
   </data>
   <data name="A11y_AnimatedVisualAlerts_On" xml:space="preserve">
     <value>Animierte visuelle Warnungen aktiviert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Wenn die Einstellung „Animierte visuelle Warnungen“ aktiviert ist, wird eine Ankündigungsmeldung zur Barrierefreiheit abgespielt.</comment>
   </data>
   <data name="A11y_AnimatedVisualAlerts_Off" xml:space="preserve">
     <value>Animierte visuelle Warnungen deaktiviert. Warnungen verwenden einen einzigen statischen Impuls.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Animierte visuelle Warnungen“ deaktiviert ist.</comment>
   </data>
   <data name="Menu_MinimizeOnReturn" xml:space="preserve">
     <value>Bei Rückgabe minimieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um zu ändern, ob das Eingabefeld beim Zurückkehren zum vorherigen Fenster minimiert werden soll.</comment>
   </data>
   <data name="Menu_MinimizeOnReturn_Desc" xml:space="preserve">
     <value>Minimieren Sie die Eingabebox, wenn Sie zum vorherigen Fenster zurückkehren.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für den Umschaltmenüpunkt „Bei Rückkehr minimieren“.</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_On" xml:space="preserve">
     <value>Minimieren bei Rückgabe aktiviert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Ansage zur Barrierefreiheit wird abgespielt, wenn die Einstellung „Bei Rückkehr minimieren“ aktiviert ist.</comment>
   </data>
   <data name="A11y_MinimizeOnReturn_Off" xml:space="preserve">
     <value>Minimieren bei Rückgabe deaktiviert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Bei Rückkehr minimieren“ deaktiviert ist.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm" xml:space="preserve">
-    <value>InputBox minimiert sich selbst, wenn Sie zum vorherigen Fenster zurückkehren. Möchten Sie diese Funktion aktivieren?</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <value>Eingabefeld minimiert sich selbst, wenn Sie zum vorherigen Fenster zurückkehren. Möchten Sie diese Funktion aktivieren?</value>
+    <comment>Bei diesem Text handelt es sich um den Bestätigungsdialog, der angezeigt wird, wenn ein Benutzer versucht, „Bei Rückkehr minimieren“ zu aktivieren.</comment>
   </data>
   <data name="Msg_MinimizeOnReturn_Confirm_Title" xml:space="preserve">
     <value>Bei Rückgabe minimieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Titel des Bestätigungsdialogs, der angezeigt wird, wenn „Bei Rückkehr minimieren“ aktiviert ist.</comment>
   </data>
   <data name="Menu_Help" xml:space="preserve">
     <value>Hilfe</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Öffnen Sie den Rechtsklick-Menüpunkt des Hilfedialogfelds (WCAG 3.3.5).</comment>
   </data>
   <data name="Menu_Help_Desc" xml:space="preserve">
     <value>Tastenkombinationen und Gamepad-Steuerelemente anzeigen (F1)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für den Menüpunkt „Hilfe“.</comment>
   </data>
   <data name="Help_Title" xml:space="preserve">
     <value>Hilfe — Tastenkombinationen &amp; Gamepad-Steuerelemente</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Titelleistentext des Beschreibungsdialogfelds.</comment>
   </data>
   <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
     <value>Zeigt Tastenkombinationen und Gamepad-Steuerelemente an. Verwenden Sie die Pfeiltasten, Bild nach oben, Bild nach unten oder das Gamepad, um zu scrollen, und wählen Sie dann Schließen, um zurückzukehren.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibt die Barrierefreiheitsbeschreibung des Dialogfelds selbst.</comment>
   </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
     <value>Tastaturkürzel</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Abschnittstitel für die Tastaturkürzeltabelle im Dialogfeld „Beschreibung“.</comment>
   </data>
   <data name="Help_Section_Gamepad" xml:space="preserve">
     <value>Gamepad-Steuerung</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Abschnittstitel der Tabelle, der dem Controller-Schlüssel im Beschreibungsdialogfeld entspricht.</comment>
   </data>
   <data name="Help_Col_Key" xml:space="preserve">
     <value>Taste</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Spaltentitel „Tasten“ der Tastaturkürzeltabelle im Beschreibungsdialogfeld.</comment>
   </data>
   <data name="Help_Col_Button" xml:space="preserve">
     <value>Schaltfläche</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Spaltentitel „Schaltfläche“ der Tabelle, der den Controller-Tasten im Beschreibungsdialogfeld entspricht.</comment>
   </data>
   <data name="Help_Col_Action" xml:space="preserve">
     <value>Aktion</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Spaltentitel „Funktion“ der beiden Tabellen im Dialogfenster.</comment>
   </data>
   <data name="Help_Btn_Close" xml:space="preserve">
     <value>Schließen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschriftungstext, der die Schaltfläche „Schließen“ im Dialogfeld beschreibt.</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group" xml:space="preserve">
     <value>Tastaturkürzel-Tabelle</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsname für den Tastaturkürzel-Abschnittscontainer im Dialogfeld „Beschreibung“.</comment>
   </data>
   <data name="Help_A11y_Keyboard_Group_Desc" xml:space="preserve">
     <value>Listet die verfügbaren Tastenkombinationen und deren Aktionen auf.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für den Abschnittscontainer „Tastaturkürzel“ im Beschreibungsdialog.</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
     <value>Gamepad-Steuerungstabelle</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Barrierefreiheitsname des Abschnittscontainers, der dem Controller-Schlüssel im Beschreibungsdialog entspricht.</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
     <value>Listet die verfügbaren Gamepad-Tasten und ihre Aktionen auf.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung des Abschnittscontainers, der dem Controller-Schlüssel im Beschreibungsdialog entspricht.</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	Eingabe löschen / Zum vorherigen Fenster zurückkehren (wenn leer)
@@ -853,7 +853,7 @@ Alt + P	Datenschutzmodus umschalten
 F10 / Alt + M	Funktionsmenü öffnen
 Ctrl + M	Zum Texteingabefeld springen
 {0}	Eingabefeld ein-/ausblenden (global)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Datenspalten der Tastaturkürzeltabelle im Beschreibungsdialogfeld sind durch Tab getrennt: die Funktion {tab}, eine Spalte pro Zeile.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
     <value>A / Start	Bestätigen und zurückkehren (oder Bildschirmtastatur öffnen)
@@ -869,306 +869,306 @@ Zurück + X	Fensterdeckkraft zurücksetzen
 LB + ← / →	Cursor wortweise bewegen
 RS ← / →	Auswahl erweitern oder verkleinern
 Zurück + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Controller-Tasten im Beschreibungsdialogfeld entsprechen den Datenspalten der Tabelle, und die Felder werden durch die Funktion Tab: Schaltfläche {Tab} getrennt, eine Spalte pro Zeile.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">
     <value>Funktionsmenü</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsname für das Rechtsklickmenü.</comment>
   </data>
   <data name="A11y_ContextMenu_Desc" xml:space="preserve">
     <value>Enthält den Datenschutzmodus, Einstellungen für Tastenkombinationen, erweiterte Einstellungen und andere Anwendungsfunktionen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für das Rechtsklick-Menü.</comment>
   </data>
   <data name="Menu_Phrases" xml:space="preserve">
     <value>Verwendete Texte</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Untermenübezeichnung „Phrase“ im Kontextmenü.</comment>
   </data>
   <data name="Menu_ManagePhrases" xml:space="preserve">
     <value>Verwalten von Ausdrücken</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Menüpunkt, der das Dialogfeld zur Phrasenverwaltung öffnet.</comment>
   </data>
   <data name="Menu_ExportPhrases" xml:space="preserve">
     <value>Phrasen exportieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Menüpunkt, der alle Phrasen in eine vom Benutzer angegebene JSON-Datei exportiert.</comment>
   </data>
   <data name="Menu_ImportPhrases" xml:space="preserve">
     <value>Phrasen importieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Menüelement, das Phrasen aus einer benutzerdefinierten JSON-Datei importiert (und die vorhandene Liste ersetzt).</comment>
   </data>
   <data name="Msg_ImportPhrases_Confirm" xml:space="preserve">
     <value>Der Import ersetzt alle {0} vorhandenen Phrasen. Fortfahren?</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Bestätigungsmeldung vor dem Importieren der Phrase. {0} = Aktuelle Anzahl der Phrasen.</comment>
   </data>
   <data name="Msg_ImportPhrases_Success" xml:space="preserve">
     <value>{0} Phrase(n) importiert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Prompt-Meldung nach erfolgreichem Import der Phrase. {0} = Anzahl der importierten Phrasen.</comment>
   </data>
   <data name="Msg_ImportPhrases_Error" xml:space="preserve">
     <value>Phrasen konnten nicht importiert werden. Die Datei ist möglicherweise ungültig oder beschädigt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Fehlermeldung, die darauf hinweist, dass der Import fehlgeschlagen ist, weil die Datei ungültig ist oder nicht gelesen werden kann.</comment>
   </data>
   <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
     <value>Importierte Phrasen konnten nicht auf Festplatte gespeichert werden. Die vorherigen Sätze wurden wiederhergestellt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Fehlermeldung, wenn der Speicher erfolgreich importiert wurde, aber nicht beibehalten werden kann. Die Daten wurden zurückgesetzt.</comment>
   </data>
   <data name="Msg_ExportPhrases_Success" xml:space="preserve">
     <value>{0} Phrase(n) exportiert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sofortige Meldung nach erfolgreichem Exportieren der Phrase. {0} = Anzahl der exportierten Phrasen.</comment>
   </data>
   <data name="Msg_ExportPhrases_Error" xml:space="preserve">
     <value>Phrasen konnten nicht exportiert werden. Bitte überprüfen Sie den Zielpfad und versuchen Sie es erneut.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Fehlermeldung, wenn der Export einer Phrase fehlschlägt.</comment>
   </data>
   <data name="Msg_ExportPhrases_Empty" xml:space="preserve">
     <value>Es gibt keine Phrasen zu exportieren. Bitte fügen Sie zuerst Sätze hinzu.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Warnmeldung, wenn der Benutzer versucht zu exportieren, die Phrasenliste jedoch leer ist.</comment>
   </data>
   <data name="A11y_Phrases_Exported" xml:space="preserve">
     <value>{0} Phrase(n) exportiert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Screenreader-Benachrichtigung nach erfolgreichem Export einer Phrase. {0} = Menge.</comment>
   </data>
   <data name="A11y_Phrases_Imported" xml:space="preserve">
     <value>{0} Phrase(n) importiert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Screenreader-Benachrichtigung nach erfolgreichem Import einer Phrase. {0} = Menge.</comment>
   </data>
   <data name="Menu_PhraseEmpty" xml:space="preserve">
     <value>(Keine Phrasen)</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Text, der angezeigt wird, wenn im Phrasen-Untermenü keine Phrasen vorhanden sind.</comment>
   </data>
   <data name="Phrase_Title" xml:space="preserve">
     <value>Phrasen-Manager</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Titel des Dialogfelds zur Phrasenverwaltung.</comment>
   </data>
   <data name="Phrase_Btn_Add" xml:space="preserve">
     <value>Hinzufügen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Phrase hinzufügen.</comment>
   </data>
   <data name="Phrase_Btn_Edit" xml:space="preserve">
     <value>Bearbeiten</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Bearbeiten Sie die ausgewählte Phrase.</comment>
   </data>
   <data name="Phrase_Btn_Delete" xml:space="preserve">
     <value>Löschen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Die ausgewählte Phrase löschen.</comment>
   </data>
   <data name="Phrase_Btn_MoveUp" xml:space="preserve">
     <value>Nach oben</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Verschiebt die ausgewählte Phrase nach oben.</comment>
   </data>
   <data name="Phrase_Btn_MoveDown" xml:space="preserve">
     <value>Nach unten</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Verschiebt die ausgewählte Phrase nach unten.</comment>
   </data>
   <data name="Phrase_Btn_Close" xml:space="preserve">
     <value>Schließen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Schließen Sie das Dialogfeld zur Phrasenverwaltung.</comment>
   </data>
   <data name="Phrase_Btn_Confirm" xml:space="preserve">
     <value>OK</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Phrasenbearbeitung bestätigen.</comment>
   </data>
   <data name="Phrase_Btn_Cancel" xml:space="preserve">
     <value>Abbrechen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Schaltflächenbeschriftung: Phrasenbearbeitung abbrechen.</comment>
   </data>
   <data name="Phrase_Edit_Title_Add" xml:space="preserve">
     <value>Wortlaut hinzufügen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Titel des Bearbeitungsdialogfelds beim Hinzufügen einer Phrase.</comment>
   </data>
   <data name="Phrase_Edit_Title_Edit" xml:space="preserve">
     <value>Phrase bearbeiten</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Titel des Bearbeitungsdialogs beim Bearbeiten einer vorhandenen Phrase.</comment>
   </data>
   <data name="Phrase_Edit_Name" xml:space="preserve">
     <value>Name:</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Bezeichnung für das Eingabefeld für den Phrasennamen.</comment>
   </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>Inhalt:</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Bezeichnung für das Eingabefeld für den Phraseninhalt.</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>Formulierungen verwalten: hinzufügen, bearbeiten, löschen und neu anordnen. Verwenden Sie das Gamepad Y zum Hinzufügen, A zum Einfügen, X zum Löschen, Links/Rechts zum Nachbestellen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für den Phrasenverwaltungsdialog.</comment>
   </data>
   <data name="Phrase_A11y_List_Name" xml:space="preserve">
     <value>Phrasenliste</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Namen für Phrasenlisten.</comment>
   </data>
   <data name="Phrase_A11y_List_Desc" xml:space="preserve">
     <value>Wählen Sie eine Phrase aus und drücken Sie Enter oder Gamepad A, um sie in das Eingabefeld einzufügen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreie Beschreibungen von Phrasenlisten.</comment>
   </data>
   <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
     <value>Phrasen-Aktionen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsname für den Phrasen-Aktionsschaltflächenbereich.</comment>
   </data>
   <data name="Phrase_A11y_ButtonArea_Desc" xml:space="preserve">
     <value>Enthält Aktionsschaltflächen für Phrasenoperationen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung für den Gruppencontainer des Phrasen-Aktionsschaltflächenbereichs.</comment>
   </data>
   <data name="Phrase_A11y_Page_Previous" xml:space="preserve">
     <value>Vorherige Seite</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Barrierefreiheitsname der Schaltfläche auf der vorherigen Seite der Phrasen-Untermenüregisterkarte.</comment>
   </data>
   <data name="Phrase_A11y_Page_Next" xml:space="preserve">
     <value>Nächste Seite</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Barrierefreiheitsname der Schaltfläche „Nächste Seite“ in der Phrasen-Untermenü-Paginierung.</comment>
   </data>
   <data name="Phrase_A11y_Page_Info" xml:space="preserve">
     <value>Seite {0} von {1}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Barrierefreiheitsname des Paging-Informationselements im Phrasen-Untermenü. {0} = aktuelle Seitenzahl, {1} = Gesamtzahl der Seiten.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
     <value>Fügen Sie einen neuen Satz hinzu. Gamepad: Y-Taste.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche hinzugefügt.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
     <value>Bearbeiten Sie die ausgewählte Phrase.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit der Schaltfläche „Bearbeiten“.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
     <value>Löschen Sie die ausgewählte Phrase. Gamepad: X-Taste.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche „Löschen“.</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
     <value>Verschieben Sie den ausgewählten Satz nach oben. Gamepad: Linkes D-Pad.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche „Nach oben verschieben“.</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
     <value>Bewegen Sie die ausgewählte Phrase nach unten. Gamepad: Rechtes D-Pad.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche „Nach unten verschieben“.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
     <value>Schließen Sie den Phrasenmanager. Gamepad: B-Taste.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit der Schaltfläche „Schließen“.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
     <value>Bestätigt und speichert den Satz. Gamepad: A-Taste.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche „OK“ im Bearbeitungsdialog.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
     <value>Bearbeitung abbrechen. Gamepad: B-Taste.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für die Schaltfläche „Abbrechen“ im Bearbeitungsdialog.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
     <value>Geben Sie einen Namen und Inhalt für die Phrase ein. Drücken Sie zur Bestätigung auf Enter oder Gamepad A.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Beschreibung der Barrierefreiheit für das Dialogfeld zum Bearbeiten von Phrasen.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
     <value>Geben Sie einen Anzeigenamen für diese Phrase ein (max. 50 Zeichen).</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung für das Textfeld „Phrasenname“.</comment>
   </data>
   <data name="Phrase_A11y_Edit_Content_Desc" xml:space="preserve">
     <value>Geben Sie den einzufügenden Textinhalt ein (max. 500 Zeichen). Unterstützt mehrere Zeilen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbeschreibung des Textfelds für den Phraseninhalt.</comment>
   </data>
   <data name="Phrase_A11y_Selected" xml:space="preserve">
     <value>Ausgewählt: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Berichte bei der Auswahl einer Phrase. {0} = Phrasenname.</comment>
   </data>
   <data name="Phrase_A11y_Added" xml:space="preserve">
     <value>Satz hinzugefügt: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Übertragung nach Hinzufügen von Phrasen. {0} = Phrasenname.</comment>
   </data>
   <data name="Phrase_A11y_Updated" xml:space="preserve">
     <value>Phrase aktualisiert: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Übertragung zur Barrierefreiheit nach der Aktualisierung des Satzes. {0} = Phrasenname.</comment>
   </data>
   <data name="Phrase_A11y_Deleted" xml:space="preserve">
     <value>Satz gelöscht: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Übertragung nach dem Löschen der Phrase. {0} = Phrasenname.</comment>
   </data>
   <data name="Phrase_A11y_Moved" xml:space="preserve">
     <value>In Position {0} verschoben</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Sendung nach sortierten Phrasen. {0} = neue Position (basierend auf 1).</comment>
   </data>
   <data name="Phrase_A11y_Full" xml:space="preserve">
     <value>Die Wortliste ist voll. Es können keine weiteren Sätze hinzugefügt werden.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Phrasenliste hat die Grenze für barrierefreie Ausstrahlung erreicht.</comment>
   </data>
   <data name="Phrase_A11y_Inserted" xml:space="preserve">
     <value>Phrase eingefügt: {0}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Zugängliche Berichte beim Einfügen von Phrasen in Eingabefelder. {0} = Phrasenname.</comment>
   </data>
   <data name="Phrase_A11y_Selected_PrivacySafe" xml:space="preserve">
     <value>Phrase ausgewählt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sichere und zugängliche Berichterstattung bei der Auswahl von Phrasen im Datenschutzmodus.</comment>
   </data>
   <data name="Phrase_A11y_Added_PrivacySafe" xml:space="preserve">
     <value>Phrase hinzugefügt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sicheres und barrierefreies Senden nach dem Hinzufügen neuer Phrasen im Datenschutzmodus.</comment>
   </data>
   <data name="Phrase_A11y_Updated_PrivacySafe" xml:space="preserve">
     <value>Phrase aktualisiert.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sicheres und zugängliches Senden nach aktualisierten Phrasen im Datenschutzmodus.</comment>
   </data>
   <data name="Phrase_A11y_Deleted_PrivacySafe" xml:space="preserve">
     <value>Satz gelöscht.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sicheres und zugängliches Senden nach dem Löschen von Phrasen im Datenschutzmodus.</comment>
   </data>
   <data name="Phrase_A11y_Inserted_PrivacySafe" xml:space="preserve">
     <value>Phrase eingefügt.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Sicheres und zugängliches Senden beim Einfügen von Phrasen im Datenschutzmodus.</comment>
   </data>
   <data name="Phrase_A11y_NameRequired" xml:space="preserve">
     <value>Bitte geben Sie einen Namen an.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsberichte, wenn ein Benutzer eine Bestätigung versucht, ohne einen Namen einzugeben.</comment>
   </data>
   <data name="Phrase_A11y_ContentRequired" xml:space="preserve">
     <value>Bitte tragen Sie ihren Inhalt ein.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsberichte, wenn ein Benutzer versucht, die Eingabe zu bestätigen, ohne etwas einzugeben.</comment>
   </data>
   <data name="Phrase_Edit_Name_Placeholder" xml:space="preserve">
     <value>Phrasenname eingeben...</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der reservierte Text für das Namenseingabefeld des Dialogfelds zur Phrasenbearbeitung.</comment>
   </data>
   <data name="Phrase_Edit_Content_Placeholder" xml:space="preserve">
     <value>Phraseninhalt eingeben...</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der reservierte Text für das Inhaltseingabefeld des Dialogfelds zur Phrasenbearbeitung.</comment>
   </data>
   <data name="Btn_Yes" xml:space="preserve">
     <value>Ja</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Beschriftungstext für die GamepadMessageBox-Schaltfläche „Ja“.</comment>
   </data>
   <data name="Btn_No" xml:space="preserve">
     <value>nein</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Beschriftungstext für die GamepadMessageBox-Schaltfläche „Nein“.</comment>
   </data>
   <data name="Btn_Abort" xml:space="preserve">
     <value>Abbruch</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Beschriftungstext für die GamepadMessageBox-Schaltfläche „Abort“ (AbortRetryIgnore-Kombination).</comment>
   </data>
   <data name="Btn_Retry" xml:space="preserve">
     <value>Erneut versuchen</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Beschriftungstext der GamepadMessageBox-Schaltfläche „Wiederholen“ (Kombination „RetryCancel/AbortRetryIgnore“).</comment>
   </data>
   <data name="Btn_Ignore" xml:space="preserve">
     <value>Ignorieren</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Der Beschriftungstext für die GamepadMessageBox-Schaltfläche „Überspringen“ (AbortRetryIgnore-Kombination).</comment>
   </data>
   <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
     <value>ERROR ICON</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbezeichnung des GamepadMessageBox-Symbols bei der Anzeige von MessageBoxIcon.Error, vor der Beschreibung der Barrierefreiheit angehängt.</comment>
   </data>
   <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
     <value>Warnsymbol</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbezeichnung des GamepadMessageBox-Symbols bei der Anzeige von MessageBoxIcon.Warning, vor der Beschreibung der Barrierefreiheit angehängt.</comment>
   </data>
   <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
     <value>Informationssymbol</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbezeichnung des GamepadMessageBox-Symbols bei der Anzeige von MessageBoxIcon.Information, angehängt vor der Beschreibung der Barrierefreiheit.</comment>
   </data>
   <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
     <value>Frage-Symbol.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Barrierefreiheitsbezeichnung des GamepadMessageBox-Symbols bei der Anzeige von MessageBoxIcon.Question, angehängt vor der Beschreibung der Barrierefreiheit.</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>Nachrichtendialog. Drücken Sie A für die primäre Aktion, B zum Abbrechen.</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Barrierefreiheitsbeschreibung der GamepadMessageBox, die von Bildschirmleseprogrammen vorgelesen wird, wenn das Dialogfeld geöffnet wird.</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
     <value>A: {0} · B: {1}</value>
-    <comment>Deutsche Lokalisierung.</comment>
+    <comment>Die Eingabeaufforderungsbezeichnung der GamepadMessageBox am Lenker. {0} ist das Hauptaktions-Tag und {1} ist das Stornierungsaktions-Tag.</comment>
   </data>
 </root>
