@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -304,12 +304,12 @@
     <comment>「ホットキーの設定」サブメニューのアクセシビリティ記述です。</comment>
   </data>
   <data name="Menu_PrivacyMode" xml:space="preserve">
-    <value>プライバシー モード</value>
+    <value>プライバシーモード</value>
     <comment>右クリックメニュー項目。プライバシーモード（入力を記録しない）を切り替えるために使用します。</comment>
   </data>
   <data name="Menu_PrivacyMode_Desc" xml:space="preserve">
     <value>有効にすると、新しい入力は履歴に保存されません。</value>
-    <comment>「プライバシー モード」メニュー項目のアクセシビリティ記述です。</comment>
+    <comment>「プライバシーモード」メニュー項目のアクセシビリティ記述です。</comment>
   </data>
   <data name="Mod_Alt" xml:space="preserve">
     <value>Alt</value>
@@ -440,20 +440,20 @@
     <comment>右クリックメニュー項目。AppData Roaming 内のアプリケーションフォルダを開くために使用します。</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
-    <value>AppData にあるアプリケーション フォルダを開きます。</value>
+    <value>AppData にあるアプリケーションフォルダを開きます。</value>
     <comment>フォルダを開くメニュー項目のアクセシビリティの説明。</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
-    <value>ログ フォルダを開く</value>
+    <value>ログフォルダを開く</value>
     <comment>右クリックメニュー項目。AppData Local 内のログフォルダを開くために使用します。</comment>
   </data>
   <data name="Menu_OpenLogFolder_Desc" xml:space="preserve">
-    <value>AppData Local にあるログ ファイル フォルダを開きます。</value>
+    <value>AppData Local にあるログファイルフォルダを開きます。</value>
     <comment>ログフォルダを開くメニュー項目のアクセシビリティの説明。</comment>
   </data>
   <data name="Msg_FolderNotFound" xml:space="preserve">
     <value>フォルダはまだ作成されていません。</value>
-    <comment>対象フォルダがまだ作成されていない場合のアクセシビリティ メッセージ。</comment>
+    <comment>対象フォルダがまだ作成されていない場合のアクセシビリティメッセージ。</comment>
   </data>
   <data name="Settings_WindowRestoreDelay" xml:space="preserve">
     <value>ウィンドウ復元遅延</value>
@@ -600,7 +600,7 @@
     <comment>XInput デバイスの名称形式です。{0} はコントローラーのインデックス番号です。</comment>
   </data>
   <data name="A11y_Background_Error" xml:space="preserve">
-    <value>バックグラウンドタスク エラー：{0}</value>
+    <value>バックグラウンドタスクエラー：{0}</value>
     <comment>アクセシビリティメッセージ。バックグラウンドタスクのエラーを報告します。{0} は詳細なエラー情報内容です。</comment>
   </data>
   <data name="A11y_ButtonArea" xml:space="preserve">
@@ -1149,19 +1149,19 @@ Back + ↑／↓	透明度を調整（±5%）</value>
   </data>
   <data name="GmBox_A11y_Icon_Error" xml:space="preserve">
     <value>エラーアイコン。</value>
-    <comment>GamepadMessageBox で MessageBoxIcon.Error が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+    <comment>GamepadMessageBox で MessageBoxIcon.Error が表示される際のアイコンアクセシビリティラベル。アクセシビリティ説明の前に付加されます。</comment>
   </data>
   <data name="GmBox_A11y_Icon_Warning" xml:space="preserve">
     <value>警告アイコン。</value>
-    <comment>GamepadMessageBox で MessageBoxIcon.Warning が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+    <comment>GamepadMessageBox で MessageBoxIcon.Warning が表示される際のアイコンアクセシビリティラベル。アクセシビリティ説明の前に付加されます。</comment>
   </data>
   <data name="GmBox_A11y_Icon_Information" xml:space="preserve">
     <value>情報アイコン。</value>
-    <comment>GamepadMessageBox で MessageBoxIcon.Information が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+    <comment>GamepadMessageBox で MessageBoxIcon.Information が表示される際のアイコンアクセシビリティラベル。アクセシビリティ説明の前に付加されます。</comment>
   </data>
   <data name="GmBox_A11y_Icon_Question" xml:space="preserve">
     <value>質問アイコン。</value>
-    <comment>GamepadMessageBox で MessageBoxIcon.Question が表示される際のアイコン アクセシビリティ ラベル。アクセシビリティ説明の前に付加されます。</comment>
+    <comment>GamepadMessageBox で MessageBoxIcon.Question が表示される際のアイコンアクセシビリティラベル。アクセシビリティ説明の前に付加されます。</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
     <value>メッセージダイアログ。A ボタンでメインアクション、B ボタンでキャンセル。</value>
