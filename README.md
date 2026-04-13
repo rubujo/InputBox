@@ -374,7 +374,34 @@ bin\Release\net10.0-windows\publish\win-x64\InputBox.exe
    - 展開「檔案發行選項」，勾選 **[產生單一檔案]** 跟 **[啟用 ReadyToRun 編譯]**。
 4. 點擊 **[儲存]** 後再點擊 **[發佈]** 即可。
 
-## 九、聲明 📢
+## 九、測試 🧪
+
+為確保異動不造成行為回歸，建議在發佈前先執行單元測試。
+
+### 1. 執行單元測試
+
+```powershell
+dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+```
+
+### 2. 顯示詳細輸出（除錯用）
+
+```powershell
+dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
+```
+
+### 3. 收集 Code Coverage（與 CI 一致）
+
+```powershell
+dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
+  --coverage `
+  --coverage-output-format cobertura `
+  --coverage-output coverage.cobertura.xml
+```
+
+> 注意：本專案使用 Microsoft Testing Platform（MTP）；相關測試規範與注意事項請參閱 `docs/engineering/testing.md` 與 `tests/InputBox.Tests/README.md`。
+
+## 十、聲明 📢
 
 1. 本專案使用 AI 服務輔助開發、翻譯、圖示生成、文件撰寫以及網頁製作。 🤖
 2. 本應用程式依賴 `TabTip.exe` 以開啟 Windows 觸控式鍵盤，僅支援於 Windows 11 22H2（Build 22621）以上版本執行。
@@ -382,7 +409,7 @@ bin\Release\net10.0-windows\publish\win-x64\InputBox.exe
 3. 本應用程式為非官方第三方應用程式，與任何遊戲或服務之開發商、發行商、代理商或營運單位皆無關聯，且無法保證在任何特定遊戲或服務環境中皆能符合使用者的操作需求或使用情境。
 4. 使用本應用程式所產生的任何後果，皆由使用者自行承擔。
 
-## 十、授權條款 📜
+## 十一、授權條款 📜
 
 本專案的本體採用 [**CC0 1.0 Universal**](https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hant) 宣告釋出至公眾領域，並於適用法律允許之最大範圍內不主張任何著作權或相關權利。
 
