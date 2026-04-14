@@ -70,24 +70,6 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Interrupt announcements disabled. All messages will be announced in full. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_A11yInterrupt_Off1 {
-            get {
-                return ResourceManager.GetString("A11y_A11yInterrupt_Off1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 Interrupt announcements disabled. All messages will be announced in full. 的當地語系化字串。
-        /// </summary>
-        internal static string A11y_A11yInterrupt_Off2 {
-            get {
-                return ResourceManager.GetString("A11y_A11yInterrupt_Off2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查詢類似 Interrupt announcements enabled. 的當地語系化字串。
         /// </summary>
         internal static string A11y_A11yInterrupt_On {
@@ -331,6 +313,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Current game controller calibration state reset. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Gamepad_CalibrationReset {
+            get {
+                return ResourceManager.GetString("A11y_Gamepad_CalibrationReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Controller {0} connected. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Gamepad_Connected {
@@ -457,11 +448,47 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Configure controller deadzones, repeat speed, and API provider. 的當地語系化字串。
+        ///   查詢類似 Raise this if the game controller drifts on its own. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Gamepad_DeadzoneEnter_Hint {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Gamepad_DeadzoneEnter_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Keep this lower than the trigger threshold to reduce jitter when returning to center. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Gamepad_DeadzoneExit_Hint {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Gamepad_DeadzoneExit_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Configure controller deadzones, repeat speed, API provider, and reset the current calibration state. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Menu_Gamepad_Desc {
             get {
                 return ResourceManager.GetString("A11y_Menu_Gamepad_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Controls how long to wait before a held direction starts repeating. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Gamepad_RepeatDelay_Hint {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Gamepad_RepeatDelay_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Controls how fast held directions repeat after the initial delay. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Menu_Gamepad_RepeatSpeed_Hint {
+            get {
+                return ResourceManager.GetString("A11y_Menu_Gamepad_RepeatSpeed_Hint", resourceCulture);
             }
         }
         
@@ -1389,6 +1416,24 @@ namespace InputBox.Resources {
         internal static string Menu_ExportPhrases {
             get {
                 return ResourceManager.GetString("Menu_ExportPhrases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Reset Current Calibration State 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Gamepad_ResetCalibration {
+            get {
+                return ResourceManager.GetString("Menu_Gamepad_ResetCalibration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Clear the runtime-learned neutral offset for the current game controller without changing the saved deadzone or repeat settings. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Gamepad_ResetCalibration_Desc {
+            get {
+                return ResourceManager.GetString("Menu_Gamepad_ResetCalibration_Desc", resourceCulture);
             }
         }
         

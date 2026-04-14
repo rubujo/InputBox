@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -491,6 +491,14 @@
     <value>リピート速度</value>
     <comment>設定項目の名称。ゲームパッドのボタンを押し続けたときのリピート速度を指します。</comment>
   </data>
+  <data name="Menu_Gamepad_ResetCalibration" xml:space="preserve">
+    <value>現在の補正状態をリセット</value>
+    <comment>実行中に学習したゲームパッドのニュートラル補正をクリアするコンテキストメニュー項目です。</comment>
+  </data>
+  <data name="Menu_Gamepad_ResetCalibration_Desc" xml:space="preserve">
+    <value>現在の実行中に学習したゲームパッドのニュートラル補正を消去します。保存済みのデッドゾーンやリピート設定は変更しません。</value>
+    <comment>「現在の補正状態をリセット」メニュー項目のアクセシビリティ記述です。</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>この変更を有効にするには再起動が必要です。今すぐ再起動しますか？</value>
     <comment>提示メッセージ。一部の設定変更を反映させるためにアプリケーションの再起動が必要であることをユーザーに知らせます。</comment>
@@ -624,8 +632,28 @@
     <comment>フィードバック設定メニューのアクセシビリティ記述。</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
-    <value>コントローラーのデッドゾーン、リピート速度、API プロバイダーを構成します。</value>
-    <comment>コントローラー設定メニューのアクセシビリティ記述。</comment>
+    <value>ゲームパッドのデッドゾーン、リピート速度、入力 API を調整し、必要に応じて現在の補正状態をリセットします。</value>
+    <comment>ゲームパッド設定メニューのアクセシビリティ記述です。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneEnter_Hint" xml:space="preserve">
+    <value>ゲームパッドが自然に流れる場合は、この値を上げてください。</value>
+    <comment>デッドゾーンの開始閾値に関する補足説明です。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneExit_Hint" xml:space="preserve">
+    <value>この値は開始閾値より低く保つと、中央へ戻る際の揺れを抑えられます。</value>
+    <comment>デッドゾーンの終了閾値に関する補足説明です。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatDelay_Hint" xml:space="preserve">
+    <value>方向を押し続けた後、リピート入力が始まるまでの待ち時間を調整します。</value>
+    <comment>リピート遅延の補足説明です。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatSpeed_Hint" xml:space="preserve">
+    <value>方向を押し続けたとき、最初の遅延後にどのくらいの速さでリピートするかを調整します。</value>
+    <comment>リピート速度の補足説明です。</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
+    <value>現在のゲームパッド補正状態をリセットしました。</value>
+    <comment>実行中の補正状態をリセットした後に読み上げるアクセシビリティメッセージです。</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>コントローラーのすべての振動エフェクトのオン/オフを切り替えます。</value>
@@ -726,14 +754,6 @@
     <comment>読み上げ中断設定をオンにしたときに再生されるスクリーンリーダー通知。</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
-    <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
-    <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
-    <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
-    <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
     <value>読み上げ中断を無効にしました。すべてのメッセージが順番に読み上げられます。</value>
     <comment>読み上げ中断設定をオフにしたときに再生されるスクリーンリーダー通知。</comment>
   </data>

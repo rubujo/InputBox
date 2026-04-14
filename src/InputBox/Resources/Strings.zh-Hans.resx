@@ -491,6 +491,14 @@
     <value>重复速度</value>
     <comment>设置项目名称，指手柄按键重复输入的速度。</comment>
   </data>
+  <data name="Menu_Gamepad_ResetCalibration" xml:space="preserve">
+    <value>重置当前校准状态</value>
+    <comment>右键菜单项，用于清除当前运行期间学习到的游戏控制器中立偏移。</comment>
+  </data>
+  <data name="Menu_Gamepad_ResetCalibration_Desc" xml:space="preserve">
+    <value>清除当前运行期间学习到的游戏控制器中立偏移，不会更改已保存的死区或重复输入设置。</value>
+    <comment>“重置当前校准状态”菜单项的无障碍描述。</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>此更改需要重启程序才能生效。是否立即重启？</value>
     <comment>提示信息，告知用户某些设置变更需要重启程序才能生效。</comment>
@@ -624,8 +632,28 @@
     <comment>反馈设置菜单的无障碍描述。</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
-    <value>设置控制器死区、重复速度与 API 供应商。</value>
-    <comment>控制器设置菜单的无障碍描述。</comment>
+    <value>调整游戏控制器死区、重复输入速度、输入 API，并可重置当前校准状态。</value>
+    <comment>游戏控制器设置菜单的无障碍描述。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneEnter_Hint" xml:space="preserve">
+    <value>如果游戏控制器会自行漂移，可先提高此值。</value>
+    <comment>摇杆死区触发阈值的用途提示。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneExit_Hint" xml:space="preserve">
+    <value>此值应低于触发阈值，可减少回中时的抖动。</value>
+    <comment>摇杆死区重置阈值的用途提示。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatDelay_Hint" xml:space="preserve">
+    <value>控制长按方向后，多久开始重复输入。</value>
+    <comment>重复输入延迟的用途提示。</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatSpeed_Hint" xml:space="preserve">
+    <value>控制长按方向后，重复输入的快慢。</value>
+    <comment>重复输入速度的用途提示。</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
+    <value>已重置当前游戏控制器校准状态。</value>
+    <comment>重置运行期校准状态后播报的无障碍消息。</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>切换所有控制器震动效果的开启或关闭。</value>
@@ -726,14 +754,6 @@
     <comment>开启「允许中断播报」设置时播放的无障碍播报消息。</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
-    <value>已停用播报中断，所有消息将完整依序播报。</value>
-    <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
-    <value>已停用播报中断，所有消息将完整依序播报。</value>
-    <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
     <value>已停用播报中断，所有消息将完整依序播报。</value>
     <comment>关闭「允许中断播报」设置时播放的无障碍播报消息。</comment>
   </data>

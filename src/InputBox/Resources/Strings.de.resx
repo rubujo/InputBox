@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -491,6 +491,14 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
     <value>Wiederholungs-Geschwindigkeit:</value>
     <comment>Legen Sie den Elementnamen fest, der sich auf die Geschwindigkeit der wiederholten Eingabe der Controller-Tasten bezieht.</comment>
   </data>
+  <data name="Menu_Gamepad_ResetCalibration" xml:space="preserve">
+    <value>Aktuellen Kalibrierungszustand zurücksetzen</value>
+    <comment>Kontextmenüeintrag zum Löschen des während der aktuellen Sitzung erlernten Neutraloffsets des Gamepads.</comment>
+  </data>
+  <data name="Menu_Gamepad_ResetCalibration_Desc" xml:space="preserve">
+    <value>Löscht den während der aktuellen Sitzung erlernten Neutraloffset des Gamepads, ohne gespeicherte Totzonen- oder Wiederholungseinstellungen zu ändern.</value>
+    <comment>Barrierefreiheitsbeschreibung für den Menüpunkt „Aktuellen Kalibrierungszustand zurücksetzen“.</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>Diese Änderung erfordert einen Neustart, um wirksam zu werden. Jetzt neu starten?</value>
     <comment>Aufforderungsmeldung, die den Benutzer darüber informiert, dass bestimmte Einstellungsänderungen einen Neustart des Programms erfordern, damit sie wirksam werden.</comment>
@@ -624,8 +632,28 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
     <comment>Feedback zur Barrierefreiheitsbeschreibung des Einstellungsmenüs.</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
-    <value>Konfigurieren Sie Controller-Totzonen, Wiederholungsgeschwindigkeit und API-Anbieter.</value>
-    <comment>Beschreibung der Barrierefreiheit des Controller-Einstellungsmenüs.</comment>
+    <value>Konfigurieren Sie Totzonen, Wiederholtempo und Eingabe-API des Gamepads, und setzen Sie bei Bedarf den aktuellen Kalibrierungszustand zurück.</value>
+    <comment>Beschreibung der Barrierefreiheit des Gamepad-Einstellungsmenüs.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneEnter_Hint" xml:space="preserve">
+    <value>Erhöhen Sie diesen Wert, wenn sich der Controller von selbst bewegt.</value>
+    <comment>Hinweis für den Auslöseschwellenwert der Totzone.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneExit_Hint" xml:space="preserve">
+    <value>Dieser Wert sollte unter der Auslöseschwelle liegen, um Zittern beim Zurückkehren zur Mitte zu verringern.</value>
+    <comment>Hinweis für den Rücksetzschwellenwert der Totzone.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatDelay_Hint" xml:space="preserve">
+    <value>Legt fest, wie lange gewartet wird, bevor eine gehaltene Richtung wiederholt wird.</value>
+    <comment>Hinweis für die Wiederholungsverzögerung.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatSpeed_Hint" xml:space="preserve">
+    <value>Legt fest, wie schnell eine gehaltene Richtung nach der Anfangsverzögerung wiederholt wird.</value>
+    <comment>Hinweis für die Wiederholungsgeschwindigkeit.</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
+    <value>Der aktuelle Kalibrierungszustand des Gamepads wurde zurückgesetzt.</value>
+    <comment>Ansage nach dem Zurücksetzen des Laufzeit-Kalibrierungszustands.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Schalten Sie alle Vibrations-Effekte des Controllers ein oder aus.</value>
@@ -726,14 +754,6 @@ Fortfahren?</value>
     <comment>Die Ansage zur Barrierefreiheit wird abgespielt, wenn die Einstellung „Übertragungsunterbrechung zulassen“ aktiviert ist.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
-    <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
-    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Unterbrechungsübertragung zulassen“ deaktiviert ist.</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
-    <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
-    <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Unterbrechungsübertragung zulassen“ deaktiviert ist.</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
     <value>Unterbrechungsansagen deaktiviert. Alle Nachrichten werden vollständig angekündigt.</value>
     <comment>Ankündigungsmeldung zur Barrierefreiheit, die abgespielt wird, wenn die Einstellung „Unterbrechungsübertragung zulassen“ deaktiviert ist.</comment>
   </data>
@@ -1172,4 +1192,3 @@ Zurück + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <comment>Die Eingabeaufforderungsbezeichnung der GamepadMessageBox am Lenker. {0} ist das Hauptaktions-Tag und {1} ist das Stornierungsaktions-Tag.</comment>
   </data>
 </root>
-

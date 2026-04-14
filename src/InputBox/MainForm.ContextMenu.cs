@@ -39,11 +39,13 @@ public partial class MainForm
     /// <param name="Mnemonic">助記鍵字母</param>
     /// <param name="Min">最小值（選填）</param>
     /// <param name="Max">最大值（選填）</param>
+    /// <param name="Hint">補充用途說明（選填）。</param>
     private sealed record MenuMetadata(
         string Label,
         char Mnemonic,
         decimal? Min = null,
-        decimal? Max = null);
+        decimal? Max = null,
+        string? Hint = null);
 
     /// <summary>
     /// 初始化右鍵選單
@@ -249,8 +251,11 @@ public partial class MainForm
             }
         };
 
-        // 修飾鍵設定（使用本地函數）。
-        // 將 modValue 的型別從 int 改為 User32.KeyModifiers 列舉
+        /// <summary>
+        /// 新增快速鍵修飾鍵切換項目。
+        /// </summary>
+        /// <param name="label">顯示於選單中的修飾鍵名稱。</param>
+        /// <param name="modValue">對應的修飾鍵旗標值。</param>
         void AddModifierItem(string label, User32.KeyModifiers modValue)
         {
             ToolStripMenuItem item = new(label)
@@ -547,6 +552,7 @@ public partial class MainForm
         /// <param name="defValue">預設值</param>
         /// <param name="min">最小值</param>
         /// <param name="max">最大值</param>
+        /// <param name="a11yHint">選填的用途說明，供無障礙播報補充。</param>
         void AddNumericItem(
             ToolStripMenuItem parent,
             string label,
@@ -555,13 +561,14 @@ public partial class MainForm
             Action<int> setter,
             int defValue,
             int min,
-            int max)
+            int max,
+            string? a11yHint = null)
         {
             ToolStripMenuItem item = new(string.Empty)
             {
                 AccessibleName = label,
-                // 將範圍資訊封裝至 Metadata，支援動態 A11y 描述生成。
-                Tag = new MenuMetadata(label, mnemonic, min, max),
+                // 將範圍資訊與補充說明封裝至 Metadata，支援動態 A11y 描述生成。
+                Tag = new MenuMetadata(label, mnemonic, min, max, a11yHint),
             };
 
             item.Click += (s, e) =>
@@ -826,6 +833,10 @@ public partial class MainForm
             }
         };
 
+        /// <summary>
+        /// 新增遊戲控制器輸入 API 的選項項目。
+        /// </summary>
+        /// <param name="provider">要建立的輸入 API 類型。</param>
         void AddProviderItem(AppSettings.GamepadProvider provider)
         {
             char mnemonic = provider == AppSettings.GamepadProvider.GameInput ? 'G' : 'I';
@@ -911,7 +922,8 @@ public partial class MainForm
             },
             7849,
             0,
-            30000);
+            30000,
+            Strings.A11y_Menu_Gamepad_DeadzoneEnter_Hint);
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_ThumbDeadzoneExit,
@@ -923,7 +935,8 @@ public partial class MainForm
             },
             2500,
             0,
-            30000);
+            30000,
+            Strings.A11y_Menu_Gamepad_DeadzoneExit_Hint);
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_RepeatDelay,
@@ -935,7 +948,8 @@ public partial class MainForm
             },
             30,
             1,
-            300);
+            300,
+            Strings.A11y_Menu_Gamepad_RepeatDelay_Hint);
         AddNumericItem(
             tsmiGamepad,
             Strings.Settings_RepeatSpeed,
@@ -947,7 +961,32 @@ public partial class MainForm
             },
             5,
             1,
-            100);
+            100,
+            Strings.A11y_Menu_Gamepad_RepeatSpeed_Hint);
+
+        tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
+        ToolStripMenuItem tsmiResetCalibration = new(ControlExtensions.GetMnemonicText(Strings.Menu_Gamepad_ResetCalibration, 'C'))
+        {
+            AccessibleName = Strings.Menu_Gamepad_ResetCalibration,
+            AccessibleDescription = Strings.Menu_Gamepad_ResetCalibration_Desc
+        };
+        tsmiResetCalibration.Click += (s, e) =>
+        {
+            try
+            {
+                _gamepadController?.ResetCalibration();
+
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
+                AnnounceA11y(Strings.A11y_Gamepad_CalibrationReset);
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "重設目前遊戲控制器校正狀態失敗");
+
+                Debug.WriteLine($"[選單] tsmiResetCalibration.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiGamepad.DropDownItems.Add(tsmiResetCalibration);
 
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
         ToolStripMenuItem tsmiResetGamepad = new(ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'X'))
@@ -1380,6 +1419,11 @@ public partial class MainForm
                             currentStr,
                             rangeMeta.Min,
                             rangeMeta.Max);
+
+                        if (!string.IsNullOrWhiteSpace(rangeMeta.Hint))
+                        {
+                            mi.AccessibleDescription += " " + rangeMeta.Hint;
+                        }
 
                         // 針對需重啟的項目，附加 A11y 警告後綴。
                         if (label == Strings.Settings_HistoryCapacity ||

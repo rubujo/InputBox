@@ -24,7 +24,7 @@ public class AppSettings
     /// <summary>
     /// JsonSerializerOptions
     /// </summary>
-    static readonly JsonSerializerOptions Options = new()
+    private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
         MaxDepth = 32,
@@ -533,7 +533,7 @@ public class AppSettings
 
             _thumbDeadzoneExit = validatedExit;
 
-            _gamepadSettings = new GamepadConfigSnapshot(
+            _gamepadSettings = new(
                 _thumbDeadzoneEnter,
                 validatedExit,
                 _repeatInitialDelayFrames,

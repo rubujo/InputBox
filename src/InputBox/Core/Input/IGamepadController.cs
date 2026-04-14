@@ -195,6 +195,12 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     void Resume();
 
     /// <summary>
+    /// 重設目前遊戲控制器的執行期校正狀態。
+    /// <para>只清除暫態學習值與殘留輸入，不會變更已儲存的死區或連發設定。</para>
+    /// </summary>
+    void ResetCalibration();
+
+    /// <summary>
     /// 取得或設定連發設定
     /// </summary>
     GamepadRepeatSettings RepeatSettings { get; set; }

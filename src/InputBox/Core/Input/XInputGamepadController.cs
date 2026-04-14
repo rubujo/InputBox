@@ -1851,6 +1851,25 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 重設目前遊戲控制器的執行期校正狀態。
+    /// <para>用於清除搖桿偏移學習值與殘留輸入，不變更使用者已儲存的設定。</para>
+    /// </summary>
+    public void ResetCalibration()
+    {
+        if (_disposed != 0)
+        {
+            return;
+        }
+
+        _leftStickBiasX = 0;
+        _leftStickBiasY = 0;
+        _rightStickBiasX = 0;
+        _rightStickBiasY = 0;
+
+        ResetTransientInputState();
+    }
+
+    /// <summary>
     /// 取得或設定連發設定
     /// </summary>
     public GamepadRepeatSettings RepeatSettings

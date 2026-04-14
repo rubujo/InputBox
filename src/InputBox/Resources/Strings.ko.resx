@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -491,6 +491,14 @@
     <value>반복 속도</value>
     <comment>컨트롤러에서 반복 입력 속도 설정입니다.</comment>
   </data>
+  <data name="Menu_Gamepad_ResetCalibration" xml:space="preserve">
+    <value>현재 보정 상태 재설정</value>
+    <comment>현재 실행 중 학습된 게임패드 중립 오프셋을 지우는 상황에 맞는 메뉴 항목입니다.</comment>
+  </data>
+  <data name="Menu_Gamepad_ResetCalibration_Desc" xml:space="preserve">
+    <value>저장된 데드존 또는 반복 입력 설정은 유지한 채, 현재 실행 중 학습된 게임패드 중립 오프셋을 지웁니다.</value>
+    <comment>현재 보정 상태 재설정 메뉴 항목의 접근성 설명입니다.</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>이 변경 사항을 적용하려면 다시 시작해야 합니다. 지금 다시 시작하시겠습니까?</value>
     <comment>설정이 적용되려면 다시 시작이 필요함을 사용자에게 알리는 프롬프트 메시지입니다.</comment>
@@ -624,8 +632,28 @@
     <comment>피드백 설정 메뉴의 접근성 설명입니다.</comment>
   </data>
   <data name="A11y_Menu_Gamepad_Desc" xml:space="preserve">
-    <value>컨트롤러 데드존, 반복 속도 및 API 공급자를 구성합니다.</value>
+    <value>게임패드 데드존, 반복 입력 속도, 입력 API를 조정하고 필요할 때 현재 보정 상태를 재설정합니다.</value>
     <comment>게임패드 설정 메뉴의 접근성 설명입니다.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneEnter_Hint" xml:space="preserve">
+    <value>게임패드가 저절로 움직이면 이 값을 먼저 높여 보세요.</value>
+    <comment>데드존 진입 임계값에 대한 안내입니다.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_DeadzoneExit_Hint" xml:space="preserve">
+    <value>이 값은 트리거 임계값보다 낮게 유지하면 중앙 복귀 시 흔들림을 줄일 수 있습니다.</value>
+    <comment>데드존 해제 임계값에 대한 안내입니다.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatDelay_Hint" xml:space="preserve">
+    <value>방향을 길게 눌렀을 때 반복 입력이 시작되기까지의 대기 시간을 조절합니다.</value>
+    <comment>반복 지연에 대한 안내입니다.</comment>
+  </data>
+  <data name="A11y_Menu_Gamepad_RepeatSpeed_Hint" xml:space="preserve">
+    <value>처음 지연이 지난 뒤, 방향을 길게 눌렀을 때 반복 입력되는 속도를 조절합니다.</value>
+    <comment>반복 속도에 대한 안내입니다.</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
+    <value>현재 게임패드 보정 상태를 재설정했습니다.</value>
+    <comment>실행 중 보정 상태를 재설정한 뒤 재생되는 접근성 알림입니다.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>모든 컨트롤러 진동 효과를 켜거나 끕니다.</value>
@@ -726,14 +754,6 @@
     <comment>중단 알림 설정이 켜질 때 재생되는 스크린 리더 알림입니다.</comment>
   </data>
   <data name="A11y_A11yInterrupt_Off" xml:space="preserve">
-    <value>중단 알림이 비활성화되었습니다. 모든 메시지가 전체적으로 공지됩니다.</value>
-    <comment>중단 알림 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off2" xml:space="preserve">
-    <value>중단 알림이 비활성화되었습니다. 모든 메시지가 전체적으로 공지됩니다.</value>
-    <comment>중단 알림 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
-  </data>
-  <data name="A11y_A11yInterrupt_Off1" xml:space="preserve">
     <value>중단 알림이 비활성화되었습니다. 모든 메시지가 전체적으로 공지됩니다.</value>
     <comment>중단 알림 설정이 꺼질 때 재생되는 스크린 리더 알림입니다.</comment>
   </data>

@@ -239,6 +239,46 @@ public sealed class AppSettingsTests : IDisposable
     }
 
     /// <summary>
+    /// 使用者先調整 Exit，再降低 Enter 時，快照應重新夾緊 Exit 以維持遲滯安全區間。
+    /// </summary>
+    [Fact]
+    public void ThumbDeadzoneEnter_LoweredAfterExitWasSet_ReclampsExit()
+    {
+        var s = new AppSettings
+        {
+            ThumbDeadzoneEnter = 12000,
+            ThumbDeadzoneExit = 8000
+        };
+
+        Assert.Equal(8000, s.GamepadSettings.ThumbDeadzoneExit);
+
+        s.ThumbDeadzoneEnter = 6000;
+
+        Assert.Equal(4000, s.GamepadSettings.ThumbDeadzoneExit);
+    }
+
+    /// <summary>
+    /// 模擬使用者在右鍵選單依序調整遊戲控制器數值時，快照應維持一致且保留所有設定。
+    /// </summary>
+    [Fact]
+    public void GamepadSettings_SequentialMenuStyleUpdates_KeepSnapshotConsistent()
+    {
+        var s = new AppSettings();
+
+        s.ThumbDeadzoneEnter = 11000;
+        s.ThumbDeadzoneExit = 7000;
+        s.RepeatInitialDelayFrames = 45;
+        s.RepeatIntervalFrames = 6;
+
+        AppSettings.GamepadConfigSnapshot snap = s.GamepadSettings;
+
+        Assert.Equal(11000, snap.ThumbDeadzoneEnter);
+        Assert.Equal(7000, snap.ThumbDeadzoneExit);
+        Assert.Equal(45, snap.RepeatInitialDelayFrames);
+        Assert.Equal(6, snap.RepeatIntervalFrames);
+    }
+
+    /// <summary>
     /// RepeatInitialDelayFrames 下限為 1，上限為 300，快照同步更新。
     /// </summary>
     [Theory]
