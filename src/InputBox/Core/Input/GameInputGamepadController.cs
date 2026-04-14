@@ -144,6 +144,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private volatile bool _hasPreviousState;
 
     /// <summary>
+    /// 目前是否偵測到控制器實際可用，用於與 XInput 對齊對外連線語意。
+    /// </summary>
+    private volatile bool _isConnected;
+
+    /// <summary>
     /// 是否已處置
     /// </summary>
     private volatile int _disposed;
@@ -177,6 +182,21 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 有新輸入狀態時的方向幽靈重入幀計數（防抖動復發）
     /// </summary>
     private int _directionalGhostFrameCounter;
+
+    /// <summary>
+    /// 暫時封鎖的左搖桿映射方向（防止 anti-stuck 後立即幽靈重入）。
+    /// </summary>
+    private MappedGamepadDirection _suppressedMappedDirections;
+
+    /// <summary>
+    /// 映射方向封鎖解除的中立幀計數。
+    /// </summary>
+    private int _mappedDirectionNeutralFrameCounter;
+
+    /// <summary>
+    /// 映射方向封鎖剩餘冷卻幀數。
+    /// </summary>
+    private int _mappedDirectionSuppressionCooldownFrames;
 
     /// <summary>
     /// 左搖桿 X 軸動態偏移估計（bias compensation）
@@ -327,6 +347,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private const double PollingIntervalMs = 16.6;
 
     /// <summary>
+    /// 方向映射封鎖解除所需的連續中立幀數。
+    /// </summary>
+    private const int MappedDirectionUnsuppressFrames = 6;
+
+    /// <summary>
+    /// 方向映射封鎖最長冷卻幀數（約 200ms）。
+    /// </summary>
+    private const int MappedDirectionSuppressCooldownFrames = 12;
+
+    /// <summary>
     /// 快取的目前設備名稱，避免每次查詢都重新解析裝置資訊。
     /// </summary>
     private string _cachedDeviceName = string.Empty;
@@ -411,7 +441,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 取得目前是否已連線
     /// </summary>
-    public bool IsConnected => _device != null;
+    public bool IsConnected => _isConnected;
 
     /// <summary>
     /// 控制器 B 鍵
@@ -636,11 +666,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void HandleDisconnect()
     {
-        if (_hasPreviousState)
+        bool wasConnected = _isConnected || _hasPreviousState;
+
+        _isConnected = false;
+
+        if (wasConnected)
         {
             _hasPreviousState = false;
             _previousState = null;
             _previousProcessedButtons = 0;
+            _suppressedMappedDirections = MappedGamepadDirection.None;
+            _mappedDirectionNeutralFrameCounter = 0;
+            _mappedDirectionSuppressionCooldownFrames = 0;
 
             // 重置狀態防止殘留，避免放開按鍵的事件遺失。
             ResetHoldStates();
@@ -948,6 +985,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             latestSnapshot != null)
         {
             _directionalStaleFrameCounter = 0;
+            _isConnected = true;
 
             // 使用最後一個快照作為本 Tick 的最終狀態。
             _previousState = latestSnapshot;
@@ -963,6 +1001,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         else if (_hasPreviousState &&
             _previousState != null)
         {
+            short correctedThumbLX = GetCorrectedLeftThumbShort(_previousState.LeftThumbstickX, _leftStickBiasX),
+                correctedThumbLY = GetCorrectedLeftThumbShort(_previousState.LeftThumbstickY, _leftStickBiasY);
+
+            UpdateMappedDirectionSuppression(correctedThumbLX, correctedThumbLY, config);
+
             // 如果這 16ms 內沒有任何新狀態，判定閒置或維持按住。
             if (IsStateIdle(_previousState))
             {
@@ -1095,6 +1138,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         float correctedRightThumbX = clampedRX - _rightStickBiasX;
 
+        UpdateMappedDirectionSuppression(correctedThumbLX, correctedThumbLY, config);
         ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
 
         if (!_context.IsInputActive)
@@ -1227,6 +1271,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void ResetDirectionalRepeatState()
     {
+        MappedGamepadDirection suppressedDirection = _repeatDirection switch
+        {
+            GameInputGamepadButtons.DPadLeft => MappedGamepadDirection.Left,
+            GameInputGamepadButtons.DPadRight => MappedGamepadDirection.Right,
+            GameInputGamepadButtons.DPadUp => MappedGamepadDirection.Up,
+            GameInputGamepadButtons.DPadDown => MappedGamepadDirection.Down,
+            _ => MappedGamepadDirection.None,
+        };
+
         _repeatDirection = null;
         _repeatCounter = 0;
         _currentRepeatInterval = 0;
@@ -1243,6 +1296,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             GameInputGamepadButtons.DPadRight |
             GameInputGamepadButtons.DPadUp |
             GameInputGamepadButtons.DPadDown);
+
+        if (suppressedDirection != MappedGamepadDirection.None)
+        {
+            GamepadMappedDirectionGuard.Enable(
+                ref _suppressedMappedDirections,
+                ref _mappedDirectionNeutralFrameCounter,
+                ref _mappedDirectionSuppressionCooldownFrames,
+                suppressedDirection,
+                MappedDirectionSuppressCooldownFrames);
+
+            LoggerService.LogInfo($"Gamepad.MappingGuardEnabled source=GameInput directions={_suppressedMappedDirections}");
+        }
     }
 
     /// <summary>
@@ -1422,6 +1487,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         if (needsConnectNotify)
         {
+            _isConnected = true;
             ConnectionChanged?.Invoke(true);
         }
     }
@@ -1497,6 +1563,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         if (switched)
         {
+            _isConnected = true;
             ConnectionChanged?.Invoke(true);
         }
 
@@ -1522,6 +1589,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         float correctedRightThumbX = Math.Clamp(state.RightThumbstickX, -1.0f, 1.0f) - _rightStickBiasX,
             correctedRightThumbY = Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY;
 
+        UpdateMappedDirectionSuppression(correctedThumbLX, correctedThumbLY, config);
         ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
 
         _previousProcessedButtons = currentButtons;
@@ -1808,6 +1876,36 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 更新映射方向封鎖狀態，避免 anti-stuck 觸發後在任何方向立即重入。
+    /// </summary>
+    private void UpdateMappedDirectionSuppression(
+        short correctedThumbLX,
+        short correctedThumbLY,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        MappedGamepadDirection suppressedDirections = _suppressedMappedDirections;
+
+        if (suppressedDirections == MappedGamepadDirection.None)
+        {
+            return;
+        }
+
+        bool isStickNeutral =
+            Math.Abs((int)correctedThumbLX) <= config.ThumbDeadzoneExit &&
+            Math.Abs((int)correctedThumbLY) <= config.ThumbDeadzoneExit;
+
+        if (GamepadMappedDirectionGuard.Update(
+                ref _suppressedMappedDirections,
+                ref _mappedDirectionNeutralFrameCounter,
+                ref _mappedDirectionSuppressionCooldownFrames,
+                isStickNeutral,
+                MappedDirectionUnsuppressFrames))
+        {
+            LoggerService.LogInfo($"Gamepad.MappingGuardReleased source=GameInput directions={suppressedDirections} reason=neutral");
+        }
+    }
+
+    /// <summary>
     /// 將搖桿映射至 D-Pad 按鈕
     /// </summary>
     /// <param name="currentButtons">目前的按鈕狀態</param>
@@ -1836,11 +1934,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             config.ThumbDeadzoneEnter,
             config.ThumbDeadzoneExit);
 
-        if (horizontalDirection < 0)
+        if (horizontalDirection < 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Left))
         {
             currentButtons |= GameInputGamepadButtons.DPadLeft;
         }
-        else if (horizontalDirection > 0)
+        else if (horizontalDirection > 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Right))
         {
             currentButtons |= GameInputGamepadButtons.DPadRight;
         }
@@ -1852,11 +1952,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             config.ThumbDeadzoneEnter,
             config.ThumbDeadzoneExit);
 
-        if (verticalDirection < 0)
+        if (verticalDirection < 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Down))
         {
             currentButtons |= GameInputGamepadButtons.DPadDown;
         }
-        else if (verticalDirection > 0)
+        else if (verticalDirection > 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Up))
         {
             currentButtons |= GameInputGamepadButtons.DPadUp;
         }

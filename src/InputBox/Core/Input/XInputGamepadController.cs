@@ -93,6 +93,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private volatile bool _hasPreviousState;
 
     /// <summary>
+    /// 目前是否偵測到控制器實際可用，用於對外提供一致的連線語意。
+    /// </summary>
+    private volatile bool _isConnected;
+
+    /// <summary>
     /// 是否已處置（0 = 未處置，1 = 已處置；使用 int 以支援 Interlocked.CompareExchange 原子操作）
     /// </summary>
     private volatile int _disposed;
@@ -129,19 +134,19 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private int _directionalGhostFrameCounter;
 
     /// <summary>
-    /// 是否暫時封鎖左搖桿映射為 D-Pad Right（防重入）
+    /// 暫時封鎖的左搖桿映射方向（防止 anti-stuck 後立即幽靈重入）。
     /// </summary>
-    private bool _suppressMappedRightFromLeftStick;
+    private MappedGamepadDirection _suppressedMappedDirections;
 
     /// <summary>
-    /// 右向映射封鎖解除的中立幀計數
+    /// 映射方向封鎖解除的中立幀計數。
     /// </summary>
-    private int _mappedRightNeutralFrameCounter;
+    private int _mappedDirectionNeutralFrameCounter;
 
     /// <summary>
-    /// 右向映射封鎖剩餘冷卻幀數
+    /// 映射方向封鎖剩餘冷卻幀數。
     /// </summary>
-    private int _mappedRightSuppressionCooldownFrames;
+    private int _mappedDirectionSuppressionCooldownFrames;
 
     /// <summary>
     /// 左搖桿 X 軸動態偏移估計（bias compensation）
@@ -231,12 +236,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
 #endif
 
     /// <summary>
-    /// 右向映射封鎖解除所需的連續中立幀數
+    /// 方向映射封鎖解除所需的連續中立幀數。
     /// </summary>
     private const int MappedDirectionUnsuppressFrames = 6;
 
     /// <summary>
-    /// 右向映射封鎖最長冷卻幀數（約 200ms）
+    /// 方向映射封鎖最長冷卻幀數（約 200ms）。
     /// </summary>
     private const int MappedDirectionSuppressCooldownFrames = 12;
 
@@ -382,7 +387,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 取得目前是否已連線
     /// </summary>
-    public bool IsConnected => _hasPreviousState;
+    public bool IsConnected => _isConnected;
 
     /// <summary>
     /// 控制器 A, B, X, Y 按鈕事件
@@ -632,16 +637,19 @@ internal sealed partial class XInputGamepadController : IGamepadController
             correctedRightThumbX = (int)MathF.Round(currentState.Gamepad.ThumbRightX - _rightStickBiasX),
             correctedRightThumbY = (int)MathF.Round(currentState.Gamepad.ThumbRightY - _rightStickBiasY);
 
-        UpdateMappedRightSuppression(correctedLeftThumbX, config);
-
         if (result != 0)
         {
             ResetMechanismHealthLogState();
 
-            if (_hasPreviousState)
-            {
-                _hasPreviousState = false;
+            bool wasConnected = _isConnected || _hasPreviousState;
+            _hasPreviousState = false;
+            _isConnected = false;
+            _suppressedMappedDirections = MappedGamepadDirection.None;
+            _mappedDirectionNeutralFrameCounter = 0;
+            _mappedDirectionSuppressionCooldownFrames = 0;
 
+            if (wasConnected)
+            {
                 // 連線中斷時清空熱狀態，避免重連後沿用舊熱負載造成過度保守。
                 _vibrationSafetyLimiter.Reset();
 
@@ -683,6 +691,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     InitializeDeviceBias(newState);
 
                     _hasPreviousState = true;
+                    _isConnected = true;
 
                     UpdateCachedDeviceName();
 
@@ -705,7 +714,17 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
                 _hasPreviousState = true;
 
-                ConnectionChanged?.Invoke(true);
+                bool shouldNotifyConnected = !_isConnected;
+                _isConnected = true;
+
+                if (shouldNotifyConnected)
+                {
+                    ConnectionChanged?.Invoke(true);
+                }
+            }
+            else
+            {
+                _isConnected = true;
             }
 
             // 閒置偵測：若 PacketNumber 相同，代表搖桿與按鍵狀態完全沒變（完全閒置）
@@ -733,11 +752,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
 
         // 將搖桿訊號合併到按鍵狀態中（使用偏移校正後的左搖桿）。
+        UpdateMappedDirectionSuppression(correctedLeftThumbX, correctedLeftThumbY, config);
         ApplyStickToButtons(
             ref currentState,
             _previousState,
             config,
-            _suppressMappedRightFromLeftStick,
+            _suppressedMappedDirections,
             correctedLeftThumbX,
             correctedLeftThumbY);
 
@@ -951,7 +971,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             isEngaged = hasSignificantInput ||
                 _repeatDirection.HasValue ||
                 _rsRepeatDirection != 0 ||
-                _suppressMappedRightFromLeftStick;
+                _suppressedMappedDirections != MappedGamepadDirection.None;
 
         if (!isEngaged)
         {
@@ -969,11 +989,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         bool staleActive = _directionalStaleFrameCounter > 0,
             ghostActive = _directionalGhostFrameCounter > 0,
+            mapGuardActive = _suppressedMappedDirections != MappedGamepadDirection.None,
             stateChanged = _repeatDirection != _lastHealthDpadDirection ||
                 _rsRepeatDirection != _lastHealthRsDirection ||
                 staleActive != _lastHealthStaleActive ||
                 ghostActive != _lastHealthGhostActive ||
-                _suppressMappedRightFromLeftStick != _lastHealthMapGuardActive;
+                mapGuardActive != _lastHealthMapGuardActive;
 
         _mechanismHealthLogCounter++;
 
@@ -982,14 +1003,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _mechanismHealthLogCounter >= MechanismHealthLogIntervalFrames)
         {
             LoggerService.LogInfo(
-                $"Gamepad.MechanismHealth source=XInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftThumbX} ly={correctedLeftThumbY} rx={correctedRightThumbX} ry={correctedRightThumbY} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter} mapGuard={_suppressMappedRightFromLeftStick}");
+                $"Gamepad.MechanismHealth source=XInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftThumbX} ly={correctedLeftThumbY} rx={correctedRightThumbX} ry={correctedRightThumbY} biasLx={(int)MathF.Round(_leftStickBiasX)} biasLy={(int)MathF.Round(_leftStickBiasY)} biasRx={(int)MathF.Round(_rightStickBiasX)} biasRy={(int)MathF.Round(_rightStickBiasY)} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter} mapGuard={_suppressedMappedDirections}");
 
             _mechanismHealthLogCounter = 0;
             _lastHealthDpadDirection = _repeatDirection;
             _lastHealthRsDirection = _rsRepeatDirection;
             _lastHealthStaleActive = staleActive;
             _lastHealthGhostActive = ghostActive;
-            _lastHealthMapGuardActive = _suppressMappedRightFromLeftStick;
+            _lastHealthMapGuardActive = mapGuardActive;
         }
 
         _wasMechanismEngaged = true;
@@ -1069,43 +1090,35 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 更新右向映射封鎖狀態，避免 anti-stuck 觸發後立即重入
+    /// 更新映射方向封鎖狀態，避免 anti-stuck 觸發後在任何方向立即重入。
     /// </summary>
     /// <param name="correctedThumbLeftX">修正後的左搖桿 X 軸值</param>
+    /// <param name="correctedThumbLeftY">修正後的左搖桿 Y 軸值</param>
     /// <param name="config">遊戲控制器配置快照</param>
-    private void UpdateMappedRightSuppression(
+    private void UpdateMappedDirectionSuppression(
         int correctedThumbLeftX,
+        int correctedThumbLeftY,
         AppSettings.GamepadConfigSnapshot config)
     {
-        if (!_suppressMappedRightFromLeftStick)
+        MappedGamepadDirection suppressedDirections = _suppressedMappedDirections;
+
+        if (suppressedDirections == MappedGamepadDirection.None)
         {
             return;
         }
 
-        if (_mappedRightSuppressionCooldownFrames > 0)
-        {
-            _mappedRightSuppressionCooldownFrames--;
+        bool isStickNeutral =
+            Math.Abs(correctedThumbLeftX) <= config.ThumbDeadzoneExit &&
+            Math.Abs(correctedThumbLeftY) <= config.ThumbDeadzoneExit;
 
-            // 冷卻期間一律不放行，避免 anti-stuck 後立即重入。
-            return;
-        }
-
-        if (Math.Abs(correctedThumbLeftX) <= config.ThumbDeadzoneExit)
+        if (GamepadMappedDirectionGuard.Update(
+                ref _suppressedMappedDirections,
+                ref _mappedDirectionNeutralFrameCounter,
+                ref _mappedDirectionSuppressionCooldownFrames,
+                isStickNeutral,
+                MappedDirectionUnsuppressFrames))
         {
-            _mappedRightNeutralFrameCounter++;
-        }
-        else
-        {
-            _mappedRightNeutralFrameCounter = 0;
-        }
-
-        if (_mappedRightNeutralFrameCounter >= MappedDirectionUnsuppressFrames)
-        {
-            _suppressMappedRightFromLeftStick = false;
-            _mappedRightNeutralFrameCounter = 0;
-            _mappedRightSuppressionCooldownFrames = 0;
-
-            LoggerService.LogInfo("Gamepad.MappingGuardReleased source=XInput direction=Right reason=neutral");
+            LoggerService.LogInfo($"Gamepad.MappingGuardReleased source=XInput directions={suppressedDirections} reason=neutral");
         }
     }
 
@@ -1246,7 +1259,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private void ResetDirectionalRepeatState()
     {
-        bool wasDpadRight = _repeatDirection == XInput.GamepadButton.DpadRight;
+        MappedGamepadDirection suppressedDirection = _repeatDirection switch
+        {
+            XInput.GamepadButton.DpadLeft => MappedGamepadDirection.Left,
+            XInput.GamepadButton.DpadRight => MappedGamepadDirection.Right,
+            XInput.GamepadButton.DpadUp => MappedGamepadDirection.Up,
+            XInput.GamepadButton.DpadDown => MappedGamepadDirection.Down,
+            _ => MappedGamepadDirection.None,
+        };
 
         _repeatDirection = null;
         _repeatCounter = 0;
@@ -1259,13 +1279,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
         _directionalStaleFrameCounter = 0;
         _directionalGhostFrameCounter = 0;
 
-        if (wasDpadRight)
+        if (suppressedDirection != MappedGamepadDirection.None)
         {
-            _suppressMappedRightFromLeftStick = true;
-            _mappedRightNeutralFrameCounter = 0;
-            _mappedRightSuppressionCooldownFrames = MappedDirectionSuppressCooldownFrames;
+            GamepadMappedDirectionGuard.Enable(
+                ref _suppressedMappedDirections,
+                ref _mappedDirectionNeutralFrameCounter,
+                ref _mappedDirectionSuppressionCooldownFrames,
+                suppressedDirection,
+                MappedDirectionSuppressCooldownFrames);
 
-            LoggerService.LogInfo("Gamepad.MappingGuardEnabled source=XInput direction=Right");
+            LoggerService.LogInfo($"Gamepad.MappingGuardEnabled source=XInput directions={_suppressedMappedDirections}");
         }
     }
 
@@ -1531,14 +1554,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <param name="currentState">目前的 XInput.XInputState</param>
     /// <param name="previousState">前一次的 XInput.XInputState（用於遲滯判斷）</param>
     /// <param name="config">AppSettings.GamepadConfigSnapshot</param>
-    /// <param name="suppressMappedRightFromLeftStick">是否抑制左搖桿映射的右向按鍵</param>
+    /// <param name="suppressedDirections">目前暫時封鎖的左搖桿映射方向</param>
     /// <param name="correctedLeftThumbX">修正後的左搖桿 X 軸值</param>
     /// <param name="correctedLeftThumbY">修正後的左搖桿 Y 軸值</param>
     private static void ApplyStickToButtons(
         ref XInput.XInputState currentState,
         XInput.XInputState previousState,
         AppSettings.GamepadConfigSnapshot config,
-        bool suppressMappedRightFromLeftStick,
+        MappedGamepadDirection suppressedDirections,
         int correctedLeftThumbX,
         int correctedLeftThumbY)
     {
@@ -1566,13 +1589,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     1 :
                     0;
 
-        if (horizontalDirection < 0)
+        if (horizontalDirection < 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(suppressedDirections, MappedGamepadDirection.Left))
         {
             // 搖桿向左 -> 視為按下 D-Pad Left。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadLeft;
         }
         else if (horizontalDirection > 0 &&
-            !suppressMappedRightFromLeftStick)
+            !GamepadMappedDirectionGuard.IsSuppressed(suppressedDirections, MappedGamepadDirection.Right))
         {
             // 搖桿向右 -> 視為按下 D-Pad Right。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadRight;
@@ -1585,12 +1609,14 @@ internal sealed partial class XInputGamepadController : IGamepadController
             config.ThumbDeadzoneEnter,
             config.ThumbDeadzoneExit);
 
-        if (verticalDirection < 0)
+        if (verticalDirection < 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(suppressedDirections, MappedGamepadDirection.Down))
         {
             // 搖桿向下 -> 視為按下 D-Pad Down。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadDown;
         }
-        else if (verticalDirection > 0)
+        else if (verticalDirection > 0 &&
+            !GamepadMappedDirectionGuard.IsSuppressed(suppressedDirections, MappedGamepadDirection.Up))
         {
             // 搖桿向上 -> 視為按下 D-Pad Up。
             currentState.Gamepad.Buttons |= (ushort)XInput.GamepadButton.DpadUp;

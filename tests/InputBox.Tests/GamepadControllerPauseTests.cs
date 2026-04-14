@@ -141,6 +141,41 @@ public sealed class GamepadControllerPauseTests
     }
 
     /// <summary>
+    /// XInput 的 IsConnected 應反映實際可用連線狀態，而非僅依賴上一幀快照是否已建立，
+    /// 以避免裝置切換或恢復輪詢的瞬間讓 UI 誤判為未連線。
+    /// </summary>
+    [Fact]
+    public void IsConnected_XInputController_UsesConnectionAvailabilityFlag()
+    {
+        using var controller = new XInputGamepadController(new StubInputContext());
+
+        SetPrivateField(controller, "_hasPreviousState", false);
+        SetPrivateField(controller, "_isConnected", true);
+
+        Assert.True(controller.IsConnected);
+    }
+
+    /// <summary>
+    /// GameInput 的 IsConnected 應與 XInput 一樣反映統一的連線可用性旗標，
+    /// 避免不同後端在同一個 UI 情境下給出不一致的提示列顯示結果。
+    /// </summary>
+    [Fact]
+    public void IsConnected_GameInputController_UsesConnectionAvailabilityFlag()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        SetPrivateField(controller, "_hasPreviousState", false);
+        SetPrivateField(controller, "_isConnected", true);
+
+        Assert.True(controller.IsConnected);
+    }
+
+    /// <summary>
     /// 建立 GameInput 狀態快照，供反射測試用。
     /// </summary>
     /// <param name="state">原始 GameInput 狀態。</param>
