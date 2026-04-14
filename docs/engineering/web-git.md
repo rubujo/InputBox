@@ -7,6 +7,9 @@
 - **文字檔編碼與換行**：
   - 網頁與規範相關文字檔一律使用 **UTF-8** 編碼。
   - 工作目錄中的文字檔換行一律使用 **CRLF**，並與 `.editorconfig`、`.gitattributes` 保持一致。
+- **格式化要求**：
+  - 修改 HTML、CSS、JSON、Markdown 與 Playwright 相關檔案後，必須執行專案格式化器。
+  - 提交前應先執行 `npm run format:check`，確認格式沒有漂移。
 - **上線前檢查清單 (Checklist)**：
   - 驗證在 Light / Dark 模式下的視覺表現。
   - 驗證主題切換器三段模式（🖥️跟隨系統、☀️強制淺色、🌙強制深色）均正確套用 CSS 自訂屬性。

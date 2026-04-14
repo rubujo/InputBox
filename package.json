@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "description": "Playwright accessibility checks for InputBox gh-pages",
   "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "playwright test"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "prettier": "^3.6.2"
   }
 }
