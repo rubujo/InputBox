@@ -140,9 +140,6 @@
         text-rendering: optimizeLegibility;
         scroll-behavior: smooth;
         -webkit-font-smoothing: antialiased;
-        /* 防止任何子元素的分數像素累積溢出傳遞至 document.documentElement.scrollWidth。
-         * 使用 clip 而非 hidden，避免建立 scroll container（不影響 position:fixed 元素）。 */
-        overflow-x: clip;
       }
 
       .container {
@@ -1051,8 +1048,8 @@
         background-color: var(--section-alt-bg);
         border-top: 1px solid var(--border-color);
         text-align: center;
-        /* 防止子元素分數像素舍入造成的 1px 水平溢出傳遞至文件捲動寬度 */
-        overflow-x: clip;
+        /* 降級方案：防止子元素分數像素舍入造成的 1px 水平溢出（iOS < 16）*/
+        overflow-x: hidden;
       }
 
       footer a {
