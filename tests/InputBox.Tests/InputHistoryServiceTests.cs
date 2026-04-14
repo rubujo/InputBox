@@ -1,4 +1,4 @@
-using InputBox.Core.Services;
+﻿using InputBox.Core.Services;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -31,8 +31,10 @@ public class InputHistoryServiceTests
     [Fact]
     public void Add_PrivacyMode_DoesNotAdd()
     {
-        var svc = new InputHistoryService();
-        svc.IsPrivacyMode = true;
+        var svc = new InputHistoryService
+        {
+            IsPrivacyMode = true
+        };
         svc.Add("secret");
 
         var result = svc.Navigate(-1);

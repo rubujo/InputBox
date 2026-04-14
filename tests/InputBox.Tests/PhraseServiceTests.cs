@@ -493,9 +493,7 @@ public sealed class PhraseServiceTests : IDisposable
 
         try
         {
-            Task<PhraseService.ExportOutcome>[] tasks = Enumerable.Range(0, 8)
-                .Select(_ => Task.Run(() => svc.ExportToFile(exportPath), TestContext.Current.CancellationToken))
-                .ToArray();
+            Task<PhraseService.ExportOutcome>[] tasks = [.. Enumerable.Range(0, 8).Select(_ => Task.Run(() => svc.ExportToFile(exportPath), TestContext.Current.CancellationToken))];
 
             PhraseService.ExportOutcome[] results = await Task.WhenAll(tasks);
 

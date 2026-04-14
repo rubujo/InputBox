@@ -88,9 +88,9 @@ internal static class FeedbackService
         CancellationToken ct = default)
     {
 #if DEBUG
-    bool enableDebugDiagnostics =
-        AppSettings.Current.EnableVibration &&
-        AppSettings.Current.VibrationIntensity > 0f;
+        bool enableDebugDiagnostics =
+            AppSettings.Current.EnableVibration &&
+            AppSettings.Current.VibrationIntensity > 0f;
 #endif
 
         // 讀取設定檔開關。
@@ -141,21 +141,21 @@ internal static class FeedbackService
         // 如果計算後太弱變成 0，也不用開啟了。
         if (finalStrength == 0)
         {
-    #if DEBUG
+#if DEBUG
             if (enableDebugDiagnostics)
             {
                 LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=skip reason=clamped-zero reqStrength={strength} reqMs={milliseconds} priority={priority} multiplier={multiplier:F2}");
             }
-    #endif
+#endif
             return;
         }
 
-    #if DEBUG
+#if DEBUG
         if (enableDebugDiagnostics)
         {
             LoggerService.LogInfo($"VibrationDiag source=FeedbackService stage=dispatch controller={controller.GetType().Name} reqStrength={strength} reqMs={milliseconds} finalStrength={finalStrength} priority={priority} multiplier={multiplier:F2}");
         }
-    #endif
+#endif
 
         try
         {

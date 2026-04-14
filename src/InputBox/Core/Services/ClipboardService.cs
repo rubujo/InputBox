@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace InputBox.Core.Services;
 

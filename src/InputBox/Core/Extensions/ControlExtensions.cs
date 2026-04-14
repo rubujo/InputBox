@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using System.Globalization;
-using System.Drawing.Drawing2D;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Services;
+using System.Diagnostics;
+using System.Drawing.Drawing2D;
+using System.Globalization;
 
 namespace InputBox.Core.Extensions;
 

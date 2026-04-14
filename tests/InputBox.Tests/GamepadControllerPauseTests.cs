@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using GameInputDotNet.Interop.Enums;
+﻿using GameInputDotNet.Interop.Enums;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
+using System.Reflection;
 using Xunit;
 
 namespace InputBox.Tests;

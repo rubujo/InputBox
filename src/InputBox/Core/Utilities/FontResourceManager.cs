@@ -1,5 +1,5 @@
-﻿using InputBox.Core.Extensions;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
+using InputBox.Core.Extensions;
 
 namespace InputBox.Core.Utilities;
 

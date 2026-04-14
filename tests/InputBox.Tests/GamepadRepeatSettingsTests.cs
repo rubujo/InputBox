@@ -1,4 +1,4 @@
-using InputBox.Core.Input;
+﻿using InputBox.Core.Input;
 using Xunit;
 
 namespace InputBox.Tests;

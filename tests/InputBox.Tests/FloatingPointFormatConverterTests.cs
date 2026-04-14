@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using System.Text.Json;
 using Xunit;
 

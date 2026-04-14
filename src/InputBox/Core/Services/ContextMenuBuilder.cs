@@ -1,4 +1,4 @@
-namespace InputBox.Core.Services;
+﻿namespace InputBox.Core.Services;
 
 /// <summary>
 /// 右鍵選單建構輔助器，集中處理根選單初始化與重啟提示項目注入

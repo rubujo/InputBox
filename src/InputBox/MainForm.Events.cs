@@ -1110,7 +1110,7 @@ public partial class MainForm
         }
 
 #if DEBUG
-    Debug.WriteLine($"[顯示輸入框] 捕捉目前視窗 已捕捉={captured} 前景視窗={User32.ForegroundWindow}");
+        Debug.WriteLine($"[顯示輸入框] 捕捉目前視窗 已捕捉={captured} 前景視窗={User32.ForegroundWindow}");
 #endif
 
         ShowAndActivateInputWindow();

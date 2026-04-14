@@ -1059,9 +1059,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 低於 LeftStickBiasLearningThreshold（0.28），會被 EMA 誤學成中立位置。
         // 在 D-Pad 作動期間暫停左搖桿 bias 學習以防止污染；右搖桿不受影響。
         bool isDPadActive = (currentButtons & (
-            GameInputGamepadButtons.DPadLeft  |
+            GameInputGamepadButtons.DPadLeft |
             GameInputGamepadButtons.DPadRight |
-            GameInputGamepadButtons.DPadUp    |
+            GameInputGamepadButtons.DPadUp |
             GameInputGamepadButtons.DPadDown)) != 0;
 
         UpdateStickBias(

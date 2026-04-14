@@ -615,9 +615,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
         // D-Pad 按下時，左搖桿因機械耦合會產生偏移，需暫停左搖桿 bias 學習。
         bool isDPadActive = (((XInput.GamepadButton)rawButtons) & (
-            XInput.GamepadButton.DpadLeft  |
+            XInput.GamepadButton.DpadLeft |
             XInput.GamepadButton.DpadRight |
-            XInput.GamepadButton.DpadUp    |
+            XInput.GamepadButton.DpadUp |
             XInput.GamepadButton.DpadDown)) != 0;
 
         UpdateStickBias(
