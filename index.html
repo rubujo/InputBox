@@ -1361,6 +1361,12 @@
         nav.main-nav a[href="#usage"] {
           animation-timeline: --section-usage, --section-usage-advanced;
           animation-name: spy-current, spy-current;
+          /*
+           * 第二個動畫（--section-usage-advanced）僅使用 forwards fill-mode：
+           * 不套用 backwards fill，避免其 0% 值（transparent）在 #usage 尚未捲過
+           * 而 --section-usage 正 active 時，以「最後動畫優先」規則錯誤覆蓋高亮狀態。
+           */
+          animation-fill-mode: both, forwards;
         }
 
         nav.main-nav a[href="#spec"] {
