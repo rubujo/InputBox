@@ -639,6 +639,13 @@ internal sealed class PhraseManagerDialog : Form
     /// <param name="e">表單關閉事件參數。</param>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
+        base.OnFormClosing(e);
+
+        if (e.Cancel)
+        {
+            return;
+        }
+
         try
         {
             SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
@@ -656,8 +663,6 @@ internal sealed class PhraseManagerDialog : Form
 
             Debug.WriteLine($"[片語] OnFormClosing 失敗：{ex.Message}");
         }
-
-        base.OnFormClosing(e);
     }
 
     /// <summary>

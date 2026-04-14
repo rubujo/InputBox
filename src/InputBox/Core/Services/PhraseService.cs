@@ -102,6 +102,11 @@ internal sealed class PhraseService
     private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
 
     /// <summary>
+    /// 片語暫存檔搜尋樣式，用於清理先前失敗流程殘留的暫存檔。
+    /// </summary>
+    private static readonly string PhraseTempFilePattern = $"{Path.GetFileName(PhrasePath)}*.tmp";
+
+    /// <summary>
     /// 片語存取鎖
     /// </summary>
     private readonly Lock PhraseLock = new();
@@ -238,6 +243,7 @@ internal sealed class PhraseService
                         File.Move(tempPath, PhrasePath);
                     }
 
+                    CleanupPhraseTempFiles();
                     return true;
                 }
                 catch (IOException ex) when (attempt < 5)
@@ -261,22 +267,46 @@ internal sealed class PhraseService
 
             Debug.WriteLine($"[片語] 儲存失敗：{ex.Message}");
 
-            // 嘗試清理可能殘留的暫存檔，與 AppSettings.WriteConfigToFile 保持一致。
-            try
+            // 嘗試清理可能殘留的暫存檔，避免設定目錄長期堆積垃圾檔。
+            CleanupPhraseTempFiles();
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 清理片語目錄內殘留的片語暫存檔。
+    /// </summary>
+    private static void CleanupPhraseTempFiles()
+    {
+        try
+        {
+            if (!Directory.Exists(AppSettings.ConfigDirectory))
             {
-                foreach (string tempPathForCleanup in Directory.GetFiles(
-                    AppSettings.ConfigDirectory,
-                    $"{Path.GetFileName(PhrasePath)}*.tmp"))
+                return;
+            }
+
+            foreach (string tempPathForCleanup in Directory.GetFiles(
+                AppSettings.ConfigDirectory,
+                PhraseTempFilePattern))
+            {
+                try
                 {
                     File.Delete(tempPathForCleanup);
                 }
-            }
-            catch (Exception cleanupEx)
-            {
-                Debug.WriteLine($"[片語] 暫存檔清理失敗，已忽略：{cleanupEx.Message}");
-            }
+                catch (IOException)
+                {
 
-            return false;
+                }
+                catch (UnauthorizedAccessException)
+                {
+
+                }
+            }
+        }
+        catch (Exception cleanupEx)
+        {
+            Debug.WriteLine($"[片語] 暫存檔清理失敗，已忽略：{cleanupEx.Message}");
         }
     }
 

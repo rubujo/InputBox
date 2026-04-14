@@ -701,6 +701,11 @@ internal sealed class GamepadMessageBox : Form
     {
         base.OnFormClosing(e);
 
+        if (e.Cancel)
+        {
+            return;
+        }
+
         UnsubscribeGamepadEvents();
 
         Interlocked.Exchange(ref _announcer, null)?.Dispose();

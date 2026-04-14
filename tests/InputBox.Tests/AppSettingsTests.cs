@@ -410,6 +410,22 @@ public sealed class AppSettingsTests : IDisposable
         Assert.Empty(tempFiles);
     }
 
+    /// <summary>
+    /// 既有的殘留暫存檔應在下次成功儲存後被清理，避免設定目錄長期累積垃圾檔案。
+    /// </summary>
+    [Fact]
+    public void Save_WithStaleTempFile_CleansUpOrphanedTempFiles()
+    {
+        string staleTempPath = Path.Combine(AppSettings.ConfigDirectory, "appsettings.json.stale-test.tmp");
+        File.WriteAllText(staleTempPath, "stale-temp", System.Text.Encoding.UTF8);
+
+        AppSettings.Current.HotKeyKey = "F10";
+        AppSettings.Save();
+
+        string[] tempFiles = Directory.GetFiles(AppSettings.ConfigDirectory, "appsettings.json*.tmp");
+        Assert.Empty(tempFiles);
+    }
+
     // ── 常數值驗證 ──────────────────────────────────────────────────────────
 
     /// <summary>

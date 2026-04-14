@@ -17,12 +17,17 @@ internal sealed class AnnouncementService : IDisposable
     private readonly Channel<AnnouncementRequest> _channel;
 
     /// <summary>
-    /// 取消權杖來源
+    /// 取消權杖來源。
     /// </summary>
     private CancellationTokenSource? _cts = new();
 
     /// <summary>
-    /// UI 執行緒廣播委派
+    /// 背景廣播工作，用於在釋放時確認工作者已安全退出。
+    /// </summary>
+    private Task? _processingTask;
+
+    /// <summary>
+    /// UI 執行緒廣播委派。
     /// </summary>
     private readonly Func<string, bool, CancellationToken, Task> _announceOnUiAsync;
 
@@ -68,7 +73,8 @@ internal sealed class AnnouncementService : IDisposable
             SingleWriter = false
         });
 
-        Task.Run(() => ProcessAnnouncementsAsync(_cts?.Token ?? CancellationToken.None)).SafeFireAndForget();
+        _processingTask = Task.Run(() => ProcessAnnouncementsAsync(_cts?.Token ?? CancellationToken.None));
+        _processingTask.SafeFireAndForget();
     }
 
     /// <summary>
@@ -206,8 +212,29 @@ internal sealed class AnnouncementService : IDisposable
             return;
         }
 
+        Task? processingTask = Interlocked.Exchange(ref _processingTask, null);
+
         _channel.Writer.TryComplete();
 
         Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
+
+        if (!System.Windows.Forms.Application.MessageLoop &&
+            processingTask != null &&
+            !processingTask.IsCompleted &&
+            Task.CurrentId != processingTask.Id)
+        {
+            try
+            {
+                processingTask.Wait(TimeSpan.FromMilliseconds(500));
+            }
+            catch (AggregateException)
+            {
+
+            }
+            catch (ObjectDisposedException)
+            {
+
+            }
+        }
     }
 }

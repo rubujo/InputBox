@@ -53,6 +53,11 @@ public class AppSettings
     /// </summary>
     private static readonly string ConfigPath = Path.Combine(ConfigDirectory, "appsettings.json");
 
+    /// <summary>
+    /// 設定檔暫存檔搜尋樣式，用於清除先前失敗流程殘留的暫存檔。
+    /// </summary>
+    private static readonly string ConfigTempFilePattern = $"{Path.GetFileName(ConfigPath)}*.tmp";
+
     #region A11y 無障礙與視覺安全閾值
 
     /// <summary>
@@ -814,6 +819,7 @@ public class AppSettings
                     }
 
                     strTempPath = string.Empty;
+                    CleanupConfigTempFiles();
                     return;
                 }
                 catch (IOException ex) when (attempt < 5)
@@ -838,19 +844,42 @@ public class AppSettings
 
             Debug.WriteLine($"無法儲存設定檔：{ex.Message}");
 
-            // 嘗試清理殘留的臨時檔。
-            try
+            // 嘗試清理殘留的臨時檔與舊的孤兒暫存檔。
+            CleanupConfigTempFiles();
+        }
+    }
+
+    /// <summary>
+    /// 清理設定目錄內殘留的設定檔暫存檔。
+    /// </summary>
+    private static void CleanupConfigTempFiles()
+    {
+        try
+        {
+            if (!Directory.Exists(ConfigDirectory))
             {
-                if (!string.IsNullOrEmpty(strTempPath) &&
-                    File.Exists(strTempPath))
+                return;
+            }
+
+            foreach (string tempPath in Directory.GetFiles(ConfigDirectory, ConfigTempFilePattern))
+            {
+                try
                 {
-                    File.Delete(strTempPath);
+                    File.Delete(tempPath);
+                }
+                catch (IOException)
+                {
+
+                }
+                catch (UnauthorizedAccessException)
+                {
+
                 }
             }
-            catch (Exception cleanupEx)
-            {
-                Debug.WriteLine($"暫存檔清理失敗，已忽略：{cleanupEx.Message}");
-            }
+        }
+        catch (Exception cleanupEx)
+        {
+            Debug.WriteLine($"設定檔暫存檔清理失敗，已忽略：{cleanupEx.Message}");
         }
     }
 }

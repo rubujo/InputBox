@@ -6,8 +6,8 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 
 | 測試類別 | 被測目標 | 測試數 |
 |---|---|---|
-| `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊與 Dispose 行為 | 4 |
-| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照與設定檔併發保存回歸保護 | 48 |
+| `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊、Dispose 行為與關閉時背景工作退出保護 | 5 |
+| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照與設定檔併發保存／暫存清理回歸保護 | 49 |
 | `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
@@ -17,13 +17,14 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
 | `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 13 |
 | `GaussianDelayHelperTests` | `GaussianDelayHelper` 延遲計算 | 5 |
+| `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消與生命週期資源保護 | 1 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入與併發匯出回歸保護 | 36 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **228** |
+| **合計** | | **231** |
 
 ## 執行測試
 

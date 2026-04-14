@@ -1,4 +1,5 @@
-using InputBox.Core.Services;
+﻿using InputBox.Core.Services;
+using System.Diagnostics;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -106,5 +107,50 @@ public class AnnouncementServiceTests : IDisposable
         });
 
         Assert.Null(ex);
+    }
+
+    /// <summary>
+    /// Dispose 應等待進行中的廣播工作完成取消與退出，避免關閉流程留下背景競態。
+    /// </summary>
+    [Fact]
+    public async Task Dispose_InFlightAnnouncement_WaitsForWorkerToExit()
+    {
+        var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseWorker = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var finished = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _svc = new AnnouncementService(async (_, _, ct) =>
+        {
+            started.TrySetResult(true);
+
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, ct);
+            }
+            catch (OperationCanceledException)
+            {
+                await releaseWorker.Task.WaitAsync(TestContext.Current.CancellationToken);
+                finished.TrySetResult(true);
+            }
+        });
+
+        _svc.Enqueue("shutdown-race");
+
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(150, TestContext.Current.CancellationToken);
+            releaseWorker.TrySetResult(true);
+        }, TestContext.Current.CancellationToken);
+
+        var stopwatch = Stopwatch.StartNew();
+
+        _svc.Dispose();
+
+        stopwatch.Stop();
+
+        Assert.True(finished.Task.IsCompleted, "Dispose 應等待背景廣播工作完成取消與退出。");
+        Assert.True(stopwatch.ElapsedMilliseconds >= 100, "Dispose 不應在背景工作仍未退出時立即返回。");
     }
 }

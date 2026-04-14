@@ -512,6 +512,13 @@ public partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
+        base.OnFormClosing(e);
+
+        if (e.Cancel)
+        {
+            return;
+        }
+
         // 立即發出全域取消訊號，中止所有 UI 相關的非同步任務，並處置控制代碼。
         Interlocked.Exchange(ref _formCts, null)?.CancelAndDispose();
 
@@ -580,8 +587,6 @@ public partial class MainForm : Form
         Core.Extensions.TaskExtensions.GlobalExceptionHandler = null;
 
         ClipboardService.OnRetry -= _onClipboardRetry;
-
-        base.OnFormClosing(e);
     }
 
     /// <summary>
