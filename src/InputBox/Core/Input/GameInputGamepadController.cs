@@ -786,6 +786,25 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             using PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(PollingIntervalMs));
 
+            // Resume 後 _requireNeutralBeforeInput 會被重設，但 GameInput 只有在狀態變化時才推送事件。
+            // 若此時裝置其實已在中立區，而我們不主動在輪詢執行緒讀取一次快照，第一個實際按鍵就會被當成
+            // 「解除中立閘門」而被吞掉。這裡在正確的 MTA 輪詢執行緒做一次預同步，避免 UI 執行緒直接碰觸
+            // GameInput COM 物件造成 InvalidCastException。
+            if (!cancellationToken.IsCancellationRequested &&
+                _disposed == 0 &&
+                _device != null &&
+                !_hasPreviousState)
+            {
+                try
+                {
+                    InitializeDeviceState();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[GameInput] 輪詢啟動狀態預同步失敗：{ex.Message}");
+                }
+            }
+
             // 手動執行首發 Poll，讀取初始按鍵狀態。
             // 裝置連線已由初始化快速掃描完成；此次呼叫的目的是在計時器首幀（16ms）
             // 延遲發生前，先讀取一次完整的按鍵／搖桿初始狀態，避免首幀狀態為空白。
@@ -1485,6 +1504,48 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 以目前快照預先同步恢復後的輸入狀態。
+    /// 若裝置在恢復當下已處於中立，會立即解除中立等待閘門，
+    /// 避免 GameInput 因事件驅動特性而吞掉第一個 Back/View 或 A/B 按壓。
+    /// </summary>
+    /// <param name="state">目前的控制器狀態快照。</param>
+    /// <param name="config">目前的遊戲控制器設定快照。</param>
+    private void PrimeResumeStateFromSnapshot(
+        GamepadStateSnapshot state,
+        AppSettings.GamepadConfigSnapshot config)
+    {
+        _previousState = state;
+
+        GameInputGamepadButtons currentButtons = state.Buttons;
+        short correctedThumbLX = GetCorrectedLeftThumbShort(state.LeftThumbstickX, _leftStickBiasX),
+            correctedThumbLY = GetCorrectedLeftThumbShort(state.LeftThumbstickY, _leftStickBiasY);
+        float correctedRightThumbX = Math.Clamp(state.RightThumbstickX, -1.0f, 1.0f) - _rightStickBiasX,
+            correctedRightThumbY = Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY;
+
+        ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
+
+        _previousProcessedButtons = currentButtons;
+        _hasPreviousState = true;
+
+        IsLeftShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.LeftShoulder);
+        IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
+        IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.View);
+        IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.B);
+        IsLeftTriggerHeld = state.LeftTrigger > AppSettings.GameInputTriggerThreshold;
+        IsRightTriggerHeld = state.RightTrigger > AppSettings.GameInputTriggerThreshold;
+
+        _requireNeutralBeforeInput = GamepadSignalEvaluator.IsActive(
+            hasButtons: state.Buttons != 0,
+            leftTrigger: state.LeftTrigger,
+            rightTrigger: state.RightTrigger,
+            leftThumbX: state.LeftThumbstickX - _leftStickBiasX,
+            leftThumbY: state.LeftThumbstickY - _leftStickBiasY,
+            rightThumbX: correctedRightThumbX,
+            rightThumbY: correctedRightThumbY,
+            threshold: config.ThumbDeadzoneExit / 32768f);
+    }
+
+    /// <summary>
     /// 更新快取的裝置資訊（必須在 MTA 執行緒中呼叫）
     /// </summary>
     private void UpdateDeviceInfo()
@@ -1573,17 +1634,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     UpdateStickBias(state.LeftThumbstickX, state.LeftThumbstickY, state.RightThumbstickX, state.RightThumbstickY, isDPadActive: false);
                 }
 
-                short correctedThumbLX = GetCorrectedLeftThumbShort(state.LeftThumbstickX, _leftStickBiasX),
-                    correctedThumbLY = GetCorrectedLeftThumbShort(state.LeftThumbstickY, _leftStickBiasY);
-
                 // 取得快照以確保初始化時死區校驗一致。
                 AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
-                ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
-
-                _previousProcessedButtons = currentButtons;
-
-                _hasPreviousState = true;
+                PrimeResumeStateFromSnapshot(state, config);
             }
             else
             {

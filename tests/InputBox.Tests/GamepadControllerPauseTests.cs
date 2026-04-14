@@ -1,4 +1,7 @@
 ﻿using GameInputDotNet.Interop.Enums;
+using GameInputDotNet.Interop.Structs;
+using GameInputDotNet.States;
+using InputBox.Core.Configuration;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using System.Reflection;
@@ -105,6 +108,51 @@ public sealed class GamepadControllerPauseTests
         Assert.Equal(0, GetPrivateField<int>(controller, "_rsRepeatDirection"));
         Assert.Null(GetPrivateField<GameInputGamepadButtons?>(controller, "_repeatDirection"));
         Assert.Equal((GameInputGamepadButtons)0, GetPrivateField<GameInputGamepadButtons>(controller, "_previousProcessedButtons"));
+    }
+
+    /// <summary>
+    /// GameInput 在恢復前景後若目前快照已經是中立狀態，應立即解除中立等待閘門，避免第一個 Back/View 按壓被吞掉而必須按第二次。
+    /// </summary>
+    [Fact]
+    public void PrimeResumeStateFromSnapshot_WhenIdle_ClearsNeutralGate()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo primeMethod = typeof(GameInputGamepadController).GetMethod(
+            "PrimeResumeStateFromSnapshot",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.PrimeResumeStateFromSnapshot。");
+
+        SetPrivateField(controller, "_requireNeutralBeforeInput", true);
+
+        AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
+        GamepadStateSnapshot idleState = CreateGameInputSnapshot(new GameInputGamepadState());
+
+        _ = primeMethod.Invoke(controller, [idleState, config]);
+
+        Assert.False(GetPrivateField<bool>(controller, "_requireNeutralBeforeInput"));
+        Assert.True(GetPrivateField<bool>(controller, "_hasPreviousState"));
+        Assert.Equal((GameInputGamepadButtons)0, GetPrivateField<GameInputGamepadButtons>(controller, "_previousProcessedButtons"));
+    }
+
+    /// <summary>
+    /// 建立 GameInput 狀態快照，供反射測試用。
+    /// </summary>
+    /// <param name="state">原始 GameInput 狀態。</param>
+    /// <returns>包裝後的快照物件。</returns>
+    private static GamepadStateSnapshot CreateGameInputSnapshot(GameInputGamepadState state)
+    {
+        return (GamepadStateSnapshot)Activator.CreateInstance(
+            typeof(GamepadStateSnapshot),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [state],
+            culture: null)!;
     }
 
     /// <summary>

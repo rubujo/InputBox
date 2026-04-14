@@ -12,12 +12,12 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載） | 12 |
-| `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()` 與原生對話框切換時的殘留輸入回歸保護 | 2 |
+| `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()` 與原生對話框切換時的殘留輸入回歸保護與 GameInput 恢復首按回歸驗證 | 3 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
 | `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 13 |
 | `GaussianDelayHelperTests` | `GaussianDelayHelper` 延遲計算 | 5 |
-| `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消與生命週期資源保護 | 1 |
+| `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消、生命週期資源保護與已連線控制器提示同步 | 2 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入與併發匯出回歸保護 | 36 |

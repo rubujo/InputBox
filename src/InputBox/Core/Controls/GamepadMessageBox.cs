@@ -49,6 +49,29 @@ internal sealed class GamepadMessageBox : Form
             {
                 SubscribeGamepadEvents();
             }
+
+            SyncHintVisibilityWithControllerState();
+        }
+    }
+
+    /// <summary>
+    /// 依目前控制器的即時連線狀態同步提示列顯示，避免對話框剛開啟時要等第二次事件才更新。
+    /// </summary>
+    private void SyncHintVisibilityWithControllerState()
+    {
+        try
+        {
+            if (_lblHint == null ||
+                _lblHint.IsDisposed)
+            {
+                return;
+            }
+
+            _lblHint.Visible = _gamepadController?.IsConnected == true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GamepadMessageBox] 同步提示列狀態失敗：{ex.Message}");
         }
     }
 
