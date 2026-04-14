@@ -1048,6 +1048,8 @@
         background-color: var(--section-alt-bg);
         border-top: 1px solid var(--border-color);
         text-align: center;
+        /* 防止子元素分數像素舍入造成的 1px 水平溢出傳遞至文件捲動寬度 */
+        overflow-x: clip;
       }
 
       footer a {
