@@ -1305,8 +1305,8 @@
         @supports (timeline-scope: --section-about) {
           body {
             timeline-scope:
-              --section-about, --section-handheld, --section-usage, --section-spec,
-              --section-vibration, --section-faq;
+              --section-about, --section-handheld, --section-usage, --section-usage-advanced,
+              --section-spec, --section-vibration, --section-faq;
           }
         }
 
@@ -1320,6 +1320,10 @@
 
         #usage {
           view-timeline: --section-usage block;
+        }
+
+        #usage-advanced {
+          view-timeline: --section-usage-advanced block;
         }
 
         #spec {
@@ -1353,8 +1357,15 @@
         }
 
         nav.main-nav a[href="#usage"] {
-          animation-timeline: --section-usage;
-          animation-name: spy-current;
+          animation-timeline: --section-usage, --section-usage-advanced;
+          animation-name: spy-current, spy-current;
+          /*
+           * fill-mode: both, forwards（而非預設的 both, both）：
+           * 防止 --section-usage-advanced 的 backwards fill 在其動畫
+           * 尚未啟動前以 0% 關鍵影格（transparent）覆蓋
+           * --section-usage 正在 active 的高亮狀態。
+           */
+          animation-fill-mode: both, forwards;
         }
 
         nav.main-nav a[href="#spec"] {
@@ -4470,7 +4481,7 @@
           </div>
         </div>
 
-        <div class="container">
+        <div class="container" id="usage-advanced">
           <h3 class="usage-advanced-title" id="usage-advanced-heading">
             <span class="lang-zh">右鍵選單與對話框操作</span>
             <span class="lang-de" lang="de">Kontextmenü & Dialogsteuerung</span>
