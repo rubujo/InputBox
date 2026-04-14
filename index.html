@@ -21,7 +21,7 @@
     <link rel="canonical" href="https://rubujo.github.io/InputBox/" />
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>"
+      href="data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%E2%8C%A8%EF%B8%8F%3C/text%3E%3C/svg%3E"
     />
     <style>
       /*
@@ -49,6 +49,16 @@
         --nav-current-accent: #004488;
         --nav-previous-bg: rgba(107, 114, 128, 0.1);
         --nav-previous-accent: #6b7280;
+        --main-nav-current-bg: var(--header-bg);
+        --main-nav-current-accent: var(--focus-ring);
+        --main-nav-previous-bg: rgba(107, 114, 128, 0.12);
+        --main-nav-previous-accent: rgba(107, 114, 128, 0.55);
+        --main-nav-current-indicator: inset 0 0 0 3px var(--main-nav-current-accent);
+        --main-nav-previous-indicator: inset 0 0 0 1px var(--main-nav-previous-accent);
+        --main-nav-current-decoration-line: none;
+        --main-nav-previous-decoration-line: none;
+        --main-nav-current-text: #ffffff;
+        --main-nav-previous-text: var(--text-color);
         --transition-speed: 0.4s;
         --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -71,6 +81,16 @@
           --nav-current-accent: #c9e6ff;
           --nav-previous-bg: rgba(184, 197, 214, 0.2);
           --nav-previous-accent: #b8c5d6;
+          --main-nav-current-bg: #0a2d55;
+          --main-nav-current-accent: var(--focus-ring);
+          --main-nav-previous-bg: rgba(184, 197, 214, 0.16);
+          --main-nav-previous-accent: rgba(184, 197, 214, 0.6);
+          --main-nav-current-indicator: inset 0 0 0 3px var(--main-nav-current-accent);
+          --main-nav-previous-indicator: inset 0 0 0 1px var(--main-nav-previous-accent);
+          --main-nav-current-decoration-line: none;
+          --main-nav-previous-decoration-line: none;
+          --main-nav-current-text: #ffffff;
+          --main-nav-previous-text: var(--text-color);
           --card-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.45);
           --card-shadow-hover: 0 24px 32px -8px rgba(0, 0, 0, 0.55);
           --focus-companion: none;
@@ -139,7 +159,13 @@
        * 深色模式：輔助環設為 none；橙色 vs 深色背景 (#030712) = 7.05:1 自然通過
        * box-shadow 不影響佈局，符合零佈局抖動 (Zero-Jitter) 規範
        */
-        box-shadow: var(--focus-companion) !important;
+        box-shadow: 0 0 0 10px #111827 !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :focus-visible {
+          box-shadow: none !important;
+        }
       }
 
       .visually-hidden {
@@ -202,7 +228,7 @@
         outline: none !important;
       }
 
-      @supports selector(body:has(#lang-zh:focus-visible)) {
+      @supports selector(body:has(#lang-zh:checked)) {
         /* 當單選鈕被鍵盤聚焦時，為對應的 Label 加入視覺回饋 */
         body:has(#lang-zh:focus-visible) .lang-switcher label[for="lang-zh"],
         body:has(#lang-en:focus-visible) .lang-switcher label[for="lang-en"],
@@ -216,22 +242,20 @@
           background-color: rgba(128, 128, 128, 0.1);
           border-radius: 4px;
         }
-      }
 
-      .lang-en,
-      .lang-ja,
-      .lang-sc,
-      .lang-ko,
-      .lang-de,
-      .lang-fr {
-        display: none;
-      }
+        .lang-en,
+        .lang-ja,
+        .lang-sc,
+        .lang-ko,
+        .lang-de,
+        .lang-fr {
+          display: none;
+        }
 
-      .lang-zh {
-        display: inline-block;
-      }
+        .lang-zh {
+          display: inline-block;
+        }
 
-      @supports selector(body:has(#lang-en:checked)) {
         body:has(#lang-en:checked) .lang-zh,
         body:has(#lang-ja:checked) .lang-zh,
         body:has(#lang-sc:checked) .lang-zh,
@@ -289,22 +313,16 @@
         body:has(#lang-fr:checked) .table-wrapper::after {
           content: "← Défilement horizontal →";
         }
-      }
+      } /* end @supports selector(body:has(#lang-zh:checked)) */
 
-      @supports not selector(body:has(#lang-en:checked)) {
-        /* 退化方案：不支援 :has 時仍可完整閱讀七語內容 */
-        .lang-switcher {
+      /*
+       * @supports not：不支援 :has() 的瀏覽器退化方案。
+       * 預設語系（ZH）已透過 .lang-zh { display: inline-block } 顯示，
+       * 語言切換功能不可用但內容可讀。
+       */
+      @supports not selector(body:has(#lang-zh:checked)) {
+        .lang-switcher .lang-fieldset {
           display: none;
-        }
-
-        .lang-zh,
-        .lang-en,
-        .lang-ja,
-        .lang-sc,
-        .lang-ko,
-        .lang-de,
-        .lang-fr {
-          display: block;
         }
       }
 
@@ -322,7 +340,7 @@
      * 使用 Radio Hack 實現三段式主題切換：淺色、深色、跟隨系統。
      * 以 body:has() 覆蓋 :root 繼承，確保優先權高於 @media (prefers-color-scheme)。
      */
-      @supports selector(body:has(#theme-light:checked)) {
+      @supports selector(body:has(#theme-sys:checked)) {
         /* 強制淺色模式：覆蓋 @media (prefers-color-scheme: dark) 的 :root 變數 */
         body:has(#theme-light:checked) {
           color-scheme: light;
@@ -340,9 +358,18 @@
           --nav-current-accent: #004488;
           --nav-previous-bg: rgba(107, 114, 128, 0.1);
           --nav-previous-accent: #6b7280;
+          --main-nav-current-bg: var(--header-bg);
+          --main-nav-current-accent: var(--focus-ring);
+          --main-nav-previous-bg: rgba(107, 114, 128, 0.12);
+          --main-nav-previous-accent: rgba(107, 114, 128, 0.55);
+          --main-nav-current-indicator: inset 0 0 0 3px var(--main-nav-current-accent);
+          --main-nav-previous-indicator: inset 0 0 0 1px var(--main-nav-previous-accent);
+          --main-nav-current-decoration-line: none;
+          --main-nav-previous-decoration-line: none;
+          --main-nav-current-text: #ffffff;
+          --main-nav-previous-text: var(--text-color);
           --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-          --focus-companion: 0 0 0 10px #111827;
         }
 
         /* 強制深色模式：即使系統為淺色亦套用深色變數 */
@@ -362,9 +389,18 @@
           --nav-current-accent: #c9e6ff;
           --nav-previous-bg: rgba(184, 197, 214, 0.2);
           --nav-previous-accent: #b8c5d6;
+          --main-nav-current-bg: #0a2d55;
+          --main-nav-current-accent: var(--focus-ring);
+          --main-nav-previous-bg: rgba(184, 197, 214, 0.16);
+          --main-nav-previous-accent: rgba(184, 197, 214, 0.6);
+          --main-nav-current-indicator: inset 0 0 0 3px var(--main-nav-current-accent);
+          --main-nav-previous-indicator: inset 0 0 0 1px var(--main-nav-previous-accent);
+          --main-nav-current-decoration-line: none;
+          --main-nav-previous-decoration-line: none;
+          --main-nav-current-text: #ffffff;
+          --main-nav-previous-text: var(--text-color);
           --card-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.45);
           --card-shadow-hover: 0 24px 32px -8px rgba(0, 0, 0, 0.55);
-          --focus-companion: none;
         }
 
         /* 強制淺色：系統深色模式下，@media dark 會對星星加光暈，強制淺色時需清除 */
@@ -396,6 +432,15 @@
           background: radial-gradient(circle at center, #111827 40%, #000000 100%);
         }
 
+        body:has(#theme-sys:checked) :focus-visible,
+        body:has(#theme-light:checked) :focus-visible {
+          box-shadow: 0 0 0 10px #111827 !important;
+        }
+
+        body:has(#theme-dark:checked) :focus-visible {
+          box-shadow: none !important;
+        }
+
         /* 鍵盤聚焦時的視覺回饋 */
         body:has(#theme-sys:focus-visible) .lang-switcher label[for="theme-sys"],
         body:has(#theme-light:focus-visible) .lang-switcher label[for="theme-light"],
@@ -404,6 +449,17 @@
           outline-offset: -4px;
           background-color: rgba(128, 128, 128, 0.1);
           border-radius: 4px;
+        }
+      } /* end @supports selector(body:has(#theme-sys:checked)) */
+
+      /*
+       * @supports not：不支援 :has() 的瀏覽器退化方案。
+       * 系統 prefers-color-scheme 媒體查詢已提供基準淺色／深色切換，
+       * 手動主題切換功能不可用但配色仍正確。
+       */
+      @supports not selector(body:has(#theme-sys:checked)) {
+        .lang-switcher .theme-switcher-fieldset {
+          display: none;
         }
       }
 
@@ -701,7 +757,22 @@
         gap: 0.5rem;
       }
 
+      .lang-switcher .language-switcher-fieldset::before {
+        content: "🌐";
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        min-height: 48px;
+        padding: 0 0.25rem;
+        color: var(--link-color);
+        font-size: 1rem;
+        line-height: 1;
+        opacity: 0.9;
+      }
+
       .lang-switcher .language-switcher-fieldset {
+        position: relative;
         flex-wrap: wrap;
         justify-content: center;
         row-gap: 0;
@@ -1057,6 +1128,11 @@
         backface-visibility: hidden;
       }
 
+      /*
+     * 先前暫時移除此段，是因為 W3C Nu 與部分 CSS 驗證器尚未完整支援
+     * scroll-driven animation 語法，會把 animation-timeline / animation-range 視為錯誤。
+     * 這不是執行期故障；在支援的現代瀏覽器中可正常運作，故此處恢復效果。
+     */
       @supports (animation-timeline: scroll()) {
         .back-to-top {
           /* 支援 scroll-driven animation：初始隱藏，由捲動位置觸發顯示，提升視覺整潔度。 */
@@ -1072,11 +1148,6 @@
           animation-range: 180px 420px;
         }
 
-        /*
-       * prefers-reduced-motion 防護：全域 animation-duration: 0.01ms 對 scroll-driven
-       * animation 無效（時間軸由捲動位置驅動，與時間無關），需在此另行覆蓋。
-       * 改用無位移的替代 keyframe：僅切換 opacity/visibility，消除 translate + scale 運動。
-       */
         @media (prefers-reduced-motion: reduce) {
           .back-to-top {
             animation-name: show-back-to-top-reduced;
@@ -1165,18 +1236,23 @@
      * 預設高亮第一個項目；支援 :has 的瀏覽器會在錨點跳轉後切換對應狀態。
      */
       nav.main-nav a.nav-default-active {
-        background-color: var(--nav-current-bg);
-        box-shadow: inset 0 -4px 0 var(--nav-current-accent);
-        text-decoration: underline;
+        color: var(--main-nav-current-text);
+        background-color: var(--main-nav-current-bg);
+        box-shadow: var(--main-nav-current-indicator);
+        text-decoration-line: var(--main-nav-current-decoration-line);
         text-decoration-style: solid;
         text-decoration-thickness: 3px;
         text-underline-offset: 4px;
         font-weight: 800;
       }
 
-      @supports selector(body:has(#about:target)) {
-        @supports not (animation-timeline: view()) {
+      @supports not (animation-timeline: view()) {
+        /*
+         * 錨點跳轉高亮需要 :has() 支援；不支援時保留 .nav-default-active 預設高亮。
+         */
+        @supports selector(body:has(main :target)) {
           body:has(main :target) nav.main-nav a.nav-default-active {
+            color: var(--text-color);
             background-color: transparent;
             box-shadow: none;
             text-decoration: none;
@@ -1189,9 +1265,10 @@
           body:has(#spec:target) nav.main-nav a[href="#spec"],
           body:has(#vibration:target) nav.main-nav a[href="#vibration"],
           body:has(#faq:target) nav.main-nav a[href="#faq"] {
-            background-color: var(--nav-current-bg);
-            box-shadow: inset 0 -4px 0 var(--nav-current-accent);
-            text-decoration: underline;
+            color: var(--main-nav-current-text);
+            background-color: var(--main-nav-current-bg);
+            box-shadow: var(--main-nav-current-indicator);
+            text-decoration-line: var(--main-nav-current-decoration-line);
             text-decoration-style: solid;
             text-decoration-thickness: 3px;
             text-underline-offset: 4px;
@@ -1204,20 +1281,21 @@
           body:has(#spec:target) nav.main-nav a[href="#usage"],
           body:has(#vibration:target) nav.main-nav a[href="#spec"],
           body:has(#faq:target) nav.main-nav a[href="#vibration"] {
-            background-color: var(--nav-previous-bg);
-            box-shadow: inset 0 -2px 0 var(--nav-previous-accent);
-            text-decoration: underline;
+            color: var(--main-nav-previous-text);
+            background-color: var(--main-nav-previous-bg);
+            box-shadow: var(--main-nav-previous-indicator);
+            text-decoration-line: var(--main-nav-previous-decoration-line);
             text-decoration-style: dashed;
             text-decoration-thickness: 2px;
             text-underline-offset: 4px;
             font-weight: 700;
           }
-        }
+        } /* end @supports selector(body:has(main :target)) */
       }
 
       /*
-     * 支援 Scroll-Driven Animations 的瀏覽器使用真正的 Scrollspy。
-     * 不支援者會自動退回上方 Anchor-based 模式。
+     * 恢復真正的 scrollspy：依目前捲動到的區塊自動高亮對應導覽項。
+     * 此段先前被拿掉的原因，是驗證器尚未完整認得 view-timeline / timeline-scope。
      */
       @supports (animation-timeline: view()) {
         @supports (timeline-scope: --section-about) {
@@ -1257,14 +1335,16 @@
         }
 
         nav.main-nav a.nav-default-active {
+          color: var(--text-color);
           background-color: transparent;
           box-shadow: none;
           text-decoration: none;
+          font-weight: 700;
         }
 
         nav.main-nav a[href="#about"] {
           animation-timeline: --section-about;
-          animation-name: spy-current;
+          animation-name: spy-current-initial;
         }
 
         nav.main-nav a[href="#handheld"] {
@@ -1274,7 +1354,7 @@
 
         nav.main-nav a[href="#usage"] {
           animation-timeline: --section-usage, --section-usage-advanced;
-          animation-name: spy-current-lead, spy-current-trail;
+          animation-name: spy-current, spy-current;
         }
 
         nav.main-nav a[href="#spec"] {
@@ -1294,71 +1374,55 @@
 
         nav.main-nav a {
           animation-duration: 1s;
-          animation-fill-mode: none;
+          animation-fill-mode: both;
           animation-timing-function: linear;
           animation-range: cover;
         }
 
+        @keyframes spy-current-initial {
+          0%,
+          62% {
+            color: var(--main-nav-current-text);
+            background-color: var(--main-nav-current-bg);
+            box-shadow: var(--main-nav-current-indicator);
+            text-decoration-line: var(--main-nav-current-decoration-line);
+            text-decoration-style: solid;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 4px;
+          }
+
+          72%,
+          100% {
+            color: var(--text-color);
+            background-color: transparent;
+            box-shadow: none;
+            text-decoration-line: none;
+          }
+        }
+
         @keyframes spy-current {
           0%,
-          15% {
+          34% {
+            color: var(--text-color);
             background-color: transparent;
             box-shadow: none;
             text-decoration-line: none;
           }
 
-          20%,
-          80% {
-            background-color: var(--nav-current-bg);
-            box-shadow: inset 0 -4px 0 var(--nav-current-accent);
-            text-decoration: underline;
+          44%,
+          68% {
+            color: var(--main-nav-current-text);
+            background-color: var(--main-nav-current-bg);
+            box-shadow: var(--main-nav-current-indicator);
+            text-decoration-line: var(--main-nav-current-decoration-line);
             text-decoration-style: solid;
             text-decoration-thickness: 3px;
             text-underline-offset: 4px;
           }
 
-          85%,
+          78%,
           100% {
-            background-color: transparent;
-            box-shadow: none;
-            text-decoration-line: none;
-          }
-        }
-
-        /* 首個區塊：入場游標淡入，結束保持亮起（銜接 trail 區塊） */
-        @keyframes spy-current-lead {
-          0%,
-          15% {
-            background-color: transparent;
-            box-shadow: none;
-            text-decoration-line: none;
-          }
-
-          20%,
-          100% {
-            background-color: var(--nav-current-bg);
-            box-shadow: inset 0 -4px 0 var(--nav-current-accent);
-            text-decoration: underline;
-            text-decoration-style: solid;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 4px;
-          }
-        }
-
-        /* 第二個區塊：開始即亮起（銜接 lead 區塊），離場游標淡出 */
-        @keyframes spy-current-trail {
-          0%,
-          80% {
-            background-color: var(--nav-current-bg);
-            box-shadow: inset 0 -4px 0 var(--nav-current-accent);
-            text-decoration: underline;
-            text-decoration-style: solid;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 4px;
-          }
-
-          85%,
-          100% {
+            color: var(--text-color);
             background-color: transparent;
             box-shadow: none;
             text-decoration-line: none;
@@ -1693,16 +1757,42 @@
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 0.35rem 0.5rem;
           justify-items: stretch;
+          align-items: stretch;
         }
 
+        .lang-switcher .language-switcher-fieldset::before {
+          display: none;
+        }
+
+        .lang-switcher .theme-switcher-fieldset label,
         .lang-switcher .language-switcher-fieldset label {
           justify-content: center;
           text-align: center;
           font-size: 0.85rem;
-          padding: 0.35rem 0.5rem;
+          padding: 0.55rem 0.5rem;
+          width: 100%;
+          min-height: 44px;
+          border-bottom-width: 0;
+          border-radius: 0.85rem;
+          background-color: rgba(128, 128, 128, 0.06);
+          box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.14);
         }
 
-        .lang-switcher .language-switcher-fieldset label:last-of-type {
+        #theme-sys:checked + label[for="theme-sys"],
+        #theme-light:checked + label[for="theme-light"],
+        #theme-dark:checked + label[for="theme-dark"],
+        #lang-zh:checked + label[for="lang-zh"],
+        #lang-en:checked + label[for="lang-en"],
+        #lang-de:checked + label[for="lang-de"],
+        #lang-fr:checked + label[for="lang-fr"],
+        #lang-ja:checked + label[for="lang-ja"],
+        #lang-ko:checked + label[for="lang-ko"],
+        #lang-sc:checked + label[for="lang-sc"] {
+          border-bottom-color: transparent;
+          box-shadow: inset 0 0 0 2px var(--focus-ring);
+        }
+
+        .lang-switcher .language-switcher-fieldset > label:last-of-type:nth-of-type(odd) {
           grid-column: 1 / -1;
           justify-self: center;
           width: min(100%, 10rem);
@@ -1714,6 +1804,17 @@
           padding-right: 0;
           padding-bottom: 0.5rem;
           margin-right: 0;
+        }
+
+        nav.main-nav a {
+          box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.14);
+          text-decoration: none;
+        }
+
+        nav.main-nav a:hover,
+        nav.main-nav a:focus-visible {
+          text-decoration: none;
+          box-shadow: inset 0 0 0 2px rgba(128, 128, 128, 0.24);
         }
 
         .cta-wrapper {
@@ -1771,30 +1872,13 @@
           transition: none;
         }
 
-        @supports (animation-timeline: view()) {
-          nav.main-nav a {
-            animation: none !important;
-          }
+        /* 保留 scrollspy 動畫，避免窄版面時第一個導覽項目被固定高亮。 */
 
-          nav.main-nav a.nav-default-active {
-            background-color: var(--nav-current-bg);
-            box-shadow: inset 0 -4px 0 var(--nav-current-accent);
-            text-decoration: underline;
-            text-decoration-style: solid;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 4px;
-            font-weight: 800;
-          }
-        }
-
-        @supports (animation-timeline: scroll()) {
-          .back-to-top {
-            animation: none !important;
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            transform: translate3d(0, 0, 0) scale(1);
-          }
+        .back-to-top {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+          transform: translate3d(0, 0, 0) scale(1);
         }
       }
 
@@ -1912,14 +1996,8 @@
         /* 標題孤行防護：禁止 h2 / h3 獨立出現在頁面底部 */
         h2,
         h3 {
-          break-after: avoid-page !important;
+          break-after: avoid !important;
           page-break-after: avoid !important;
-        }
-
-        p,
-        li {
-          orphans: 3;
-          widows: 3;
         }
 
         /* 連結：深色模式下為淺藍色，列印改為黑色 */
@@ -2101,13 +2179,13 @@
 
     <nav class="lang-switcher" aria-labelledby="lang-switcher-label">
       <span id="lang-switcher-label" class="visually-hidden">
-        <span class="lang-zh">語言切換 🌐</span>
-        <span class="lang-de" lang="de">Sprachauswahl 🌐</span>
-        <span class="lang-en" lang="en">Language Selection 🌐</span>
-        <span class="lang-fr" lang="fr">Sélection de la langue 🌐</span>
-        <span class="lang-ja" lang="ja">言語切替 🌐</span>
-        <span class="lang-ko" lang="ko">언어 선택 🌐</span>
-        <span class="lang-sc" lang="zh-Hans">语言切换 🌐</span>
+        <span class="lang-zh">語言切換</span>
+        <span class="lang-de" lang="de">Sprachauswahl</span>
+        <span class="lang-en" lang="en">Language Selection</span>
+        <span class="lang-fr" lang="fr">Sélection de la langue</span>
+        <span class="lang-ja" lang="ja">言語切替</span>
+        <span class="lang-ko" lang="ko">언어 선택</span>
+        <span class="lang-sc" lang="zh-Hans">语言切换</span>
       </span>
       <fieldset class="theme-switcher-fieldset">
         <legend class="visually-hidden">

@@ -78,6 +78,248 @@ test.describe("InputBox gh-pages A11y", () => {
     expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth);
   });
 
+  test("iPhone SE 寬度下若語言項目為奇數，最後一項應獨占一列", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto(pageUrl);
+
+    const koBox = await page.locator("#label-lang-ko").boundingBox();
+    const scBox = await page.locator("#label-lang-sc").boundingBox();
+
+    expect(koBox).toBeTruthy();
+    expect(scBox).toBeTruthy();
+    expect(scBox.y - koBox.y).toBeGreaterThan(20);
+  });
+
+  test("頁面初始狀態下 main-nav 第一項應有清楚高亮", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(pageUrl);
+
+    await page.locator("#theme-light").evaluate((element) => {
+      element.checked = true;
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    const navBackground = await page.locator("nav.main-nav").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return style.backgroundColor;
+    });
+
+    const aboutNav = await page.locator('nav.main-nav a[href="#about"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    const ratio = contrastRatio(
+      rgbComponents(aboutNav.color),
+      rgbComponents(aboutNav.backgroundColor),
+    );
+
+    expect(aboutNav.boxShadow).not.toBe("none");
+    expect(aboutNav.backgroundColor).not.toBe(navBackground);
+    expect(ratio).toBeGreaterThanOrEqual(7);
+  });
+
+  test("窄版面捲動時導覽列 scrollspy 應切換到目前區塊", async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 900 });
+    await page.goto(pageUrl);
+
+    await page.locator("#theme-light").evaluate((element) => {
+      element.checked = true;
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    await page.locator("#spec").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+
+    const navBackground = await page.locator("nav.main-nav").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return style.backgroundColor;
+    });
+
+    const aboutNav = await page.locator('nav.main-nav a[href="#about"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    const specNav = await page.locator('nav.main-nav a[href="#spec"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    const aboutRatio = contrastRatio(rgbComponents(aboutNav.color), rgbComponents(navBackground));
+    const specRatio = contrastRatio(
+      rgbComponents(specNav.color),
+      rgbComponents(specNav.backgroundColor),
+    );
+
+    expect(aboutNav.boxShadow).toBe("none");
+    expect(aboutRatio).toBeGreaterThanOrEqual(7);
+    expect(specNav.boxShadow).not.toBe("none");
+    expect(specNav.backgroundColor).not.toBe(aboutNav.backgroundColor);
+    expect(specRatio).toBeGreaterThanOrEqual(7);
+  });
+
+  test("main-nav 在桌面與手機的淺色與深色主題下都應維持 AAA 對比", async ({ page }) => {
+    const cases = [
+      { name: "desktop-light", width: 1280, height: 900, theme: "#theme-light" },
+      { name: "desktop-dark", width: 1280, height: 900, theme: "#theme-dark" },
+      { name: "mobile-light", width: 375, height: 812, theme: "#theme-light" },
+      { name: "mobile-dark", width: 375, height: 812, theme: "#theme-dark" },
+    ];
+
+    for (const testCase of cases) {
+      await page.setViewportSize({ width: testCase.width, height: testCase.height });
+      await page.goto(pageUrl);
+
+      await page.locator(testCase.theme).evaluate((element) => {
+        element.checked = true;
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+
+      await page.locator("#spec").scrollIntoViewIfNeeded();
+      await page.waitForTimeout(400);
+
+      const specNav = await page.locator('nav.main-nav a[href="#spec"]').evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          color: style.color,
+          backgroundColor: style.backgroundColor,
+          boxShadow: style.boxShadow,
+        };
+      });
+
+      const ratio = contrastRatio(
+        rgbComponents(specNav.color),
+        rgbComponents(specNav.backgroundColor),
+      );
+
+      expect(
+        specNav.boxShadow,
+        `${testCase.name} should show a clear current-state indicator`,
+      ).not.toBe("none");
+      expect(
+        ratio,
+        `${testCase.name} should keep text contrast at AAA level`,
+      ).toBeGreaterThanOrEqual(7);
+    }
+  });
+
+  test("iPhone SE 寬度下 main-nav 目前區塊應使用明顯卡片高亮", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto(pageUrl);
+
+    await page.locator("#spec").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+
+    const specNav = await page.locator('nav.main-nav a[href="#spec"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        boxShadow: style.boxShadow,
+        textDecorationLine: style.textDecorationLine,
+      };
+    });
+
+    const ratio = contrastRatio(
+      rgbComponents(specNav.color),
+      rgbComponents(specNav.backgroundColor),
+    );
+
+    expect(specNav.boxShadow).toContain("0px 0px 0px 3px");
+    expect(specNav.textDecorationLine).toBe("none");
+    expect(ratio).toBeGreaterThanOrEqual(7);
+  });
+
+  test("手機版網址含 #about 時 main-nav 不應同時高亮多個項目", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto(`${pageUrl}#about`);
+    await page.waitForTimeout(400);
+
+    const aboutNav = await page.locator('nav.main-nav a[href="#about"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    const usageNav = await page.locator('nav.main-nav a[href="#usage"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    expect(aboutNav.boxShadow).not.toBe("none");
+    expect(usageNav.boxShadow).toBe("none");
+  });
+
+  test("網址含 hash 時捲動後 scrollspy 不應殘留舊區塊高亮", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(`${pageUrl}#spec`);
+    await page.waitForTimeout(300);
+
+    await page.locator("#faq").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+
+    const specNav = await page.locator('nav.main-nav a[href="#spec"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        backgroundColor: style.backgroundColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    const faqNav = await page.locator('nav.main-nav a[href="#faq"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        color: style.color,
+        backgroundColor: style.backgroundColor,
+        boxShadow: style.boxShadow,
+      };
+    });
+
+    const ratio = contrastRatio(rgbComponents(faqNav.color), rgbComponents(faqNav.backgroundColor));
+
+    expect(specNav.boxShadow).toBe("none");
+    expect(faqNav.boxShadow).not.toBe("none");
+    expect(faqNav.backgroundColor).not.toBe(specNav.backgroundColor);
+    expect(ratio).toBeGreaterThanOrEqual(7);
+  });
+
+  test("Android 粗指標裝置應套用低負載視覺設定", async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 915 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(pageUrl);
+
+    const perfStyles = await page.evaluate(() => {
+      const glow = document.querySelector(".header-glow");
+      const nav = document.querySelector("nav.main-nav");
+      const backToTop = document.querySelector(".back-to-top");
+      return {
+        glowDisplay: glow ? getComputedStyle(glow).display : null,
+        navBackdrop: nav ? getComputedStyle(nav).backdropFilter : null,
+        backToTopTransform: backToTop ? getComputedStyle(backToTop).transform : null,
+      };
+    });
+
+    expect(perfStyles.glowDisplay).toBe("none");
+    expect(["none", ""]).toContain(perfStyles.navBackdrop);
+    expect(perfStyles.backToTopTransform).toBeTruthy();
+  });
+
   test("手機首頁初始畫面中返回頂端按鈕不應遮住主要操作", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(pageUrl);
