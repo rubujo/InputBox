@@ -70,10 +70,54 @@ test.describe("InputBox gh-pages A11y", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(pageUrl);
 
-    const pageWidth = await page.evaluate(() => ({
-      scrollWidth: document.documentElement.scrollWidth,
-      clientWidth: document.documentElement.clientWidth,
-    }));
+    const pageWidth = await page.evaluate(() => {
+      const vw = document.documentElement.clientWidth;
+      const sw = document.documentElement.scrollWidth;
+
+      /* 僅在失敗時收集偵錯資訊，避免效能負擔 */
+      let offenders = [];
+      if (sw > vw) {
+        function insideFixed(el) {
+          let p = el.parentElement;
+          while (p) {
+            if (getComputedStyle(p).position === "fixed") return true;
+            p = p.parentElement;
+          }
+          return false;
+        }
+        for (const el of document.querySelectorAll("body, body *")) {
+          if (insideFixed(el)) continue;
+          const bcr = el.getBoundingClientRect();
+          const elSw = el.scrollWidth;
+          const ow = el.offsetWidth;
+          if (bcr.right > vw + 0.5 || elSw > vw + 0.5 || ow > vw + 0.5) {
+            const s = getComputedStyle(el);
+            offenders.push({
+              tag: el.tagName.toLowerCase(),
+              id: el.id || "",
+              cls: (el.className || "").toString().slice(0, 50),
+              text: el.textContent.trim().replace(/\s+/g, " ").slice(0, 40),
+              bcrRight: Math.round(bcr.right),
+              offsetWidth: ow,
+              scrollWidth: elSw,
+              position: s.position,
+              display: s.display,
+              overflowX: s.overflowX,
+              width: s.width,
+              minWidth: s.minWidth,
+              whiteSpace: s.whiteSpace,
+            });
+          }
+        }
+        offenders = offenders.sort((a, b) => b.bcrRight - a.bcrRight).slice(0, 10);
+      }
+
+      return { scrollWidth: sw, clientWidth: vw, offenders };
+    });
+
+    if (pageWidth.scrollWidth > pageWidth.clientWidth) {
+      console.log("⚠️ 水平溢出偵錯資訊：", JSON.stringify(pageWidth.offenders, null, 2));
+    }
 
     expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth);
   });
