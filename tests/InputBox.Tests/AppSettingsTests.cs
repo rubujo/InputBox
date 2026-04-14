@@ -412,6 +412,31 @@ public sealed class AppSettingsTests : IDisposable
     }
 
     /// <summary>
+    /// 其他尚在進行中的新鮮暫存檔不應被目前這次儲存流程誤刪，避免併發寫入時後續 Move/Replace 因找不到檔案而失敗。
+    /// </summary>
+    [Fact]
+    public void Save_WithFreshSiblingTempFile_PreservesPendingConcurrentWrite()
+    {
+        string pendingTempPath = Path.Combine(AppSettings.ConfigDirectory, $"appsettings.json.pending-{Guid.NewGuid():N}.tmp");
+        File.WriteAllText(pendingTempPath, "pending-temp", System.Text.Encoding.UTF8);
+
+        try
+        {
+            AppSettings.Current.HotKeyKey = "F11";
+            AppSettings.Save();
+
+            Assert.True(File.Exists(pendingTempPath));
+        }
+        finally
+        {
+            if (File.Exists(pendingTempPath))
+            {
+                File.Delete(pendingTempPath);
+            }
+        }
+    }
+
+    /// <summary>
     /// 既有的殘留暫存檔應在下次成功儲存後被清理，避免設定目錄長期累積垃圾檔案。
     /// </summary>
     [Fact]
@@ -419,6 +444,7 @@ public sealed class AppSettingsTests : IDisposable
     {
         string staleTempPath = Path.Combine(AppSettings.ConfigDirectory, "appsettings.json.stale-test.tmp");
         File.WriteAllText(staleTempPath, "stale-temp", System.Text.Encoding.UTF8);
+        File.SetLastWriteTimeUtc(staleTempPath, DateTime.UtcNow.AddMinutes(-10));
 
         AppSettings.Current.HotKeyKey = "F10";
         AppSettings.Save();

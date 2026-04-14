@@ -515,6 +515,29 @@ public sealed class PhraseServiceTests : IDisposable
         }
     }
 
+    /// <summary>
+    /// 片語儲存成功後，只應清理陳舊暫存檔，不應把其他尚在進行中的新鮮暫存檔誤刪。
+    /// </summary>
+    [Fact]
+    public void Add_WithFreshSiblingTempFile_PreservesPendingConcurrentWrite()
+    {
+        var svc = new PhraseService();
+        string pendingTempPath = Path.Combine(AppSettings.ConfigDirectory, $"phrases.json.pending-{Guid.NewGuid():N}.tmp");
+        File.WriteAllText(pendingTempPath, "pending-temp", System.Text.Encoding.UTF8);
+
+        try
+        {
+            bool added = svc.Add("名稱", "內容");
+
+            Assert.True(added);
+            Assert.True(File.Exists(pendingTempPath));
+        }
+        finally
+        {
+            if (File.Exists(pendingTempPath)) File.Delete(pendingTempPath);
+        }
+    }
+
     // ── ImportFromFile ────────────────────────────────────────────────────
 
     /// <summary>

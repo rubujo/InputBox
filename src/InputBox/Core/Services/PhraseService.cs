@@ -107,6 +107,21 @@ internal sealed class PhraseService
     private static readonly string PhraseTempFilePattern = $"{Path.GetFileName(PhrasePath)}*.tmp";
 
     /// <summary>
+    /// 片語暫存檔清理前的保留寬限時間，避免刪除其他仍在併發寫入中的新鮮暫存檔。
+    /// </summary>
+    private static readonly TimeSpan PhraseTempCleanupGracePeriod = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// 追蹤目前處於寫入流程中的片語暫存檔，避免跨執行緒誤刪。
+    /// </summary>
+    private static readonly Lock PhraseTempRegistryLock = new();
+
+    /// <summary>
+    /// 目前進行中的片語暫存檔集合。
+    /// </summary>
+    private static readonly HashSet<string> ActivePhraseTempFiles = [];
+
+    /// <summary>
     /// 片語存取鎖
     /// </summary>
     private readonly Lock PhraseLock = new();
@@ -214,16 +229,18 @@ internal sealed class PhraseService
             json = JsonSerializer.Serialize(_phrases, Options);
         }
 
+        string tempPath = Path.Combine(
+            AppSettings.ConfigDirectory,
+            $"{Path.GetFileName(PhrasePath)}.{Guid.NewGuid():N}.tmp");
+
+        RegisterActivePhraseTempFile(tempPath);
+
         try
         {
             if (!Directory.Exists(AppSettings.ConfigDirectory))
             {
                 Directory.CreateDirectory(AppSettings.ConfigDirectory);
             }
-
-            string tempPath = Path.Combine(
-                AppSettings.ConfigDirectory,
-                $"{Path.GetFileName(PhrasePath)}.{Guid.NewGuid():N}.tmp");
 
             File.WriteAllText(tempPath, json, Utf8NoBom);
 
@@ -243,7 +260,7 @@ internal sealed class PhraseService
                         File.Move(tempPath, PhrasePath);
                     }
 
-                    CleanupPhraseTempFiles();
+                    tempPath = string.Empty;
                     return true;
                 }
                 catch (IOException ex) when (attempt < 5)
@@ -267,10 +284,81 @@ internal sealed class PhraseService
 
             Debug.WriteLine($"[片語] 儲存失敗：{ex.Message}");
 
-            // 嘗試清理可能殘留的暫存檔，避免設定目錄長期堆積垃圾檔。
-            CleanupPhraseTempFiles();
-
             return false;
+        }
+        finally
+        {
+            UnregisterActivePhraseTempFile(tempPath);
+            TryDeletePhraseTempFile(tempPath);
+            CleanupPhraseTempFiles();
+        }
+    }
+
+    /// <summary>
+    /// 將正在寫入中的片語暫存檔註冊到追蹤集合。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    private static void RegisterActivePhraseTempFile(string tempPath)
+    {
+        lock (PhraseTempRegistryLock)
+        {
+            _ = ActivePhraseTempFiles.Add(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// 將已完成或失敗的片語暫存檔自追蹤集合移除。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    private static void UnregisterActivePhraseTempFile(string tempPath)
+    {
+        if (string.IsNullOrEmpty(tempPath))
+        {
+            return;
+        }
+
+        lock (PhraseTempRegistryLock)
+        {
+            _ = ActivePhraseTempFiles.Remove(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// 判斷指定片語暫存檔是否仍處於活躍寫入流程中。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    /// <returns>若仍在寫入流程中則為 true。</returns>
+    private static bool IsActivePhraseTempFile(string tempPath)
+    {
+        lock (PhraseTempRegistryLock)
+        {
+            return ActivePhraseTempFiles.Contains(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// 嘗試刪除指定的片語暫存檔，供失敗收尾時使用。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    private static void TryDeletePhraseTempFile(string tempPath)
+    {
+        if (string.IsNullOrEmpty(tempPath) ||
+            !File.Exists(tempPath))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(tempPath);
+        }
+        catch (IOException)
+        {
+
+        }
+        catch (UnauthorizedAccessException)
+        {
+
         }
     }
 
@@ -286,12 +374,24 @@ internal sealed class PhraseService
                 return;
             }
 
+            DateTime utcNow = DateTime.UtcNow;
+
             foreach (string tempPathForCleanup in Directory.GetFiles(
                 AppSettings.ConfigDirectory,
                 PhraseTempFilePattern))
             {
                 try
                 {
+                    if (IsActivePhraseTempFile(tempPathForCleanup))
+                    {
+                        continue;
+                    }
+
+                    if (utcNow - File.GetLastWriteTimeUtc(tempPathForCleanup) < PhraseTempCleanupGracePeriod)
+                    {
+                        continue;
+                    }
+
                     File.Delete(tempPathForCleanup);
                 }
                 catch (IOException)

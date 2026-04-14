@@ -58,6 +58,21 @@ public class AppSettings
     /// </summary>
     private static readonly string ConfigTempFilePattern = $"{Path.GetFileName(ConfigPath)}*.tmp";
 
+    /// <summary>
+    /// 設定檔暫存檔清理前的保留寬限時間，避免把其他仍在進行中的併發寫入暫存檔誤判為垃圾檔刪除。
+    /// </summary>
+    private static readonly TimeSpan ConfigTempCleanupGracePeriod = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// 追蹤目前處於寫入流程中的設定檔暫存檔，避免清理流程刪除其他執行中的檔案。
+    /// </summary>
+    private static readonly Lock ConfigTempRegistryLock = new();
+
+    /// <summary>
+    /// 目前進行中的設定檔暫存檔集合。
+    /// </summary>
+    private static readonly HashSet<string> ActiveConfigTempFiles = [];
+
     #region A11y 無障礙與視覺安全閾值
 
     /// <summary>
@@ -789,6 +804,8 @@ public class AppSettings
             ConfigDirectory,
             $"{Path.GetFileName(ConfigPath)}.{Guid.NewGuid():N}.tmp");
 
+        RegisterActiveConfigTempFile(strTempPath);
+
         try
         {
             // 確保資料夾存在。
@@ -819,7 +836,6 @@ public class AppSettings
                     }
 
                     strTempPath = string.Empty;
-                    CleanupConfigTempFiles();
                     return;
                 }
                 catch (IOException ex) when (attempt < 5)
@@ -843,9 +859,80 @@ public class AppSettings
             LoggerService.LogException(ex, "設定檔儲存失敗（WriteConfigToFile）");
 
             Debug.WriteLine($"無法儲存設定檔：{ex.Message}");
-
-            // 嘗試清理殘留的臨時檔與舊的孤兒暫存檔。
+        }
+        finally
+        {
+            UnregisterActiveConfigTempFile(strTempPath);
+            TryDeleteConfigTempFile(strTempPath);
             CleanupConfigTempFiles();
+        }
+    }
+
+    /// <summary>
+    /// 將正在寫入中的設定檔暫存檔註冊到追蹤集合。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    private static void RegisterActiveConfigTempFile(string tempPath)
+    {
+        lock (ConfigTempRegistryLock)
+        {
+            _ = ActiveConfigTempFiles.Add(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// 將已完成或失敗的設定檔暫存檔自追蹤集合移除。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    private static void UnregisterActiveConfigTempFile(string tempPath)
+    {
+        if (string.IsNullOrEmpty(tempPath))
+        {
+            return;
+        }
+
+        lock (ConfigTempRegistryLock)
+        {
+            _ = ActiveConfigTempFiles.Remove(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// 判斷指定設定檔暫存檔是否仍處於活躍寫入流程中。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    /// <returns>若仍在寫入流程中則為 true。</returns>
+    private static bool IsActiveConfigTempFile(string tempPath)
+    {
+        lock (ConfigTempRegistryLock)
+        {
+            return ActiveConfigTempFiles.Contains(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// 嘗試刪除指定的設定檔暫存檔，供失敗收尾時使用。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    private static void TryDeleteConfigTempFile(string tempPath)
+    {
+        if (string.IsNullOrEmpty(tempPath) ||
+            !File.Exists(tempPath))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(tempPath);
+        }
+        catch (IOException)
+        {
+
+        }
+        catch (UnauthorizedAccessException)
+        {
+
         }
     }
 
@@ -861,10 +948,22 @@ public class AppSettings
                 return;
             }
 
+            DateTime utcNow = DateTime.UtcNow;
+
             foreach (string tempPath in Directory.GetFiles(ConfigDirectory, ConfigTempFilePattern))
             {
                 try
                 {
+                    if (IsActiveConfigTempFile(tempPath))
+                    {
+                        continue;
+                    }
+
+                    if (utcNow - File.GetLastWriteTimeUtc(tempPath) < ConfigTempCleanupGracePeriod)
+                    {
+                        continue;
+                    }
+
                     File.Delete(tempPath);
                 }
                 catch (IOException)
