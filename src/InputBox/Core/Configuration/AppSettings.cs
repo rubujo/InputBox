@@ -3,6 +3,7 @@ using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -34,6 +35,11 @@ public class AppSettings
             new FloatingPointFormatConverter()
         }
     };
+
+    /// <summary>
+    /// 設定檔寫入專用的 UTF-8（無 BOM）編碼。
+    /// </summary>
+    private static readonly UTF8Encoding Utf8NoBom = new(false);
 
     /// <summary>
     /// 定義儲存路徑：%AppData%\InputBox
@@ -768,12 +774,15 @@ public class AppSettings
     }
 
     /// <summary>
-    /// 將 JSON 字串安全地寫入設定檔（不含鎖，由呼叫端控制）
+    /// 將 JSON 字串安全地寫入設定檔（不含鎖，由呼叫端控制）。
+    /// <para>使用唯一暫存檔、原子替換與退避重試，降低多執行緒保存或外部檔案鎖造成的覆寫風險。</para>
     /// </summary>
-    /// <param name="strJsonContent">已序列化的 JSON 字串</param>
+    /// <param name="strJsonContent">已序列化、準備寫入磁碟的 JSON 字串內容。</param>
     private static void WriteConfigToFile(string strJsonContent)
     {
-        string strTempPath = ConfigPath + ".tmp";
+        string strTempPath = Path.Combine(
+            ConfigDirectory,
+            $"{Path.GetFileName(ConfigPath)}.{Guid.NewGuid():N}.tmp");
 
         try
         {
@@ -783,28 +792,44 @@ public class AppSettings
                 Directory.CreateDirectory(ConfigDirectory);
             }
 
-            // 寫入臨時檔案。
-            File.WriteAllText(strTempPath, strJsonContent);
+            // 寫入臨時檔案。使用唯一檔名避免多執行緒保存時互相覆寫。
+            File.WriteAllText(strTempPath, strJsonContent, Utf8NoBom);
+
+            Exception? lastIoException = null;
+            int delayMs = 20;
 
             // 寫入成功後，再原子性地替換原有檔案。
-            // 加入退避重試機制，防止被防毒軟體或備份工具短暫鎖定。
-            int retries = 3;
-
-            while (retries > 0)
+            // 使用唯一暫存檔 + 指數退避重試，降低防毒軟體或同步工具造成的短暫鎖定風險。
+            for (int attempt = 1; attempt <= 5; attempt++)
             {
                 try
                 {
-                    File.Move(strTempPath, ConfigPath, true);
+                    if (File.Exists(ConfigPath))
+                    {
+                        File.Replace(strTempPath, ConfigPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                    }
+                    else
+                    {
+                        File.Move(strTempPath, ConfigPath);
+                    }
 
+                    strTempPath = string.Empty;
+                    return;
+                }
+                catch (IOException ex) when (attempt < 5)
+                {
+                    lastIoException = ex;
+                    Thread.Sleep(delayMs);
+                    delayMs *= 2;
+                }
+                catch (IOException ex)
+                {
+                    lastIoException = ex;
                     break;
                 }
-                catch (IOException) when (retries > 1)
-                {
-                    retries--;
-
-                    Thread.Sleep(1);
-                }
             }
+
+            throw lastIoException ?? new IOException("設定檔替換失敗。");
         }
         catch (Exception ex)
         {
@@ -816,7 +841,8 @@ public class AppSettings
             // 嘗試清理殘留的臨時檔。
             try
             {
-                if (File.Exists(strTempPath))
+                if (!string.IsNullOrEmpty(strTempPath) &&
+                    File.Exists(strTempPath))
                 {
                     File.Delete(strTempPath);
                 }

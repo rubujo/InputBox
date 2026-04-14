@@ -1,5 +1,6 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Services;
+using System.Text.Json;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -14,9 +15,15 @@ namespace InputBox.Tests;
 /// </summary>
 public sealed class PhraseServiceTests : IDisposable
 {
+    /// <summary>
+    /// 測試期間使用的片語資料檔路徑。
+    /// </summary>
     private static readonly string PhrasePath = Path.Combine(
         AppSettings.ConfigDirectory, "phrases.json");
 
+    /// <summary>
+    /// 備份原始片語檔的暫存路徑，用於測試結束後還原使用者資料。
+    /// </summary>
     private static readonly string BackupPath = PhrasePath + ".testbackup";
 
     /// <summary>
@@ -465,6 +472,44 @@ public sealed class PhraseServiceTests : IDisposable
 
             string content = File.ReadAllText(exportPath).Trim();
             Assert.Equal("[]", content);
+        }
+        finally
+        {
+            if (File.Exists(exportPath)) File.Delete(exportPath);
+        }
+    }
+
+    /// <summary>
+    /// 對同一路徑進行併發匯出時，所有操作都應成功，且不留下暫存檔碰撞殘骸。
+    /// </summary>
+    [Fact]
+    public async Task ExportToFile_ConcurrentCalls_AllSucceedWithoutTempCollisions()
+    {
+        var svc = new PhraseService();
+        svc.Add("名稱A", "內容A");
+        svc.Add("名稱B", "內容B");
+
+        string exportPath = Path.Combine(Path.GetTempPath(), $"phrases_test_{Guid.NewGuid():N}.json");
+
+        try
+        {
+            Task<PhraseService.ExportOutcome>[] tasks = Enumerable.Range(0, 8)
+                .Select(_ => Task.Run(() => svc.ExportToFile(exportPath), TestContext.Current.CancellationToken))
+                .ToArray();
+
+            PhraseService.ExportOutcome[] results = await Task.WhenAll(tasks);
+
+            Assert.All(results, result => Assert.True(result.Success));
+            Assert.True(File.Exists(exportPath));
+
+            string content = await File.ReadAllTextAsync(exportPath, TestContext.Current.CancellationToken);
+            using JsonDocument _ = JsonDocument.Parse(content);
+
+            string[] tempFiles = Directory.GetFiles(
+                Path.GetDirectoryName(exportPath)!,
+                $"{Path.GetFileName(exportPath)}*.tmp");
+
+            Assert.Empty(tempFiles);
         }
         finally
         {

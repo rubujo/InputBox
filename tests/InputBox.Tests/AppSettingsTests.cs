@@ -1,4 +1,6 @@
 ﻿using InputBox.Core.Configuration;
+using System.Reflection;
+using System.Text.Json;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -7,8 +9,52 @@ namespace InputBox.Tests;
 /// AppSettings 關鍵常數驗證、屬性夾緊與 GamepadConfigSnapshot 快照邏輯測試
 /// <para>確保影響安全、A11y 與行為邊界的常數及夾緊規則不會因重構而意外改變。</para>
 /// </summary>
-public class AppSettingsTests
+public sealed class AppSettingsTests : IDisposable
 {
+    /// <summary>
+    /// 測試期間使用的設定檔路徑。
+    /// </summary>
+    private static readonly string ConfigPath = Path.Combine(
+        AppSettings.ConfigDirectory, "appsettings.json");
+
+    /// <summary>
+    /// 備份原始設定檔的暫存路徑，用於測試結束後還原使用者資料。
+    /// </summary>
+    private static readonly string BackupPath = ConfigPath + ".testbackup";
+
+    /// <summary>
+    /// 建構子：若設定檔存在則先備份，確保測試不污染使用者原始資料。
+    /// </summary>
+    public AppSettingsTests()
+    {
+        Directory.CreateDirectory(AppSettings.ConfigDirectory);
+
+        if (File.Exists(ConfigPath))
+        {
+            File.Copy(ConfigPath, BackupPath, overwrite: true);
+        }
+    }
+
+    /// <summary>
+    /// 還原測試期間的設定檔變更，並清除殘留的暫存檔。
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (string tempFile in Directory.GetFiles(AppSettings.ConfigDirectory, "appsettings.json*.tmp"))
+        {
+            File.Delete(tempFile);
+        }
+
+        if (File.Exists(BackupPath))
+        {
+            File.Move(BackupPath, ConfigPath, overwrite: true);
+        }
+        else if (File.Exists(ConfigPath))
+        {
+            File.Delete(ConfigPath);
+        }
+    }
+
     // ── 整數屬性夾緊 ────────────────────────────────────────────────────────
 
     /// <summary>
@@ -294,6 +340,34 @@ public class AppSettingsTests
         Assert.Equal(7849, s.GamepadSettings.ThumbDeadzoneEnter);
         Assert.Equal(30, s.GamepadSettings.RepeatInitialDelayFrames);
         Assert.Equal(5, s.GamepadSettings.RepeatIntervalFrames);
+    }
+
+    /// <summary>
+    /// 併發寫入設定檔時，應保留有效 JSON，且不殘留任何暫存檔。
+    /// </summary>
+    [Fact]
+    public async Task WriteConfigToFile_ConcurrentWrites_LeavesValidJsonAndNoTempFiles()
+    {
+        MethodInfo writeMethod = typeof(AppSettings).GetMethod(
+            "WriteConfigToFile",
+            BindingFlags.NonPublic | BindingFlags.Static)
+            ?? throw new InvalidOperationException("找不到 WriteConfigToFile 方法。");
+
+        Task[] tasks = Enumerable.Range(0, 8)
+            .Select(i => Task.Run(
+                () => writeMethod.Invoke(null, new object?[] { $"{{\"HotKeyKey\":\"F{i}\"}}" }),
+                TestContext.Current.CancellationToken))
+            .ToArray();
+
+        await Task.WhenAll(tasks);
+
+        Assert.True(File.Exists(ConfigPath));
+
+        string json = await File.ReadAllTextAsync(ConfigPath, TestContext.Current.CancellationToken);
+        using JsonDocument _ = JsonDocument.Parse(json);
+
+        string[] tempFiles = Directory.GetFiles(AppSettings.ConfigDirectory, "appsettings.json*.tmp");
+        Assert.Empty(tempFiles);
     }
 
     // ── 常數值驗證 ──────────────────────────────────────────────────────────

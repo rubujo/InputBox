@@ -7,7 +7,7 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | 測試類別 | 被測目標 | 測試數 |
 |---|---|---|
 | `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊與 Dispose 行為 | 4 |
-| `AppSettingsTests` | `AppSettings` 關鍵常數（安全邊界、A11y 上限、Clamp 行為） | 45 |
+| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為與設定檔併發保存回歸保護 | 46 |
 | `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
@@ -19,11 +19,11 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `GaussianDelayHelperTests` | `GaussianDelayHelper` 延遲計算 | 5 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
-| `PhraseServiceTests` | `PhraseService` CRUD 與匯出／匯入 | 35 |
+| `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入與併發匯出回歸保護 | 36 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護與 Duty Cycle 限制器 | 6 |
-| **合計** | | **222** |
+| **合計** | | **224** |
 
 ## 執行測試
 

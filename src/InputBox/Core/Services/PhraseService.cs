@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -216,29 +216,44 @@ internal sealed class PhraseService
                 Directory.CreateDirectory(AppSettings.ConfigDirectory);
             }
 
-            string tempPath = PhrasePath + ".tmp";
+            string tempPath = Path.Combine(
+                AppSettings.ConfigDirectory,
+                $"{Path.GetFileName(PhrasePath)}.{Guid.NewGuid():N}.tmp");
 
             File.WriteAllText(tempPath, json, Utf8NoBom);
 
-            int retries = 3;
+            Exception? lastIoException = null;
+            int delayMs = 20;
 
-            while (retries > 0)
+            for (int attempt = 1; attempt <= 5; attempt++)
             {
                 try
                 {
-                    File.Move(tempPath, PhrasePath, overwrite: true);
+                    if (File.Exists(PhrasePath))
+                    {
+                        File.Replace(tempPath, PhrasePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                    }
+                    else
+                    {
+                        File.Move(tempPath, PhrasePath);
+                    }
 
-                    break;
+                    return true;
                 }
-                catch (IOException) when (retries > 1)
+                catch (IOException ex) when (attempt < 5)
                 {
-                    retries--;
-
-                    Thread.Sleep(1);
+                    lastIoException = ex;
+                    Thread.Sleep(delayMs);
+                    delayMs *= 2;
+                }
+                catch (IOException ex)
+                {
+                    lastIoException = ex;
+                    break;
                 }
             }
 
-            return true;
+            throw lastIoException ?? new IOException("片語檔替換失敗。");
         }
         catch (Exception ex)
         {
@@ -249,9 +264,9 @@ internal sealed class PhraseService
             // 嘗試清理可能殘留的暫存檔，與 AppSettings.WriteConfigToFile 保持一致。
             try
             {
-                string tempPathForCleanup = PhrasePath + ".tmp";
-
-                if (File.Exists(tempPathForCleanup))
+                foreach (string tempPathForCleanup in Directory.GetFiles(
+                    AppSettings.ConfigDirectory,
+                    $"{Path.GetFileName(PhrasePath)}*.tmp"))
                 {
                     File.Delete(tempPathForCleanup);
                 }
@@ -425,10 +440,10 @@ internal sealed class PhraseService
 
     /// <summary>
     /// 將目前片語清單匯出至使用者指定路徑。
-    /// 使用 .tmp 暫存檔 + File.Move 確保寫入原子性。
+    /// <para>使用唯一暫存檔、原子替換與退避重試，避免併發匯出時發生檔案碰撞或殘留暫存檔。</para>
     /// </summary>
-    /// <param name="filePath">目標檔案路徑</param>
-    /// <returns>匯出結果</returns>
+    /// <param name="filePath">要輸出的目標檔案完整路徑。</param>
+    /// <returns>包含成功狀態、錯誤類型與匯出筆數的匯出結果。</returns>
     public ExportOutcome ExportToFile(string filePath)
     {
         string json;
@@ -440,7 +455,9 @@ internal sealed class PhraseService
             json = JsonSerializer.Serialize(_phrases, Options);
         }
 
-        string tempPath = filePath + ".tmp";
+        string tempPath = Path.Combine(
+            Path.GetDirectoryName(filePath) ?? string.Empty,
+            $"{Path.GetFileName(filePath)}.{Guid.NewGuid():N}.tmp");
 
         try
         {
@@ -453,23 +470,38 @@ internal sealed class PhraseService
 
             File.WriteAllText(tempPath, json, Utf8NoBom);
 
-            int retries = 3;
+            Exception? lastIoException = null;
+            int delayMs = 20;
 
-            while (retries > 0)
+            for (int attempt = 1; attempt <= 5; attempt++)
             {
                 try
                 {
-                    File.Move(tempPath, filePath, overwrite: true);
-                    break;
+                    if (File.Exists(filePath))
+                    {
+                        File.Replace(tempPath, filePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                    }
+                    else
+                    {
+                        File.Move(tempPath, filePath);
+                    }
+
+                    return new ExportOutcome(true, ExportError.None, count);
                 }
-                catch (IOException) when (retries > 1)
+                catch (IOException ex) when (attempt < 5)
                 {
-                    retries--;
-                    Thread.Sleep(1);
+                    lastIoException = ex;
+                    Thread.Sleep(delayMs);
+                    delayMs *= 2;
+                }
+                catch (IOException ex)
+                {
+                    lastIoException = ex;
+                    break;
                 }
             }
 
-            return new ExportOutcome(true, ExportError.None, count);
+            throw lastIoException ?? new IOException("片語匯出替換失敗。");
         }
         catch (Exception ex)
         {
@@ -478,7 +510,18 @@ internal sealed class PhraseService
 
             try
             {
-                if (File.Exists(tempPath))
+                string directory = Path.GetDirectoryName(filePath) ?? string.Empty;
+
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    foreach (string tempFile in Directory.GetFiles(
+                        directory,
+                        $"{Path.GetFileName(filePath)}*.tmp"))
+                    {
+                        File.Delete(tempFile);
+                    }
+                }
+                else if (File.Exists(tempPath))
                 {
                     File.Delete(tempPath);
                 }
