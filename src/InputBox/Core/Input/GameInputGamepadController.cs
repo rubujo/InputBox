@@ -2313,7 +2313,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 暫停
+    /// 暫停 GameInput 輪詢與輸入處理。
+    /// <para>會立即停止背景輪詢執行緒，並清除所有執行期按鍵／連發／中立閘門狀態，避免視窗失焦後殘留輸入滲透到下一個前景 UI。</para>
     /// </summary>
     public void Pause()
     {
@@ -2323,7 +2324,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 恢復
+    /// 恢復 GameInput 輪詢與輸入處理。
+    /// <para>恢復時只重設執行期狀態並重新啟動背景 MTA 輪詢執行緒；實際的當前快照預同步必須在該輪詢執行緒內完成，避免從 UI 執行緒直接碰觸 GameInput COM 物件導致 InvalidCastException，並確保中立閘門能正確放行第一個有效按壓。</para>
     /// </summary>
     public void Resume()
     {

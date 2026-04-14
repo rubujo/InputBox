@@ -800,6 +800,7 @@ public class AppSettings
     /// <param name="strJsonContent">已序列化、準備寫入磁碟的 JSON 字串內容。</param>
     private static void WriteConfigToFile(string strJsonContent)
     {
+        // 使用唯一 GUID 暫存檔名進行原子寫入，避免與其他同步保存流程互相覆寫。
         string strTempPath = Path.Combine(
             ConfigDirectory,
             $"{Path.GetFileName(ConfigPath)}.{Guid.NewGuid():N}.tmp");
@@ -817,7 +818,9 @@ public class AppSettings
             // 寫入臨時檔案。使用唯一檔名避免多執行緒保存時互相覆寫。
             File.WriteAllText(strTempPath, strJsonContent, Utf8NoBom);
 
+            // 記錄最後一次 I/O 失敗原因，供所有重試都失敗時重新拋出。
             Exception? lastIoException = null;
+            // 以指數退避降低短暫檔案鎖競爭的衝擊。
             int delayMs = 20;
 
             // 寫入成功後，再原子性地替換原有檔案。
@@ -911,6 +914,27 @@ public class AppSettings
     }
 
     /// <summary>
+    /// 判斷指定設定檔暫存檔是否符合本服務建立的唯一暫存檔命名格式。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    /// <returns>若為本服務建立的 GUID 暫存檔則為 true。</returns>
+    private static bool IsManagedConfigTempFile(string tempPath)
+    {
+        string fileName = Path.GetFileName(tempPath),
+            prefix = $"{Path.GetFileName(ConfigPath)}.";
+
+        if (!fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+            !fileName.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string candidate = fileName[prefix.Length..^4];
+
+        return Guid.TryParseExact(candidate, "N", out _);
+    }
+
+    /// <summary>
     /// 嘗試刪除指定的設定檔暫存檔，供失敗收尾時使用。
     /// </summary>
     /// <param name="tempPath">暫存檔路徑。</param>
@@ -959,7 +983,10 @@ public class AppSettings
                         continue;
                     }
 
-                    if (utcNow - File.GetLastWriteTimeUtc(tempPath) < ConfigTempCleanupGracePeriod)
+                    bool isManagedTempFile = IsManagedConfigTempFile(tempPath);
+
+                    if (!isManagedTempFile &&
+                        utcNow - File.GetLastWriteTimeUtc(tempPath) < ConfigTempCleanupGracePeriod)
                     {
                         continue;
                     }

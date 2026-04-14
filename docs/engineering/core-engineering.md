@@ -15,6 +15,8 @@
   - **CTS 欄位宣告紅線**：`CancellationTokenSource` 欄位**絕對禁止**宣告為 `readonly`。`readonly` 會使 `ref` 傳遞失敗，導致無法使用上述原子化處置模式。正確宣告：`private CancellationTokenSource? _cts = new();`。
   - **共享資源歸零 (Shared Nullification)**：來自全域快取池 (如 `GetSharedA11yFont`) 的資源，在 Dispose 時**僅能將欄位設為 null**，絕對禁止手動 `Dispose()` 或放入回收桶。
   - **字體回收桶 (Trash Can)**：更換「視窗私有」字體實例時，舊實例必須放入 `AddFontToTrashCan` 延遲釋放。
+  - **暫存檔清理邊界**：對 JSON 或其他持久化檔案使用唯一暫存檔時，清理流程只能刪除「已不活躍且屬於本服務命名格式」的殘留檔案；不可直接掃掉所有匹配的 `.tmp`，否則併發寫入時可能把別的流程正在使用的暫存檔誤刪。
+  - **COM 執行緒親和性**：像 GameInput 這類 COM 物件若要求在固定背景 MTA 執行緒存取，就必須在該執行緒完成初始化、讀取與狀態預同步；跨到 UI 執行緒直接呼叫常會導致 `InvalidCastException` 或未定義行為。
 - **DPI 與佈局一致性**：
   - **佈局約束**：必須實作 `UpdateLayoutConstraints` 與 `UpdateMinimumSize` 並在 `OnHandleCreated` 與 `OnDpiChanged` 調用。
   - **計算標記**：計算縮放時除數/被除數必須包含 `96.0f` 或 `(float)` 強制轉型，杜絕整數截斷誤差。

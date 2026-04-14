@@ -220,6 +220,7 @@ internal sealed class PhraseService
     /// <summary>
     /// 嘗試將片語儲存至磁碟，回傳是否成功
     /// </summary>
+    /// <returns>若成功寫入片語檔則為 true，否則為 false。</returns>
     private bool TrySave()
     {
         string json;
@@ -229,6 +230,7 @@ internal sealed class PhraseService
             json = JsonSerializer.Serialize(_phrases, Options);
         }
 
+        // 使用唯一 GUID 暫存檔名進行原子寫入，避免與其他片語保存流程發生碰撞。
         string tempPath = Path.Combine(
             AppSettings.ConfigDirectory,
             $"{Path.GetFileName(PhrasePath)}.{Guid.NewGuid():N}.tmp");
@@ -244,7 +246,9 @@ internal sealed class PhraseService
 
             File.WriteAllText(tempPath, json, Utf8NoBom);
 
+            // 記錄最後一次 I/O 失敗原因，供所有重試都失敗時回報。
             Exception? lastIoException = null;
+            // 以指數退避降低防毒、同步工具或其他程序短暫鎖檔帶來的衝突。
             int delayMs = 20;
 
             for (int attempt = 1; attempt <= 5; attempt++)
@@ -337,6 +341,27 @@ internal sealed class PhraseService
     }
 
     /// <summary>
+    /// 判斷指定片語暫存檔是否符合本服務建立的唯一暫存檔命名格式。
+    /// </summary>
+    /// <param name="tempPath">暫存檔路徑。</param>
+    /// <returns>若為本服務建立的 GUID 暫存檔則為 true。</returns>
+    private static bool IsManagedPhraseTempFile(string tempPath)
+    {
+        string fileName = Path.GetFileName(tempPath),
+            prefix = $"{Path.GetFileName(PhrasePath)}.";
+
+        if (!fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+            !fileName.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string candidate = fileName[prefix.Length..^4];
+
+        return Guid.TryParseExact(candidate, "N", out _);
+    }
+
+    /// <summary>
     /// 嘗試刪除指定的片語暫存檔，供失敗收尾時使用。
     /// </summary>
     /// <param name="tempPath">暫存檔路徑。</param>
@@ -387,7 +412,10 @@ internal sealed class PhraseService
                         continue;
                     }
 
-                    if (utcNow - File.GetLastWriteTimeUtc(tempPathForCleanup) < PhraseTempCleanupGracePeriod)
+                    bool isManagedTempFile = IsManagedPhraseTempFile(tempPathForCleanup);
+
+                    if (!isManagedTempFile &&
+                        utcNow - File.GetLastWriteTimeUtc(tempPathForCleanup) < PhraseTempCleanupGracePeriod)
                     {
                         continue;
                     }

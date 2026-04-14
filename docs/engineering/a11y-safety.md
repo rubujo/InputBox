@@ -22,7 +22,7 @@
     - 鍵盤焦點：強烈靜態視覺回饋 (反轉、字體加粗)。
     - 按壓狀態：獨立於焦點的第三層級。深色模式使用飽和暖色 (琥珀色 `255,200,120`)，亮度差 **ΔL*≥13**。
     - **Tritanopia 調整亮度公式**：$L_{tritan} = (R_{lin} \times 0.2126 + G_{lin} \times 0.7152) / 0.9278$。
-  - **預設動作引導**：當焦點在輸入框時，`AcceptButton` 必須顯示與焦點框相同的視覺特徵 (Cyan/RoyalBlue 邊框)。
+  - **預設動作引導**：當焦點在輸入框時，`AcceptButton` 必須顯示與焦點框一致的情境感知邊框色；強視覺反轉情境使用 **Cyan / MediumBlue**，中性情境使用 **LightBlue / MediumBlue**。
 - **眼動儀優化與視覺穩定性**：
   - **視覺凍結 (Zero-Jitter)**：狀態變更嚴禁變動物理尺寸、Margin 或 Padding。
   - **抗抖動鎖定 (Anti-Jitter Lock)**：初始化時預先計算 **Bold** 狀態最大寬度並鎖定為 `MinimumSize`。

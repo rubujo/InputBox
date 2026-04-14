@@ -29,6 +29,12 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
 
 凡是被測目標的方法會**讀寫使用者資料目錄**（如 `%AppData%\InputBox\*.json`），測試類別必須實作 `IDisposable` 的備份/還原模式：
 
+### 3.1 測試日誌隔離
+
+- 測試環境下的例外與診斷輸出應寫入專屬檔案 `InputBox.test.log`，避免污染使用者平常排查問題時查看的 `InputBox.log`。
+- 若分析使用者回報的正式問題，應優先檢查正式日誌；測試日誌只代表測試主機下的行為與故障注入案例。
+- 新增會主動觸發例外或錯誤訊息的測試時，需確認不會把預期測試訊號寫進正式日誌。
+
 ```csharp
 public sealed class ExampleServiceTests : IDisposable
 {

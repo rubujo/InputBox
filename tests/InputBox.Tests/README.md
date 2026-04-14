@@ -20,11 +20,12 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消、生命週期資源保護與已連線控制器提示同步 | 2 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
+| `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出與併發暫存檔誤刪回歸保護 | 37 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **235** |
+| **合計** | | **236** |
 
 ## 執行測試
 

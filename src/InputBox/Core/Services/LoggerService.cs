@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 
 namespace InputBox.Core.Services;
@@ -31,9 +32,14 @@ internal static class LoggerService
     internal static string LogDirectory => _logDirectory;
 
     /// <summary>
-    /// 主要日誌檔名
+    /// 正式執行時的主要日誌檔名。
     /// </summary>
     private const string LogFileName = "InputBox.log";
+
+    /// <summary>
+    /// 測試執行時的專屬日誌檔名，避免污染正式執行記錄。
+    /// </summary>
+    private const string TestLogFileName = "InputBox.test.log";
 
     /// <summary>
     /// 單一檔案最大容量（預設 5MB）
@@ -124,7 +130,8 @@ internal static class LoggerService
                     Directory.CreateDirectory(_logDirectory);
                 }
 
-                string filePath = Path.Combine(_logDirectory, LogFileName);
+                string logFileName = GetActiveLogFileName();
+                string filePath = Path.Combine(_logDirectory, logFileName);
 
                 // 檢查是否需要執行檔案輪替。
                 if (File.Exists(filePath))
@@ -133,7 +140,7 @@ internal static class LoggerService
 
                     if (fileInfo.Length > MaxFileSize)
                     {
-                        RotateLogs();
+                        RotateLogs(logFileName);
                     }
                 }
 
@@ -151,18 +158,83 @@ internal static class LoggerService
     }
 
     /// <summary>
-    /// 執行日誌輪替（Rotation）
+    /// 取得目前環境應使用的日誌檔名。
     /// </summary>
-    /// <remarks>
-    /// 策略：InputBox.log -> InputBox.1.log -> ... -> InputBox.5.log
-    /// 舊檔案會被往後推移，超過 MaxBackupFiles 的檔案將被刪除。
-    /// </remarks>
-    private static void RotateLogs()
+    /// <returns>正式或測試專屬的日誌檔名。</returns>
+    private static string GetActiveLogFileName()
+    {
+        // 允許外部環境變數覆寫日誌檔名，便於測試或診斷工具指定輸出位置。
+        string? overrideLogFileName = Environment.GetEnvironmentVariable("INPUTBOX_LOG_FILE_NAME");
+
+        if (!string.IsNullOrWhiteSpace(overrideLogFileName))
+        {
+            return overrideLogFileName.Trim();
+        }
+
+        return IsRunningUnderTestHost() ? TestLogFileName : LogFileName;
+    }
+
+    /// <summary>
+    /// 判斷目前是否執行於測試主機下，避免測試例外污染正式日誌檔。
+    /// </summary>
+    /// <returns>若目前在測試環境下執行則為 true。</returns>
+    private static bool IsRunningUnderTestHost()
     {
         try
         {
+            // 先以目前程序名稱進行快速判斷，涵蓋 Visual Studio / dotnet test 的 testhost 情境。
+            string processName = Process.GetCurrentProcess().ProcessName;
+
+            if (processName.Contains("testhost", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        catch
+        {
+
+        }
+
+        try
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                string name = assembly.GetName().Name ?? string.Empty;
+
+                if (name.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase) ||
+                    name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase) ||
+                    name.StartsWith("Microsoft.Testing.Platform", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 執行日誌輪替（Rotation）
+    /// </summary>
+    /// <remarks>
+    /// 策略：目前使用中的日誌檔 -> .1.log -> ... -> .5.log
+    /// 舊檔案會被往後推移，超過 MaxBackupFiles 的檔案將被刪除。
+    /// </remarks>
+    /// <param name="logFileName">目前使用中的日誌檔名。</param>
+    private static void RotateLogs(string logFileName)
+    {
+        try
+        {
+            // 以不含副檔名的檔名主體與副檔名拆開處理，讓正式與測試日誌都能共用同一套輪替邏輯。
+            string fileStem = Path.GetFileNameWithoutExtension(logFileName),
+                fileExtension = Path.GetExtension(logFileName);
+
             // 1. 刪除最舊的備份檔案。
-            string oldestBackup = Path.Combine(_logDirectory, $"InputBox.{MaxBackupFiles}.log");
+            string oldestBackup = Path.Combine(_logDirectory, $"{fileStem}.{MaxBackupFiles}{fileExtension}");
 
             if (File.Exists(oldestBackup))
             {
@@ -172,8 +244,8 @@ internal static class LoggerService
             // 2. 將現有備份檔案往後推（e.g., 4.log -> 5.log）。
             for (int i = MaxBackupFiles - 1; i >= 1; i--)
             {
-                string source = Path.Combine(_logDirectory, $"InputBox.{i}.log"),
-                    target = Path.Combine(_logDirectory, $"InputBox.{i + 1}.log");
+                string source = Path.Combine(_logDirectory, $"{fileStem}.{i}{fileExtension}"),
+                    target = Path.Combine(_logDirectory, $"{fileStem}.{i + 1}{fileExtension}");
 
                 if (File.Exists(source))
                 {
@@ -181,12 +253,13 @@ internal static class LoggerService
                 }
             }
 
-            // 3. 將當前日誌檔更名為第一個備份檔案（InputBox.log -> InputBox.1.log）。
-            string currentFile = Path.Combine(_logDirectory, LogFileName);
+            // 3. 將當前日誌檔更名為第一個備份檔案。
+            string currentFile = Path.Combine(_logDirectory, logFileName),
+                firstBackup = Path.Combine(_logDirectory, $"{fileStem}.1{fileExtension}");
 
             if (File.Exists(currentFile))
             {
-                File.Move(currentFile, Path.Combine(_logDirectory, "InputBox.1.log"), overwrite: true);
+                File.Move(currentFile, firstBackup, overwrite: true);
             }
         }
         catch (Exception ex)

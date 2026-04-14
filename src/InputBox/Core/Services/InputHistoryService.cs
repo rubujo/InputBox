@@ -99,14 +99,15 @@ internal sealed class InputHistoryService(int maxHistory = 100)
     }
 
     /// <summary>
-    /// 導覽結果物件
+    /// 導覽結果物件。
+    /// <para>封裝一次歷程導覽操作後的狀態，供呼叫端同時判斷是否成功、是否撞牆，以及要顯示的文字內容。</para>
     /// </summary>
-    /// <param name="Success">是否成功</param>
-    /// <param name="Text">文字</param>
-    /// <param name="IsBoundaryHit">是否已撞到邊界</param>
-    /// <param name="IsCleared">是否已清除</param>
-    /// <param name="CurrentIndex">目前索引（0-based）</param>
-    /// <param name="TotalCount">總筆數</param>
+    /// <param name="Success">本次導覽是否成功移動到另一筆歷程或成功回到空白輸入狀態。</param>
+    /// <param name="Text">導覽後應呈現在輸入框的文字；失敗時可能為 null，回到空白狀態時為空字串。</param>
+    /// <param name="IsBoundaryHit">是否已撞到最舊或最新邊界，代表目前方向無法再繼續移動。</param>
+    /// <param name="IsCleared">是否已離開歷程瀏覽並回到新的空白輸入狀態。</param>
+    /// <param name="CurrentIndex">目前歷程索引（0-based）；-1 代表不在歷程瀏覽狀態。</param>
+    /// <param name="TotalCount">目前可供導覽的總歷程筆數。</param>
     public record struct NavigationResult(
         bool Success,
         string? Text,
