@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
@@ -8,6 +6,8 @@ using InputBox.Core.Services;
 using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
+using System.ComponentModel;
+using System.Diagnostics;
 
 namespace InputBox.Core.Controls;
 

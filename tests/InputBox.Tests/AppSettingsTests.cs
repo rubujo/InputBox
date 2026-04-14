@@ -263,12 +263,13 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void GamepadSettings_SequentialMenuStyleUpdates_KeepSnapshotConsistent()
     {
-        var s = new AppSettings();
-
-        s.ThumbDeadzoneEnter = 11000;
-        s.ThumbDeadzoneExit = 7000;
-        s.RepeatInitialDelayFrames = 45;
-        s.RepeatIntervalFrames = 6;
+        var s = new AppSettings
+        {
+            ThumbDeadzoneEnter = 11000,
+            ThumbDeadzoneExit = 7000,
+            RepeatInitialDelayFrames = 45,
+            RepeatIntervalFrames = 6
+        };
 
         AppSettings.GamepadConfigSnapshot snap = s.GamepadSettings;
 
@@ -393,11 +394,11 @@ public sealed class AppSettingsTests : IDisposable
             BindingFlags.NonPublic | BindingFlags.Static)
             ?? throw new InvalidOperationException("找不到 WriteConfigToFile 方法。");
 
-        Task[] tasks = Enumerable.Range(0, 8)
-            .Select(i => Task.Run(
-                () => writeMethod.Invoke(null, new object?[] { $"{{\"HotKeyKey\":\"F{i}\"}}" }),
-                TestContext.Current.CancellationToken))
-            .ToArray();
+        Task[] tasks = [..
+            Enumerable.Range(0, 8)
+                .Select(i => Task.Run(
+                    () => writeMethod.Invoke(null, [$"{{\"HotKeyKey\":\"F{i}\"}}"]),
+                    TestContext.Current.CancellationToken))];
 
         await Task.WhenAll(tasks);
 

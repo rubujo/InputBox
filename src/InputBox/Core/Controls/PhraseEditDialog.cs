@@ -110,7 +110,7 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 片語內容字元數提示標籤（{current}/{max}，近上限時顯示橙色）
     /// </summary>
-    private Label? _lblContentCount;
+    private readonly Label? _lblContentCount;
 
     /// <summary>
     /// 用於中斷動畫的專屬 Token 來源

@@ -138,7 +138,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 剪貼簿重試回呼的訂閱老據（用於提交時正確取消訂閱）
     /// </summary>
-    private Action? _onClipboardRetry;
+    private readonly Action? _onClipboardRetry;
 
     /// <summary>
     /// 專案預設字型家族（初始化後由 InitA11y 設定，供所有對話框共用）

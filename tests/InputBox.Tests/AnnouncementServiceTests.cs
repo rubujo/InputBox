@@ -19,6 +19,7 @@ public class AnnouncementServiceTests : IDisposable
     {
         _svc?.Dispose();
         _svc = null;
+        GC.SuppressFinalize(this);
     }
 
     // ── Enqueue 守衛邏輯 ────────────────────────────────────────────────────
