@@ -436,12 +436,12 @@ Vérifiez que plusieurs instances de cette application ne s'exécutent pas en m�
     <comment>Élément de menu contextuel utilisé pour ouvrir la boîte de dialogue de réglage de l&apos;opacité (un sous-élément du sous-menu d&apos;opacité).</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
-    <value>Ouvrir le dossier</value>
-    <comment>Élément de menu contextuel utilisé pour ouvrir le dossier de l&apos;application dans AppData Roaming.</comment>
+    <value>Ouvrir le dossier des paramètres</value>
+    <comment>Élément du menu contextuel permettant d&apos;ouvrir le dossier des paramètres de l&apos;application dans AppData Roaming.</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
-    <value>Ouvrir le dossier des données d&apos;application dans AppData.</value>
-    <comment>Activez les descriptions d&apos;accessibilité pour les éléments du menu des dossiers.</comment>
+    <value>Ouvrir le dossier des paramètres de l&apos;application dans AppData Roaming.</value>
+    <comment>Description d&apos;accessibilité pour l&apos;élément de menu « Ouvrir le dossier des paramètres ».</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>Ouvrir le dossier de journal</value>

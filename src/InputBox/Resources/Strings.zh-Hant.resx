@@ -436,12 +436,12 @@
     <comment>右鍵選單項目，用於開啟不透明度調整對話框（不透明度子選單的子項目）。</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
-    <value>開啟資料夾</value>
-    <comment>右鍵選單項目，用於開啟應用程式在 AppData Roaming 中的資料夾。</comment>
+    <value>開啟設定資料夾</value>
+    <comment>右鍵選單項目，用於開啟應用程式在 AppData Roaming 中的設定資料夾。</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
-    <value>開啟位於 AppData 的應用程式資料夾。</value>
-    <comment>開啟資料夾選單項目的無障礙描述。</comment>
+    <value>開啟位於 AppData Roaming 的應用程式設定資料夾。</value>
+    <comment>開啟設定資料夾選單項目的無障礙描述。</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>開啟日誌資料夾</value>

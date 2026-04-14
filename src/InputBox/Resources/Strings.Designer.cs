@@ -1519,7 +1519,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Open Folder 的當地語系化字串。
+        ///   查詢類似 Open Settings Folder 的當地語系化字串。
         /// </summary>
         internal static string Menu_OpenDataFolder {
             get {
@@ -1528,7 +1528,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Open the application data folder in AppData. 的當地語系化字串。
+        ///   查詢類似 Open the app settings folder in AppData Roaming. 的當地語系化字串。
         /// </summary>
         internal static string Menu_OpenDataFolder_Desc {
             get {

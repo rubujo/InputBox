@@ -436,12 +436,12 @@
     <comment>불투명도 조정 대화 상자를 열기 위한 상황에 맞는 메뉴 항목입니다(불투명도 하위 메뉴의 항목).</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
-    <value>폴더 열기</value>
-    <comment>응용 프로그램 폴더를 AppData 로밍에서 열기 위한 상황에 맞는 메뉴 항목입니다.</comment>
+    <value>설정 폴더 열기</value>
+    <comment>AppData Roaming에 있는 앱 설정 폴더를 여는 바로 가기 메뉴 항목입니다.</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
-    <value>AppData의 응용 프로그램 데이터 폴더를 엽니다.</value>
-    <comment>폴더 열기 메뉴 항목의 접근성 설명입니다.</comment>
+    <value>AppData Roaming에 있는 앱 설정 폴더를 엽니다.</value>
+    <comment>설정 폴더 열기 메뉴 항목의 접근성 설명입니다.</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>로그 폴더 열기</value>

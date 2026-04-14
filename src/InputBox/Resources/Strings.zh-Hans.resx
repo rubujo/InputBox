@@ -436,12 +436,12 @@
     <comment>右键菜单项目，用于打开不透明度调整对话框（不透明度子菜单的子项目）。</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
-    <value>打开文件夹</value>
-    <comment>右键菜单项目，用于打开应用程序在 AppData Roaming 中的文件夹。</comment>
+    <value>打开设置文件夹</value>
+    <comment>右键菜单项，用于打开应用在 AppData Roaming 中的设置文件夹。</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
-    <value>打开位于 AppData 的应用程序文件夹。</value>
-    <comment>打开文件夹菜单项目的无障碍描述。</comment>
+    <value>打开位于 AppData Roaming 的应用设置文件夹。</value>
+    <comment>打开设置文件夹菜单项的无障碍描述。</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>打开日志文件夹</value>

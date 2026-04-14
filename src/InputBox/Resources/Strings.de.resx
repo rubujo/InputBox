@@ -436,12 +436,12 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
     <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um das Dialogfeld zur Anpassung der Deckkraft zu öffnen (ein Unterpunkt des Untermenüs „Deckkraft“).</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
-    <value>Ordner öffnen</value>
-    <comment>Rechtsklick-Menüelement zum Öffnen des Anwendungsordners in AppData Roaming.</comment>
+    <value>Einstellungsordner öffnen</value>
+    <comment>Kontextmenüeintrag zum Öffnen des Ordners mit den App-Einstellungen in AppData Roaming.</comment>
   </data>
   <data name="Menu_OpenDataFolder_Desc" xml:space="preserve">
-    <value>AppData-Anwendungsdatenordner öffnen.</value>
-    <comment>Aktivieren Sie Barrierefreiheitsbeschreibungen für Ordnermenüelemente.</comment>
+    <value>Öffnet den Ordner mit den App-Einstellungen in AppData Roaming.</value>
+    <comment>Barrierefreiheitsbeschreibung für den Menüeintrag „Einstellungsordner öffnen“.</comment>
   </data>
   <data name="Menu_OpenLogFolder" xml:space="preserve">
     <value>Protokollordner öffnen</value>
