@@ -98,6 +98,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
     private volatile int _disposed;
 
     /// <summary>
+    /// 是否處於暫停狀態（例如原生檔案對話框顯示期間）。
+    /// </summary>
+    private volatile bool _isPaused;
+
+    /// <summary>
+    /// 恢復輪詢後是否必須先回到中立狀態，避免把暫停期間的方向殘留當成新輸入。
+    /// </summary>
+    private volatile bool _requireNeutralBeforeInput;
+
+    /// <summary>
     /// 控制器按鈕重複方向
     /// </summary>
     private XInput.GamepadButton? _repeatDirection;
@@ -592,6 +602,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
         // 0. 取得目前的設定快照，確保本幀處理邏輯的原子性。
         AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
+        if (_isPaused)
+        {
+            return;
+        }
+
         // 嘗試讀取目前控制器狀態（本 Tick 只讀一次）。
         uint result = XInput.XInputGetState(_userIndex, out XInput.XInputState currentState);
 
@@ -725,6 +740,41 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _suppressMappedRightFromLeftStick,
             correctedLeftThumbX,
             correctedLeftThumbY);
+
+        if (_requireNeutralBeforeInput)
+        {
+            bool hasActiveSignal = GamepadSignalEvaluator.IsActive(
+                rawButtons != 0,
+                currentState.Gamepad.LeftTrigger,
+                currentState.Gamepad.RightTrigger,
+                correctedLeftThumbX,
+                correctedLeftThumbY,
+                correctedRightThumbX,
+                correctedRightThumbY,
+                AppSettings.XInputTriggerThreshold,
+                config.ThumbDeadzoneExit);
+
+            _previousState = currentState;
+            _hasPreviousState = true;
+
+            if (hasActiveSignal)
+            {
+                _repeatCounter = 0;
+                _repeatDirection = null;
+                _rsRepeatCounter = 0;
+                _rsRepeatDirection = 0;
+                _ltRepeatCounter = 0;
+                _currentLTRepeatInterval = 0;
+                _rtRepeatCounter = 0;
+                _currentRTRepeatInterval = 0;
+
+                return;
+            }
+
+            _requireNeutralBeforeInput = false;
+
+            return;
+        }
 
         // 只有在 Input 啟用時才處理按鍵。
         if (!_context.IsInputActive)
@@ -1217,6 +1267,25 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             LoggerService.LogInfo("Gamepad.MappingGuardEnabled source=XInput direction=Right");
         }
+    }
+
+    /// <summary>
+    /// 重置暫態輸入狀態，避免視窗切換後把舊方向、連發或震動殘留到下一個互動情境。
+    /// </summary>
+    private void ResetTransientInputState(bool requireNeutralBeforeInput = true)
+    {
+        StopVibration();
+        ResetHoldStates();
+        ResetDirectionalRepeatState();
+
+        _ltRepeatCounter = 0;
+        _currentLTRepeatInterval = 0;
+        _rtRepeatCounter = 0;
+        _currentRTRepeatInterval = 0;
+        _reconnectCounter = 0;
+        _previousState = default;
+        _hasPreviousState = false;
+        _requireNeutralBeforeInput = requireNeutralBeforeInput;
     }
 
     /// <summary>
@@ -1758,17 +1827,26 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 暫停
     /// </summary>
-    public void Pause() => StopPolling();
+    public void Pause()
+    {
+        _isPaused = true;
+        StopPolling();
+        ResetTransientInputState();
+    }
 
     /// <summary>
     /// 恢復
     /// </summary>
     public void Resume()
     {
-        if (_disposed == 0)
+        if (_disposed != 0)
         {
-            StartPolling();
+            return;
         }
+
+        ResetTransientInputState();
+        _isPaused = false;
+        StartPolling();
     }
 
     /// <summary>

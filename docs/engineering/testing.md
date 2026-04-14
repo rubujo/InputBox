@@ -88,7 +88,17 @@ await Task.Delay(100, CancellationToken.None);
 await Task.Delay(100, TestContext.Current.CancellationToken);
 ```
 
-## 6. CI 整合
+## 6. 測試文件同步規範
+
+每次**新增、刪除或明顯調整測試案例**時，必須在同一個變更中同步更新 `tests/InputBox.Tests/README.md`，至少包含：
+
+1. 測試類別／被測目標說明
+2. 測試數量或總數變化
+3. 若新增回歸測試，需註明對應的缺陷或風險類型
+
+此規則是專案維護要求，避免 README 與實際測試覆蓋範圍脫節。
+
+## 7. CI 整合
 
 測試在 GitHub Actions 的 `ci.yml` 中自動執行，流程如下：
 

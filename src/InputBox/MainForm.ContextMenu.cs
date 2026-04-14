@@ -1692,7 +1692,7 @@ public partial class MainForm
             OverwritePrompt = true
         };
 
-        if (dlg.ShowDialog(this) != DialogResult.OK)
+        if (ShowFileDialogWithGamepadGuard(dlg) != DialogResult.OK)
         {
             return;
         }
@@ -1726,6 +1726,29 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 以遊戲控制器保護模式顯示原生檔案對話框。
+    /// <para>在顯示期間會暫停輪詢並於關閉後以乾淨狀態恢復，避免方向輸入殘留到主視窗。</para>
+    /// </summary>
+    /// <param name="dialog">要顯示的原生對話框。</param>
+    /// <returns>對話框結果。</returns>
+    private DialogResult ShowFileDialogWithGamepadGuard(CommonDialog dialog)
+    {
+        _gamepadController?.Pause();
+
+        try
+        {
+            return dialog.ShowDialog(this);
+        }
+        finally
+        {
+            if (!IsDisposed)
+            {
+                _gamepadController?.Resume();
+            }
+        }
+    }
+
+    /// <summary>
     /// 從使用者選定的路徑匯入片語
     /// </summary>
     private void ImportPhrases()
@@ -1737,7 +1760,7 @@ public partial class MainForm
             DefaultExt = "json"
         };
 
-        if (dlg.ShowDialog(this) != DialogResult.OK)
+        if (ShowFileDialogWithGamepadGuard(dlg) != DialogResult.OK)
         {
             return;
         }

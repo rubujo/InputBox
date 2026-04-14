@@ -12,6 +12,7 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載） | 12 |
+| `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()` 與原生對話框切換時的殘留輸入回歸保護 | 2 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
 | `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 13 |
@@ -22,7 +23,7 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法 | 9 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護與 Duty Cycle 限制器 | 6 |
-| **合計** | | **217** |
+| **合計** | | **219** |
 
 ## 執行測試
 
@@ -70,6 +71,10 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
 - **Dispose**：測試結束後自動還原備份（或刪除測試產生的檔案）
 
 xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dispose()` 在每個測試後自動呼叫，確保各測試之間完全隔離。
+
+### 維護規則
+
+只要此專案有**新增、刪除或調整測試案例**，請同步更新本 README 的測試範圍表與總數，避免文件與實際覆蓋率不一致。
 
 ### 目標框架
 

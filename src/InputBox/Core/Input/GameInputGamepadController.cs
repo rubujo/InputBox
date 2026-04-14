@@ -146,6 +146,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private volatile int _disposed;
 
     /// <summary>
+    /// 是否處於暫停狀態（例如原生檔案對話框顯示期間）。
+    /// </summary>
+    private volatile bool _isPaused;
+
+    /// <summary>
+    /// 恢復輪詢後是否必須先回到中立狀態，避免把暫停期間的方向殘留當成新輸入。
+    /// </summary>
+    private volatile bool _requireNeutralBeforeInput;
+
+    /// <summary>
     /// 控制器按鈕重複方向
     /// </summary>
     private GameInputGamepadButtons? _repeatDirection;
@@ -682,6 +692,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                             if (state != null)
                             {
+                                if (_isPaused ||
+                                    _disposed != 0)
+                                {
+                                    return;
+                                }
+
                                 // 防護機制：避免在背景暫停輪詢時，佇列因玩家在其他遊戲中的操作而無限增長。
                                 if (_readingQueue.Count > 100)
                                 {
@@ -1071,6 +1087,41 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
+        if (_requireNeutralBeforeInput)
+        {
+            _repeatCounter = 0;
+            _repeatDirection = null;
+            _rsRepeatCounter = 0;
+            _rsRepeatDirection = 0;
+            _ltRepeatCounter = 0;
+            _currentLTRepeatInterval = 0;
+            _rtRepeatCounter = 0;
+            _currentRTRepeatInterval = 0;
+
+            _previousState = currentState;
+            _previousProcessedButtons = currentButtons;
+            _hasPreviousState = true;
+
+            bool hasActiveSignal = GamepadSignalEvaluator.IsActive(
+                hasButtons: currentState.Buttons != 0,
+                leftTrigger: currentState.LeftTrigger,
+                rightTrigger: currentState.RightTrigger,
+                leftThumbX: currentState.LeftThumbstickX - _leftStickBiasX,
+                leftThumbY: currentState.LeftThumbstickY - _leftStickBiasY,
+                rightThumbX: correctedRightThumbX,
+                rightThumbY: Math.Clamp(currentState.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY,
+                threshold: config.ThumbDeadzoneExit / 32768f);
+
+            if (hasActiveSignal)
+            {
+                return;
+            }
+
+            _requireNeutralBeforeInput = false;
+
+            return;
+        }
+
         // 偵測按下事件。
         DetectRisingEdge(currentButtons, currentState, correctedRightThumbX, config);
 
@@ -1171,6 +1222,27 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             GameInputGamepadButtons.DPadRight |
             GameInputGamepadButtons.DPadUp |
             GameInputGamepadButtons.DPadDown);
+    }
+
+    /// <summary>
+    /// 重置暫態輸入狀態，避免視窗切換後把舊方向、連發或排隊中的輸入殘留到下一個互動情境。
+    /// </summary>
+    private void ResetTransientInputState(bool requireNeutralBeforeInput = true)
+    {
+        StopVibration();
+        ResetHoldStates();
+        ResetDirectionalRepeatState();
+
+        _ltRepeatCounter = 0;
+        _currentLTRepeatInterval = 0;
+        _rtRepeatCounter = 0;
+        _currentRTRepeatInterval = 0;
+        _reconnectCounter = 0;
+        _previousState = null;
+        _previousProcessedButtons = 0;
+        _hasPreviousState = false;
+        _readingQueue.Clear();
+        _requireNeutralBeforeInput = requireNeutralBeforeInput;
     }
 
     /// <summary>
@@ -2186,17 +2258,26 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 暫停
     /// </summary>
-    public void Pause() => StopPolling();
+    public void Pause()
+    {
+        _isPaused = true;
+        StopPolling();
+        ResetTransientInputState();
+    }
 
     /// <summary>
     /// 恢復
     /// </summary>
     public void Resume()
     {
-        if (_disposed == 0)
+        if (_disposed != 0)
         {
-            StartPolling();
+            return;
         }
+
+        ResetTransientInputState();
+        _isPaused = false;
+        StartPolling();
     }
 
     /// <summary>
