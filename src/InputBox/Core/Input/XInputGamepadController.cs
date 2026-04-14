@@ -1272,6 +1272,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 重置暫態輸入狀態，避免視窗切換後把舊方向、連發或震動殘留到下一個互動情境。
     /// </summary>
+    /// <param name="requireNeutralBeforeInput">恢復後是否必須先觀察到中立輸入，才重新接受方向事件。</param>
     private void ResetTransientInputState(bool requireNeutralBeforeInput = true)
     {
         StopVibration();

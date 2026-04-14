@@ -11,12 +11,22 @@ namespace InputBox.Tests;
 /// </summary>
 public sealed class GamepadControllerPauseTests
 {
+    /// <summary>
+    /// 提供測試使用的最小輸入情境，固定回報可接受輸入。
+    /// </summary>
     private sealed class StubInputContext : IInputContext
     {
+        /// <summary>
+        /// 取得目前是否允許控制器輸入。
+        /// </summary>
         public bool IsInputActive => true;
 
+        /// <summary>
+        /// 測試替身不持有任何外部資源，因此不需實際處置。
+        /// </summary>
         public void Dispose()
         {
+
         }
     }
 
@@ -97,6 +107,13 @@ public sealed class GamepadControllerPauseTests
         Assert.Equal((GameInputGamepadButtons)0, GetPrivateField<GameInputGamepadButtons>(controller, "_previousProcessedButtons"));
     }
 
+    /// <summary>
+    /// 透過反射寫入私有欄位，模擬控制器在暫停前已存在的執行期狀態。
+    /// </summary>
+    /// <typeparam name="T">欄位值型別。</typeparam>
+    /// <param name="target">要修改欄位的目標物件。</param>
+    /// <param name="name">私有欄位名稱。</param>
+    /// <param name="value">要寫入的欄位值。</param>
     private static void SetPrivateField<T>(object target, string name, T value)
     {
         FieldInfo field = target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)
@@ -105,6 +122,13 @@ public sealed class GamepadControllerPauseTests
         field.SetValue(target, value);
     }
 
+    /// <summary>
+    /// 透過反射讀取私有欄位，驗證 Pause 後暫態狀態是否已正確清除。
+    /// </summary>
+    /// <typeparam name="T">欄位值型別。</typeparam>
+    /// <param name="target">要讀取欄位的目標物件。</param>
+    /// <param name="name">私有欄位名稱。</param>
+    /// <returns>欄位目前的值；若為空值則回傳對應型別的預設值。</returns>
     private static T GetPrivateField<T>(object target, string name)
     {
         FieldInfo field = target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)
