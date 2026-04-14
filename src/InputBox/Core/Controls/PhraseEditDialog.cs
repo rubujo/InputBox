@@ -108,6 +108,11 @@ internal sealed class PhraseEditDialog : Form
     private int _isFlashing = 0;
 
     /// <summary>
+    /// 片語名稱字元數提示標籤（{current}/{max}，近上限時顯示橙色）
+    /// </summary>
+    private readonly Label? _lblNameCount;
+
+    /// <summary>
     /// 片語內容字元數提示標籤（{current}/{max}，近上限時顯示橙色）
     /// </summary>
     private readonly Label? _lblContentCount;
@@ -211,13 +216,15 @@ internal sealed class PhraseEditDialog : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 2,
-            RowCount = 4,
+            RowCount = 6,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Padding = new Padding(0)
         };
         tlp.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tlp.RowStyles.Add(new RowStyle(SizeType.Absolute, 8));
@@ -256,7 +263,22 @@ internal sealed class PhraseEditDialog : Form
         };
         _txtName.Enter += HandleInputBoxEnter;
         _txtName.Leave += HandleInputBoxLeave;
+        _txtName.TextChanged += (s, e) => UpdateNameCharCount();
         tlp.Controls.Add(_txtName, 1, 0);
+
+        // 名稱字數提示標籤（顯示名稱已輸入字元數 / 上限）。
+        _lblNameCount = new Label
+        {
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            BackColor = Color.Empty,
+            ForeColor = Color.Empty,
+            TabStop = false,
+            AccessibleRole = AccessibleRole.StaticText,
+            Margin = new Padding(0, 0, 0, 4)
+        };
+        UpdateNameCharCount();
+        tlp.Controls.Add(_lblNameCount, 1, 1);
 
         // 內容標籤。
         Label lblContent = new()
@@ -268,7 +290,7 @@ internal sealed class PhraseEditDialog : Form
             ForeColor = Color.Empty,
             Margin = new Padding(0, 4, 8, 4)
         };
-        tlp.Controls.Add(lblContent, 0, 1);
+        tlp.Controls.Add(lblContent, 0, 2);
 
         // 內容輸入（多行）；共用同一個私有字體實例。
         _txtContent = new TextBox
@@ -293,18 +315,18 @@ internal sealed class PhraseEditDialog : Form
         };
         _txtContent.Enter += HandleInputBoxEnter;
         _txtContent.Leave += HandleInputBoxLeave;
-        tlp.Controls.Add(_txtContent, 1, 1);
+        tlp.Controls.Add(_txtContent, 1, 2);
 
         // 字元數提示標籤（顯示內容已輸入字元數 / 上限）。
         _lblContentCount = new Label
         {
             AutoSize = true,
-            Anchor = AnchorStyles.Left | AnchorStyles.Bottom,
+            Anchor = AnchorStyles.Left,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
             TabStop = false,
             AccessibleRole = AccessibleRole.StaticText,
-            Margin = new Padding(0, 0, 0, 0)
+            Margin = new Padding(0, 0, 0, 4)
         };
         _txtContent.TextChanged += (s, e) => UpdateContentCharCount();
         UpdateContentCharCount();
@@ -315,9 +337,10 @@ internal sealed class PhraseEditDialog : Form
             FlowDirection = FlowDirection.RightToLeft,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Dock = DockStyle.Fill,
+            Anchor = AnchorStyles.Right | AnchorStyles.Top,
             WrapContents = false,
-            Margin = new Padding(0),
+            Padding = new Padding(0, 2, 0, 2),
+            Margin = new Padding(0, 0, 0, 2),
             AccessibleName = Strings.Phrase_A11y_ButtonArea,
             AccessibleDescription = Strings.Phrase_A11y_ButtonArea_Desc,
             AccessibleRole = AccessibleRole.Grouping
@@ -335,7 +358,7 @@ internal sealed class PhraseEditDialog : Form
             AccessibleDescription = Strings.Phrase_A11y_Btn_Cancel_Desc,
             AccessibleRole = AccessibleRole.PushButton,
             TabIndex = 3,
-            Margin = new Padding(8, 0, 0, 0)
+            Margin = new Padding(8, 2, 0, 2)
         };
         _btnCancel.FlatAppearance.BorderSize = 0;
 
@@ -352,7 +375,7 @@ internal sealed class PhraseEditDialog : Form
             AccessibleDescription = Strings.Phrase_A11y_Btn_Confirm_Desc,
             AccessibleRole = AccessibleRole.PushButton,
             TabIndex = 2,
-            Margin = new Padding(8, 0, 0, 0)
+            Margin = new Padding(8, 2, 0, 2)
         };
         _btnOk.FlatAppearance.BorderSize = 0;
         _btnOk.Click += (s, e) =>
@@ -370,8 +393,8 @@ internal sealed class PhraseEditDialog : Form
         flpBtns.Controls.Add(_btnCancel);
         flpBtns.Controls.Add(_btnOk);
 
-        tlp.Controls.Add(_lblContentCount, 0, 3);
-        tlp.Controls.Add(flpBtns, 1, 3);
+        tlp.Controls.Add(_lblContentCount, 1, 3);
+        tlp.Controls.Add(flpBtns, 1, 5);
 
         AcceptButton = _btnOk;
         CancelButton = _btnCancel;
@@ -650,6 +673,7 @@ internal sealed class PhraseEditDialog : Form
                     _btnOk.Invalidate();
                     _btnCancel.Invalidate();
 
+                    UpdateNameCharCount();
                     UpdateContentCharCount();
 
                     TextBox? active = GetActiveTextBox();
@@ -1602,6 +1626,37 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
+    /// 更新片語名稱字元數提示標籤（{current}/{max}），近上限時顯示橙色。
+    /// </summary>
+    private void UpdateNameCharCount()
+    {
+        if (_lblNameCount == null || _lblNameCount.IsDisposed)
+        {
+            return;
+        }
+
+        int len = _txtName.TextLength;
+        int max = AppSettings.MaxPhraseNameLength;
+        string countLabel = GetPhraseTextOrFallback("Phrase_Edit_Name_Count", "Name length: ");
+        string countText = $"{countLabel}{len}/{max}";
+
+        _lblNameCount.Text = countText;
+        _lblNameCount.AccessibleName = countText;
+        _lblNameCount.AccessibleDescription = $"{Strings.Phrase_A11y_Edit_Name_Desc} {countText}";
+
+        if (SystemInformation.HighContrast)
+        {
+            _lblNameCount.ForeColor = Color.Empty;
+
+            return;
+        }
+
+        _lblNameCount.ForeColor = len >= max - 10 ?
+            Color.DarkOrange :
+            Color.Empty;
+    }
+
+    /// <summary>
     /// 更新片語內容字元數提示標籤（{current}/{max}），近上限時顯示橙色。
     /// </summary>
     private void UpdateContentCharCount()
@@ -1613,10 +1668,12 @@ internal sealed class PhraseEditDialog : Form
 
         int len = _txtContent.TextLength;
         int max = AppSettings.MaxInputLength;
-        string countText = $"{len}/{max}";
+        string countLabel = GetPhraseTextOrFallback("Phrase_Edit_Content_Count", "Content length: ");
+        string countText = $"{countLabel}{len}/{max}";
 
         _lblContentCount.Text = countText;
-        _lblContentCount.AccessibleName = $"{Strings.Phrase_Edit_Content} {countText}";
+        _lblContentCount.AccessibleName = countText;
+        _lblContentCount.AccessibleDescription = $"{Strings.Phrase_A11y_Edit_Content_Desc} {countText}";
 
         if (SystemInformation.HighContrast)
         {
@@ -1748,7 +1805,7 @@ internal sealed class PhraseEditDialog : Form
                 Math.Clamp(desiredMinWidth, 320, maxFitWidth) :
                 maxFitWidth;
 
-        int desiredMinHeight = (int)(300 * scale),
+        int desiredMinHeight = (int)(340 * scale),
             minH = Math.Min(desiredMinHeight, maxFitHeight);
 
         DialogLayoutHelper.ClampFormSize(this, minWidth, minH, maxFitWidth, maxFitHeight, ApplySmartPosition);

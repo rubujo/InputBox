@@ -1003,9 +1003,17 @@ Back + ↑ / ↓	Adjust window opacity (±5%)</value>
     <value>Name:</value>
     <comment>Label for the phrase name input field.</comment>
   </data>
+  <data name="Phrase_Edit_Name_Count" xml:space="preserve">
+    <value>Name length: </value>
+    <comment>Prefix shown before the current and maximum name character count in the phrase edit dialog, including locale-appropriate punctuation.</comment>
+  </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>Content:</value>
     <comment>Label for the phrase content input field.</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Count" xml:space="preserve">
+    <value>Content length: </value>
+    <comment>Prefix shown before the current and maximum content character count in the phrase edit dialog, including locale-appropriate punctuation.</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>Manage phrases: add, edit, delete, and reorder. Use gamepad Y to add, A to insert, X to delete, Left/Right to reorder.</value>

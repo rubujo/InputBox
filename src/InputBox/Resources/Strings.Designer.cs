@@ -2259,6 +2259,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Content length:  的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Edit_Content_Count {
+            get {
+                return ResourceManager.GetString("Phrase_Edit_Content_Count", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Enter phrase content... 的當地語系化字串。
         /// </summary>
         internal static string Phrase_Edit_Content_Placeholder {
@@ -2273,6 +2282,15 @@ namespace InputBox.Resources {
         internal static string Phrase_Edit_Name {
             get {
                 return ResourceManager.GetString("Phrase_Edit_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Name length:  的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_Edit_Name_Count {
+            get {
+                return ResourceManager.GetString("Phrase_Edit_Name_Count", resourceCulture);
             }
         }
         

@@ -1003,9 +1003,17 @@ Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <value>名称：</value>
     <comment>短语名称输入框的标签。</comment>
   </data>
+  <data name="Phrase_Edit_Name_Count" xml:space="preserve">
+    <value>名称字数：</value>
+    <comment>短语编辑对话框中，显示当前名称与上限字数前缀的文本，包含符合语言习惯的标点。</comment>
+  </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>内容：</value>
     <comment>短语内容输入框的标签。</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Count" xml:space="preserve">
+    <value>内容字数：</value>
+    <comment>短语编辑对话框中，显示当前内容与上限字数前缀的文本，包含符合语言习惯的标点。</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>管理短语：添加、编辑、删除及排序。手柄 Y 键添加、A 键插入、X 键删除、左/右方向键排序。</value>

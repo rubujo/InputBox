@@ -1003,9 +1003,17 @@ Back + ↑／↓	透明度を調整（±5%）</value>
     <value>名前：</value>
     <comment>定型文名の入力フィールドのラベル。</comment>
   </data>
+  <data name="Phrase_Edit_Name_Count" xml:space="preserve">
+    <value>名前文字数：</value>
+    <comment>定型文編集ダイアログで、現在の名前文字数と上限の前に表示する接頭辞。言語慣例に合う句読点を含みます。</comment>
+  </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>内容：</value>
     <comment>定型文内容の入力フィールドのラベル。</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Count" xml:space="preserve">
+    <value>内容文字数：</value>
+    <comment>定型文編集ダイアログで、現在の内容文字数と上限の前に表示する接頭辞。言語慣例に合う句読点を含みます。</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>定型文の管理：追加・編集・削除・並べ替え。コントローラー Y で追加、A で挿入、X で削除、左/右で並べ替え。</value>

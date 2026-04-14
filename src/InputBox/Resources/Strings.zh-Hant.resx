@@ -1003,9 +1003,17 @@ Back + ↑／↓	調整視窗透明度（±5%）</value>
     <value>名稱：</value>
     <comment>片語名稱輸入欄位的標籤。</comment>
   </data>
+  <data name="Phrase_Edit_Name_Count" xml:space="preserve">
+    <value>名稱字數：</value>
+    <comment>片語編輯對話框中，顯示目前名稱與上限字數前綴的文字，包含符合語系慣例的標點。</comment>
+  </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>內容：</value>
     <comment>片語內容輸入欄位的標籤。</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Count" xml:space="preserve">
+    <value>內容字數：</value>
+    <comment>片語編輯對話框中，顯示目前內容與上限字數前綴的文字，包含符合語系慣例的標點。</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>管理片語：新增、編輯、刪除及排序。使用控制器 Y 鍵新增、A 鍵插入、X 鍵刪除、左／右方向鍵排序。</value>

@@ -1003,9 +1003,17 @@ Retour + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
     <value>Nom:</value>
     <comment>L&apos;étiquette du champ de saisie du nom de l&apos;expression.</comment>
   </data>
+  <data name="Phrase_Edit_Name_Count" xml:space="preserve">
+    <value>Longueur du nom : </value>
+    <comment>Préfixe affiché avant le nombre actuel et maximal de caractères du nom dans la boîte de dialogue d’édition, avec la ponctuation adaptée à la langue.</comment>
+  </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>Contenu:</value>
     <comment>L’étiquette du champ de saisie du contenu de l’expression.</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Count" xml:space="preserve">
+    <value>Longueur du contenu : </value>
+    <comment>Préfixe affiché avant le nombre actuel et maximal de caractères du contenu dans la boîte de dialogue d’édition, avec la ponctuation adaptée à la langue.</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>Gérez les phrases : ajoutez, modifiez, supprimez et réorganisez-les. Utilisez Y sur la manette pour ajouter, A pour insérer, X pour supprimer et Gauche/Droite pour réorganiser.</value>

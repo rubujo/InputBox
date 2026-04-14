@@ -1003,9 +1003,17 @@ Zurück + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <value>Name:</value>
     <comment>Die Bezeichnung für das Eingabefeld für den Phrasennamen.</comment>
   </data>
+  <data name="Phrase_Edit_Name_Count" xml:space="preserve">
+    <value>Namenslänge: </value>
+    <comment>Präfix vor der aktuellen und maximalen Namenslänge im Dialog zur Phrasenbearbeitung, einschließlich sprachüblicher Zeichensetzung.</comment>
+  </data>
   <data name="Phrase_Edit_Content" xml:space="preserve">
     <value>Inhalt:</value>
     <comment>Die Bezeichnung für das Eingabefeld für den Phraseninhalt.</comment>
+  </data>
+  <data name="Phrase_Edit_Content_Count" xml:space="preserve">
+    <value>Inhaltslänge: </value>
+    <comment>Präfix vor der aktuellen und maximalen Inhaltslänge im Dialog zur Phrasenbearbeitung, einschließlich sprachüblicher Zeichensetzung.</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
     <value>Formulierungen verwalten: hinzufügen, bearbeiten, löschen und neu anordnen. Verwenden Sie das Gamepad Y zum Hinzufügen, A zum Einfügen, X zum Löschen, Links/Rechts zum Nachbestellen.</value>

@@ -16,6 +16,8 @@
   ```powershell
   [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
   ```
+- 對每個檔案的異動，必須套用專案根目錄 `.editorconfig` 的格式、縮排、編碼與換行設定。
+- 修改 `*.cs` 檔案後，完成前必須檢查並修正該檔案中的 IDE 與 CS 類型建議、警告或錯誤；不得留下新的診斷項目。
 - 使用以下指令驗證異動：`dotnet build src/InputBox/InputBox.csproj --configuration Debug`
 
 ## 3. 參考資料
