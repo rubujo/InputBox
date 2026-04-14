@@ -15,16 +15,44 @@ partial class DesignerBlocker { };
 
 public partial class MainForm
 {
+    /// <summary>
+    /// 大尺寸畫面時，片語選單單頁顯示的筆數。
+    /// </summary>
     private const int PhraseMenuPageSizeLarge = 6;
+
+    /// <summary>
+    /// 中尺寸畫面時，片語選單單頁顯示的筆數。
+    /// </summary>
     private const int PhraseMenuPageSizeMedium = 4;
+
+    /// <summary>
+    /// 小尺寸畫面時，片語選單單頁顯示的筆數。
+    /// </summary>
     private const int PhraseMenuPageSizeSmall = 3;
+
+    /// <summary>
+    /// 大尺寸畫面時，最近使用片語的最大顯示筆數。
+    /// </summary>
     private const int RecentPhraseLimitLarge = 5;
+
+    /// <summary>
+    /// 中尺寸畫面時，最近使用片語的最大顯示筆數。
+    /// </summary>
     private const int RecentPhraseLimitMedium = 3;
+
+    /// <summary>
+    /// 小尺寸畫面時，最近使用片語的最大顯示筆數。
+    /// </summary>
     private const int RecentPhraseLimitSmall = 2;
 
+    /// <summary>
+    /// 目前片語子選單所在的頁碼索引。
+    /// </summary>
     private int _phraseMenuPage;
-    // 僅在分頁按鈕觸發的「下一次」子選單重開時保留目前頁碼。
-    // 一般使用者重新開啟子選單時，會回到第 1 頁，符合常見使用習慣。
+
+    /// <summary>
+    /// 指示片語子選單下次重開時是否保留目前頁碼。
+    /// </summary>
     private bool _keepPhrasePageOnNextOpen;
 
     /// <summary>
@@ -232,6 +260,7 @@ public partial class MainForm
         };
 
         // 快速鍵設定子選單。
+        // 提供修飾鍵與主按鍵擷取等快速鍵相關設定入口。
         ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'T'))
         {
             AccessibleName = Strings.Menu_HotkeySettings,
@@ -334,6 +363,7 @@ public partial class MainForm
         tsmiHotkeySettings.DropDownItems.Add(new ToolStripSeparator());
 
         // 擷取主要按鍵。
+        // 進入快速鍵擷取模式，等待使用者按下新的主按鍵。
         ToolStripMenuItem tsmiCaptureKey = new(ControlExtensions.GetMnemonicText(Strings.Menu_CaptureKey, 'K'))
         {
             AccessibleName = Strings.Menu_CaptureKey,
@@ -394,6 +424,7 @@ public partial class MainForm
         tsmiHotkeySettings.DropDownItems.Add(tsmiCaptureKey);
 
         // 進階設定子選單。
+        // 匯整視窗、回饋、遊戲控制器與資料夾等進階功能入口。
         ToolStripMenuItem tsmiSettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings, 'S'))
         {
             AccessibleName = Strings.Menu_Settings,
@@ -414,6 +445,7 @@ public partial class MainForm
         };
 
         // 視窗與操作。
+        // 包含視窗還原、剪貼簿重試與切換緩衝等系統互動參數。
         ToolStripMenuItem tsmiWinOps = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Window, 'W'))
         {
             AccessibleName = Strings.Menu_Settings_Window,
@@ -665,6 +697,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(tsmiWinOps);
 
         // 回饋。
+        // 集中管理震動開關與強度等回饋設定。
         ToolStripMenuItem tsmiFeedback = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Feedback, 'F'))
         {
             AccessibleName = Strings.Menu_Settings_Feedback,
@@ -794,6 +827,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(tsmiFeedback);
 
         //　控制器。
+        // 提供遊戲控制器輸入 API、死區、重複輸入與校正狀態重設等設定。
         ToolStripMenuItem tsmiGamepad = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Gamepad, 'G'))
         {
             AccessibleName = Strings.Menu_Settings_Gamepad,
@@ -965,6 +999,8 @@ public partial class MainForm
             Strings.A11y_Menu_Gamepad_RepeatSpeed_Hint);
 
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
+
+        // 重設執行期校正狀態，不影響已儲存的遊戲控制器設定。
         ToolStripMenuItem tsmiResetCalibration = new(ControlExtensions.GetMnemonicText(Strings.Menu_Gamepad_ResetCalibration, 'C'))
         {
             AccessibleName = Strings.Menu_Gamepad_ResetCalibration,
@@ -1024,6 +1060,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
 
         // 歷程容量（需重啟）。
+        // 控制記憶體中保留的輸入歷程筆數上限。
         ToolStripMenuItem tsmiCap = new(string.Empty)
         {
             AccessibleName = Strings.Settings_HistoryCapacity,
@@ -1058,6 +1095,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
 
         // 開啟資料夾。
+        // 開啟應用程式設定與資料檔所在的資料夾。
         ToolStripMenuItem tsmiOpenDataFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenDataFolder, 'O'))
         {
             AccessibleName = Strings.Menu_OpenDataFolder,
@@ -1095,6 +1133,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(tsmiOpenDataFolder);
 
         // 開啟日誌資料夾。
+        // 開啟本機例外與診斷紀錄所在的日誌目錄。
         ToolStripMenuItem tsmiOpenLogFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenLogFolder, 'L'))
         {
             AccessibleName = Strings.Menu_OpenLogFolder,
@@ -1132,6 +1171,7 @@ public partial class MainForm
         tsmiSettings.DropDownItems.Add(tsmiOpenLogFolder);
 
         // 清除歷程。
+        // 清空目前只保存在記憶體中的輸入歷程資料。
         ToolStripMenuItem tsmiClearHistory = new(ControlExtensions.GetMnemonicText(Strings.Menu_ClearHistory, 'C'))
         {
             AccessibleName = Strings.Menu_ClearHistory,
@@ -1157,6 +1197,7 @@ public partial class MainForm
         };
 
         // 離開。
+        // 關閉主視窗並結束整個應用程式流程。
         ToolStripMenuItem tsmiExit = new(ControlExtensions.GetMnemonicText(Strings.Menu_Exit, 'X'))
         {
             AccessibleName = Strings.Menu_Exit,
@@ -1175,6 +1216,7 @@ public partial class MainForm
         };
 
         // 說明（WCAG 3.3.5）。
+        // 顯示鍵盤與遊戲控制器操作對照的說明對話框。
         ToolStripMenuItem tsmiHelp = new(ControlExtensions.GetMnemonicText(Strings.Menu_Help, 'H'))
         {
             AccessibleName = Strings.Menu_Help,

@@ -21,32 +21,32 @@ public partial class MainForm : Form
     private readonly Lock _titleLock = new();
 
     /// <summary>
-    /// InputHistoryService
+    /// 輸入歷程服務，負責管理一般模式下的歷史文字記錄。
     /// </summary>
     private readonly InputHistoryService _historyService;
 
     /// <summary>
-    /// PhraseService
+    /// 片語服務，負責載入、儲存與查詢使用者自訂片語。
     /// </summary>
     private readonly PhraseService _phraseService;
 
     /// <summary>
-    /// WindowFocusService
+    /// 視窗焦點服務，封裝前景視窗切換與焦點恢復邏輯。
     /// </summary>
     private readonly WindowFocusService _windowFocusService;
 
     /// <summary>
-    /// WindowNavigationService
+    /// 視窗導覽服務，處理返回目標視窗等操作流程。
     /// </summary>
     private readonly WindowNavigationService _navigationService;
 
     /// <summary>
-    /// FormInputContext
+    /// 目前表單使用的輸入上下文，提供控制器與 UI 互動所需資訊。
     /// </summary>
     private FormInputContext? _inputContext;
 
     /// <summary>
-    /// IGamepadController
+    /// 目前啟用的遊戲控制器後端實例，可能為 XInput 或 GameInput。
     /// </summary>
     private IGamepadController? _gamepadController;
 

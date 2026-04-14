@@ -13,17 +13,17 @@ namespace InputBox.Core.Input;
 internal sealed partial class XInputGamepadController : IGamepadController
 {
     /// <summary>
-    /// IInputContext
+    /// 輸入上下文，提供 UI 狀態與控制器動作執行所需的環境資訊。
     /// </summary>
     private readonly IInputContext _context;
 
     /// <summary>
-    /// 控制器的 User Index
+    /// 目前綁定的 XInput 使用者索引，用於識別實際控制器插槽。
     /// </summary>
     private volatile uint _userIndex;
 
     /// <summary>
-    /// GamepadRepeatSettings
+    /// 控制器連發設定，包含初始延遲與重複間隔等參數。
     /// </summary>
     private readonly GamepadRepeatSettings _repeatSettings;
 

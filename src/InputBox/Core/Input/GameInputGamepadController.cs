@@ -19,12 +19,12 @@ namespace InputBox.Core.Input;
 internal sealed partial class GameInputGamepadController : IGamepadController
 {
     /// <summary>
-    /// IInputContext
+    /// 輸入上下文，提供 UI 狀態與控制器動作執行所需的環境資訊。
     /// </summary>
     private readonly IInputContext _context;
 
     /// <summary>
-    /// GamepadRepeatSettings
+    /// 控制器連發設定，包含初始延遲與重複間隔等參數。
     /// </summary>
     private readonly GamepadRepeatSettings _repeatSettings;
 
@@ -134,9 +134,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private int _rtRepeatCounter;
 
     /// <summary>
-    /// RT 目前動態計算的連發間隔幀數
+    /// RT 目前動態計算的連發間隔幀數。
     /// </summary>
     private int _currentRTRepeatInterval;
+
+    /// <summary>
+    /// 是否已建立前一次的 GameInput 狀態快照，供邊緣觸發判斷使用。
     /// </summary>
     private volatile bool _hasPreviousState;
 
@@ -324,15 +327,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private const double PollingIntervalMs = 16.6;
 
     /// <summary>
-    /// 快取的設備名稱
+    /// 快取的目前設備名稱，避免每次查詢都重新解析裝置資訊。
     /// </summary>
     private string _cachedDeviceName = string.Empty;
 
     /// <summary>
-    /// 快取的震動支援狀態
+    /// 快取的震動支援狀態，用於快速判斷是否可送出震動命令。
     /// </summary>
     private bool _supportsRumble = false;
-
     /// <summary>
     /// 熱負載估算倍率（依支援馬達數量調整，2 馬達約 2.0、4 馬達約 4.0）。
     /// </summary>

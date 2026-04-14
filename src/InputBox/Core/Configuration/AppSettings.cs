@@ -16,13 +16,13 @@ namespace InputBox.Core.Configuration;
 public class AppSettings
 {
     /// <summary>
-    /// AppSettings
-    /// <para>單例模式，方便全域存取。</para>
+    /// 目前載入中的應用程式設定單例，供整個程式共用存取。
+    /// <para>採用單例模式以集中管理設定快照與持久化行為。</para>
     /// </summary>
     public static AppSettings Current { get; private set; } = new();
 
     /// <summary>
-    /// JsonSerializerOptions
+    /// 設定檔序列化選項，統一 JSON 縮排、列舉與浮點格式行為。
     /// </summary>
     private static readonly JsonSerializerOptions Options = new()
     {
