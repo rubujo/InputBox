@@ -1413,16 +1413,29 @@
         }
 
         @keyframes spy-current {
+          /*
+           * 高亮帶從 10% 開始（而非原先的 44%）：
+           * 原因：section 有 scroll-margin-top: 120px，點擊導覽連結後
+           * 區塊頂部停在距 viewport 頂部 120px 處，此時的 cover 進度
+           * = (h_vp - 120) / (h_vp + h_section) ≈ 20–40%。
+           * 舊的 44% 起始點導致點擊後高亮帶尚未觸及，需移動一段才顯示。
+           *
+           * 退出閾值設在 85%（而非 100% 附近）：
+           * 數學保證：當點擊下一節往上捲動時，目前節的 cover 進度
+           * = 1 − 120 / (h_section + h_vp) ≥ 1 − 120/h_vp ≈ 86.7%。
+           * 設 85% 為全透明起點，任何合理高度的前一節在點擊後必定已退場，
+           * 防止桌面版出現兩個節點同時高亮的問題。
+           */
           0%,
-          34% {
+          5% {
             color: var(--text-color);
             background-color: transparent;
             box-shadow: none;
             text-decoration-line: none;
           }
 
-          44%,
-          68% {
+          10%,
+          80% {
             color: var(--main-nav-current-text);
             background-color: var(--main-nav-current-bg);
             box-shadow: var(--main-nav-current-indicator);
@@ -1432,7 +1445,7 @@
             text-underline-offset: 4px;
           }
 
-          78%,
+          85%,
           100% {
             color: var(--text-color);
             background-color: transparent;
