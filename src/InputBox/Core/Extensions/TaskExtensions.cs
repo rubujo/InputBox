@@ -88,6 +88,35 @@ public static class TaskExtensions
     }
 
     /// <summary>
+    /// 僅在父權杖仍有效時，安全建立連結式的 CancellationTokenSource。
+    /// </summary>
+    /// <param name="cts">作為生命週期來源的父權杖。</param>
+    /// <returns>成功時回傳新的連結權杖；失敗時回傳 null。</returns>
+    public static CancellationTokenSource? TryCreateLinkedTokenSource(this CancellationTokenSource? cts)
+    {
+        if (cts == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            CancellationToken token = cts.Token;
+
+            if (token.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            return CancellationTokenSource.CreateLinkedTokenSource(token);
+        }
+        catch (ObjectDisposedException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// 執行非同步任務並安全地處理任何可能發生的例外
     /// </summary>
     /// <param name="task">Task</param>

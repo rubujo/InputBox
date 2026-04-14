@@ -1006,10 +1006,15 @@ internal sealed class PhraseEditDialog : Form
             return;
         }
 
-        // 先建立新 CTS 的本地引用，再原子交換出舊實例，最後從本地引用取 Token。
-        // 此模式防止「Exchange 後、Token 取用前」另一執行緒將欄位置 null 引發 NullReferenceException。
-        CancellationTokenSource newAlertCts = CancellationTokenSource
-            .CreateLinkedTokenSource(_cts?.Token ?? CancellationToken.None);
+        // 僅在對話框生命週期仍有效時建立警示權杖，避免關閉途中留下失去連結的動畫。
+        CancellationTokenSource? newAlertCts = _cts.TryCreateLinkedTokenSource();
+
+        if (newAlertCts == null)
+        {
+            Interlocked.Exchange(ref _isFlashing, 0);
+
+            return;
+        }
 
         Interlocked.Exchange(ref _alertCts, newAlertCts)?.CancelAndDispose();
 

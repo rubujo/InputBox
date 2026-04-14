@@ -1,4 +1,4 @@
-using InputBox.Core.Extensions;
+﻿using InputBox.Core.Extensions;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -62,6 +62,54 @@ public class TaskExtensionsTests
         var ex = Record.Exception(() => cts.CancelAndDispose());
 
         Assert.Null(ex);
+    }
+
+    // ── TryCreateLinkedTokenSource ──────────────────────────────────────────
+
+    /// <summary>
+    /// 當擁有者 CTS 為 null 時，安全建立連結權杖應回傳 false，且輸出為 null。
+    /// </summary>
+    [Fact]
+    public void TryCreateLinkedTokenSource_NullOwner_ReturnsFalse()
+    {
+        CancellationTokenSource? owner = null;
+
+        CancellationTokenSource? linked = owner.TryCreateLinkedTokenSource();
+
+        Assert.Null(linked);
+    }
+
+    /// <summary>
+    /// 當擁有者 CTS 有效時，應成功建立連結權杖，且父權杖取消後會同步傳播。
+    /// </summary>
+    [Fact]
+    public void TryCreateLinkedTokenSource_ActiveOwner_CreatesLinkedCts()
+    {
+        using var owner = new CancellationTokenSource();
+
+        CancellationTokenSource? linked = owner.TryCreateLinkedTokenSource();
+
+        Assert.NotNull(linked);
+        Assert.False(linked.Token.IsCancellationRequested);
+
+        owner.Cancel();
+
+        Assert.True(linked.Token.IsCancellationRequested);
+        linked.Dispose();
+    }
+
+    /// <summary>
+    /// 當擁有者 CTS 已取消或已處置時，不應再建立失去生命週期連結的權杖。
+    /// </summary>
+    [Fact]
+    public void TryCreateLinkedTokenSource_DisposedOwner_ReturnsFalse()
+    {
+        var owner = new CancellationTokenSource();
+        owner.Dispose();
+
+        CancellationTokenSource? linked = owner.TryCreateLinkedTokenSource();
+
+        Assert.Null(linked);
     }
 
     // ── SafeFireAndForget ───────────────────────────────────────────────────

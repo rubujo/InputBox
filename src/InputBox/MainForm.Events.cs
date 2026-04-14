@@ -1294,10 +1294,15 @@ public partial class MainForm
             return;
         }
 
-        // 建立本次動畫專用的中斷權杖。
-        // 先建立新實例並持有本地引用，再原子交換出舊 CTS，確保 token 的取得不依賴欄位讀取。
-        CancellationTokenSource newAlertCts = CancellationTokenSource
-            .CreateLinkedTokenSource(_formCts?.Token ?? CancellationToken.None);
+        // 僅在視窗生命週期仍有效時建立動畫權杖，避免關閉途中產生失去連結的孤兒閃爍。
+        CancellationTokenSource? newAlertCts = _formCts.TryCreateLinkedTokenSource();
+
+        if (newAlertCts == null)
+        {
+            _inputState.EndFlashing();
+
+            return;
+        }
 
         Interlocked.Exchange(ref _alertCts, newAlertCts)?.CancelAndDispose();
 

@@ -91,7 +91,10 @@ internal sealed class AnnouncementService : IDisposable
             Interlocked.Exchange(ref _latestInterruptId, id);
         }
 
-        _channel.Writer.TryWrite(new AnnouncementRequest(message, interrupt, id));
+        if (!_channel.Writer.TryWrite(new AnnouncementRequest(message, interrupt, id)))
+        {
+            Debug.WriteLine($"[A11y] 廣播佇列已關閉，略過訊息：{message}");
+        }
     }
 
     /// <summary>

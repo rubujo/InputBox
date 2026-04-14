@@ -20,10 +20,10 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
 | `PhraseServiceTests` | `PhraseService` CRUD 與匯出／匯入 | 35 |
-| `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法 | 9 |
+| `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護與 Duty Cycle 限制器 | 6 |
-| **合計** | | **219** |
+| **合計** | | **222** |
 
 ## 執行測試
 
