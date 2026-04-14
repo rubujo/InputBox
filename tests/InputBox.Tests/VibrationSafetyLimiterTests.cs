@@ -199,4 +199,51 @@ public class VibrationSafetyLimiterTests
         Assert.True(afterReset);
         Assert.True(afterResetStrength >= beforeResetStrength);
     }
+
+    /// <summary>
+    /// 極短震動脈衝也應安全處理，不可因內部下限計算而拋出例外。
+    /// </summary>
+    [Fact]
+    public void TryApply_WhenDurationIsShort_ShouldStayWithinRequestedUpperBound()
+    {
+        var limiter = new VibrationSafetyLimiter();
+
+        bool accepted = limiter.TryApply(
+            30_000,
+            10,
+            VibrationPriority.Normal,
+            nowMs: 0,
+            out ushort adjustedStrength,
+            out int adjustedDuration);
+
+        Assert.True(accepted);
+        Assert.True(adjustedStrength > 0);
+        Assert.InRange(adjustedDuration, 1, 10);
+    }
+
+    /// <summary>
+    /// 即使收到極端強度請求，限制器也應保留保守的硬體安全上限。
+    /// </summary>
+    [Fact]
+    public void TryApply_WhenStrengthIsMaxValue_ShouldClampToSafetyCeiling()
+    {
+        var limiter = new VibrationSafetyLimiter(
+            windowMs: 5000,
+            maxDutyCycle: 0.95,
+            thermalSoftBudget: 1000,
+            thermalHardBudget: 2000,
+            thermalTauMs: 10_000,
+            ambientCooldownMs: 50);
+
+        bool accepted = limiter.TryApply(
+            ushort.MaxValue,
+            100,
+            VibrationPriority.Critical,
+            nowMs: 0,
+            out ushort adjustedStrength,
+            out _);
+
+        Assert.True(accepted);
+        Assert.InRange(adjustedStrength, 1, 60_000);
+    }
 }

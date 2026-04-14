@@ -79,7 +79,25 @@ internal readonly record struct VibrationLimiterDebugInfo(
 /// </summary>
 internal sealed class VibrationSafetyLimiter
 {
+    /// <summary>
+    /// 絕對震動強度安全上限。
+    /// <para>即使呼叫端要求最大值，也會先裁切至較保守的硬體安全範圍。</para>
+    /// </summary>
+    private const ushort AbsoluteStrengthSafetyCap = 60_000;
+
+    /// <summary>
+    /// Ambient 類型震動的最低可感知強度。
+    /// </summary>
     private const ushort AmbientPerceptibleFloorStrength = 10_000;
+
+    /// <summary>
+    /// 一般縮放後脈衝允許的最短持續時間（毫秒）。
+    /// </summary>
+    private const int MinimumScaledPulseDurationMs = 20;
+
+    /// <summary>
+    /// Ambient 類型震動的最低可感知持續時間（毫秒）。
+    /// </summary>
     private const int AmbientPerceptibleFloorDurationMs = 35;
 
     private readonly Lock _lock = new();
@@ -157,6 +175,7 @@ internal sealed class VibrationSafetyLimiter
     /// <param name="adjustedStrength">輸出調整後強度。</param>
     /// <param name="adjustedDurationMs">輸出調整後持續時間（毫秒）。</param>
     /// <param name="diagnostics">輸出限制器診斷快照。</param>
+    /// <param name="thermalCostMultiplier">熱成本倍率，用於模擬不同馬達數量或驅動負載。</param>
     /// <returns>可接受時回傳 true；應被保護機制擋下時回傳 false。</returns>
     internal bool TryApplyWithDiagnostics(
         ushort strength,
@@ -187,6 +206,7 @@ internal sealed class VibrationSafetyLimiter
     /// <param name="nowMs">目前時間戳（毫秒）。</param>
     /// <param name="adjustedStrength">輸出調整後強度。</param>
     /// <param name="adjustedDurationMs">輸出調整後持續時間（毫秒）。</param>
+    /// <param name="thermalCostMultiplier">熱成本倍率，用於模擬不同馬達數量或驅動負載。</param>
     /// <returns>可接受時回傳 true；應被保護機制擋下時回傳 false。</returns>
     internal bool TryApply(
         ushort strength,
@@ -218,6 +238,7 @@ internal sealed class VibrationSafetyLimiter
     /// <param name="adjustedStrength">輸出調整後強度。</param>
     /// <param name="adjustedDurationMs">輸出調整後持續時間（毫秒）。</param>
     /// <param name="diagnostics">輸出限制器診斷快照。</param>
+    /// <param name="thermalCostMultiplier">熱成本倍率，用於模擬不同馬達數量或驅動負載。</param>
     /// <returns>可接受時回傳 true；應被保護機制擋下時回傳 false。</returns>
     internal bool TryApplyWithDiagnostics(
         ushort strength,
@@ -365,11 +386,12 @@ internal sealed class VibrationSafetyLimiter
             ushort candidateStrength = (ushort)Math.Clamp(
                 (int)Math.Round(strength * scale),
                 1,
-                ushort.MaxValue);
+                AbsoluteStrengthSafetyCap);
 
+            int minimumDurationFloor = Math.Min(MinimumScaledPulseDurationMs, boundedDurationMs);
             int candidateDuration = Math.Clamp(
                 (int)Math.Round(boundedDurationMs * scale),
-                20,
+                minimumDurationFloor,
                 boundedDurationMs);
 
             // 在熱軟限制期間，為 Ambient 保留最低可感知脈衝，
@@ -447,6 +469,10 @@ internal sealed class VibrationSafetyLimiter
         }
     }
 
+    /// <summary>
+    /// 依經過時間對熱負載進行指數衰減，模擬馬達冷卻。
+    /// </summary>
+    /// <param name="nowMs">目前時間戳（毫秒）。</param>
     private void DecayThermal(long nowMs)
     {
         if (_lastSampleMs == 0)
@@ -468,6 +494,10 @@ internal sealed class VibrationSafetyLimiter
         _thermalLoad *= Math.Exp(-elapsedMs / _thermalTauMs);
     }
 
+    /// <summary>
+    /// 修剪超出統計視窗的歷史震動資料，維持最新占空比估算。
+    /// </summary>
+    /// <param name="nowMs">目前時間戳（毫秒）。</param>
     private void PruneDutyWindow(long nowMs)
     {
         long windowStart = nowMs - _windowMs;
