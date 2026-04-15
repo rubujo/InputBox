@@ -178,15 +178,26 @@ jobs:
             )
 
             foreach ($ref in ($Refs | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)) {
+                $rawUrl = "https://raw.githubusercontent.com/dotnet/$Repo/$ref/$File"
                 $metadataUrl = "https://api.github.com/repos/dotnet/$Repo/contents/$File?ref=$([uri]::EscapeDataString($ref))"
                 Write-Host "嘗試下載：dotnet/$Repo@$ref -> $File"
 
                 try {
-                    $metadata = Invoke-RestMethod -Uri $metadataUrl -Headers $githubHeaders -ErrorAction Stop
-                    Invoke-WebRequest -Uri $metadata.download_url -OutFile $OutPath -Headers $githubHeaders -ErrorAction Stop
-                    Write-Host "✅ 成功儲存為 $(Split-Path $OutPath -Leaf)（來源：$ref）"
+                    Invoke-WebRequest -Uri $rawUrl -OutFile $OutPath -Headers $githubHeaders -ErrorAction Stop
+                    Write-Host "✅ 成功儲存為 $(Split-Path $OutPath -Leaf)（來源：$ref / raw）"
                     return $true
                 } catch {
+                    try {
+                        $metadata = Invoke-RestMethod -Uri $metadataUrl -Headers $githubHeaders -ErrorAction Stop
+                        if (-not [string]::IsNullOrWhiteSpace($metadata.download_url)) {
+                            Invoke-WebRequest -Uri $metadata.download_url -OutFile $OutPath -Headers $githubHeaders -ErrorAction Stop
+                            Write-Host "✅ 成功儲存為 $(Split-Path $OutPath -Leaf)（來源：$ref / api）"
+                            return $true
+                        }
+                    } catch {
+                        # Ignore and continue to the next candidate below.
+                    }
+
                     Write-Warning "⚠️ 無法從 $ref 下載 $File，繼續嘗試下一個候選來源。"
                 }
             }
