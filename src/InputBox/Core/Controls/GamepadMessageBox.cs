@@ -85,9 +85,11 @@ internal sealed class GamepadMessageBox : Form
             return;
         }
 
-        _gamepadController.APressed += HandleGamepadA;
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
+        _gamepadController.APressed += profile.ConfirmOnSouth ? HandleGamepadA : HandleGamepadB;
         _gamepadController.StartPressed += HandleGamepadA;
-        _gamepadController.BPressed += HandleGamepadB;
+        _gamepadController.BPressed += profile.ConfirmOnSouth ? HandleGamepadB : HandleGamepadA;
         _gamepadController.BackPressed += HandleGamepadB;
         _gamepadController.LeftPressed += HandleDPadLeft;
         _gamepadController.LeftRepeat += HandleDPadLeft;
@@ -109,7 +111,9 @@ internal sealed class GamepadMessageBox : Form
             }
 
             _gamepadController.APressed -= HandleGamepadA;
+            _gamepadController.APressed -= HandleGamepadB;
             _gamepadController.StartPressed -= HandleGamepadA;
+            _gamepadController.BPressed -= HandleGamepadA;
             _gamepadController.BPressed -= HandleGamepadB;
             _gamepadController.BackPressed -= HandleGamepadB;
             _gamepadController.LeftPressed -= HandleDPadLeft;
@@ -331,7 +335,7 @@ internal sealed class GamepadMessageBox : Form
             AutoSize = true,
             Margin = new Padding((int)(12 * scale), 0, (int)(12 * scale), (int)(4 * scale)),
             ForeColor = SystemColors.GrayText,
-            // 在手把連線後才顯示。
+            // 在控制器連線後才顯示。
             Visible = false,
             Name = "_lblHint",
         };
@@ -473,7 +477,7 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 取得按鈕規格清單，包含按鈕標籤、對應的 DialogResult，以及是否為主動作（A 鍵）或取消動作（B 鍵）
+    /// 取得按鈕規格清單，包含按鈕標籤、對應的 DialogResult，以及是否為主要動作或取消動作。
     /// </summary>
     /// <param name="buttons">要建立的按鈕類型。</param>
     /// <returns>按鈕規格清單</returns>
@@ -481,43 +485,46 @@ internal sealed class GamepadMessageBox : Form
         MessageBoxButtons buttons)
     {
         // 回傳右→左順序（FlowDirection.RightToLeft 下最右邊的先加入顯示在右邊）。
-        // 助記詞規則：A 鍵對應主動作（確認/是/重試），B 鍵對應取消動作（取消/否/中止）。
+        // 助記詞規則依目前的控制器配置模式動態調整，確保 PlayStation / Nintendo 顯示與 Xbox 行為模式同步。
+        // profile 代表目前生效的 Face 鍵配置，供各種 MessageBox 按鈕共用。
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
         return buttons switch
         {
             MessageBoxButtons.OK =>
             [
-                (ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'), DialogResult.OK, true, false),
+                (profile.FormatConfirmButtonText(Strings.Btn_OK), DialogResult.OK, true, false),
             ],
             MessageBoxButtons.OKCancel =>
             [
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'), DialogResult.Cancel, false, true),
-                (ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'), DialogResult.OK, true, false),
+                (profile.FormatCancelButtonText(Strings.Btn_Cancel), DialogResult.Cancel, false, true),
+                (profile.FormatConfirmButtonText(Strings.Btn_OK), DialogResult.OK, true, false),
             ],
             MessageBoxButtons.YesNo =>
             [
-                (ControlExtensions.GetMnemonicText(Strings.Btn_No, 'B'), DialogResult.No, false, true),
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Yes, 'A'), DialogResult.Yes, true, false),
+                (profile.FormatCancelButtonText(Strings.Btn_No), DialogResult.No, false, true),
+                (profile.FormatConfirmButtonText(Strings.Btn_Yes), DialogResult.Yes, true, false),
             ],
             MessageBoxButtons.YesNoCancel =>
             [
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'), DialogResult.Cancel, false, true),
+                (profile.FormatCancelButtonText(Strings.Btn_Cancel), DialogResult.Cancel, false, true),
                 (Strings.Btn_No, DialogResult.No, false, false),
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Yes, 'A'), DialogResult.Yes, true, false),
+                (profile.FormatConfirmButtonText(Strings.Btn_Yes), DialogResult.Yes, true, false),
             ],
             MessageBoxButtons.RetryCancel =>
             [
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'), DialogResult.Cancel, false, true),
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Retry, 'A'), DialogResult.Retry, true, false),
+                (profile.FormatCancelButtonText(Strings.Btn_Cancel), DialogResult.Cancel, false, true),
+                (profile.FormatConfirmButtonText(Strings.Btn_Retry), DialogResult.Retry, true, false),
             ],
             MessageBoxButtons.AbortRetryIgnore =>
             [
                 (Strings.Btn_Ignore, DialogResult.Ignore, false, false),
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Retry, 'A'), DialogResult.Retry, true, false),
-                (ControlExtensions.GetMnemonicText(Strings.Btn_Abort, 'B'), DialogResult.Abort, false, true),
+                (profile.FormatConfirmButtonText(Strings.Btn_Retry), DialogResult.Retry, true, false),
+                (profile.FormatCancelButtonText(Strings.Btn_Abort), DialogResult.Abort, false, true),
             ],
             _ =>
             [
-                (ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'), DialogResult.OK, true, false),
+                (profile.FormatConfirmButtonText(Strings.Btn_OK), DialogResult.OK, true, false),
             ],
         };
     }
@@ -552,23 +559,21 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 更新提示標籤文字，顯示 A／B 鍵對應的按鈕名稱，供玩家參考手把操作
+    /// 更新提示標籤文字，顯示 A／B 鍵對應的按鈕名稱，供玩家參考控制器操作
     /// </summary>
     /// <param name="lblHint">提示標籤</param>
     private void UpdateHintLabel(Label lblHint)
     {
-        // 提示標籤使用純文字（不含助記詞括號）。
-        string primaryText = StripMnemonic(_primaryButton?.Text) ?? Strings.Btn_OK,
-            cancelText = StripMnemonic(_cancelButton?.Text) ?? string.Empty;
+        // 提示標籤使用純文字（不含助記詞括號），並依目前主按鍵配置同步顯示實際可按的控制器提示。
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+        string primaryText = profile.FormatPrimaryActionHintText(StripMnemonic(_primaryButton?.Text) ?? Strings.Btn_OK),
+            cancelText = string.IsNullOrWhiteSpace(_cancelButton?.Text) ?
+                string.Empty :
+                profile.FormatCancelActionHintText(StripMnemonic(_cancelButton?.Text) ?? string.Empty);
 
-        if (!string.IsNullOrEmpty(cancelText))
-        {
-            lblHint.Text = string.Format(Strings.GmBox_A11y_Hint, primaryText, cancelText);
-        }
-        else
-        {
-            lblHint.Text = string.Format(Strings.GmBox_A11y_Hint, primaryText, primaryText);
-        }
+        lblHint.Text = !string.IsNullOrEmpty(cancelText) ?
+            string.Format(Strings.GmBox_A11y_Hint, primaryText, cancelText) :
+            primaryText;
     }
 
     /// <summary>
@@ -891,7 +896,7 @@ internal sealed class GamepadMessageBox : Form
     {
         base.OnActivated(e);
 
-        // 主視窗在 Deactivate 時會 Pause 控制器；此處重新 Resume，讓對話框能接收手把輸入。
+        // 主視窗在 Deactivate 時會 Pause 控制器；此處重新 Resume，讓對話框能接收控制器輸入。
         // 仿照 NumericInputDialog：等待 50 ms 後再 Resume，避免與 Deactivate 的 Pause 競爭。
         Task.Run(async () =>
         {
@@ -932,7 +937,7 @@ internal sealed class GamepadMessageBox : Form
     {
         base.OnDeactivate(e);
 
-        // 視窗失去焦點時立即暫停控制器，防止手把輸入穿透到背景視窗。
+        // 視窗失去焦點時立即暫停控制器，防止控制器輸入穿透到背景視窗。
         this.SafeBeginInvoke(() =>
         {
             try
@@ -1099,7 +1104,7 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 顯示支援手把控制的訊息對話框，並回傳使用者選擇的結果
+    /// 顯示支援控制器操作的訊息對話框，並回傳使用者選擇的結果
     /// </summary>
     /// <param name="owner">對話框的父視窗（可為 null）。</param>
     /// <param name="text">訊息文字。</param>
@@ -1107,7 +1112,7 @@ internal sealed class GamepadMessageBox : Form
     /// <param name="buttons">顯示的按鈕組合。</param>
     /// <param name="icon">顯示的圖示。</param>
     /// <param name="defaultButton">預設焦點按鈕。</param>
-    /// <param name="gamepad">手把控制器（可為 null，此時僅支援鍵盤操作）。</param>
+    /// <param name="gamepad">遊戲控制器（可為 null，此時僅支援鍵盤操作）。</param>
     /// <returns>使用者的選擇結果。</returns>
     public static DialogResult Show(
         IWin32Window? owner,
@@ -1143,7 +1148,7 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 顯示支援手把控制的訊息對話框（無父視窗）
+    /// 顯示支援控制器操作的訊息對話框（無父視窗）
     /// </summary>
     /// <param name="text"></param>
     /// <param name="caption"></param>

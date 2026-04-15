@@ -2,6 +2,7 @@
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
+using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
@@ -103,6 +104,11 @@ public partial class MainForm
             //   Restore 後 Windows 夾至 MinimumSize，此處僅需確保位置合法即可。）
             ApplySmartPosition();
 
+            if (_forceForegroundOnFirstShow)
+            {
+                RestoreForegroundAfterProgrammaticRestartAsync().SafeFireAndForget();
+            }
+
             // 初始化 GamepadController。
             // 使用 SafeFireAndForget 並傳入額外處理動作，以確保啟動失敗時能獲得 A11y 通知。
             InitializeGamepadControllerAsync()
@@ -140,7 +146,7 @@ public partial class MainForm
                 return;
             }
 
-            AnnounceA11y($"{Strings.App_Title}. {Strings.A11y_MainFormDesc}");
+            AnnounceA11y($"{Strings.App_Title}. {GamepadFaceButtonProfile.GetActiveMainFormDescription()}");
 
             // 延後播報狀態摘要（隱私模式與目前快速鍵）。
             try
@@ -1139,6 +1145,9 @@ public partial class MainForm
         // 還原視窗。
         User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
 
+        // 先要求 Win32 前景切換，再更新 WinForms 的 Z-Order 與作用中狀態。
+        _ = User32.SetForegroundWindow(Handle);
+
         // 帶至前方。
         BringToFront();
 
@@ -1163,6 +1172,58 @@ public partial class MainForm
         }
 
         AnnounceMainFormNameIfAlive();
+    }
+
+    /// <summary>
+    /// 程式內部要求重啟後，於新執行個體啟動時短時間重試把主視窗帶回前景，降低焦點落回前一個視窗的風險。
+    /// </summary>
+    private async Task RestoreForegroundAfterProgrammaticRestartAsync()
+    {
+        ShowAndActivateInputWindow();
+
+        // 以有限次數重試，兼顧可靠度與避免長時間干擾使用者目前操作。
+        for (int i = 0; i < 5; i++)
+        {
+            if (IsDisposed ||
+                !IsHandleCreated)
+            {
+                return;
+            }
+
+            this.SafeInvoke(() =>
+            {
+                if (IsDisposed ||
+                    !IsHandleCreated)
+                {
+                    return;
+                }
+
+                _ = User32.SetForegroundWindow(Handle);
+                BringToFront();
+                Activate();
+
+                if (TBInput != null &&
+                    TBInput.CanFocus)
+                {
+                    TBInput.Focus();
+                    TBInput_Enter(TBInput, EventArgs.Empty);
+                }
+            });
+
+            if (User32.ForegroundWindow == Handle)
+            {
+                return;
+            }
+
+            try
+            {
+                await Task.Delay(60, _formCts?.Token ?? CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
     }
 
     /// <summary>
@@ -1626,7 +1687,7 @@ public partial class MainForm
     private void RestoreCopyButtonFromCaptureMode()
     {
         BtnCopy.Enabled = true;
-        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+        BtnCopy.Text = GamepadFaceButtonProfile.GetActiveProfile().FormatConfirmButtonText(Strings.Btn_CopyDefault);
     }
 
     /// <summary>

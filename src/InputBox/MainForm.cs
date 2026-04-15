@@ -136,6 +136,11 @@ public partial class MainForm : Form
     private bool? _lastGamepadConnectedState;
 
     /// <summary>
+    /// 上一次已播報的 Face 鍵配置模式，用於避免控制器重連時重複報讀相同的配置資訊。
+    /// </summary>
+    private AppSettings.GamepadFaceButtonMode? _lastAnnouncedGamepadFaceButtonMode;
+
+    /// <summary>
     /// 剪貼簿重試回呼的訂閱老據（用於提交時正確取消訂閱）
     /// </summary>
     private readonly Action? _onClipboardRetry;
@@ -184,6 +189,16 @@ public partial class MainForm : Form
         _initialHighContrast != SystemInformation.HighContrast;
 
     /// <summary>
+    /// 啟動時是否應強制把主視窗重新帶回前景（例如由本程式要求的重新啟動）。
+    /// </summary>
+    private readonly bool _forceForegroundOnFirstShow;
+
+    /// <summary>
+    /// 是否已進入應用程式重新啟動流程，用於略過失焦時的返回目標捕捉。
+    /// </summary>
+    private int _isRestartingApplication;
+
+    /// <summary>
     /// 上一次套用佈局時的 DPI 值（用於防抖）
     /// </summary>
     private float _lastAppliedDpi = -1;
@@ -214,9 +229,16 @@ public partial class MainForm : Form
     /// </summary>
     private int? _rsSelectionAnchor = null;
 
-    public MainForm()
+    /// <summary>
+    /// 初始化主視窗。
+    /// </summary>
+    /// <param name="forceForegroundOnFirstShow">若為 true，表示此執行個體是由程式主動重啟喚起，首次顯示時需額外重試搶回前景焦點。</param>
+    public MainForm(bool forceForegroundOnFirstShow = false)
     {
         InitializeComponent();
+
+        // 記錄啟動時是否需要執行一次性的前景搶回流程。
+        _forceForegroundOnFirstShow = forceForegroundOnFirstShow;
 
         // 記錄啟動時的主題狀態基準值。
         _initialIsDarkMode = this.IsDarkModeActive();
@@ -423,6 +445,12 @@ public partial class MainForm : Form
 
         // 如果是因為正在呼叫觸控小鍵盤而失去焦點，則不進行任何處理（保留視覺狀態與控制器輪詢）。
         if (_inputState.IsShowingTouchKeyboard)
+        {
+            return;
+        }
+
+        // 程式內部主動要求重啟時，不應把焦點空窗誤記錄成「返回上一個視窗」目標。
+        if (Volatile.Read(ref _isRestartingApplication) != 0)
         {
             return;
         }
@@ -875,11 +903,23 @@ public partial class MainForm : Form
                 string.Empty,
             themeInfo = IsThemeUpdatePending ?
                 Strings.App_ThemePending_Suffix :
-                string.Empty;
+                string.Empty,
+            gamepadLayoutInfo = GamepadFaceButtonProfile.GetActiveTitleLayoutHint();
 
         lock (_titleLock)
         {
-            _cachedTitlePrefix = $"{Strings.App_Title} {themeInfo}{privacyInfo} {hotkeyInfo}";
+            string[] titleParts =
+            [
+                Strings.App_Title,
+                themeInfo,
+                privacyInfo,
+                gamepadLayoutInfo,
+                hotkeyInfo,
+            ];
+
+            _cachedTitlePrefix = string.Join(
+                " ",
+                titleParts.Where(static part => !string.IsNullOrWhiteSpace(part)));
         }
     }
 
@@ -1003,7 +1043,7 @@ public partial class MainForm : Form
             }
 
             // 還原文字與無障礙描述。
-            BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+            BtnCopy.Text = GamepadFaceButtonProfile.GetActiveProfile().FormatConfirmButtonText(Strings.Btn_CopyDefault);
             BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
 
             // 還原視覺樣式：由擴充方法統一重置進度條並檢測視線接合。
@@ -1058,6 +1098,12 @@ public partial class MainForm : Form
             MessageBoxIcon.Question,
             gamepad: _gamepadController) == DialogResult.Yes)
         {
+            // 標記為程式內部重啟，避免在舊實例退場時把焦點空窗誤捕捉為返回目標。
+            Interlocked.Exchange(ref _isRestartingApplication, 1);
+
+            // 為下一個重啟後的執行個體建立一次性前景啟用請求，降低焦點跳回前一個視窗的機率。
+            RestartActivationCoordinator.Shared.RequestActivationOnNextLaunch();
+
             // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
             FeedbackService.EmergencyStopAllActiveControllers();
 

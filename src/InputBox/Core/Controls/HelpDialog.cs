@@ -166,9 +166,12 @@ internal sealed class HelpDialog : Form
         _pnlScroll.Controls.Add(_tlpContent);
 
         // 關閉按鈕（底部固定，不隨內容捲動）。
+        // profile 用來讓關閉按鈕與說明表的顯示文字跟著目前控制器模式同步。
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
         _btnClose = new Button()
         {
-            Text = ControlExtensions.GetMnemonicText(Strings.Help_Btn_Close, 'B'),
+            Text = profile.FormatCancelButtonText(Strings.Help_Btn_Close),
             AutoSize = true,
             Anchor = AnchorStyles.Right,
             Margin = Padding.Empty, // 移除預設外距避免被底部面板裁切
@@ -324,7 +327,7 @@ internal sealed class HelpDialog : Form
                 GlobalHotKeyService.GetHotKeyDisplayString(" + "));
 
             PopulateTable(_tlpKeyboard, Strings.Help_Col_Key, Strings.Help_Col_Action, keyboardRows);
-            PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, Strings.Help_Gamepad_Rows);
+            PopulateTable(_tlpGamepad, Strings.Help_Col_Button, Strings.Help_Col_Action, GamepadFaceButtonProfile.BuildHelpRows());
             BindGamepadEvents();
             UpdateButtonMinimumSize();
             UpdateFooterHeight();

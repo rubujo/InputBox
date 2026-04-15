@@ -11,6 +11,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     string DeviceName { get; }
 
     /// <summary>
+    /// 取得目前裝置的偵測識別資訊，優先包含可跨藍牙、接收器與 USB 保持穩定的廠商/產品線索。
+    /// </summary>
+    string DeviceIdentity { get; }
+
+    /// <summary>
     /// 當控制器連線狀態改變時觸發（true: 已連線, false: 已斷開）
     /// </summary>
     event Action<bool>? ConnectionChanged;

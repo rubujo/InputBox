@@ -182,8 +182,8 @@
     <comment>无障碍消息，当新的快捷键捕获成功时播放。{0} 是设置后的快捷键字符串。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>文本为空时按 A 或 Start 开启键盘，有文字时复制并返回。按 X 删除，方向键移动光标或浏览历史记录。按 Back 返回。LB + RB + B 快速返回。LB + RB + X 退出程序。键盘：Enter 复制／开启，Esc 清除，上下键切换历史记录，Alt + B 返回。</value>
-    <comment>主窗口的无障碍详细描述，解释各种控制器与键盘的操作方式。</comment>
+    <value>文本为空时按 {0} 或 Start 开启键盘，有文字时复制并返回。按 {1} 删除，方向键移动光标或浏览历史记录。按 Back 返回。LB + RB + {2} 快速返回。LB + RB + {3} 退出程序。键盘：Enter 复制／开启，Esc 清除，上下键切换历史记录，Alt + B 返回。</value>
+    <comment>主窗口的无障碍详细描述，解释各种控制器与键盘的操作方式。{0} 为确认键，{1} 为删除键，{2} 为取消键，{3} 为退出快捷键中的删除键。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>正在返回前一个窗口。</value>
@@ -210,16 +210,16 @@
     <comment>无障碍消息，当光标移动到文本开头时播放。</comment>
   </data>
   <data name="A11y_Selected_Text" xml:space="preserve">
-    <value>已选取：{0}</value>
-    <comment>播报目前选取的文字内容</comment>
+    <value>已选中：{0}</value>
+    <comment>播报当前选中文字内容。</comment>
   </data>
   <data name="A11y_Selected_Text_PrivacySafe" xml:space="preserve">
-    <value>已选取文本。</value>
-    <comment>选取文本的隐私安全版本无障碍广播消息。</comment>
+    <value>已选中文本。</value>
+    <comment>选中文本的隐私安全版本无障碍广播消息。</comment>
   </data>
   <data name="A11y_Cursor_Move" xml:space="preserve">
     <value>光标位于第 {0} 个字符</value>
-    <comment>播报目前游标的绝对位置</comment>
+    <comment>播报当前光标的绝对位置。</comment>
   </data>
   <data name="A11y_Cursor_Move_PrivacySafe" xml:space="preserve">
     <value>光标已移动。</value>
@@ -256,6 +256,14 @@
   <data name="App_Title" xml:space="preserve">
     <value>输入框</value>
     <comment>应用程序名称，用于窗口标题与消息对话框。</comment>
+  </data>
+  <data name="App_GamepadLayout_Suffix" xml:space="preserve">
+    <value>[主按键配置：{0}]</value>
+    <comment>主窗口标题栏的简短后缀，显示当前生效的主按键配置。{0} 为配置名称。</comment>
+  </data>
+  <data name="App_GamepadLayout_Auto_Suffix" xml:space="preserve">
+    <value>[主按键配置：{0}→{1}]</value>
+    <comment>主窗口标题栏的简短后缀，显示自动模式实际解析出的主按键配置。{0} 为“自动”标签，{1} 为实际配置名称。</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>复制到剪贴板</value>
@@ -344,8 +352,8 @@
     <comment>输入框内容清除后显示的状态信息。</comment>
   </data>
   <data name="Msg_ConfirmDeletePhrase" xml:space="preserve">
-    <value>确定要删除片语「{0}」吗？此操作无法还原。</value>
-    <comment>删除片语前的确认讯息。{0} = 片语名称。</comment>
+    <value>确定要删除短语“{0}”吗？此操作无法撤销。</value>
+    <comment>删除短语前的确认消息。{0} = 短语名称。</comment>
   </data>
   <data name="Msg_PressAnyKey" xml:space="preserve">
     <value>请按任意键...</value>
@@ -393,11 +401,11 @@
   </data>
   <data name="A11y_History_Navigation" xml:space="preserve">
     <value>历史记录第 {0} 条，共 {1} 条：{2}</value>
-    <comment>无障碍消息，用于在历史记录间浏览时播放。{0} 是目前索引，{1} 是总条数，{2} 是该条内容。</comment>
+    <comment>无障碍消息，用于在历史记录间浏览时播放。{0} 是当前索引，{1} 是总条数，{2} 是该条内容。</comment>
   </data>
   <data name="A11y_Startup_Status" xml:space="preserve">
     <value>{0}唤醒快捷键为：{1}。</value>
-    <comment>启动时的无障碍状态摘要。{0} 是隐私模式状态，{1} 是目前的唤醒快捷键。</comment>
+    <comment>启动时的无障碍状态摘要。{0} 是隐私模式状态，{1} 是当前的唤醒快捷键。</comment>
   </data>
   <data name="Menu_Settings" xml:space="preserve">
     <value>设置</value>
@@ -421,15 +429,15 @@
   </data>
   <data name="Menu_Settings_Intensity" xml:space="preserve">
     <value>震动强度: {0}</value>
-    <comment>右键菜单项目，显示并设置震动强度。{0} 是目前的百分比数值。</comment>
+    <comment>右键菜单项目，显示并设置震动强度。{0} 是当前的百分比数值。</comment>
   </data>
   <data name="Menu_Settings_Provider" xml:space="preserve">
     <value>游戏控制器输入 API</value>
-    <comment>右键菜单项目，显示目前的游戏控制器输入 API 信息。</comment>
+    <comment>右键菜单项目，显示当前的游戏控制器输入 API 信息。</comment>
   </data>
   <data name="Menu_Settings_HistoryCapacity" xml:space="preserve">
     <value>历史记录容量: {0}</value>
-    <comment>右键菜单项目，显示并设置历史记录容量。{0} 是目前的容量数值。</comment>
+    <comment>右键菜单项目，显示并设置历史记录容量。{0} 是当前的容量数值。</comment>
   </data>
   <data name="Menu_Opacity_Adjust" xml:space="preserve">
     <value>设置数值…</value>
@@ -485,11 +493,11 @@
   </data>
   <data name="Settings_RepeatDelay" xml:space="preserve">
     <value>重复延迟</value>
-    <comment>设置项目名称，指手柄按键重复输入的延迟时间。</comment>
+    <comment>设置项目名称，指控制器按键重复输入的延迟时间。</comment>
   </data>
   <data name="Settings_RepeatSpeed" xml:space="preserve">
     <value>重复速度</value>
-    <comment>设置项目名称，指手柄按键重复输入的速度。</comment>
+    <comment>设置项目名称，指控制器按键重复输入的速度。</comment>
   </data>
   <data name="Menu_Gamepad_ResetCalibration" xml:space="preserve">
     <value>重置当前校准状态</value>
@@ -557,7 +565,7 @@
   </data>
   <data name="A11y_Btn_SetDefault_Group_Desc" xml:space="preserve">
     <value>将此组的所有设置重置为出厂默认值。</value>
-    <comment>同时重置多项设置的重置按钮（如窗口操作、反馈、手柄设置）的无障碍描述。</comment>
+    <comment>同时重置多项设置的重置按钮（如窗口操作、反馈、控制器设置）的无障碍描述。</comment>
   </data>
   <data name="A11y_Grid_Numeric_Desc" xml:space="preserve">
     <value>包含数值输入框与加减按钮的操作组。</value>
@@ -660,11 +668,11 @@
     <comment>震动开关项的无障碍描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
-    <value>选择游戏手柄输入的底层 API（GameInput 或 XInput）。</value>
+    <value>选择游戏控制器输入的底层 API（GameInput 或 XInput）。</value>
     <comment>API 提供者项的无障碍描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
-    <value>使用微软现代 GameInput API。建议现代控制器使用。</value>
+    <value>使用微软现代 GameInput API。建议现代游戏控制器使用。</value>
     <comment>GameInput 供应商选项的无障碍描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
@@ -708,30 +716,30 @@
     <comment>无障碍语音播报，在高对比模式下不透明度被强制锁定时播放。</comment>
   </data>
   <data name="Msg_LowOpacity_Warn" xml:space="preserve">
-    <value>将不透明度设定低于 50% 时，在复杂背景下窗口内容可能难以辨读。高对比模式开启时，输入框会自动覆写此设定为 100%。
+    <value>当不透明度设置低于 50% 时，在复杂背景下，窗口内容可能难以辨认。高对比模式开启时，输入框会自动将此设置改为 100%。
 
 确定继续？</value>
-    <comment>当用户将不透明度设定低于 50% 时显示的警告对话框内容。告知用户可能影响可读性，并说明高对比模式会覆写此设定。</comment>
+    <comment>当用户将不透明度设置低于 50% 时显示的警告对话框内容。告知用户这可能影响可读性，并说明高对比模式会自动将此设置改为 100%。</comment>
   </data>
   <data name="Msg_LowOpacity_Warn_Title" xml:space="preserve">
     <value>低不透明度警告</value>
-    <comment>当不透明度设定低于 50% 时显示的警告对话框标题。</comment>
+    <comment>当不透明度设置低于 50% 时显示的警告对话框标题。</comment>
   </data>
   <data name="Err_GamepadInitFail" xml:space="preserve">
-    <value>游戏手柄初始化失败，部分功能可能无法使用。</value>
-    <comment>启动时手柄初始化失败后，通过 A11y 广播的语音消息内容。</comment>
+    <value>游戏控制器初始化失败，部分功能可能无法使用。</value>
+    <comment>启动时控制器初始化失败后，通过 A11y 广播的语音消息内容。</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
     <value>应用系统主题（需重启）</value>
     <comment>右键菜单项目，提示用户重启程序以完全应用深色/浅色主题变更。</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>系统主题已变更。请至右键菜单点选“应用系统主题”以重启程序并完全应用视觉效果。</value>
-    <comment>无障碍语音播报，当侦测到主题变更并需要用户手动重启时播放。</comment>
+    <value>系统主题已变更。请在右键菜单中点击“应用系统主题”，以重启程序并完整应用视觉效果。</value>
+    <comment>无障碍语音播报，当检测到主题变更并需要用户手动重启时播放。</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>侦测到系统主题变更但尚未重启时，显示于标题列应用程序名称后方的图标标记。</comment>
+    <comment>检测到系统主题变更但尚未重启时，显示在标题栏应用程序名称后方的图标标记。</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>进入 {0} 子菜单</value>
@@ -802,15 +810,15 @@
     <comment>打开帮助对话框的右键菜单项（WCAG 3.3.5）。</comment>
   </data>
   <data name="Menu_Help_Desc" xml:space="preserve">
-    <value>显示键盘快捷键和手柄按键对照表（F1）</value>
+    <value>显示键盘快捷键和控制器按键对照表（F1）</value>
     <comment>「帮助」菜单项的无障碍描述。</comment>
   </data>
   <data name="Help_Title" xml:space="preserve">
-    <value>帮助 — 键盘快捷键与手柄按键对照</value>
+    <value>帮助 — 键盘快捷键与控制器按键对照</value>
     <comment>帮助对话框的标题栏文字。</comment>
   </data>
   <data name="Help_A11y_Dialog_Desc" xml:space="preserve">
-    <value>显示键盘快捷键与手柄按键对照。可用方向键、PageUp、PageDown 或控制器滚动内容，按关闭返回。</value>
+    <value>显示键盘快捷键与控制器按键对照。可用方向键、PageUp、PageDown 或控制器滚动内容，按关闭返回。</value>
     <comment>帮助对话框本体的无障碍描述。</comment>
   </data>
   <data name="Help_Section_Keyboard" xml:space="preserve">
@@ -818,8 +826,8 @@
     <comment>帮助对话框中键盘快捷键表格的区段标题。</comment>
   </data>
   <data name="Help_Section_Gamepad" xml:space="preserve">
-    <value>手柄按键对照</value>
-    <comment>帮助对话框中手柄按键对照表格的区段标题。</comment>
+    <value>控制器按键对照</value>
+    <comment>帮助对话框中控制器按键对照表格的区段标题。</comment>
   </data>
   <data name="Help_Col_Key" xml:space="preserve">
     <value>按键</value>
@@ -827,7 +835,7 @@
   </data>
   <data name="Help_Col_Button" xml:space="preserve">
     <value>按钮</value>
-    <comment>帮助对话框中手柄按键对照表格的「按钮」列标题。</comment>
+    <comment>帮助对话框中控制器按键对照表格的「按钮」列标题。</comment>
   </data>
   <data name="Help_Col_Action" xml:space="preserve">
     <value>功能</value>
@@ -846,12 +854,12 @@
     <comment>帮助对话框中键盘快捷键区段容器的无障碍描述。</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group" xml:space="preserve">
-    <value>手柄按键对照表格</value>
-    <comment>帮助对话框中手柄按键对照区段容器的无障碍名称。</comment>
+    <value>控制器按键对照表格</value>
+    <comment>帮助对话框中控制器按键对照区段容器的无障碍名称。</comment>
   </data>
   <data name="Help_A11y_Gamepad_Group_Desc" xml:space="preserve">
-    <value>列出可用的手柄按键与对应功能。</value>
-    <comment>帮助对话框中手柄按键对照区段容器的无障碍描述。</comment>
+    <value>列出可用的控制器按键与对应功能。</value>
+    <comment>帮助对话框中控制器按键对照区段容器的无障碍描述。</comment>
   </data>
   <data name="Help_Keyboard_Rows" xml:space="preserve">
     <value>Esc	清除文字 / 返回前一个窗口（已空时）
@@ -861,7 +869,7 @@ Shift + Enter	换行
 F1	打开帮助对话框
 ↑ / ↓	浏览历史记录
 ← / →	光标左移 / 右移
-Shift + ← / →	选取文本
+Shift + ← / →	选中文本
 Home / End	光标跳至行首 / 行尾
 Ctrl + ← / →	按单词跳转光标
 Backspace	删除前一字符或选中内容
@@ -887,9 +895,9 @@ Back + X	重置窗口透明度
 ↑ / ↓	浏览历史记录
 ← / →	光标左移 / 右移
 LB + ← / →	单词跳转
-RS ← / →	扩大或缩小选取范围
+RS ← / →	扩大或缩小选中范围
 Back + ↑ / ↓	调整窗口透明度（±5%）</value>
-    <comment>帮助对话框中手柄按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
+    <comment>帮助对话框中控制器按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">
     <value>功能菜单</value>
@@ -1016,7 +1024,7 @@ Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>短语编辑对话框中，显示当前内容与上限字数前缀的文本，包含符合语言习惯的标点。</comment>
   </data>
   <data name="Phrase_A11y_Dialog_Desc" xml:space="preserve">
-    <value>管理短语：添加、编辑、删除及排序。手柄 Y 键添加、A 键插入、X 键删除、左/右方向键排序。</value>
+    <value>管理短语：添加、编辑、删除及排序。控制器 Y 键添加、A 键插入、X 键删除、左/右方向键排序。</value>
     <comment>短语管理对话框的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_List_Name" xml:space="preserve">
@@ -1024,7 +1032,7 @@ Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>短语列表的无障碍名称。</comment>
   </data>
   <data name="Phrase_A11y_List_Desc" xml:space="preserve">
-    <value>选择一个短语后按 Enter 或手柄 A 键可将其插入到输入框。</value>
+    <value>选择一个短语后按 Enter 或控制器 A 键可将其插入到输入框。</value>
     <comment>短语列表的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_ButtonArea" xml:space="preserve">
@@ -1048,7 +1056,7 @@ Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>短语子菜单分页信息项的无障碍名称。{0} = 当前页码，{1} = 总页数。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
-    <value>添加一个新短语。手柄：Y 键。</value>
+    <value>添加一个新短语。控制器：Y 键。</value>
     <comment>添加按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Edit_Desc" xml:space="preserve">
@@ -1056,31 +1064,31 @@ Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>编辑按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Delete_Desc" xml:space="preserve">
-    <value>删除选中的短语。手柄：X 键。</value>
+    <value>删除选中的短语。控制器：X 键。</value>
     <comment>删除按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveUp_Desc" xml:space="preserve">
-    <value>将选中的短语上移。手柄：左方向键。</value>
+    <value>将选中的短语上移。控制器：左方向键。</value>
     <comment>上移按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_MoveDown_Desc" xml:space="preserve">
-    <value>将选中的短语下移。手柄：右方向键。</value>
+    <value>将选中的短语下移。控制器：右方向键。</value>
     <comment>下移按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Close_Desc" xml:space="preserve">
-    <value>关闭短语管理。手柄：B 键。</value>
+    <value>关闭短语管理。控制器：B 键。</value>
     <comment>关闭按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Confirm_Desc" xml:space="preserve">
-    <value>确认并保存短语。手柄：A 键。</value>
+    <value>确认并保存短语。控制器：A 键。</value>
     <comment>编辑对话框中确定按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Cancel_Desc" xml:space="preserve">
-    <value>取消编辑。手柄：B 键。</value>
+    <value>取消编辑。控制器：B 键。</value>
     <comment>编辑对话框中取消按钮的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Edit_Dialog_Desc" xml:space="preserve">
-    <value>输入短语名称和内容。按 Enter 或手柄 A 键确认。</value>
+    <value>输入短语名称和内容。按 Enter 或控制器 A 键确认。</value>
     <comment>短语编辑对话框的无障碍描述。</comment>
   </data>
   <data name="Phrase_A11y_Edit_Name_Desc" xml:space="preserve">
@@ -1192,11 +1200,51 @@ Back + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>GamepadMessageBox 显示 MessageBoxIcon.Question 时的图标无障碍标签，附加于无障碍描述之前。</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
-    <value>消息对话框。按 A 执行主要操作，按 B 取消。</value>
+    <value>消息对话框。请根据下方提示选择主要操作或取消。</value>
     <comment>GamepadMessageBox 的无障碍描述，对话框打开时由屏幕阅读器播报。</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
-    <value>A: {0} · B: {1}</value>
-    <comment>GamepadMessageBox 的手柄提示标签。{0} 为主要操作标签，{1} 为取消操作标签。</comment>
+    <value>{0} · {1}</value>
+    <comment>GamepadMessageBox 的控制器提示标签。{0} 为主要操作提示，{1} 为取消操作提示。</comment>
+  </data>
+  <data name="A11y_Gamepad_Profile_Applied" xml:space="preserve">
+    <value>已启用 {0} 配置。</value>
+    <comment>无障碍播报：通知当前已套用哪一种控制器主按键配置。{0} 为配置名称，例如 Xbox 或 PlayStation。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout" xml:space="preserve">
+    <value>控制器主按键配置</value>
+    <comment>控制器设置中，用于选择控制器主按键配置样式的子菜单标题。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Auto" xml:space="preserve">
+    <value>当前配置：{0}（{1}）</value>
+    <comment>自动模式下显示当前生效的控制器主按键配置摘要。{0} 为实际配置名称，{1} 为“自动”标签。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Manual" xml:space="preserve">
+    <value>当前配置：{0}</value>
+    <comment>手动指定模式时显示当前生效的控制器主按键配置摘要。{0} 为实际配置名称。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_TitleWithStatus" xml:space="preserve">
+    <value>{0} [{1}]</value>
+    <comment>控制器主按键子菜单标题格式，显示菜单名称与当前生效的配置名称。{0} 为菜单标题，{1} 为当前配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Auto" xml:space="preserve">
+    <value>自动</value>
+    <comment>控制器主按键配置模式名称：可行时按控制器自动判断。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Xbox" xml:space="preserve">
+    <value>Xbox</value>
+    <comment>控制器主按键配置模式名称：采用 Xbox 风格的确认／取消配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStation" xml:space="preserve">
+    <value>PlayStation（○ 确认）</value>
+    <comment>控制器主按键配置模式名称：采用 PlayStation 的 ○ 确认／× 取消配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStationCrossConfirm" xml:space="preserve">
+    <value>PlayStation（× 确认）</value>
+    <comment>控制器主按键配置模式名称：采用 PlayStation 的 × 确认／○ 取消配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Nintendo" xml:space="preserve">
+    <value>Nintendo</value>
+    <comment>控制器主按键配置模式名称：采用 Nintendo 风格的按键标示。</comment>
   </data>
 </root>

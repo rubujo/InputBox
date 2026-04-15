@@ -268,6 +268,8 @@ internal sealed class NumericInputDialog : Form
 
             if (_gamepadController != null)
             {
+                GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
                 // 訂閱新控制器事件。
                 _gamepadController.UpPressed += HandlePlus;
                 _gamepadController.UpRepeat += HandlePlus;
@@ -281,9 +283,9 @@ internal sealed class NumericInputDialog : Form
                 _gamepadController.RSLeftRepeat += HandleRSLeft;
                 _gamepadController.RSRightPressed += HandleRSRight;
                 _gamepadController.RSRightRepeat += HandleRSRight;
-                _gamepadController.APressed += HandleGamepadA;
+                _gamepadController.APressed += profile.ConfirmOnSouth ? HandleGamepadA : HandleCancel;
                 _gamepadController.StartPressed += HandleOpenTouchKeyboardFromGamepad;
-                _gamepadController.BPressed += HandleCancel;
+                _gamepadController.BPressed += profile.ConfirmOnSouth ? HandleCancel : HandleGamepadA;
                 _gamepadController.BackPressed += HandleCancel;
                 _gamepadController.XPressed += HandleBackspace;
                 _gamepadController.YPressed += HandleReset;
@@ -512,7 +514,9 @@ internal sealed class NumericInputDialog : Form
                 _gamepadController.RSRightPressed -= HandleRSRight;
                 _gamepadController.RSRightRepeat -= HandleRSRight;
                 _gamepadController.APressed -= HandleGamepadA;
+                _gamepadController.APressed -= HandleCancel;
                 _gamepadController.StartPressed -= HandleOpenTouchKeyboardFromGamepad;
+                _gamepadController.BPressed -= HandleGamepadA;
                 _gamepadController.BPressed -= HandleCancel;
                 _gamepadController.BackPressed -= HandleCancel;
                 _gamepadController.XPressed -= HandleBackspace;
@@ -1999,8 +2003,11 @@ internal sealed class NumericInputDialog : Form
         _btnPlus.TabIndex = 2;
 
         // 第 2 列：操作按鈕。
+        // profile 用於將確認／取消按鈕文字切換為目前控制器模式對應的顯示。
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
         _btnOk = CreateEyeTrackerButton(
-            ControlExtensions.GetMnemonicText(Strings.Btn_OK, 'A'),
+            profile.FormatConfirmButtonText(Strings.Btn_OK),
             Strings.A11y_Btn_OK_Desc,
             scale,
             _a11yFont);
@@ -2009,7 +2016,7 @@ internal sealed class NumericInputDialog : Form
         _btnOk.TabIndex = 3;
 
         _btnCancel = CreateEyeTrackerButton(
-            ControlExtensions.GetMnemonicText(Strings.Btn_Cancel, 'B'),
+            profile.FormatCancelButtonText(Strings.Btn_Cancel),
             Strings.A11y_Btn_Cancel_Desc,
             scale,
             _a11yFont);
@@ -2021,7 +2028,7 @@ internal sealed class NumericInputDialog : Form
         CancelButton = _btnCancel;
 
         _btnReset = CreateEyeTrackerButton(
-            ControlExtensions.GetMnemonicText(Strings.Btn_SetDefault, 'Y'),
+            profile.FormatMenuButtonText(Strings.Btn_SetDefault),
             string.Format(Strings.A11y_Btn_SetDefault_Desc, _defaultValue),
             scale,
             _a11yFont);

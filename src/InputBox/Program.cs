@@ -168,7 +168,11 @@ internal static class Program
             // 載入設定檔（若無檔案會自動建立）。
             AppSettings.Load();
 
-            Application.Run(new MainForm());
+            // 讀取前一個執行個體留下的一次性重啟啟用標記，
+            // 讓新的 MainForm 能在首次顯示時主動把自己帶回前景。
+            bool forceForegroundOnStartup = RestartActivationCoordinator.Shared.ConsumePendingActivationRequest();
+
+            Application.Run(new MainForm(forceForegroundOnStartup));
         }
         catch (Exception ex)
         {

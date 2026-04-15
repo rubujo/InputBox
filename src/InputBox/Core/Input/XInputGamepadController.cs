@@ -250,7 +250,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     //   • 當估計誤差（rawValue − currentBias）落在 BiasAdaptiveErrorRange 以內時，
     //     學習率從 Base 線性插值至 Max，誤差越大學習越快（快速收斂）。
     //   • 當誤差接近 0 時，退回 Base（保守維持），避免把有效輸入誤學成硬體偏移。
-    //   • 係數與 GameInputGamepadController 對齊，確保兩路手把行為一致。
+    //   • 係數與 GameInputGamepadController 對齊，確保兩路控制器行為一致。
 
     /// <summary>
     /// 左搖桿 X 軸：偏移估計的最低保守學習率（誤差接近 0 時使用）。
@@ -370,6 +370,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 取得目前使用的裝置名稱（XInput 則回傳格式化後的 User Index）
     /// </summary>
     public string DeviceName => _cachedDeviceName;
+
+    /// <summary>
+    /// 取得目前裝置的偵測識別資訊。XInput 無法提供穩定 VID/PID，因此沿用裝置名稱。
+    /// </summary>
+    public string DeviceIdentity => _cachedDeviceName;
 
     /// <summary>
     /// 更新快取的裝置名稱

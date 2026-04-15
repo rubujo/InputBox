@@ -182,8 +182,8 @@
     <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une nouvelle touche de raccourci est récupérée avec succès. {0} est la chaîne de touches de raccourci définie.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Appuyez sur A ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide. Si du texte est présent, le texte est copié puis vous revenez à la fenêtre précédente. Utilisez X pour supprimer en arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Appuyez sur Retour pour revenir. Appuyez sur LB + RB + B pour un retour rapide. Appuyez sur LB + RB + X pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
-    <comment>Description détaillée de l&apos;accessibilité de la fenêtre principale, expliquant le fonctionnement des différents contrôleurs et claviers.</comment>
+    <value>Appuyez sur {0} ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide. Si du texte est présent, le texte est copié puis vous revenez à la fenêtre précédente. Utilisez {1} pour supprimer en arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Appuyez sur Retour pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
+    <comment>Description détaillée de l&apos;accessibilité de la fenêtre principale, expliquant le fonctionnement des différents contrôleurs et claviers. {0} est le bouton de confirmation, {1} celui de suppression, {2} celui d&apos;annulation et {3} celui utilisé pour le raccourci de fermeture.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>Retour à la fenêtre précédente.</value>
@@ -256,6 +256,14 @@
   <data name="App_Title" xml:space="preserve">
     <value>Zone de saisie</value>
     <comment>Nom de l&apos;application, utilisé pour les titres des fenêtres et les boîtes de dialogue de messages.</comment>
+  </data>
+  <data name="App_GamepadLayout_Suffix" xml:space="preserve">
+    <value>[Boutons d’action : {0}]</value>
+    <comment>Suffixe court de la barre de titre indiquant la disposition active des boutons d’action. {0} est le nom de la disposition.</comment>
+  </data>
+  <data name="App_GamepadLayout_Auto_Suffix" xml:space="preserve">
+    <value>[Boutons d’action : {0} → {1}]</value>
+    <comment>Suffixe court de la barre de titre indiquant vers quelle disposition des boutons d’action le mode automatique s’est résolu. {0} est le libellé Auto et {1} la disposition effective.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>Copier dans le Presse-papiers</value>
@@ -1192,11 +1200,51 @@ Retour + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Étiquette d’accessibilité de l’icône GamepadMessageBox lors de l’affichage de MessageBoxIcon.Question, ajoutée avant la description de l’accessibilité.</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
-    <value>Boîte de dialogue. Appuyez sur A pour l&apos;action principale, B pour annuler.</value>
+    <value>Boîte de dialogue. Utilisez les indications ci-dessous pour valider ou annuler.</value>
     <comment>Description de l&apos;accessibilité de GamepadMessageBox, qui est prononcée par les lecteurs d&apos;écran lorsque la boîte de dialogue est ouverte.</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
-    <value>A : {0} · B : {1}</value>
-    <comment>Étiquette d&apos;invite du guidon de GamepadMessageBox. {0} est la balise d&apos;action principale et {1} est la balise d&apos;action d&apos;annulation.</comment>
+    <value>{0} · {1}</value>
+    <comment>Étiquette d&apos;invite de GamepadMessageBox. {0} est l&apos;indication principale et {1} l&apos;indication d&apos;annulation.</comment>
+  </data>
+  <data name="A11y_Gamepad_Profile_Applied" xml:space="preserve">
+    <value>Boutons d’action {0} actifs.</value>
+    <comment>Annonce d’accessibilité pour la disposition active des boutons d’action. {0} est le nom de la disposition, par exemple Xbox ou PlayStation.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout" xml:space="preserve">
+    <value>Boutons d’action</value>
+    <comment>Titre du sous-menu pour choisir la disposition des boutons d’action.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Auto" xml:space="preserve">
+    <value>Actif : {0} ({1})</value>
+    <comment>État de la disposition active des boutons d’action lorsque la détection automatique est utilisée. {0} est la disposition appliquée et {1} le libellé Auto.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Manual" xml:space="preserve">
+    <value>Actif : {0}</value>
+    <comment>État de la disposition active des boutons d’action lorsqu’un mode précis est sélectionné manuellement. {0} est la disposition appliquée.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_TitleWithStatus" xml:space="preserve">
+    <value>{0} [{1}]</value>
+    <comment>Format du titre du sous-menu qui affiche le nom du menu de disposition avec la disposition effectivement active. {0} est le titre du menu et {1} la disposition actuelle.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Auto" xml:space="preserve">
+    <value>Automatique</value>
+    <comment>Libellé du mode de disposition qui détecte automatiquement le type de manette lorsque c’est possible.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Xbox" xml:space="preserve">
+    <value>Xbox</value>
+    <comment>Libellé du mode de disposition des boutons au style Xbox.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStation" xml:space="preserve">
+    <value>PlayStation (○ valider)</value>
+    <comment>Libellé du mode de disposition PlayStation avec ○ pour valider et × pour annuler.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStationCrossConfirm" xml:space="preserve">
+    <value>PlayStation (× valider)</value>
+    <comment>Libellé du mode de disposition PlayStation avec × pour valider et ○ pour annuler.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Nintendo" xml:space="preserve">
+    <value>Nintendo</value>
+    <comment>Libellé du mode de disposition des boutons au style Nintendo.</comment>
   </data>
 </root>

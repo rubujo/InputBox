@@ -1,16 +1,18 @@
 ﻿using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.UIA3;
-using FlaUiApplication = FlaUI.Core.Application;
-using FlaUiButton = FlaUI.Core.AutomationElements.Button;
-using FlaUiTextBox = FlaUI.Core.AutomationElements.TextBox;
+using InputBox.Core.Configuration;
 using InputBox.Core.Interop;
+using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Globalization;
 using Xunit;
 using Xunit.Sdk;
+using FlaUiApplication = FlaUI.Core.Application;
+using FlaUiButton = FlaUI.Core.AutomationElements.Button;
+using FlaUiTextBox = FlaUI.Core.AutomationElements.TextBox;
 
 namespace InputBox.Tests;
 
@@ -332,10 +334,104 @@ public sealed class MainFormUiSmokeTests : IDisposable
     }
 
     /// <summary>
+    /// 當使用者在程式內確認重新啟動後，新的主視窗應自動回到前景，避免焦點落回先前的外部視窗。
+    /// </summary>
+    [Fact(
+        Skip = "Requires Windows interactive desktop and INPUTBOX_RUN_UI_TESTS=1.",
+        Timeout = 60000,
+        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled),
+        SkipType = typeof(UiSmokeTestRequirements))]
+    [Trait("Category", "UI")]
+    public void RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground()
+    {
+        RunWithFailureArtifacts(nameof(RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground), () =>
+        {
+            Assert.NotNull(_application);
+            Assert.NotNull(_mainWindow);
+
+            string applicationPath = GetApplicationPath();
+            int originalProcessId = _application!.ProcessId;
+            AppSettings.GamepadProvider originalProvider = AppSettings.Current.GamepadProviderType;
+            string targetProvider = originalProvider == AppSettings.GamepadProvider.XInput ?
+                AppSettings.GamepadProvider.GameInput.ToString() :
+                AppSettings.GamepadProvider.XInput.ToString();
+
+            try
+            {
+                AutomationElement contextMenu = OpenContextMenu();
+                AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
+                settingsMenuItem.Click();
+
+                AutomationElement gamepadMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Settings_Gamepad);
+                gamepadMenuItem.Click();
+
+                AutomationElement providerMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Settings_Provider);
+                providerMenuItem.Click();
+
+                AutomationElement targetProviderMenuItem = FindAnyOpenMenuItemByLabel(targetProvider);
+                targetProviderMenuItem.Click();
+
+                Window restartDialog = FindDialogWindowByTitle(Strings.Wrn_Title, "找不到重新啟動確認對話框視窗。");
+                FlaUiButton yesButton = FindDescendantByLabel(restartDialog, ControlType.Button, Strings.Btn_Yes, "找不到重新啟動確認對話框中的確認按鈕。").AsButton();
+
+                yesButton.Click();
+
+                WaitUntil(
+                    () =>
+                    {
+                        try
+                        {
+                            using Process originalProcess = Process.GetProcessById(originalProcessId);
+                            return originalProcess.HasExited;
+                        }
+                        catch (ArgumentException)
+                        {
+                            return true;
+                        }
+                    },
+                    TimeSpan.FromSeconds(15),
+                    "重新啟動前的舊執行個體未在預期時間內結束。"
+                );
+
+                using UIA3Automation restartedAutomation = new();
+                using FlaUiApplication restartedApplication = WaitForReplacementApplication(applicationPath, originalProcessId);
+
+                Window restartedWindow = WaitForMainWindow(restartedApplication, restartedAutomation);
+
+                WaitUntil(
+                    () =>
+                    {
+                        nint restartedHandle = restartedWindow.Properties.NativeWindowHandle.Value;
+                        return restartedHandle != 0 && User32.ForegroundWindow == restartedHandle;
+                    },
+                    TimeSpan.FromSeconds(10),
+                    "重新啟動後的主視窗未在預期時間內保持前景。"
+                );
+
+                try
+                {
+                    restartedWindow.Close();
+                }
+                catch
+                {
+
+                }
+            }
+            finally
+            {
+                AppSettings.Current.GamepadProviderType = originalProvider;
+                AppSettings.Save();
+            }
+        });
+    }
+
+    /// <summary>
     /// 關閉 UI 測試啟動的應用程式與自動化資源。
     /// </summary>
     public void Dispose()
     {
+        RestartActivationCoordinator.Shared.ClearPendingActivationRequest();
+
         _automation?.Dispose();
 
         if (_application == null)
@@ -808,6 +904,51 @@ public sealed class MainFormUiSmokeTests : IDisposable
         throw new XunitException("InputBox 主視窗未在預期時間內出現。");
     }
 
+    /// <summary>
+    /// 等待重新啟動後的新 InputBox 行程出現，並附加到新的執行個體。
+    /// </summary>
+    /// <param name="applicationPath">受測程式的可執行檔完整路徑。</param>
+    /// <param name="originalProcessId">重啟前舊執行個體的行程識別碼，用於排除舊程序。</param>
+    /// <returns>已成功附加的新應用程式執行個體。</returns>
+    private static FlaUiApplication WaitForReplacementApplication(string applicationPath, int originalProcessId)
+    {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        while (stopwatch.Elapsed < TimeSpan.FromSeconds(15))
+        {
+            foreach (Process process in Process.GetProcessesByName("InputBox"))
+            {
+                try
+                {
+                    if (process.Id == originalProcessId)
+                    {
+                        continue;
+                    }
+
+                    string? processPath = process.MainModule?.FileName;
+
+                    if (!string.Equals(processPath, applicationPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    return FlaUiApplication.Attach(process.Id);
+                }
+                catch
+                {
+
+                }
+                finally
+                {
+                    process.Dispose();
+                }
+            }
+
+            Thread.Sleep(100);
+        }
+
+        throw new XunitException("重新啟動後的新 InputBox 執行個體未在預期時間內出現。");
+    }
 
     /// <summary>
     /// 反覆等待直到找到指定頂層視窗。

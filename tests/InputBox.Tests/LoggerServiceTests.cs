@@ -4,8 +4,26 @@ using Xunit;
 namespace InputBox.Tests;
 
 /// <summary>
+/// LoggerService 測試專用 Collection 名稱，並強制關閉平行執行，避免與其他測試共享日誌檔時互相干擾。
+/// </summary>
+internal static class LoggerServiceTestRequirements
+{
+    /// <summary>
+    /// LoggerService 測試專用 Collection 名稱。
+    /// </summary>
+    public const string CollectionName = "Logger Service";
+}
+
+/// <summary>
+/// 禁止 LoggerService 測試與其他測試平行執行，降低共用日誌檔案被背景工作暫時占用的機率。
+/// </summary>
+[CollectionDefinition(LoggerServiceTestRequirements.CollectionName, DisableParallelization = true)]
+public sealed class LoggerServiceTestCollection;
+
+/// <summary>
 /// LoggerService 測試，確保測試環境的日誌不會污染正式執行記錄。
 /// </summary>
+[Collection(LoggerServiceTestRequirements.CollectionName)]
 public sealed class LoggerServiceTests : IDisposable
 {
     /// <summary>
@@ -84,15 +102,18 @@ public sealed class LoggerServiceTests : IDisposable
     /// <param name="backupPath">測試期間使用的備份檔路徑。</param>
     private static void BackupIfExists(string sourcePath, string backupPath)
     {
-        if (File.Exists(backupPath))
+        RetryFileOperation(() =>
         {
-            File.Delete(backupPath);
-        }
+            if (File.Exists(backupPath))
+            {
+                File.Delete(backupPath);
+            }
 
-        if (File.Exists(sourcePath))
-        {
-            File.Move(sourcePath, backupPath, overwrite: true);
-        }
+            if (File.Exists(sourcePath))
+            {
+                File.Move(sourcePath, backupPath, overwrite: true);
+            }
+        });
     }
 
     /// <summary>
@@ -102,14 +123,47 @@ public sealed class LoggerServiceTests : IDisposable
     /// <param name="backupPath">測試前保存的備份檔路徑。</param>
     private static void RestoreOrDelete(string targetPath, string backupPath)
     {
-        if (File.Exists(targetPath))
+        RetryFileOperation(() =>
         {
-            File.Delete(targetPath);
+            if (File.Exists(targetPath))
+            {
+                File.Delete(targetPath);
+            }
+
+            if (File.Exists(backupPath))
+            {
+                File.Move(backupPath, targetPath, overwrite: true);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 針對測試主機下可能尚未釋放的暫時性檔案鎖，提供有限次數的重試，避免清理階段偶發失敗。
+    /// </summary>
+    /// <param name="fileOperation">要重試的檔案操作。</param>
+    private static void RetryFileOperation(Action fileOperation)
+    {
+        Exception? lastException = null;
+
+        for (int attempt = 0; attempt < 10; attempt++)
+        {
+            try
+            {
+                fileOperation();
+                return;
+            }
+            catch (IOException ex)
+            {
+                lastException = ex;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                lastException = ex;
+            }
+
+            Thread.Sleep(50);
         }
 
-        if (File.Exists(backupPath))
-        {
-            File.Move(backupPath, targetPath, overwrite: true);
-        }
+        throw lastException ?? new IOException("檔案操作在重試後仍失敗。");
     }
 }

@@ -182,8 +182,8 @@
     <comment>新しいホットキーが正常にキャプチャされたときに再生されるアクセシビリティメッセージ。{0} は設定されたホットキーの文字列です。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>テキスト空欄時はAまたはStartでキーボード起動、入力後はコピーして戻ります。Xで削除、十字キーで移動。Backで戻ります。LB + RB + Bでクイック戻る。LB + RB + Xでアプリを終了。キーボード：Enterでコピー／起動、Escでクリア、上下で履歴、Alt + Bで戻る。</value>
-    <comment>メインウィンドウの詳細なアクセシビリティ記述。各種コントローラーやキーボードの操作方法を説明します。</comment>
+    <value>テキスト空欄時は {0} または Start でキーボード起動、入力後はコピーして戻ります。{1} で削除、十字キーで移動します。Back で戻ります。LB + RB + {2} でクイック戻る。LB + RB + {3} でアプリを終了。キーボード：Enter でコピー／起動、Esc でクリア、上下で履歴、Alt + B で戻る。</value>
+    <comment>メインウィンドウの詳細なアクセシビリティ記述です。各種コントローラーやキーボードの操作方法を説明します。{0} は決定、{1} は削除、{2} はキャンセル、{3} は終了ショートカットで使う削除ボタンです。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>前のウィンドウに戻っています。</value>
@@ -256,6 +256,14 @@
   <data name="App_Title" xml:space="preserve">
     <value>入力ボックス</value>
     <comment>アプリケーション名。ウィンドウタイトルやメッセージダイアログで使用されます。</comment>
+  </data>
+  <data name="App_GamepadLayout_Suffix" xml:space="preserve">
+    <value>[主ボタン配置：{0}]</value>
+    <comment>現在有効な主ボタン配置を示す、タイトルバー用の短いサフィックスです。{0} は配置名です。</comment>
+  </data>
+  <data name="App_GamepadLayout_Auto_Suffix" xml:space="preserve">
+    <value>[主ボタン配置：{0}→{1}]</value>
+    <comment>自動モードが現在どの主ボタン配置に解決されたかを示す、タイトルバー用の短いサフィックスです。{0} は自動ラベル、{1} は実際の配置名です。</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>クリップボードにコピー</value>
@@ -1192,11 +1200,51 @@ Back + ↑／↓	透明度を調整（±5%）</value>
     <comment>GamepadMessageBox で MessageBoxIcon.Question が表示される際のアイコンアクセシビリティラベル。アクセシビリティ説明の前に付加されます。</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
-    <value>メッセージダイアログ。A ボタンでメインアクション、B ボタンでキャンセル。</value>
+    <value>メッセージ ダイアログです。下のヒントに従って実行またはキャンセルを選択します。</value>
     <comment>GamepadMessageBox のアクセシビリティ説明。ダイアログ表示時にスクリーンリーダーが読み上げます。</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
-    <value>A: {0} · B: {1}</value>
-    <comment>GamepadMessageBox のゲームパッドヒントラベル。{0} = メインアクションラベル、{1} = キャンセルアクションラベル。</comment>
+    <value>{0} ・ {1}</value>
+    <comment>GamepadMessageBox のゲームパッドヒントラベル。{0} = 実行ヒント、{1} = キャンセルヒント。</comment>
+  </data>
+  <data name="A11y_Gamepad_Profile_Applied" xml:space="preserve">
+    <value>{0} 配置を有効にしました。</value>
+    <comment>現在有効になっているコントローラーのフェイスボタン配置を通知するアクセシビリティ案内です。{0} には Xbox や PlayStation などの配置名が入ります。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout" xml:space="preserve">
+    <value>フェイスボタン配置</value>
+    <comment>コントローラー設定でフェイスボタン配置を選択するサブメニューのタイトルです。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Auto" xml:space="preserve">
+    <value>現在の配置：{0}（{1}）</value>
+    <comment>自動判定時に現在有効なフェイスボタン配置を示す状態要約です。{0} は実際の配置名、{1} は自動ラベルです。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Manual" xml:space="preserve">
+    <value>現在の配置：{0}</value>
+    <comment>手動選択時に現在有効なフェイスボタン配置を示す状態要約です。{0} は実際の配置名です。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_TitleWithStatus" xml:space="preserve">
+    <value>{0} [{1}]</value>
+    <comment>フェイスボタン配置のサブメニュー名と現在有効な配置名をまとめて表示するタイトル形式です。{0} はメニュー名、{1} は現在の配置です。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Auto" xml:space="preserve">
+    <value>自動</value>
+    <comment>可能な場合にコントローラー種別を自動判定するフェイスボタン配置モード名です。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Xbox" xml:space="preserve">
+    <value>Xbox</value>
+    <comment>Xbox スタイルのフェイスボタン配置モード名です。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStation" xml:space="preserve">
+    <value>PlayStation（○決定）</value>
+    <comment>○で決定し、×でキャンセルする PlayStation 配置モード名です。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStationCrossConfirm" xml:space="preserve">
+    <value>PlayStation（×決定）</value>
+    <comment>×で決定し、○でキャンセルする PlayStation 配置モード名です。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Nintendo" xml:space="preserve">
+    <value>Nintendo</value>
+    <comment>Nintendo スタイルのフェイスボタン配置モード名です。</comment>
   </data>
 </root>

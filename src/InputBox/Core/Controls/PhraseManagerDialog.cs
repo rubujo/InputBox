@@ -292,7 +292,10 @@ internal sealed class PhraseManagerDialog : Form
             AccessibleRole = AccessibleRole.Grouping
         };
 
-        _btnAdd = CreateActionButton(Strings.Phrase_Btn_Add, Strings.Phrase_A11y_Btn_Add_Desc, 'Y');
+        // profile 用於同步新增、刪除與關閉等操作按鈕的控制器標示與助記詞。
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
+        _btnAdd = CreateActionButton(profile.FormatMenuButtonText(Strings.Phrase_Btn_Add), Strings.Phrase_A11y_Btn_Add_Desc, profile.MenuMnemonic);
         _btnAdd.TabIndex = 1;
         _btnAdd.Click += (s, e) =>
         {
@@ -324,7 +327,7 @@ internal sealed class PhraseManagerDialog : Form
             }
         };
 
-        _btnDelete = CreateActionButton(Strings.Phrase_Btn_Delete, Strings.Phrase_A11y_Btn_Delete_Desc, 'X');
+        _btnDelete = CreateActionButton(profile.FormatDeleteButtonText(Strings.Phrase_Btn_Delete), Strings.Phrase_A11y_Btn_Delete_Desc, profile.DeleteMnemonic);
         _btnDelete.TabIndex = 3;
         _btnDelete.Click += (s, e) =>
         {
@@ -383,7 +386,7 @@ internal sealed class PhraseManagerDialog : Form
         // 底部關閉按鈕。
         _btnClose = new Button()
         {
-            Text = ControlExtensions.GetMnemonicText(Strings.Phrase_Btn_Close, 'B'),
+            Text = profile.FormatCancelButtonText(Strings.Phrase_Btn_Close),
             AutoSize = true,
             Anchor = AnchorStyles.Right,
             FlatStyle = FlatStyle.Flat,
@@ -488,7 +491,7 @@ internal sealed class PhraseManagerDialog : Form
                 this.SafeBeginInvoke(() =>
                 {
                     // 若目前仍有其他本應用程式視窗（例如子對話框）處於作用中，
-                    // 不應暫停同一支控制器，避免子視窗手把操作失效。
+                    // 不應暫停同一支控制器，避免子視窗控制器操作失效。
                     if (ActiveForm != null)
                     {
                         return;
@@ -1490,13 +1493,15 @@ internal sealed class PhraseManagerDialog : Form
         {
             if (_gamepadController != null)
             {
+                GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
                 _gamepadController.UpPressed += HandleUp;
                 _gamepadController.UpRepeat += HandleUp;
                 _gamepadController.DownPressed += HandleDown;
                 _gamepadController.DownRepeat += HandleDown;
-                _gamepadController.APressed += HandleGamepadA;
+                _gamepadController.APressed += profile.ConfirmOnSouth ? HandleGamepadA : HandleClose;
                 _gamepadController.StartPressed += HandleGamepadA;
-                _gamepadController.BPressed += HandleClose;
+                _gamepadController.BPressed += profile.ConfirmOnSouth ? HandleClose : HandleGamepadA;
                 _gamepadController.BackPressed += HandleClose;
                 _gamepadController.XPressed += HandleDelete;
                 _gamepadController.YPressed += HandleAdd;
@@ -1527,7 +1532,9 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.DownPressed -= HandleDown;
                 _gamepadController.DownRepeat -= HandleDown;
                 _gamepadController.APressed -= HandleGamepadA;
+                _gamepadController.APressed -= HandleClose;
                 _gamepadController.StartPressed -= HandleGamepadA;
+                _gamepadController.BPressed -= HandleGamepadA;
                 _gamepadController.BPressed -= HandleClose;
                 _gamepadController.BackPressed -= HandleClose;
                 _gamepadController.XPressed -= HandleDelete;

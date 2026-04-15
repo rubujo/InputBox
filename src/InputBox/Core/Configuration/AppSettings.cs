@@ -461,6 +461,37 @@ public class AppSettings
     }
 
     /// <summary>
+    /// 控制器 Face 鍵配置模式。
+    /// </summary>
+    public enum GamepadFaceButtonMode
+    {
+        /// <summary>
+        /// 自動依據執行期偵測結果決定配置。
+        /// </summary>
+        Auto = 0,
+
+        /// <summary>
+        /// Xbox 風格配置。
+        /// </summary>
+        Xbox = 1,
+
+        /// <summary>
+        /// PlayStation ○ 確認配置（右側確認、下側取消）。
+        /// </summary>
+        PlayStationTraditional = 2,
+
+        /// <summary>
+        /// Nintendo 配置。
+        /// </summary>
+        Nintendo = 3,
+
+        /// <summary>
+        /// PlayStation × 確認配置（下側確認、右側取消）。
+        /// </summary>
+        PlayStationCrossConfirm = 4
+    }
+
+    /// <summary>
     /// 封裝相互關聯的控制器設定，用於原子化更新快照
     /// </summary>
     public record GamepadConfigSnapshot(
@@ -486,12 +517,58 @@ public class AppSettings
     private volatile GamepadProvider _gamepadProviderType = GamepadProvider.XInput;
 
     /// <summary>
+    /// 遊戲控制器 Face 鍵配置模式（預設為 Auto）。
+    /// </summary>
+    private volatile GamepadFaceButtonMode _gamepadFaceButtonModeType = GamepadFaceButtonMode.Auto;
+
+    /// <summary>
+    /// 執行期偵測到的控制器名稱，用於 Auto 模式解析實際生效的配置。
+    /// </summary>
+    [JsonIgnore]
+    private volatile string _runtimeDetectedGamepadDeviceName = string.Empty;
+
+    /// <summary>
+    /// 執行期偵測到的控制器識別資訊，優先保留廠商/產品等較穩定的辨識線索。
+    /// </summary>
+    [JsonIgnore]
+    private volatile string _runtimeDetectedGamepadDeviceIdentity = string.Empty;
+
+    /// <summary>
     /// 遊戲控制器輸入 API
     /// </summary>
     public GamepadProvider GamepadProviderType
     {
         get => _gamepadProviderType;
         set => _gamepadProviderType = value;
+    }
+
+    /// <summary>
+    /// 遊戲控制器 Face 鍵配置模式。
+    /// </summary>
+    public GamepadFaceButtonMode GamepadFaceButtonModeType
+    {
+        get => _gamepadFaceButtonModeType;
+        set => _gamepadFaceButtonModeType = value;
+    }
+
+    /// <summary>
+    /// 執行期偵測到的控制器名稱，用於 Auto 模式解析顯示與功能對應。
+    /// </summary>
+    [JsonIgnore]
+    public string RuntimeDetectedGamepadDeviceName
+    {
+        get => _runtimeDetectedGamepadDeviceName;
+        set => _runtimeDetectedGamepadDeviceName = value ?? string.Empty;
+    }
+
+    /// <summary>
+    /// 執行期偵測到的控制器識別資訊，用於 Auto 模式優先套用較穩定的廠商/產品判斷。
+    /// </summary>
+    [JsonIgnore]
+    public string RuntimeDetectedGamepadDeviceIdentity
+    {
+        get => _runtimeDetectedGamepadDeviceIdentity;
+        set => _runtimeDetectedGamepadDeviceIdentity = value ?? string.Empty;
     }
 
     /// <summary>

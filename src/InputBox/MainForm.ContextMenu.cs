@@ -2,6 +2,7 @@
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
+using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
@@ -943,7 +944,84 @@ public partial class MainForm
         };
         tsmiProvider.DropDownItems.Add(tsmiResetProvider);
 
+        // Face 鍵配置子選單會同時顯示選單標題與目前生效的配置狀態。
+        string faceLayoutTitle = GamepadFaceButtonProfile.GetLayoutMenuTitleWithStatus();
+        string faceLayoutStatus = GamepadFaceButtonProfile.GetActiveLayoutStatusSummary();
+        ToolStripMenuItem tsmiFaceLayout = new(ControlExtensions.GetMnemonicText(faceLayoutTitle, 'L'))
+        {
+            Tag = new KeyValuePair<string, char>(Strings.Settings_GamepadFaceButtonLayout, 'L'),
+            AccessibleName = faceLayoutTitle,
+            AccessibleDescription = $"{Strings.A11y_Menu_Gamepad_Desc} {faceLayoutStatus}"
+        };
+
+        ToolStripMenuItem tsmiFaceLayoutStatus = new(faceLayoutStatus)
+        {
+            Tag = "GamepadFaceLayoutCurrentStatus",
+            Enabled = false,
+            AccessibleName = faceLayoutStatus,
+            AccessibleDescription = faceLayoutStatus
+        };
+        tsmiFaceLayout.DropDownItems.Add(tsmiFaceLayoutStatus);
+        tsmiFaceLayout.DropDownItems.Add(new ToolStripSeparator());
+
+        // 依序建立可供使用者選取的 Face 鍵配置選項，並同步處理狀態勾選與切換後的 UI 更新。
+        // 勾選狀態以「目前實際生效的配置」為準，避免 Auto 長期勾選卻與使用者眼前的控制器對應不一致。
+        AppSettings.GamepadFaceButtonMode checkedLayoutMode = GamepadFaceButtonProfile.GetActiveMenuCheckedMode();
+
+        void AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode mode)
+        {
+            char mnemonic = mode switch
+            {
+                AppSettings.GamepadFaceButtonMode.Auto => 'A',
+                AppSettings.GamepadFaceButtonMode.Xbox => 'X',
+                AppSettings.GamepadFaceButtonMode.PlayStationCrossConfirm => 'P',
+                AppSettings.GamepadFaceButtonMode.PlayStationTraditional => 'O',
+                AppSettings.GamepadFaceButtonMode.Nintendo => 'N',
+                _ => 'L',
+            };
+
+            string label = GamepadFaceButtonProfile.GetFriendlyModeName(mode);
+            ToolStripMenuItem item = new(ControlExtensions.GetMnemonicText(label, mnemonic))
+            {
+                Tag = mode,
+                CheckOnClick = true,
+                Checked = checkedLayoutMode == mode,
+                AccessibleName = label,
+                AccessibleDescription = Strings.A11y_Menu_Gamepad_Desc
+            };
+
+            item.Click += (s, e) =>
+            {
+                try
+                {
+                    if (AppSettings.Current.GamepadFaceButtonModeType != mode)
+                    {
+                        AppSettings.Current.GamepadFaceButtonModeType = mode;
+                        AppSettings.Save();
+
+                        ApplyCurrentGamepadFaceButtonMode(announceProfileChange: true);
+                    }
+
+                    RefreshMenu();
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.LogException(ex, $"Face Button Layout [{mode}] 選取失敗");
+                    Debug.WriteLine($"[選單] Face Button Layout {mode} 選取失敗：{ex.Message}");
+                }
+            };
+
+            tsmiFaceLayout.DropDownItems.Add(item);
+        }
+
+        AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.Auto);
+        AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.Xbox);
+        AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.PlayStationCrossConfirm);
+        AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.PlayStationTraditional);
+        AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.Nintendo);
+
         tsmiGamepad.DropDownItems.Add(tsmiProvider);
+        tsmiGamepad.DropDownItems.Add(tsmiFaceLayout);
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
 
         // Deadzone & Repeat。
@@ -1383,55 +1461,83 @@ public partial class MainForm
                 string? fullText = null;
 
                 // 根據標籤名稱從 AppSettings 讀取最新值並更新文字。
-                if (label == Strings.Settings_WindowRestoreDelay)
+                string? currentValueText = null;
+
+                if (mi.Tag is AppSettings.GamepadFaceButtonMode faceLayoutMode)
                 {
-                    fullText = $"{label}: {AppSettings.Current.WindowRestoreDelay}";
+                    fullText = GamepadFaceButtonProfile.GetFriendlyModeName(faceLayoutMode);
+                    mi.Checked = GamepadFaceButtonProfile.GetActiveMenuCheckedMode() == faceLayoutMode;
+                }
+                else if (label == Strings.Settings_WindowRestoreDelay)
+                {
+                    currentValueText = AppSettings.Current.WindowRestoreDelay.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_ClipboardRetryDelay)
                 {
-                    fullText = $"{label}: {AppSettings.Current.ClipboardRetryDelay}";
+                    currentValueText = AppSettings.Current.ClipboardRetryDelay.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_TouchKeyboardDismissDelay)
                 {
-                    fullText = $"{label}: {AppSettings.Current.TouchKeyboardDismissDelay}";
+                    currentValueText = AppSettings.Current.TouchKeyboardDismissDelay.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_WindowSwitchBufferBase)
                 {
-                    fullText = $"{label}: {AppSettings.Current.WindowSwitchBufferBase}";
+                    currentValueText = AppSettings.Current.WindowSwitchBufferBase.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_ThumbDeadzoneEnter)
                 {
-                    fullText = $"{label}: {AppSettings.Current.ThumbDeadzoneEnter}";
+                    currentValueText = AppSettings.Current.ThumbDeadzoneEnter.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_ThumbDeadzoneExit)
                 {
-                    fullText = $"{label}: {AppSettings.Current.ThumbDeadzoneExit}";
+                    currentValueText = AppSettings.Current.ThumbDeadzoneExit.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_RepeatDelay)
                 {
-                    fullText = $"{label}: {AppSettings.Current.RepeatInitialDelayFrames}";
+                    currentValueText = AppSettings.Current.RepeatInitialDelayFrames.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_RepeatSpeed)
                 {
-                    fullText = $"{label}: {AppSettings.Current.RepeatIntervalFrames}";
+                    currentValueText = AppSettings.Current.RepeatIntervalFrames.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_HistoryCapacity)
                 {
-                    fullText = string.Format(Strings.Menu_Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity);
+                    currentValueText = AppSettings.Current.HistoryCapacity.ToString();
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_VibrationIntensity)
                 {
-                    // 格式化為小數點後一位（如 1.0），增進視覺一致性。
-                    fullText = $"{label}: {AppSettings.Current.VibrationIntensity:F2}";
+                    // 格式化為小數點後兩位（如 1.00），增進視覺一致性。
+                    currentValueText = AppSettings.Current.VibrationIntensity.ToString("F2");
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
                 }
                 else if (label == Strings.Settings_WindowOpacity)
                 {
-                    fullText = $"{label}: {AppSettings.Current.WindowOpacity:P0}";
+                    currentValueText = AppSettings.Current.WindowOpacity.ToString("P0");
+                    fullText = ControlExtensions.GetLabelValueText(label, currentValueText);
 
                     mi.AccessibleDescription = string.Format(
                         Strings.A11y_Menu_OpacityDesc,
                         label,
                         AppSettings.Current.WindowOpacity);
+                }
+                else if (label == Strings.Settings_GamepadFaceButtonLayout)
+                {
+                    fullText = GamepadFaceButtonProfile.GetLayoutMenuTitleWithStatus();
+                    mi.AccessibleDescription = $"{Strings.A11y_Menu_Gamepad_Desc} {GamepadFaceButtonProfile.GetActiveLayoutStatusSummary()}";
+                }
+                else if (label == "GamepadFaceLayoutCurrentStatus")
+                {
+                    fullText = GamepadFaceButtonProfile.GetActiveLayoutStatusSummary();
+                    mi.AccessibleDescription = fullText;
                 }
 
                 if (fullText != null)
@@ -1453,11 +1559,12 @@ public partial class MainForm
                     // 如果具備範圍資訊，動態生成詳細描述。
                     if (mi.Tag is MenuMetadata { Min: not null, Max: not null } rangeMeta)
                     {
-                        string currentStr = label == Strings.Settings_VibrationIntensity ?
-                            AppSettings.Current.VibrationIntensity.ToString("F2") :
-                            (label == Strings.Settings_WindowOpacity ?
-                                AppSettings.Current.WindowOpacity.ToString("P0") :
-                                fullText.Split(':').Last().Trim());
+                        string currentStr = currentValueText ??
+                            (label == Strings.Settings_VibrationIntensity ?
+                                AppSettings.Current.VibrationIntensity.ToString("F2") :
+                                (label == Strings.Settings_WindowOpacity ?
+                                    AppSettings.Current.WindowOpacity.ToString("P0") :
+                                    string.Empty));
 
                         mi.AccessibleDescription = string.Format(
                             Strings.A11y_Menu_NumericDesc,

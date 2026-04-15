@@ -1,6 +1,7 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
+using InputBox.Core.Input;
 using InputBox.Core.Services;
 using InputBox.Core.Utilities;
 using InputBox.Resources;
@@ -51,7 +52,7 @@ public partial class MainForm
     {
         // 視窗基礎屬性（標題由末尾的 UpdateTitle 統一處理）。
         AccessibleName = Strings.A11y_MainFormName;
-        AccessibleDescription = Strings.A11y_MainFormDesc;
+        AccessibleDescription = GamepadFaceButtonProfile.GetActiveMainFormDescription();
 
         // 佈局容器。
         TLPHost.AccessibleName = Strings.A11y_Layout_Main;
@@ -66,7 +67,7 @@ public partial class MainForm
         _lblInput?.Text = Strings.A11y_TBInputName;
 
         // 按鈕控制項。
-        BtnCopy.Text = ControlExtensions.GetMnemonicText(Strings.Btn_CopyDefault, 'A');
+        BtnCopy.Text = GamepadFaceButtonProfile.GetActiveProfile().FormatConfirmButtonText(Strings.Btn_CopyDefault);
         BtnCopy.AccessibleName = Strings.Btn_CopyDefault;
         BtnCopy.AccessibleDescription = Strings.A11y_BtnCopyDesc;
 

@@ -182,8 +182,8 @@
     <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press A or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use X to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + B for quick return. Press LB + RB + X to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
-    <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations.</comment>
+    <value>Press {0} or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use {1} to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
+    <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations. {0} is confirm, {1} is delete, {2} is cancel, and {3} is delete for the exit shortcut.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>Returning to previous window.</value>
@@ -256,6 +256,14 @@
   <data name="App_Title" xml:space="preserve">
     <value>InputBox</value>
     <comment>Application name used in window titles and message dialogs.</comment>
+  </data>
+  <data name="App_GamepadLayout_Suffix" xml:space="preserve">
+    <value>[Face Buttons: {0}]</value>
+    <comment>Short title-bar suffix showing the currently active face-button layout. {0} is the layout name.</comment>
+  </data>
+  <data name="App_GamepadLayout_Auto_Suffix" xml:space="preserve">
+    <value>[Face Buttons: {0} → {1}]</value>
+    <comment>Short title-bar suffix showing that Auto mode resolved to a specific effective face-button layout. {0} is the Auto label and {1} is the effective layout name.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>Copy to clipboard</value>
@@ -1192,11 +1200,51 @@ Back + ↑ / ↓	Adjust window opacity (±5%)</value>
     <comment>Accessible label for the question icon in GamepadMessageBox. Prepended to AccessibleDescription when MessageBoxIcon.Question is shown.</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
-    <value>Message dialog. Press A for the primary action, B to cancel.</value>
+    <value>Message dialog. Use the hints below.</value>
     <comment>Accessible description for GamepadMessageBox. Announced by screen readers when the dialog opens.</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
-    <value>A: {0} · B: {1}</value>
-    <comment>Gamepad hint label in GamepadMessageBox. {0} = primary action label, {1} = cancel action label.</comment>
+    <value>{0} · {1}</value>
+    <comment>Gamepad hint label in GamepadMessageBox. {0} = primary action hint text, {1} = cancel action hint text.</comment>
+  </data>
+  <data name="A11y_Gamepad_Profile_Applied" xml:space="preserve">
+    <value>Using {0} face buttons.</value>
+    <comment>Accessibility announcement confirming the active controller face-button layout. {0} is the layout name such as Xbox or PlayStation.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout" xml:space="preserve">
+    <value>Face Buttons</value>
+    <comment>Label for the controller settings submenu that selects the face-button layout style.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Auto" xml:space="preserve">
+    <value>Current: {0} ({1})</value>
+    <comment>Status summary for the active face-button layout when automatic detection is being used. {0} is the effective layout name and {1} is the Auto label.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Manual" xml:space="preserve">
+    <value>Current: {0}</value>
+    <comment>Status summary for the active face-button layout when the user manually selected a specific mode. {0} is the effective layout name.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_TitleWithStatus" xml:space="preserve">
+    <value>{0} [{1}]</value>
+    <comment>Submenu title format showing the face-button layout title plus the current effective layout name. {0} is the submenu title and {1} is the effective layout.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Auto" xml:space="preserve">
+    <value>Auto</value>
+    <comment>Face-button layout mode label that automatically detects the controller style when possible.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Xbox" xml:space="preserve">
+    <value>Xbox</value>
+    <comment>Face-button layout mode label for Xbox-style confirm and cancel mapping.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStation" xml:space="preserve">
+    <value>PlayStation (○ Confirm)</value>
+    <comment>Face-button layout mode label for the PlayStation circle-confirm mapping.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStationCrossConfirm" xml:space="preserve">
+    <value>PlayStation (× Confirm)</value>
+    <comment>Face-button layout mode label for the PlayStation cross-confirm mapping.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Nintendo" xml:space="preserve">
+    <value>Nintendo</value>
+    <comment>Face-button layout mode label for Nintendo-style face-button labeling.</comment>
   </data>
 </root>

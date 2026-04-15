@@ -349,6 +349,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Using {0} face buttons. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Gamepad_Profile_Applied {
+            get {
+                return ResourceManager.GetString("A11y_Gamepad_Profile_Applied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Contains the numeric input field and increment/decrement buttons. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Grid_Numeric_Desc {
@@ -412,7 +421,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press A or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use X to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + B for quick return. Press LB + RB + X to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
+        ///   查詢類似 Press {0} or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use {1} to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -934,6 +943,24 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 [Face Buttons: {0} → {1}] 的當地語系化字串。
+        /// </summary>
+        internal static string App_GamepadLayout_Auto_Suffix {
+            get {
+                return ResourceManager.GetString("App_GamepadLayout_Auto_Suffix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 [Face Buttons: {0}] 的當地語系化字串。
+        /// </summary>
+        internal static string App_GamepadLayout_Suffix {
+            get {
+                return ResourceManager.GetString("App_GamepadLayout_Suffix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似  (🔒) 的當地語系化字串。
         /// </summary>
         internal static string App_Privacy_Suffix {
@@ -1116,7 +1143,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Message dialog. Press A for the primary action, B to cancel. 的當地語系化字串。
+        ///   查詢類似 Message dialog. Use the hints below. 的當地語系化字串。
         /// </summary>
         internal static string GmBox_A11y_Dialog_Desc {
             get {
@@ -1125,7 +1152,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 A: {0} · B: {1} 的當地語系化字串。
+        ///   查詢類似 {0} · {1} 的當地語系化字串。
         /// </summary>
         internal static string GmBox_A11y_Hint {
             get {
@@ -2345,6 +2372,87 @@ namespace InputBox.Resources {
         internal static string Settings_ClipboardRetryDelay {
             get {
                 return ResourceManager.GetString("Settings_ClipboardRetryDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Face Buttons 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonLayout {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Current: {0} ({1}) 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonLayout_Current_Auto {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonLayout_Current_Auto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Current: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonLayout_Current_Manual {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonLayout_Current_Manual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 {0} [{1}] 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonLayout_TitleWithStatus {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonLayout_TitleWithStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Auto 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonMode_Auto {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonMode_Auto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Nintendo 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonMode_Nintendo {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonMode_Nintendo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 PlayStation (○ Confirm) 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonMode_PlayStation {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonMode_PlayStation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 PlayStation (× Confirm) 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonMode_PlayStationCrossConfirm {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonMode_PlayStationCrossConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Xbox 的當地語系化字串。
+        /// </summary>
+        internal static string Settings_GamepadFaceButtonMode_Xbox {
+            get {
+                return ResourceManager.GetString("Settings_GamepadFaceButtonMode_Xbox", resourceCulture);
             }
         }
         

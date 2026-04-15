@@ -148,9 +148,11 @@ internal sealed class PhraseEditDialog : Form
 
             if (_gamepadController != null)
             {
-                _gamepadController.APressed += HandleGamepadA;
+                GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
+                _gamepadController.APressed += profile.ConfirmOnSouth ? HandleGamepadA : HandleBackOrClear;
                 _gamepadController.StartPressed += HandleOpenTouchKeyboardFromGamepad;
-                _gamepadController.BPressed += HandleBackOrClear;
+                _gamepadController.BPressed += profile.ConfirmOnSouth ? HandleBackOrClear : HandleGamepadA;
                 _gamepadController.BackPressed += HandleCancel;
                 _gamepadController.LeftPressed += HandleLeft;
                 _gamepadController.LeftRepeat += HandleLeft;
@@ -346,9 +348,12 @@ internal sealed class PhraseEditDialog : Form
             AccessibleRole = AccessibleRole.Grouping
         };
 
+        // profile 用於同步片語編輯對話框中的確認／取消按鈕提示與目前控制器配置。
+        GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
+
         _btnCancel = new Button()
         {
-            Text = ControlExtensions.GetMnemonicText(Strings.Phrase_Btn_Cancel, 'B'),
+            Text = profile.FormatCancelButtonText(Strings.Phrase_Btn_Cancel),
             AutoSize = true,
             FlatStyle = FlatStyle.Flat,
             DialogResult = DialogResult.Cancel,
@@ -364,7 +369,7 @@ internal sealed class PhraseEditDialog : Form
 
         _btnOk = new Button()
         {
-            Text = ControlExtensions.GetMnemonicText(Strings.Phrase_Btn_Confirm, 'A'),
+            Text = profile.FormatConfirmButtonText(Strings.Phrase_Btn_Confirm),
             AutoSize = true,
             FlatStyle = FlatStyle.Flat,
             // 重要：確認按鈕不可直接回傳 OK，必須先經過 HandleConfirm 驗證。
@@ -1601,7 +1606,9 @@ internal sealed class PhraseEditDialog : Form
             if (_gamepadController != null)
             {
                 _gamepadController.APressed -= HandleGamepadA;
+                _gamepadController.APressed -= HandleBackOrClear;
                 _gamepadController.StartPressed -= HandleOpenTouchKeyboardFromGamepad;
+                _gamepadController.BPressed -= HandleGamepadA;
                 _gamepadController.BPressed -= HandleBackOrClear;
                 _gamepadController.BackPressed -= HandleCancel;
                 _gamepadController.LeftPressed -= HandleLeft;

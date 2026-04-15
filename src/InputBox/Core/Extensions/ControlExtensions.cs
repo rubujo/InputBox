@@ -368,6 +368,50 @@ public static class ControlExtensions
     }
 
     /// <summary>
+    /// 依目前語系產生標籤與數值之間的顯示文字，並套用符合習慣的冒號樣式。
+    /// </summary>
+    /// <param name="label">標籤文字。</param>
+    /// <param name="value">數值或內容文字。</param>
+    /// <returns>格式化後的顯示文字。</returns>
+    public static string GetLabelValueText(string label, object? value)
+    {
+        string valueText = value?.ToString() ?? string.Empty;
+
+        return UseWideColon() ?
+            $"{label}：{valueText}" :
+            $"{label}: {valueText}";
+    }
+
+    /// <summary>
+    /// 依目前語系產生控制器提示文字，例如「A：確定」或「A: Confirm」。
+    /// </summary>
+    /// <param name="mnemonic">對應的助記鍵字母。</param>
+    /// <param name="actionText">對應的動作文字。</param>
+    /// <returns>格式化後的提示文字。</returns>
+    public static string GetActionHintText(char mnemonic, string actionText)
+    {
+        char upperMnemonic = char.ToUpperInvariant(mnemonic);
+
+        return UseWideColon() ?
+            $"{upperMnemonic}：{actionText}" :
+            $"{upperMnemonic}: {actionText}";
+    }
+
+    /// <summary>
+    /// 判斷目前 UI 語系是否偏好使用全形冒號。
+    /// </summary>
+    /// <returns>若應使用全形冒號則為 true。</returns>
+    private static bool UseWideColon()
+    {
+        string cultureName = string.IsNullOrWhiteSpace(Resources.Strings.Culture?.Name) ?
+            CultureInfo.CurrentUICulture.Name :
+            Resources.Strings.Culture!.Name;
+
+        return cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ||
+            cultureName.StartsWith("ja", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// 判斷目前控制項是否處於深色模式（Dark Mode）
     /// </summary>
     /// <param name="control">要檢查的控制項</param>

@@ -16,6 +16,32 @@ partial class DesignerBlocker { };
 public partial class MainForm
 {
     /// <summary>
+    /// Face 鍵的實體方位，用於在不同控制器模式下統一轉譯為應用程式功能。
+    /// </summary>
+    private enum GamepadFacePhysicalButton
+    {
+        /// <summary>
+        /// 面部按鍵的下方位置。
+        /// </summary>
+        South,
+
+        /// <summary>
+        /// 面部按鍵的右側位置。
+        /// </summary>
+        East,
+
+        /// <summary>
+        /// 面部按鍵的左側位置。
+        /// </summary>
+        West,
+
+        /// <summary>
+        /// 面部按鍵的上方位置。
+        /// </summary>
+        North
+    }
+
+    /// <summary>
     /// 追蹤 Back 鍵是否已作為組合鍵使用（用於防止放開時觸發返回動作）
     /// </summary>
     private bool _isBackUsedAsModifier = false;
@@ -114,6 +140,86 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 解析目前生效的 Face 鍵配置，並同步更新執行期偵測到的裝置名稱與穩定識別資訊。
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    /// <returns>目前生效的 Face 鍵配置描述。</returns>
+    private static GamepadFaceButtonProfile ResolveGamepadFaceButtonProfile(IGamepadController? controller)
+    {
+        // UI 顯示仍使用較友善的裝置名稱；Auto 判斷則額外保留較穩定的識別資訊。
+        AppSettings.Current.RuntimeDetectedGamepadDeviceName = controller?.IsConnected == true ?
+            controller.DeviceName :
+            string.Empty;
+        AppSettings.Current.RuntimeDetectedGamepadDeviceIdentity = controller?.IsConnected == true ?
+            controller.DeviceIdentity :
+            string.Empty;
+
+        return GamepadFaceButtonProfile.GetActiveProfile();
+    }
+
+    /// <summary>
+    /// 在使用者調整控制器模式或裝置連線狀態改變後，重新套用相關顯示文字與助記詞。
+    /// </summary>
+    /// <param name="announceProfileChange">是否播報配置模式已變更。</param>
+    private void ApplyCurrentGamepadFaceButtonMode(bool announceProfileChange = false)
+    {
+        GamepadFaceButtonProfile profile = ResolveGamepadFaceButtonProfile(_gamepadController);
+
+        ApplyLocalization();
+
+        if (announceProfileChange &&
+            _lastAnnouncedGamepadFaceButtonMode != profile.EffectiveLayout)
+        {
+            _lastAnnouncedGamepadFaceButtonMode = profile.EffectiveLayout;
+            AnnounceA11y(GamepadFaceButtonProfile.GetLayoutAppliedAnnouncement(profile.EffectiveLayout), interrupt: true);
+        }
+    }
+
+    /// <summary>
+    /// 將實體 Face 鍵按壓轉譯為目前配置下的應用程式功能。
+    /// </summary>
+    /// <param name="controller">目前控制器實例。</param>
+    /// <param name="physicalButton">被按下的實體按鍵方位。</param>
+    private void HandleFaceButtonAction(IGamepadController controller, GamepadFacePhysicalButton physicalButton)
+    {
+        GamepadFaceButtonProfile profile = ResolveGamepadFaceButtonProfile(controller);
+
+        switch (physicalButton)
+        {
+            case GamepadFacePhysicalButton.South:
+                if (profile.ConfirmOnSouth)
+                {
+                    ExecuteGamepadConfirmIfAllowed();
+                }
+                else
+                {
+                    HandleBButtonAction(controller);
+                }
+
+                return;
+            case GamepadFacePhysicalButton.East:
+                if (profile.ConfirmOnSouth)
+                {
+                    HandleBButtonAction(controller);
+                }
+                else
+                {
+                    ExecuteGamepadConfirmIfAllowed();
+                }
+
+                return;
+            case GamepadFacePhysicalButton.West:
+                HandleXButtonAction(controller);
+
+                return;
+            case GamepadFacePhysicalButton.North:
+                OpenContextMenuFromGamepadIfAllowed();
+
+                return;
+        }
+    }
+
+    /// <summary>
     /// 建立控制器事件與 MainForm 行為的對映表
     /// </summary>
     /// <param name="controller">目前控制器實例。</param>
@@ -154,17 +260,17 @@ public partial class MainForm
             OnStartPressed: CreateSafeGamepadActionHandler(
                 ExecuteGamepadShowKeyboardIfAllowed),
             OnAPressed: CreateSafeGamepadActionHandler(
-                ExecuteGamepadConfirmIfAllowed),
+                () => HandleFaceButtonAction(controller, GamepadFacePhysicalButton.South)),
             OnBPressed: CreateSafeGamepadActionHandler(
-                () => HandleBButtonAction(controller)),
+                () => HandleFaceButtonAction(controller, GamepadFacePhysicalButton.East)),
             OnYPressed: CreateSafeGamepadActionHandler(
-                OpenContextMenuFromGamepadIfAllowed),
+                () => HandleFaceButtonAction(controller, GamepadFacePhysicalButton.North)),
             OnRSLeftPressed: CreateRightStickSelectionHandler(-1, "RSLeftPressed"),
             OnRSLeftRepeat: CreateRightStickSelectionHandler(-1, "RSLeftRepeat"),
             OnRSRightPressed: CreateRightStickSelectionHandler(1, "RSRightPressed"),
             OnRSRightRepeat: CreateRightStickSelectionHandler(1, "RSRightRepeat"),
             OnXPressed: CreateSafeGamepadActionHandler(
-                () => HandleXButtonAction(controller)));
+                () => HandleFaceButtonAction(controller, GamepadFacePhysicalButton.West)));
     }
 
     /// <summary>
@@ -581,10 +687,14 @@ public partial class MainForm
 
         _lastGamepadConnectedState = true;
 
+        GamepadFaceButtonProfile profile = ResolveGamepadFaceButtonProfile(controller);
+        _lastAnnouncedGamepadFaceButtonMode = profile.EffectiveLayout;
+
+        ApplyCurrentGamepadFaceButtonMode();
         UpdateTitle();
 
         AnnounceA11y(
-            string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName));
+            $"{string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName)} {GamepadFaceButtonProfile.GetLayoutAppliedAnnouncement(profile.EffectiveLayout)}");
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
@@ -617,10 +727,14 @@ public partial class MainForm
 
                 _lastGamepadConnectedState = isConnected;
 
+                GamepadFaceButtonProfile profile = ResolveGamepadFaceButtonProfile(isConnected ? controller : null);
+                _lastAnnouncedGamepadFaceButtonMode = profile.EffectiveLayout;
+                ApplyCurrentGamepadFaceButtonMode();
+
                 // 多模態回饋（Multi-Modal Feedback）：
                 // 確保視障、聽障、視聽雙障的使用者皆能透過至少一種通道感知狀態變更。
                 string msg = isConnected ?
-                    string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName) :
+                    $"{string.Format(Strings.A11y_Gamepad_Connected, controller.DeviceName)} {GamepadFaceButtonProfile.GetLayoutAppliedAnnouncement(profile.EffectiveLayout)}" :
                     string.Format(Strings.A11y_Gamepad_Disconnected, controller.DeviceName);
 
                 AnnounceA11y(msg);

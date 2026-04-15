@@ -182,8 +182,8 @@
     <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn eine neue Tastenkombination erfolgreich abgerufen wurde. {0} ist die festgelegte Tastenkombinationszeichenfolge.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Drücken Sie A oder Start, um die Bildschirmtastatur zu öffnen, wenn das Eingabefeld leer ist. Wenn bereits Text vorhanden ist, wird er kopiert und Sie kehren zum vorherigen Fenster zurück. Mit X löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Drücken Sie Zurück, um zurückzukehren. Drücken Sie LB + RB + B für eine schnelle Rückkehr. Drücken Sie LB + RB + X, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
-    <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen.</comment>
+    <value>Drücken Sie {0} oder Start, um die Bildschirmtastatur zu öffnen, wenn das Eingabefeld leer ist. Wenn bereits Text vorhanden ist, wird er kopiert und Sie kehren zum vorherigen Fenster zurück. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Drücken Sie Zurück, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
+    <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen. {0} ist Bestätigen, {1} ist Löschen, {2} ist Abbrechen und {3} ist die Löschtaste für den Beenden-Kurzbefehl.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>Zurück zum vorherigen Fenster.</value>
@@ -256,6 +256,14 @@
   <data name="App_Title" xml:space="preserve">
     <value>Eingabefeld</value>
     <comment>Anwendungsname, der für Fenstertitel und Meldungsdialogfelder verwendet wird.</comment>
+  </data>
+  <data name="App_GamepadLayout_Suffix" xml:space="preserve">
+    <value>[Face-Buttons: {0}]</value>
+    <comment>Kurzer Titelzusatz für das aktuell aktive Face-Button-Layout. {0} ist der Layoutname.</comment>
+  </data>
+  <data name="App_GamepadLayout_Auto_Suffix" xml:space="preserve">
+    <value>[Face-Buttons: {0} → {1}]</value>
+    <comment>Kurzer Titelzusatz, wenn der Automatikmodus auf ein wirksames Face-Button-Layout aufgelöst wurde. {0} ist die Auto-Bezeichnung und {1} der Layoutname.</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>In Zwischenablage kopieren</value>
@@ -1192,11 +1200,51 @@ Zurück + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <comment>Barrierefreiheitsbezeichnung des GamepadMessageBox-Symbols bei der Anzeige von MessageBoxIcon.Question, angehängt vor der Beschreibung der Barrierefreiheit.</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
-    <value>Nachrichtendialog. Drücken Sie A für die primäre Aktion, B zum Abbrechen.</value>
+    <value>Nachrichtendialog. Verwenden Sie die Hinweise unten zum Bestätigen oder Abbrechen.</value>
     <comment>Die Barrierefreiheitsbeschreibung der GamepadMessageBox, die von Bildschirmleseprogrammen vorgelesen wird, wenn das Dialogfeld geöffnet wird.</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
-    <value>A: {0} · B: {1}</value>
-    <comment>Die Eingabeaufforderungsbezeichnung der GamepadMessageBox am Lenker. {0} ist das Hauptaktions-Tag und {1} ist das Stornierungsaktions-Tag.</comment>
+    <value>{0} · {1}</value>
+    <comment>Die Hinweisbeschriftung der GamepadMessageBox. {0} ist der Primärhinweis und {1} der Abbruchhinweis.</comment>
+  </data>
+  <data name="A11y_Gamepad_Profile_Applied" xml:space="preserve">
+    <value>{0}-Face-Buttons aktiv.</value>
+    <comment>Barrierefreiheitsansage für das aktuell aktive Face-Button-Layout. {0} ist der Layoutname wie Xbox oder PlayStation.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout" xml:space="preserve">
+    <value>Face-Buttons</value>
+    <comment>Titel des Untermenüs zur Auswahl des Face-Button-Layouts.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Auto" xml:space="preserve">
+    <value>Aktiv: {0} ({1})</value>
+    <comment>Status des aktiven Face-Button-Layouts bei automatischer Erkennung. {0} ist der wirksame Layoutname und {1} die Auto-Bezeichnung.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Manual" xml:space="preserve">
+    <value>Aktiv: {0}</value>
+    <comment>Status des aktiven Face-Button-Layouts bei manueller Auswahl. {0} ist der wirksame Layoutname.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_TitleWithStatus" xml:space="preserve">
+    <value>{0} [{1}]</value>
+    <comment>Format des Untermenütitels, das den Titel des Face-Button-Layouts zusammen mit dem aktuell wirksamen Layout zeigt. {0} ist der Menütitel und {1} das aktuelle Layout.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Auto" xml:space="preserve">
+    <value>Automatisch</value>
+    <comment>Bezeichnung für den Face-Button-Modus, der den Controllertyp nach Möglichkeit automatisch erkennt.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Xbox" xml:space="preserve">
+    <value>Xbox</value>
+    <comment>Bezeichnung für das Face-Button-Layout im Xbox-Stil.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStation" xml:space="preserve">
+    <value>PlayStation (○ Bestätigen)</value>
+    <comment>Bezeichnung für das PlayStation-Layout mit ○ zum Bestätigen und × zum Abbrechen.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStationCrossConfirm" xml:space="preserve">
+    <value>PlayStation (× Bestätigen)</value>
+    <comment>Bezeichnung für das PlayStation-Layout mit × zum Bestätigen und ○ zum Abbrechen.</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Nintendo" xml:space="preserve">
+    <value>Nintendo</value>
+    <comment>Bezeichnung für das Face-Button-Layout im Nintendo-Stil.</comment>
   </data>
 </root>

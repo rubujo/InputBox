@@ -18,6 +18,7 @@
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載） | 12 |
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意與原生對話框切換時的殘留輸入回歸保護 | 5 |
+| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆蓋優先權，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 13 |
 | `GamepadMappedDirectionGuardTests` | `GamepadMappedDirectionGuard` 全方向幽靈保護的封鎖／解除節奏 | 2 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
@@ -27,12 +28,13 @@
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
-| `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框與基本複製流程的 UI 冒煙測試 | 8 |
+| `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框、程式內確認重啟後主視窗保持前景，以及基本複製流程的 UI 冒煙測試 | 9 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出與併發暫存檔誤刪回歸保護 | 37 |
+| `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護 | 3 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **248** |
+| **合計** | | **257** |
 
 ## 二、執行方式 🚀
 

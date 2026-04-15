@@ -182,8 +182,8 @@
     <comment>無障礙訊息，當新的快速鍵擷取成功時播放。{0} 是設定後的快速鍵字串。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>空文字時按 A 或 Start 開啟鍵盤，有文字時複製並返回。按 X 刪除，方向鍵移動游標或歷程記錄。按 Back 返回。LB + RB + B 快速返回。LB + RB + X 結束程式。鍵盤：Enter 複製／開啟，Esc 清除，上下鍵切換歷程記錄，Alt + B 返回。</value>
-    <comment>主視窗的無障礙詳細描述，解釋各種控制器與鍵盤的操作方式。</comment>
+    <value>空文字時按 {0} 或 Start 開啟鍵盤，有文字時複製並返回。按 {1} 刪除，方向鍵移動游標或歷程記錄。按 Back 返回。LB + RB + {2} 快速返回。LB + RB + {3} 結束程式。鍵盤：Enter 複製／開啟，Esc 清除，上下鍵切換歷程記錄，Alt + B 返回。</value>
+    <comment>主視窗的無障礙詳細描述，解釋各種控制器與鍵盤的操作方式。{0} 為確認鍵，{1} 為刪除鍵，{2} 為取消鍵，{3} 為結束快速鍵中的刪除鍵。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
     <value>正在返回前一個視窗。</value>
@@ -256,6 +256,14 @@
   <data name="App_Title" xml:space="preserve">
     <value>輸入框</value>
     <comment>應用程式名稱，用於視窗標題與訊息對話框。</comment>
+  </data>
+  <data name="App_GamepadLayout_Suffix" xml:space="preserve">
+    <value>[主按鍵配置：{0}]</value>
+    <comment>主畫面標題列的簡短後綴，顯示目前生效的主按鍵配置。{0} 為配置名稱。</comment>
+  </data>
+  <data name="App_GamepadLayout_Auto_Suffix" xml:space="preserve">
+    <value>[主按鍵配置：{0}→{1}]</value>
+    <comment>主畫面標題列的簡短後綴，顯示自動模式實際解析成的主按鍵配置。{0} 為「自動」標籤，{1} 為實際配置名稱。</comment>
   </data>
   <data name="Btn_CopyDefault" xml:space="preserve">
     <value>複製到剪貼簿</value>
@@ -660,11 +668,11 @@
     <comment>震動開關項目的無障礙描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_Desc" xml:space="preserve">
-    <value>選擇控制器輸入的底層 API（GameInput 或 XInput）。</value>
+    <value>選擇遊戲控制器輸入的底層 API（GameInput 或 XInput）。</value>
     <comment>API 提供者項目的無障礙描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_GameInput_Desc" xml:space="preserve">
-    <value>使用微軟現代 GameInput API。建議現代控制器使用。</value>
+    <value>使用微軟現代 GameInput API。建議現代遊戲控制器使用。</value>
     <comment>GameInput 提供者選項的存取描述。</comment>
   </data>
   <data name="A11y_Menu_Provider_XInput_Desc" xml:space="preserve">
@@ -1192,11 +1200,51 @@ Back + ↑／↓	調整視窗透明度（±5%）</value>
     <comment>GamepadMessageBox 顯示 MessageBoxIcon.Question 時的圖示無障礙標籤，附加於無障礙描述之前。</comment>
   </data>
   <data name="GmBox_A11y_Dialog_Desc" xml:space="preserve">
-    <value>訊息對話框。按 A 執行主要動作，按 B 取消。</value>
+    <value>訊息對話框。請依下方提示選擇主要動作或取消。</value>
     <comment>GamepadMessageBox 的無障礙描述，對話框開啟時由螢幕閱讀器播報。</comment>
   </data>
   <data name="GmBox_A11y_Hint" xml:space="preserve">
-    <value>A: {0} · B: {1}</value>
-    <comment>GamepadMessageBox 的手把提示標籤。{0} 為主要動作標籤，{1} 為取消動作標籤。</comment>
+    <value>{0} · {1}</value>
+    <comment>GamepadMessageBox 的控制器提示標籤。{0} 為主要動作提示，{1} 為取消動作提示。</comment>
+  </data>
+  <data name="A11y_Gamepad_Profile_Applied" xml:space="preserve">
+    <value>已啟用 {0} 配置。</value>
+    <comment>無障礙播報：通知目前已套用哪一種控制器主按鍵配置。{0} 為配置名稱，例如 Xbox 或 PlayStation。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout" xml:space="preserve">
+    <value>控制器主按鍵配置</value>
+    <comment>控制器設定中，用來選擇控制器主按鍵配置樣式的子選單標題。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Auto" xml:space="preserve">
+    <value>目前配置：{0}（{1}）</value>
+    <comment>自動模式下顯示目前生效的控制器主按鍵配置摘要。{0} 為實際配置名稱，{1} 為「自動」標籤。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_Current_Manual" xml:space="preserve">
+    <value>目前配置：{0}</value>
+    <comment>手動指定模式時顯示目前生效的控制器主按鍵配置摘要。{0} 為實際配置名稱。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonLayout_TitleWithStatus" xml:space="preserve">
+    <value>{0} [{1}]</value>
+    <comment>控制器主按鍵子選單標題格式，顯示選單名稱與目前生效的配置名稱。{0} 為選單標題，{1} 為目前配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Auto" xml:space="preserve">
+    <value>自動</value>
+    <comment>控制器主按鍵配置模式名稱：可行時依控制器自動判斷。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Xbox" xml:space="preserve">
+    <value>Xbox</value>
+    <comment>控制器主按鍵配置模式名稱：採用 Xbox 風格的確認／取消配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStation" xml:space="preserve">
+    <value>PlayStation（○ 確認）</value>
+    <comment>控制器主按鍵配置模式名稱：採用 PlayStation 的 ○ 確認／× 取消配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_PlayStationCrossConfirm" xml:space="preserve">
+    <value>PlayStation（× 確認）</value>
+    <comment>控制器主按鍵配置模式名稱：採用 PlayStation 的 × 確認／○ 取消配置。</comment>
+  </data>
+  <data name="Settings_GamepadFaceButtonMode_Nintendo" xml:space="preserve">
+    <value>Nintendo</value>
+    <comment>控制器主按鍵配置模式名稱：採用 Nintendo 風格的按鍵標示。</comment>
   </data>
 </root>

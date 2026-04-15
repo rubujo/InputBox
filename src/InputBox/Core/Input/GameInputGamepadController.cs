@@ -285,7 +285,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     //   • 當估計誤差（rawValue − currentBias）落在 BiasAdaptiveErrorRange 以內時，
     //     學習率從 Base 線性插值至 Max，誤差越大學習越快（快速收斂）。
     //   • 當誤差接近 0 時，退回 Base（保守維持），避免把有效輸入誤學成硬體偏移。
-    //   • 不同手把硬體偏移量不同；此機制讓程式自動適應，無需手動調整。
+    //   • 不同控制器硬體偏移量不同；此機制讓程式自動適應，無需手動調整。
 
     /// <summary>
     /// 左搖桿 X 軸：偏移估計的最低保守學習率（誤差接近 0 時使用）。
@@ -362,9 +362,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private string _cachedDeviceName = string.Empty;
 
     /// <summary>
+    /// 快取的裝置識別資訊，包含穩定的 VID/PID 與產品資訊，用於更可靠的配置判斷。
+    /// </summary>
+    private string _cachedDeviceIdentity = string.Empty;
+
+    /// <summary>
     /// 快取的震動支援狀態，用於快速判斷是否可送出震動命令。
     /// </summary>
     private bool _supportsRumble = false;
+
     /// <summary>
     /// 熱負載估算倍率（依支援馬達數量調整，2 馬達約 2.0、4 馬達約 4.0）。
     /// </summary>
@@ -432,6 +438,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 取得目前使用的裝置名稱
     /// </summary>
     public string DeviceName => string.Format(Strings.App_Gamepad_Suffix, _cachedDeviceName);
+
+    /// <summary>
+    /// 取得目前裝置的偵測識別資訊，優先保留穩定的硬體廠商/產品線索。
+    /// </summary>
+    public string DeviceIdentity => _cachedDeviceIdentity;
 
     /// <summary>
     /// 當控制器連線狀態改變時觸發（true: 已連線, false: 已斷開）
@@ -1623,6 +1634,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         if (dev == null)
         {
             _cachedDeviceName = string.Empty;
+            _cachedDeviceIdentity = string.Empty;
 
             _supportsRumble = false;
             _rumbleThermalWeight = 2.0;
@@ -1640,29 +1652,38 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             int supportedMotorCount = BitOperations.PopCount(supportedMotorBits);
             _rumbleThermalWeight = Math.Clamp(supportedMotorCount, 1, 4);
 
-            // 更新裝置名稱。
+            // 更新裝置名稱與穩定識別資訊。業界實務上會優先使用 VID/PID 或產品家族資訊，
+            // 再把易變動的藍牙/接收器顯示名稱當成備援。
             string displayName = string.Empty;
 
-            if (UsbIds.TryGetVendorName(info.VendorId, out string vendorName))
+            // 保留 GameInput 原始顯示名稱，供 USB 名稱查詢失敗或比對時作為補充線索。
+            string fallbackDisplayName = info.GetDisplayName() ?? "Unknown Gamepad";
+
+            if (UsbIds.TryGetVendorName(info.VendorId, out string? vendorName) &&
+                !string.IsNullOrWhiteSpace(vendorName))
             {
                 displayName = $"{vendorName} ";
             }
 
-            if (UsbIds.TryGetProductName(info.VendorId, info.ProductId, out string productName))
+            if (UsbIds.TryGetProductName(info.VendorId, info.ProductId, out string? productName) &&
+                !string.IsNullOrWhiteSpace(productName))
             {
-                displayName += $"{productName}";
+                displayName += productName;
             }
             else
             {
-                displayName += info.GetDisplayName();
+                displayName += fallbackDisplayName;
             }
 
+            displayName = string.IsNullOrWhiteSpace(displayName) ? fallbackDisplayName : displayName.Trim();
             _cachedDeviceName = displayName;
+            _cachedDeviceIdentity = $"VID_{info.VendorId:X4} PID_{info.ProductId:X4} {displayName} {fallbackDisplayName}".Trim();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[GameInput] 取得裝置資訊失敗，使用預設值：{ex.Message}");
             _cachedDeviceName = "Unknown Gamepad";
+            _cachedDeviceIdentity = _cachedDeviceName;
             _supportsRumble = false;
             _rumbleThermalWeight = 2.0;
         }
