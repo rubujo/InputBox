@@ -29,12 +29,12 @@
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
 | `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框、程式內確認重啟後主視窗保持前景，以及基本複製流程的 UI 冒煙測試 | 9 |
-| `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出與併發暫存檔誤刪回歸保護 | 37 |
+| `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出、併發暫存檔誤刪，以及持久化失敗時的記憶體回滾回歸保護 | 39 |
 | `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護 | 3 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **257** |
+| **合計** | | **259** |
 
 ## 二、執行方式 🚀
 

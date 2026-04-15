@@ -127,6 +127,11 @@ internal sealed class PhraseService
     private readonly Lock PhraseLock = new();
 
     /// <summary>
+    /// 序列化片語異動與持久化流程的交易鎖，避免多個寫入交錯造成回滾覆蓋。
+    /// </summary>
+    private readonly Lock PhrasePersistenceLock = new();
+
+    /// <summary>
     /// 片語清單
     /// </summary>
     private readonly List<PhraseEntry> _phrases = [];
@@ -218,50 +223,103 @@ internal sealed class PhraseService
     public void Save() => TrySave();
 
     /// <summary>
-    /// 嘗試將片語儲存至磁碟，回傳是否成功
+    /// 嘗試將片語儲存至磁碟，回傳是否成功。
     /// </summary>
     /// <returns>若成功寫入片語檔則為 true，否則為 false。</returns>
     private bool TrySave()
     {
-        string json;
-
-        lock (PhraseLock)
+        lock (PhrasePersistenceLock)
         {
-            json = JsonSerializer.Serialize(_phrases, Options);
-        }
+            string json;
 
-        // 使用唯一 GUID 暫存檔名進行原子寫入，避免與其他片語保存流程發生碰撞。
+            lock (PhraseLock)
+            {
+                json = JsonSerializer.Serialize(_phrases, Options);
+            }
+
+            return TryWriteJsonToPath(PhrasePath, json, "片語檔儲存失敗");
+        }
+    }
+
+    /// <summary>
+    /// 在單一交易內套用片語異動並嘗試持久化；若持久化失敗則回滾記憶體狀態。
+    /// </summary>
+    /// <param name="mutation">對片語清單套用的異動函式；回傳 false 表示前置條件不符。</param>
+    /// <returns>若異動與持久化皆成功則為 true，否則為 false。</returns>
+    private bool TryMutateAndPersist(Func<List<PhraseEntry>, bool> mutation)
+    {
+        lock (PhrasePersistenceLock)
+        {
+            List<PhraseEntry> snapshot;
+            string json;
+
+            lock (PhraseLock)
+            {
+                snapshot = [.. _phrases];
+
+                if (!mutation(_phrases))
+                {
+                    return false;
+                }
+
+                json = JsonSerializer.Serialize(_phrases, Options);
+            }
+
+            if (TryWriteJsonToPath(PhrasePath, json, "片語檔儲存失敗"))
+            {
+                return true;
+            }
+
+            lock (PhraseLock)
+            {
+                _phrases.Clear();
+                _phrases.AddRange(snapshot);
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 將指定 JSON 內容原子寫入目標路徑，並在失敗時回傳 false。
+    /// </summary>
+    /// <param name="filePath">目標檔案完整路徑。</param>
+    /// <param name="json">要寫入的 JSON 內容。</param>
+    /// <param name="logContext">記錄例外時使用的描述文字。</param>
+    /// <returns>若成功寫入則為 true，否則為 false。</returns>
+    private static bool TryWriteJsonToPath(string filePath, string json, string logContext)
+    {
         string tempPath = Path.Combine(
-            AppSettings.ConfigDirectory,
-            $"{Path.GetFileName(PhrasePath)}.{Guid.NewGuid():N}.tmp");
+            Path.GetDirectoryName(filePath) ?? AppSettings.ConfigDirectory,
+            $"{Path.GetFileName(filePath)}.{Guid.NewGuid():N}.tmp");
 
         RegisterActivePhraseTempFile(tempPath);
 
         try
         {
-            if (!Directory.Exists(AppSettings.ConfigDirectory))
+            string? directory = Path.GetDirectoryName(filePath);
+
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
-                Directory.CreateDirectory(AppSettings.ConfigDirectory);
+                Directory.CreateDirectory(directory);
             }
 
             File.WriteAllText(tempPath, json, Utf8NoBom);
 
-            // 記錄最後一次 I/O 失敗原因，供所有重試都失敗時回報。
             Exception? lastIoException = null;
-            // 以指數退避降低防毒、同步工具或其他程序短暫鎖檔帶來的衝突。
             int delayMs = 20;
 
             for (int attempt = 1; attempt <= 5; attempt++)
             {
                 try
                 {
-                    if (File.Exists(PhrasePath))
+                    if (File.Exists(filePath))
                     {
-                        File.Replace(tempPath, PhrasePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                        File.Replace(tempPath, filePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
                     }
                     else
                     {
-                        File.Move(tempPath, PhrasePath);
+                        File.Move(tempPath, filePath);
                     }
 
                     tempPath = string.Empty;
@@ -280,21 +338,19 @@ internal sealed class PhraseService
                 }
             }
 
-            throw lastIoException ?? new IOException("片語檔替換失敗。");
+            throw lastIoException ?? new IOException("JSON 檔替換失敗。");
         }
         catch (Exception ex)
         {
-            LoggerService.LogException(ex, "片語檔儲存失敗");
-
-            Debug.WriteLine($"[片語] 儲存失敗：{ex.Message}");
-
+            LoggerService.LogException(ex, logContext);
+            Debug.WriteLine($"[片語] {logContext}：{ex.Message}");
             return false;
         }
         finally
         {
             UnregisterActivePhraseTempFile(tempPath);
             TryDeletePhraseTempFile(tempPath);
-            CleanupPhraseTempFiles();
+            CleanupPhraseTempFiles(filePath);
         }
     }
 
@@ -455,21 +511,19 @@ internal sealed class PhraseService
             return false;
         }
 
-        lock (PhraseLock)
+        return TryMutateAndPersist(phrases =>
         {
-            if (_phrases.Count >= AppSettings.MaxPhraseCount)
+            if (phrases.Count >= AppSettings.MaxPhraseCount)
             {
                 return false;
             }
 
-            _phrases.Add(new PhraseEntry(
+            phrases.Add(new PhraseEntry(
                 name.Length > AppSettings.MaxPhraseNameLength ? name[..AppSettings.MaxPhraseNameLength] : name,
                 content.Length > AppSettings.MaxInputLength ? content[..AppSettings.MaxInputLength] : content));
-        }
 
-        Save();
-
-        return true;
+            return true;
+        });
     }
 
     /// <summary>
@@ -487,22 +541,20 @@ internal sealed class PhraseService
             return false;
         }
 
-        lock (PhraseLock)
+        return TryMutateAndPersist(phrases =>
         {
             if (index < 0 ||
-                index >= _phrases.Count)
+                index >= phrases.Count)
             {
                 return false;
             }
 
-            _phrases[index] = new PhraseEntry(
+            phrases[index] = new PhraseEntry(
                 name.Length > AppSettings.MaxPhraseNameLength ? name[..AppSettings.MaxPhraseNameLength] : name,
                 content.Length > AppSettings.MaxInputLength ? content[..AppSettings.MaxInputLength] : content);
-        }
 
-        Save();
-
-        return true;
+            return true;
+        });
     }
 
     /// <summary>
@@ -512,20 +564,17 @@ internal sealed class PhraseService
     /// <returns>是否成功</returns>
     public bool Remove(int index)
     {
-        lock (PhraseLock)
+        return TryMutateAndPersist(phrases =>
         {
             if (index < 0 ||
-                index >= _phrases.Count)
+                index >= phrases.Count)
             {
                 return false;
             }
 
-            _phrases.RemoveAt(index);
-        }
-
-        Save();
-
-        return true;
+            phrases.RemoveAt(index);
+            return true;
+        });
     }
 
     /// <summary>
@@ -535,20 +584,17 @@ internal sealed class PhraseService
     /// <returns>是否成功</returns>
     public bool MoveUp(int index)
     {
-        lock (PhraseLock)
+        return TryMutateAndPersist(phrases =>
         {
             if (index <= 0 ||
-                index >= _phrases.Count)
+                index >= phrases.Count)
             {
                 return false;
             }
 
-            (_phrases[index - 1], _phrases[index]) = (_phrases[index], _phrases[index - 1]);
-        }
-
-        Save();
-
-        return true;
+            (phrases[index - 1], phrases[index]) = (phrases[index], phrases[index - 1]);
+            return true;
+        });
     }
 
     /// <summary>
@@ -558,20 +604,17 @@ internal sealed class PhraseService
     /// <returns>是否成功</returns>
     public bool MoveDown(int index)
     {
-        lock (PhraseLock)
+        return TryMutateAndPersist(phrases =>
         {
             if (index < 0 ||
-                index >= _phrases.Count - 1)
+                index >= phrases.Count - 1)
             {
                 return false;
             }
 
-            (_phrases[index], _phrases[index + 1]) = (_phrases[index + 1], _phrases[index]);
-        }
-
-        Save();
-
-        return true;
+            (phrases[index], phrases[index + 1]) = (phrases[index + 1], phrases[index]);
+            return true;
+        });
     }
 
     /// <summary>
@@ -616,69 +659,9 @@ internal sealed class PhraseService
             json = JsonSerializer.Serialize(_phrases, Options);
         }
 
-        string tempPath = Path.Combine(
-            Path.GetDirectoryName(filePath) ?? string.Empty,
-            $"{Path.GetFileName(filePath)}.{Guid.NewGuid():N}.tmp");
-
-        RegisterActivePhraseTempFile(tempPath);
-
-        try
-        {
-            string? dir = Path.GetDirectoryName(filePath);
-
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
-
-            File.WriteAllText(tempPath, json, Utf8NoBom);
-
-            Exception? lastIoException = null;
-            int delayMs = 20;
-
-            for (int attempt = 1; attempt <= 5; attempt++)
-            {
-                try
-                {
-                    if (File.Exists(filePath))
-                    {
-                        File.Replace(tempPath, filePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
-                    }
-                    else
-                    {
-                        File.Move(tempPath, filePath);
-                    }
-
-                    return new ExportOutcome(true, ExportError.None, count);
-                }
-                catch (IOException ex) when (attempt < 5)
-                {
-                    lastIoException = ex;
-                    Thread.Sleep(delayMs);
-                    delayMs *= 2;
-                }
-                catch (IOException ex)
-                {
-                    lastIoException = ex;
-                    break;
-                }
-            }
-
-            throw lastIoException ?? new IOException("片語匯出替換失敗。");
-        }
-        catch (Exception ex)
-        {
-            LoggerService.LogException(ex, "片語匯出失敗");
-            Debug.WriteLine($"[片語] 匯出失敗：{ex.Message}");
-
-            return new ExportOutcome(false, ExportError.Unknown);
-        }
-        finally
-        {
-            UnregisterActivePhraseTempFile(tempPath);
-            TryDeletePhraseTempFile(tempPath);
-            CleanupPhraseTempFiles(filePath);
-        }
+        return TryWriteJsonToPath(filePath, json, "片語匯出失敗")
+            ? new ExportOutcome(true, ExportError.None, count)
+            : new ExportOutcome(false, ExportError.Unknown);
     }
 
     /// <summary>

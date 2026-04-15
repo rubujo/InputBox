@@ -160,6 +160,24 @@ public sealed class PhraseServiceTests : IDisposable
         Assert.Equal(AppSettings.MaxPhraseCount, svc.Count);
     }
 
+    /// <summary>
+    /// 當片語檔被其他程序鎖定導致持久化失敗時，Add() 應回傳 false 並回復記憶體中的清單狀態。
+    /// </summary>
+    [Fact]
+    public void Add_WhenPersistenceFails_ReturnsFalseAndRollsBackInMemoryState()
+    {
+        var svc = new PhraseService();
+        File.WriteAllText(PhrasePath, "[]", System.Text.Encoding.UTF8);
+
+        using var lockStream = new FileStream(PhrasePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        bool result = svc.Add("locked", "content");
+
+        Assert.False(result);
+        Assert.Equal(0, svc.Count);
+        Assert.Empty(svc.Phrases);
+    }
+
     // ── Update ───────────────────────────────────────────────────────────
 
     /// <summary>
@@ -262,6 +280,24 @@ public sealed class PhraseServiceTests : IDisposable
         svc.Update(0, "initial", longContent);
 
         Assert.Equal(AppSettings.MaxInputLength, svc.Phrases[0].Content.Length);
+    }
+
+    /// <summary>
+    /// 當片語檔被鎖定導致持久化失敗時，Update() 應回傳 false 並保留原本的片語內容。
+    /// </summary>
+    [Fact]
+    public void Update_WhenPersistenceFails_ReturnsFalseAndRestoresOriginalEntry()
+    {
+        var svc = new PhraseService();
+        Assert.True(svc.Add("原始名稱", "原始內容"));
+
+        using var lockStream = new FileStream(PhrasePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        bool result = svc.Update(0, "新名稱", "新內容");
+
+        Assert.False(result);
+        Assert.Equal("原始名稱", svc.Phrases[0].Name);
+        Assert.Equal("原始內容", svc.Phrases[0].Content);
     }
 
     // ── Remove ───────────────────────────────────────────────────────────

@@ -1179,10 +1179,15 @@ public partial class MainForm
     /// </summary>
     private async Task RestoreForegroundAfterProgrammaticRestartAsync()
     {
+        CancellationToken cancellationToken = _formCts?.Token ?? CancellationToken.None;
+
         ShowAndActivateInputWindow();
 
+        // 先做一次較強的 Win32 前景恢復流程，必要時會暫時附加輸入執行緒。
+        _ = await WindowFocusService.RestoreWindowAsync(Handle, cancellationToken);
+
         // 以有限次數重試，兼顧可靠度與避免長時間干擾使用者目前操作。
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 8; i++)
         {
             if (IsDisposed ||
                 !IsHandleCreated)
@@ -1198,6 +1203,8 @@ public partial class MainForm
                     return;
                 }
 
+                _ = User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
+                _ = User32.BringWindowToTop(Handle);
                 _ = User32.SetForegroundWindow(Handle);
                 BringToFront();
                 Activate();
@@ -1217,7 +1224,7 @@ public partial class MainForm
 
             try
             {
-                await Task.Delay(60, _formCts?.Token ?? CancellationToken.None);
+                await Task.Delay(100, cancellationToken);
             }
             catch (OperationCanceledException)
             {

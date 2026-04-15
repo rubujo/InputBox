@@ -770,14 +770,52 @@ public sealed class MainFormUiSmokeTests : IDisposable
                 continue;
             }
 
-            string elementName = childElement.Name ?? string.Empty;
-            if (elementName.Contains(labelText, StringComparison.CurrentCultureIgnoreCase))
+            if (MenuLabelMatches(childElement.Name, labelText))
             {
                 return childElement;
             }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 比對選單項目名稱與目標標籤，允許助記鍵或省略號等 UI 裝飾，但避免子字串誤判。
+    /// </summary>
+    /// <param name="elementName">UIA 取得的實際選單名稱。</param>
+    /// <param name="labelText">來自資源檔的目標標籤文字。</param>
+    /// <returns>若兩者代表同一個選單項目則為 <see langword="true" />。</returns>
+    private static bool MenuLabelMatches(string? elementName, string labelText)
+    {
+        string normalizedElementName = NormalizeMenuLabel(elementName);
+        string normalizedLabelText = NormalizeMenuLabel(labelText);
+
+        if (string.IsNullOrEmpty(normalizedElementName) ||
+            string.IsNullOrEmpty(normalizedLabelText))
+        {
+            return false;
+        }
+
+        return string.Equals(normalizedElementName, normalizedLabelText, StringComparison.CurrentCultureIgnoreCase) ||
+            normalizedElementName.StartsWith(normalizedLabelText + " (", StringComparison.CurrentCultureIgnoreCase) ||
+            normalizedElementName.StartsWith(normalizedLabelText + "...", StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    /// <summary>
+    /// 正規化選單標籤，移除助記符號並統一省略號表示法，供 UI smoke test 比對使用。
+    /// </summary>
+    /// <param name="text">原始標籤文字。</param>
+    /// <returns>正規化後的標籤。</returns>
+    private static string NormalizeMenuLabel(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        return text.Replace("&", string.Empty, StringComparison.Ordinal)
+            .Replace("…", "...", StringComparison.Ordinal)
+            .Trim();
     }
 
     /// <summary>

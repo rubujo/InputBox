@@ -30,6 +30,10 @@ public static partial class User32
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool AllowSetForegroundWindow(int processId);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool AttachThreadInput(uint idAttach, uint idAttachTo, [MarshalAs(UnmanagedType.Bool)] bool attach);
 
     [LibraryImport("user32.dll")]
@@ -164,6 +168,11 @@ public static partial class User32
         /// </summary>
         NoRepeat = 0x4000
     }
+
+    /// <summary>
+    /// 允許任意前景程序在目前互動鏈內呼叫 SetForegroundWindow。
+    /// </summary>
+    public const int AllowSetForegroundWindowAnyProcess = -1;
 
     /// <summary>
     /// 取得目前前景視窗的控制代碼

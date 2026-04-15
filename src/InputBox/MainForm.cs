@@ -1096,6 +1096,7 @@ public partial class MainForm : Form
             Strings.Wrn_Title,
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question,
+            MessageBoxDefaultButton.Button2,
             gamepad: _gamepadController) == DialogResult.Yes)
         {
             // 標記為程式內部重啟，避免在舊實例退場時把焦點空窗誤捕捉為返回目標。
@@ -1103,6 +1104,10 @@ public partial class MainForm : Form
 
             // 為下一個重啟後的執行個體建立一次性前景啟用請求，降低焦點跳回前一個視窗的機率。
             RestartActivationCoordinator.Shared.RequestActivationOnNextLaunch();
+
+            // 由目前前景執行個體主動授權新的重啟程序可呼叫 SetForegroundWindow，
+            // 提升 Hosted Runner 與桌面自動化環境下的前景恢復成功率。
+            _ = User32.AllowSetForegroundWindow(User32.AllowSetForegroundWindowAnyProcess);
 
             // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
             FeedbackService.EmergencyStopAllActiveControllers();
