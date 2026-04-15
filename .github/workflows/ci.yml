@@ -142,7 +142,10 @@ jobs:
       if: always() && steps.ui_smoke.outcome == 'failure'
       run: |
         "## ⚠️ UI 冒煙測試未通過" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-        "此工作為報告用途，不阻擋主建置與一般單元測試；請下載 Artifact 檢查擷圖與診斷資訊。" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "此工作為報告用途，不阻擋主建置與一般單元測試；請下載 Artifact 進行排查。" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "- Artifact 名稱：ui-smoke-artifacts" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "- 優先檢查：桌面擷圖 PNG 與診斷 TXT" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "- 診斷 TXT 會包含 lastStep、applicationWindows 與 openMenus 摘要，可直接定位卡住步驟。" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
     - name: 上傳 UI 冒煙測試失敗產物（Artifacts）
       if: always() && steps.ui_smoke.outcome == 'failure'

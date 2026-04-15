@@ -8,6 +8,7 @@ using InputBox.Core.Interop;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Globalization;
 using Xunit;
 using Xunit.Sdk;
 
@@ -34,6 +35,11 @@ public sealed class MainFormUiSmokeTests : IDisposable
     /// 受測應用程式的主視窗。
     /// </summary>
     private readonly Window? _mainWindow;
+
+    /// <summary>
+    /// 最近一次成功完成的 UI 操作步驟，供失敗 Artifact 診斷使用。
+    /// </summary>
+    private string _lastUiStep = "UI smoke test initialized.";
 
     /// <summary>
     /// 建構子：在符合前置條件時啟動受測 WinForms 應用程式。
@@ -362,6 +368,16 @@ public sealed class MainFormUiSmokeTests : IDisposable
     }
 
     /// <summary>
+    /// 記錄目前正在執行的 UI 步驟，供失敗診斷輸出最後成功進度。
+    /// </summary>
+    /// <param name="stepDescription">目前完成或正在進行的步驟描述。</param>
+    private void MarkStep(string stepDescription)
+    {
+        _lastUiStep = $"{DateTime.UtcNow:O} | {stepDescription}";
+        Console.WriteLine($"[UI Smoke] {stepDescription}");
+    }
+
+    /// <summary>
     /// 將受測主視窗帶到前景並取得焦點，避免桌面自動化誤作用到編輯器或其他程式。
     /// </summary>
     private void ActivateMainWindow()
@@ -424,10 +440,16 @@ public sealed class MainFormUiSmokeTests : IDisposable
     /// <returns>成功找到的對話框視窗。</returns>
     private Window FindDialogWindowByTitle(string dialogTitle, string failureMessage)
     {
-        return WaitForWindow(
+        MarkStep($"Waiting for dialog: {dialogTitle}");
+
+        Window dialogWindow = WaitForWindow(
             () => TryFindDialogWindowByTitle(dialogTitle),
             TimeSpan.FromSeconds(10),
             failureMessage);
+
+        MarkStep($"Dialog ready: {dialogTitle}");
+
+        return dialogWindow;
     }
 
     /// <summary>
@@ -521,6 +543,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
 
         for (int attempt = 0; attempt < 3; attempt++)
         {
+            MarkStep($"Opening context menu (attempt {attempt + 1}).");
             ActivateMainWindow();
 
             try
@@ -536,6 +559,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
             AutomationElement? contextMenu = TryWaitForElement(TryFindContextMenu, TimeSpan.FromSeconds(3));
             if (contextMenu != null)
             {
+                MarkStep("Context menu opened.");
                 return contextMenu;
             }
         }
@@ -902,7 +926,9 @@ public sealed class MainFormUiSmokeTests : IDisposable
     {
         try
         {
+            MarkStep($"{testName}: started");
             testAction();
+            MarkStep($"{testName}: completed");
         }
         catch (Exception exception)
         {
@@ -940,6 +966,12 @@ public sealed class MainFormUiSmokeTests : IDisposable
             $"test={testName}",
             $"utc={DateTime.UtcNow:O}",
             $"windowTitle={windowTitle}",
+            $"lastStep={_lastUiStep}",
+            $"processId={_application?.ProcessId.ToString(CultureInfo.InvariantCulture) ?? "<null>"}",
+            $"osVersion={Environment.OSVersion}",
+            $"userInteractive={Environment.UserInteractive}",
+            $"culture={CultureInfo.CurrentCulture.Name}",
+            $"uiCulture={CultureInfo.CurrentUICulture.Name}",
             $"exception={exception}"
         ];
 
@@ -962,6 +994,11 @@ public sealed class MainFormUiSmokeTests : IDisposable
             diagnostics.Add($"screenshot-error={captureException}");
         }
 
+        diagnostics.Add("applicationWindows:");
+        diagnostics.AddRange(GetApplicationWindowDiagnostics());
+        diagnostics.Add("openMenus:");
+        diagnostics.AddRange(GetOpenMenuDiagnostics());
+
         File.WriteAllLines(diagnosticsPath, diagnostics);
         Console.WriteLine($"[UI Smoke] Failure diagnostics saved: {diagnosticsPath}");
     }
@@ -978,6 +1015,194 @@ public sealed class MainFormUiSmokeTests : IDisposable
         Directory.CreateDirectory(artifactDirectory);
 
         return artifactDirectory;
+    }
+
+    /// <summary>
+    /// 收集屬於受測 InputBox 行程的所有頂層視窗資訊，協助判斷失敗當下的視窗狀態。
+    /// </summary>
+    /// <returns>適合直接寫入 Artifact 文字檔的視窗描述清單。</returns>
+    private IEnumerable<string> GetApplicationWindowDiagnostics()
+    {
+        bool hasWindow = false;
+
+        foreach (AutomationElement windowElement in EnumerateApplicationWindows())
+        {
+            hasWindow = true;
+            yield return "  " + DescribeElement(windowElement);
+        }
+
+        if (!hasWindow)
+        {
+            yield return "  <none>";
+        }
+    }
+
+    /// <summary>
+    /// 收集目前已開啟且屬於 InputBox 的選單與其子項目摘要，方便追查選單互動失敗原因。
+    /// </summary>
+    /// <returns>適合直接寫入 Artifact 文字檔的選單描述清單。</returns>
+    private IEnumerable<string> GetOpenMenuDiagnostics()
+    {
+        if (_automation == null)
+        {
+            yield return "  <automation unavailable>";
+            yield break;
+        }
+
+        bool hasMenu = false;
+
+        foreach (AutomationElement menuElement in _automation.GetDesktop().FindAllDescendants(cf => cf.ByControlType(ControlType.Menu)))
+        {
+            if (!BelongsToApplication(menuElement))
+            {
+                continue;
+            }
+
+            hasMenu = true;
+            List<string> itemNames = [];
+
+            try
+            {
+                foreach (AutomationElement childElement in menuElement.FindAllChildren())
+                {
+                    if (childElement.ControlType == ControlType.MenuItem)
+                    {
+                        itemNames.Add(SafeGetElementName(childElement));
+                    }
+                }
+            }
+            catch (Exception menuException)
+            {
+                itemNames.Add($"<items unavailable: {menuException.GetType().Name}: {menuException.Message}>");
+            }
+
+            yield return $"  {DescribeElement(menuElement)} items=[{string.Join(" | ", itemNames)}]";
+        }
+
+        if (!hasMenu)
+        {
+            yield return "  <none>";
+        }
+    }
+
+    /// <summary>
+    /// 安全地描述 UI 元素的關鍵屬性，避免診斷流程再次因 UIA 逾時而失敗。
+    /// </summary>
+    /// <param name="element">要輸出的 UI 元素。</param>
+    /// <returns>包含名稱、AutomationId、類型、啟用狀態與行程識別碼的摘要字串。</returns>
+    private static string DescribeElement(AutomationElement? element)
+    {
+        return $"name={SafeGetElementName(element)}, automationId={SafeGetElementAutomationId(element)}, controlType={SafeGetElementControlType(element)}, enabled={SafeGetElementEnabled(element)}, processId={SafeGetElementProcessId(element)}";
+    }
+
+    /// <summary>
+    /// 安全取得 UI 元素名稱。
+    /// </summary>
+    /// <param name="element">要讀取名稱的元素。</param>
+    /// <returns>元素名稱；若不可用則回傳診斷用佔位字串。</returns>
+    private static string SafeGetElementName(AutomationElement? element)
+    {
+        if (element == null)
+        {
+            return "<null>";
+        }
+
+        try
+        {
+            return string.IsNullOrWhiteSpace(element.Name) ? "<empty>" : element.Name;
+        }
+        catch (Exception exception)
+        {
+            return $"<unavailable: {exception.GetType().Name}: {exception.Message}>";
+        }
+    }
+
+    /// <summary>
+    /// 安全取得 UI 元素的 AutomationId。
+    /// </summary>
+    /// <param name="element">要讀取 AutomationId 的元素。</param>
+    /// <returns>AutomationId；若不可用則回傳診斷用佔位字串。</returns>
+    private static string SafeGetElementAutomationId(AutomationElement? element)
+    {
+        if (element == null)
+        {
+            return "<null>";
+        }
+
+        try
+        {
+            return string.IsNullOrWhiteSpace(element.AutomationId) ? "<empty>" : element.AutomationId;
+        }
+        catch (Exception exception)
+        {
+            return $"<unavailable: {exception.GetType().Name}: {exception.Message}>";
+        }
+    }
+
+    /// <summary>
+    /// 安全取得 UI 元素控制項類型。
+    /// </summary>
+    /// <param name="element">要讀取類型的元素。</param>
+    /// <returns>控制項類型名稱；若不可用則回傳診斷用佔位字串。</returns>
+    private static string SafeGetElementControlType(AutomationElement? element)
+    {
+        if (element == null)
+        {
+            return "<null>";
+        }
+
+        try
+        {
+            return element.ControlType.ToString();
+        }
+        catch (Exception exception)
+        {
+            return $"<unavailable: {exception.GetType().Name}: {exception.Message}>";
+        }
+    }
+
+    /// <summary>
+    /// 安全取得 UI 元素是否啟用。
+    /// </summary>
+    /// <param name="element">要讀取狀態的元素。</param>
+    /// <returns>元素啟用狀態；若不可用則回傳診斷用佔位字串。</returns>
+    private static string SafeGetElementEnabled(AutomationElement? element)
+    {
+        if (element == null)
+        {
+            return "<null>";
+        }
+
+        try
+        {
+            return element.IsEnabled.ToString();
+        }
+        catch (Exception exception)
+        {
+            return $"<unavailable: {exception.GetType().Name}: {exception.Message}>";
+        }
+    }
+
+    /// <summary>
+    /// 安全取得 UI 元素的行程識別碼。
+    /// </summary>
+    /// <param name="element">要讀取行程識別碼的元素。</param>
+    /// <returns>行程識別碼；若不可用則回傳診斷用佔位字串。</returns>
+    private static string SafeGetElementProcessId(AutomationElement? element)
+    {
+        if (element == null)
+        {
+            return "<null>";
+        }
+
+        try
+        {
+            return element.Properties.ProcessId.Value.ToString(CultureInfo.InvariantCulture);
+        }
+        catch (Exception exception)
+        {
+            return $"<unavailable: {exception.GetType().Name}: {exception.Message}>";
+        }
     }
 
     /// <summary>

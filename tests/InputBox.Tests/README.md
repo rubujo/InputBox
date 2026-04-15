@@ -116,7 +116,9 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 當 UI 冒煙測試在 GitHub Actions 失敗時，流程會自動輸出：
 
 - 桌面擷圖 `.png`
-- 對應例外與視窗資訊 `.txt`
+- 對應例外與環境資訊 `.txt`
+- 最後成功步驟 `lastStep`
+- 屬於 InputBox 的 `applicationWindows` / `openMenus` 摘要
 
 並作為 Artifact 上傳，方便排查 GitHub Actions 的 Windows 執行環境中可能出現的偶發 UI 問題。
 
