@@ -111,17 +111,95 @@ jobs:
             Copy-Item -Path "ThirdPartyNotices.txt" -Destination $licensesDir
         }
 
-        # 3. 動態抓取 .NET 官方授權檔案。
+        # 3. 動態抓取 .NET 官方授權檔案（含最相近 Tag／分支 Fallback）。
         Write-Host "=== 開始動態下載 .NET 官方授權檔案 ==="
         $runtimeInfo = dotnet --list-runtimes
 
         $majorVersion = "${{ env.DOTNET_MAJOR_VERSION }}"
         $runtimeLine = $runtimeInfo | Where-Object { $_ -match "^Microsoft\.NETCore\.App ($majorVersion\.\d+\.\d+)" } | Select-Object -Last 1
+        $githubHeaders = @{
+            'User-Agent' = 'InputBox-Release-Workflow'
+            'X-GitHub-Api-Version' = '2022-11-28'
+        }
+
+        function Get-TagStageRank {
+            param([string]$TagName)
+
+            if ($TagName -match '(?i)preview') { return 3 }
+            if ($TagName -match '(?i)rc') { return 2 }
+            if ($TagName -match '(?i)rtm|servicing') { return 1 }
+            return 0
+        }
+
+        function Get-ClosestDotnetTag {
+            param(
+                [string]$Repo,
+                [version]$TargetVersion
+            )
+
+            $tagsApiUrl = "https://api.github.com/repos/dotnet/$Repo/tags?per_page=100"
+
+            try {
+                $tagResponse = Invoke-RestMethod -Uri $tagsApiUrl -Headers $githubHeaders -ErrorAction Stop
+            } catch {
+                Write-Warning "⚠️ 無法查詢 dotnet/$Repo 的 Tag 清單：$($_.Exception.Message)"
+                return $null
+            }
+
+            $candidates = foreach ($tagItem in $tagResponse) {
+                if ($tagItem.name -match '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)') {
+                    [pscustomobject]@{
+                        Name = $tagItem.name
+                        Major = [int]$Matches['major']
+                        Minor = [int]$Matches['minor']
+                        Patch = [int]$Matches['patch']
+                        StageRank = Get-TagStageRank -TagName $tagItem.name
+                    }
+                }
+            }
+
+            $nearest = $candidates |
+                Where-Object { $_.Major -eq $TargetVersion.Major -and $_.Minor -eq $TargetVersion.Minor } |
+                Sort-Object `
+                    @{ Expression = { [Math]::Abs($_.Patch - $TargetVersion.Build) } }, `
+                    @{ Expression = { $_.StageRank } }, `
+                    @{ Expression = { $_.Patch }; Descending = $true } |
+                Select-Object -First 1
+
+            return $nearest.Name
+        }
+
+        function Save-GitHubFileWithFallback {
+            param(
+                [string]$Repo,
+                [string[]]$Refs,
+                [string]$File,
+                [string]$OutPath
+            )
+
+            foreach ($ref in ($Refs | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)) {
+                $metadataUrl = "https://api.github.com/repos/dotnet/$Repo/contents/$File?ref=$([uri]::EscapeDataString($ref))"
+                Write-Host "嘗試下載：dotnet/$Repo@$ref -> $File"
+
+                try {
+                    $metadata = Invoke-RestMethod -Uri $metadataUrl -Headers $githubHeaders -ErrorAction Stop
+                    Invoke-WebRequest -Uri $metadata.download_url -OutFile $OutPath -Headers $githubHeaders -ErrorAction Stop
+                    Write-Host "✅ 成功儲存為 $(Split-Path $OutPath -Leaf)（來源：$ref）"
+                    return $true
+                } catch {
+                    Write-Warning "⚠️ 無法從 $ref 下載 $File，繼續嘗試下一個候選來源。"
+                }
+            }
+
+            return $false
+        }
 
         if ($runtimeLine -match "^Microsoft\.NETCore\.App (\d+\.\d+\.\d+)") {
             $version = $Matches[1]
             $tag = "v$version"
-            Write-Host "偵測到當前使用的 .NET Runtime 版本為：$version，對應 GitHub 標籤：$tag"
+            $targetVersion = [version]$version
+            $releaseBranch = "release/$($targetVersion.Major).$($targetVersion.Minor)"
+            Write-Host "偵測到目前使用的 .NET Runtime 版本為：$version，優先使用 GitHub 標籤：$tag"
 
             $filesToDownload = @(
                 @{ Repo = "runtime";  File = "LICENSE.TXT";             Out = "DOTNET_RUNTIME_LICENSE.txt" },
@@ -130,15 +208,23 @@ jobs:
                 @{ Repo = "winforms"; File = "THIRD-PARTY-NOTICES.TXT"; Out = "DOTNET_WINFORMS_THIRD_PARTY_NOTICES.txt" }
             )
 
+            $repoRefCandidates = @{}
+            foreach ($repoName in ($filesToDownload.Repo | Select-Object -Unique)) {
+                $closestTag = Get-ClosestDotnetTag -Repo $repoName -TargetVersion $targetVersion
+                if ($closestTag) {
+                    Write-Host "dotnet/$repoName 最相近的可用 Tag 候選：$closestTag"
+                } else {
+                    Write-Warning "⚠️ dotnet/$repoName 找不到符合 $($targetVersion.Major).$($targetVersion.Minor).x 的 Tag，將直接退回分支。"
+                }
+
+                $repoRefCandidates[$repoName] = @($tag, $closestTag, $releaseBranch, 'main')
+            }
+
             foreach ($item in $filesToDownload) {
-                $url = "https://raw.githubusercontent.com/dotnet/$($item.Repo)/$tag/$($item.File)"
                 $outPath = Join-Path $licensesDir $item.Out
-                Write-Host "嘗試下載: $url"
-                try {
-                    Invoke-WebRequest -Uri $url -OutFile $outPath -ErrorAction Stop
-                    Write-Host "✅ 成功儲存為 $($item.Out)"
-                } catch {
-                    Write-Warning "⚠️ 無法下載，可能該版本（$tag）無此檔案標籤。"
+                $downloaded = Save-GitHubFileWithFallback -Repo $item.Repo -Refs $repoRefCandidates[$item.Repo] -File $item.File -OutPath $outPath
+                if (-not $downloaded) {
+                    Write-Warning "⚠️ 最終仍無法取得 $($item.Out)。"
                 }
             }
         } else {
