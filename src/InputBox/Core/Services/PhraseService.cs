@@ -345,10 +345,10 @@ internal sealed class PhraseService
     /// </summary>
     /// <param name="tempPath">暫存檔路徑。</param>
     /// <returns>若為本服務建立的 GUID 暫存檔則為 true。</returns>
-    private static bool IsManagedPhraseTempFile(string tempPath)
+    private static bool IsManagedPhraseTempFile(string baseFilePath, string tempPath)
     {
         string fileName = Path.GetFileName(tempPath),
-            prefix = $"{Path.GetFileName(PhrasePath)}.";
+            prefix = $"{Path.GetFileName(baseFilePath)}.";
 
         if (!fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
             !fileName.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
@@ -390,20 +390,23 @@ internal sealed class PhraseService
     /// <summary>
     /// 清理片語目錄內殘留的片語暫存檔。
     /// </summary>
-    private static void CleanupPhraseTempFiles()
+    private static void CleanupPhraseTempFiles(string? baseFilePath = null)
     {
         try
         {
-            if (!Directory.Exists(AppSettings.ConfigDirectory))
+            string targetPath = string.IsNullOrWhiteSpace(baseFilePath) ? PhrasePath : baseFilePath;
+            string fullTargetPath = Path.GetFullPath(targetPath);
+            string directory = Path.GetDirectoryName(fullTargetPath) ?? AppSettings.ConfigDirectory;
+            string tempFilePattern = $"{Path.GetFileName(fullTargetPath)}*.tmp";
+
+            if (!Directory.Exists(directory))
             {
                 return;
             }
 
             DateTime utcNow = DateTime.UtcNow;
 
-            foreach (string tempPathForCleanup in Directory.GetFiles(
-                AppSettings.ConfigDirectory,
-                PhraseTempFilePattern))
+            foreach (string tempPathForCleanup in Directory.GetFiles(directory, tempFilePattern))
             {
                 try
                 {
@@ -412,7 +415,7 @@ internal sealed class PhraseService
                         continue;
                     }
 
-                    bool isManagedTempFile = IsManagedPhraseTempFile(tempPathForCleanup);
+                    bool isManagedTempFile = IsManagedPhraseTempFile(fullTargetPath, tempPathForCleanup);
 
                     if (!isManagedTempFile &&
                         utcNow - File.GetLastWriteTimeUtc(tempPathForCleanup) < PhraseTempCleanupGracePeriod)
@@ -617,6 +620,8 @@ internal sealed class PhraseService
             Path.GetDirectoryName(filePath) ?? string.Empty,
             $"{Path.GetFileName(filePath)}.{Guid.NewGuid():N}.tmp");
 
+        RegisterActivePhraseTempFile(tempPath);
+
         try
         {
             string? dir = Path.GetDirectoryName(filePath);
@@ -666,30 +671,13 @@ internal sealed class PhraseService
             LoggerService.LogException(ex, "片語匯出失敗");
             Debug.WriteLine($"[片語] 匯出失敗：{ex.Message}");
 
-            try
-            {
-                string directory = Path.GetDirectoryName(filePath) ?? string.Empty;
-
-                if (!string.IsNullOrEmpty(directory))
-                {
-                    foreach (string tempFile in Directory.GetFiles(
-                        directory,
-                        $"{Path.GetFileName(filePath)}*.tmp"))
-                    {
-                        File.Delete(tempFile);
-                    }
-                }
-                else if (File.Exists(tempPath))
-                {
-                    File.Delete(tempPath);
-                }
-            }
-            catch (Exception cleanupEx)
-            {
-                Debug.WriteLine($"[片語] 匯出暫存檔清理失敗，已忽略：{cleanupEx.Message}");
-            }
-
             return new ExportOutcome(false, ExportError.Unknown);
+        }
+        finally
+        {
+            UnregisterActivePhraseTempFile(tempPath);
+            TryDeletePhraseTempFile(tempPath);
+            CleanupPhraseTempFiles(filePath);
         }
     }
 
