@@ -1,8 +1,13 @@
-# InputBox.Tests
+# InputBox.Tests 🧪
 
-InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
+[![作業系統](https://img.shields.io/badge/作業系統-Windows-003A6D?style=for-the-badge)](https://www.microsoft.com/windows)
+[![.NET](https://img.shields.io/badge/Runtime-.NET%2010-512BD4?logo=dotnet&logoColor=white&style=for-the-badge)](https://dotnet.microsoft.com/)
+[![測試框架](https://img.shields.io/badge/Test%20Framework-xUnit%20v3-5C2D91?style=for-the-badge)](https://xunit.net/)
+[![UI%20Smoke](https://img.shields.io/badge/Desktop%20UI-FlaUI-2E8B57?style=for-the-badge)](https://github.com/FlaUI/FlaUI)
 
-## 測試範圍
+本文件說明 InputBox 測試專案的覆蓋範圍、執行方式、UI 冒煙測試與第三方測試相依授權揭露。
+
+## 一、測試範圍 📋
 
 | 測試類別 | 被測目標 | 測試數 |
 |---|---|---|
@@ -22,13 +27,14 @@ InputBox 的單元測試專案，使用 [xUnit v3](https://xunit.net/) 撰寫。
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD | 13 |
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
+| `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框與基本複製流程的 UI 冒煙測試 | 8 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出與併發暫存檔誤刪回歸保護 | 37 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **240** |
+| **合計** | | **248** |
 
-## 執行測試
+## 二、執行方式 🚀
 
 ```powershell
 dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
@@ -44,14 +50,23 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosi
 
 ```powershell
 dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
+		--filter-not-trait "Category=UI" `
 		--coverage `
 		--coverage-output-format cobertura `
 		--coverage-output coverage.cobertura.xml
 ```
 
-## 注意事項
+執行 UI 冒煙測試（需顯式啟用，避免一般開發時誤啟動桌面應用程式）：
 
-### Microsoft Testing Platform
+```powershell
+$env:INPUTBOX_RUN_UI_TESTS = "1"
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build --filter-trait "Category=UI"
+Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
+```
+
+## 三、注意事項 ⚠️
+
+### 1. Microsoft Testing Platform
 
 本測試專案使用 `global.json` 指定：
 
@@ -65,7 +80,7 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
 
 因此 `dotnet test` 會使用 Microsoft Testing Platform。Coverage 也應搭配 `Microsoft.Testing.Extensions.CodeCoverage`，不要改成 `coverlet.collector`。
 
-### PhraseService / InputHistoryService 測試的資料隔離
+### 2. PhraseService / InputHistoryService 測試的資料隔離
 
 `PhraseService` 與 `InputHistoryService` 的方法會寫入使用者的 `%AppData%\InputBox\` 目錄下的 JSON 檔案。
 為了避免測試污染真實資料，這些測試類別採用以下策略：
@@ -75,10 +90,42 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
 
 xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dispose()` 在每個測試後自動呼叫，確保各測試之間完全隔離。
 
-### 維護規則
+### 3. 維護規則
 
 只要此專案有**新增、刪除或調整測試案例**，請同步更新本 README 的測試範圍表與總數，避免文件與實際覆蓋率不一致。
 
-### 目標框架
+### 4. 第三方測試函式庫與授權 📦
+
+本測試專案會使用第三方函式庫作為測試框架、Coverage 與 WinForms UI 冒煙測試用途。
+
+> 下列名稱已對齊 [tests/InputBox.Tests/InputBox.Tests.csproj](tests/InputBox.Tests/InputBox.Tests.csproj) 中的 NuGet 套件名稱；若 GitHub 原始碼儲存庫名稱不同，會另外標示為「原始碼儲存庫」。
+
+以下第三方元件之權利歸原作者所有，並遵循其各自之授權條款，不屬於主專案授權範圍：
+
+- Microsoft.NET.Test.Sdk：原始碼儲存庫為 [microsoft/vstest](https://github.com/microsoft/vstest)，由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/microsoft/vstest/graphs/contributors) 開發並採用 [MIT License](https://github.com/microsoft/vstest/blob/main/LICENSE) 授權，作為測試專案建置與執行基礎。
+- xunit.runner.visualstudio：原始碼儲存庫為 [xunit/visualstudio.xunit](https://github.com/xunit/visualstudio.xunit)，由 [xUnit](https://github.com/xunit) 及其 [貢獻者](https://github.com/xunit/visualstudio.xunit/graphs/contributors) 開發並採用 [Apache-2.0](https://github.com/xunit/visualstudio.xunit/blob/main/License.txt) 授權，提供 Visual Studio 與測試主機整合適配器。
+- xunit.v3.mtp-v2：原始碼儲存庫為 [xunit/xunit](https://github.com/xunit/xunit)，由 [xUnit](https://github.com/xunit) 及其 [貢獻者](https://github.com/xunit/xunit/graphs/contributors) 開發並採用 [Apache-2.0](https://github.com/xunit/xunit/blob/main/LICENSE) 授權，作為 xUnit v3 與 Microsoft Testing Platform 整合套件。
+- Microsoft.Testing.Extensions.CodeCoverage：原始碼儲存庫為 [microsoft/codecoverage](https://github.com/microsoft/codecoverage)，由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/microsoft/codecoverage/graphs/contributors) 開發並採用 [MIT License](https://github.com/microsoft/codecoverage/blob/main/LICENSE) 授權，用於測試覆蓋率收集。
+- FlaUI.Core：原始碼儲存庫為 [FlaUI/FlaUI](https://github.com/FlaUI/FlaUI)，由 [Roman Baeriswyl](https://github.com/Roemer) 及其 [貢獻者](https://github.com/FlaUI/FlaUI/graphs/contributors) 開發並採用 [MIT License](https://github.com/FlaUI/FlaUI/blob/main/LICENSE.txt) 授權，作為 Windows UI 自動化核心函式庫。
+- FlaUI.UIA3：原始碼儲存庫為 [FlaUI/FlaUI](https://github.com/FlaUI/FlaUI)，由 [Roman Baeriswyl](https://github.com/Roemer) 及其 [貢獻者](https://github.com/FlaUI/FlaUI/graphs/contributors) 開發並採用 [MIT License](https://github.com/FlaUI/FlaUI/blob/main/LICENSE.txt) 授權，作為 UIA3 後端，用於 WinForms UI 冒煙測試。
+
+本測試專案的相關說明詳見本文件；主專案授權與完整聲明仍以 [../../README.md](../../README.md) 及 [../../LICENSE](../../LICENSE) 為準。
+
+### 5. UI 冒煙測試失敗產物
+
+當 UI 冒煙測試在 GitHub Actions 失敗時，流程會自動輸出：
+
+- 桌面擷圖 `.png`
+- 對應例外與視窗資訊 `.txt`
+
+並作為 Artifact 上傳，方便排查 GitHub Actions 的 Windows 執行環境中可能出現的偶發 UI 問題。
+
+> 目前 CI 會將這組 UI 冒煙測試視為**報告用途**：若失敗會留下警告與 Artifact，但**不阻擋**主建置、一般單元測試與覆蓋率檢查。
+
+> 為避免 hosted runner 與本機 Agent 因自訂 modal dialog 的偵測不穩而長時間卡住，目前所有 UI 案例皆加上 fail-fast 逾時保護；dialog 案例會在此保護下持續驗證。
+
+> UI 元素比對一律優先使用資源檔的目前語系字串與 AutomationId，而非寫死繁中或英文標籤，因此 Hosted Runner 的系統語系變動不應成為這組 smoke test 的失敗來源。
+
+### 6. 目標框架
 
 測試專案使用 `net10.0-windows`（需要 WinForms 執行環境），**僅支援 Windows**。

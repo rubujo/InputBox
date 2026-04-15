@@ -25,9 +25,9 @@ jobs:
       COVERAGE_GLOB: tests/**/coverage.cobertura.xml
       REPORT_DIR: CoverageReport
       # 行覆蓋率最低門檻（%）。低於此值時 CI 強制失敗。
-      # WinForms UI 層（MainForm、Dialog、GamepadController、Interop）無法自動化測試，
-      # 佔全部程式碼 ~90%，將整體率壓至 ~2%（266/12335 行）。
-      # 此閾值設為略低於現值，作為迴歸守衛：若移除測試檔或大量已測邏輯則 CI 失敗。
+      # WinForms UI 層雖已加入少量 FlaUI 冒煙測試，但大部分互動與硬體流程仍不納入 coverage 基線，
+      # 因此整體行覆蓋率仍維持在低檔，這裡僅作為基本迴歸守衛。
+      # 若移除已測邏輯或測試檔，CI 應能即時失敗提醒。
       COVERAGE_THRESHOLD: '2'
 
     steps:
@@ -53,12 +53,14 @@ jobs:
       working-directory: ./tests/InputBox.Tests
       run: dotnet build -c Release --no-incremental
 
-    - name: 執行單元測試並收集覆蓋率（Test + Coverage）
+    - name: 執行非 UI 單元測試並收集覆蓋率（Test + Coverage）
       working-directory: ./tests/InputBox.Tests
       # xUnit v3 + MTP 原生模式（global.json test.runner=Microsoft.Testing.Platform）。
+      # UI 冒煙測試使用 FlaUI，與一般邏輯測試分流，避免桌面自動化影響 coverage 基線穩定度。
       # --no-build 重用上一步的建置產出；coverage 輸出至 bin/Release 目錄下的 TestResults 子目錄。
       run: |
-        dotnet test -c Release --no-build `
+        dotnet test --project InputBox.Tests.csproj -c Release --no-build `
+          --filter-not-trait "Category=UI" `
           --coverage `
           --coverage-output-format cobertura `
           --coverage-output coverage.cobertura.xml
@@ -98,3 +100,54 @@ jobs:
     - name: 建置與測試成功通知
       if: success()
       run: Write-Host "建置與測試全部通過！程式碼狀態良好。"
+
+  ui-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    needs: build-check
+    permissions:
+      contents: read
+
+    env:
+      DOTNET_MAJOR_VERSION: '10'
+      INPUTBOX_RUN_UI_TESTS: '1'
+      INPUTBOX_UI_ARTIFACT_DIR: '${{ github.workspace }}/TestResults/UiArtifacts'
+
+    steps:
+    - name: 簽出原始碼（Checkout）
+      uses: actions/checkout@v6
+
+    - name: 安裝 .NET 環境
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
+        cache: true
+        cache-dependency-path: '**/*.csproj'
+
+    - name: 建置主專案（Build App）
+      working-directory: ./src/InputBox
+      run: dotnet build -c Release --no-incremental
+
+    - name: 建置測試專案（Build Tests）
+      working-directory: ./tests/InputBox.Tests
+      run: dotnet build -c Release --no-incremental
+
+    - name: 執行 UI 冒煙測試（FlaUI Smoke）
+      id: ui_smoke
+      continue-on-error: true
+      working-directory: ./tests/InputBox.Tests
+      run: dotnet test --project InputBox.Tests.csproj -c Release --no-build --filter-trait "Category=UI"
+
+    - name: 寫入 UI 冒煙測試警告摘要
+      if: always() && steps.ui_smoke.outcome == 'failure'
+      run: |
+        "## ⚠️ UI 冒煙測試未通過" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        "此工作為報告用途，不阻擋主建置與一般單元測試；請下載 Artifact 檢查擷圖與診斷資訊。" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+    - name: 上傳 UI 冒煙測試失敗產物（Artifacts）
+      if: always() && steps.ui_smoke.outcome == 'failure'
+      uses: actions/upload-artifact@v7
+      with:
+        name: ui-smoke-artifacts
+        path: TestResults/UiArtifacts
+        if-no-files-found: ignore

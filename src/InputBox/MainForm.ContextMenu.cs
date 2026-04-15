@@ -113,6 +113,7 @@ public partial class MainForm
         // 隱私模式。
         _tsmiPrivacyMode = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_PrivacyMode, 'P'))
         {
+            Name = "TsmiPrivacyMode",
             CheckOnClick = true,
             Checked = AppSettings.Current.IsPrivacyMode,
             AccessibleName = Strings.Menu_PrivacyMode,
@@ -263,6 +264,7 @@ public partial class MainForm
         // 提供修飾鍵與主按鍵擷取等快速鍵相關設定入口。
         ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'T'))
         {
+            Name = "TsmiHotkeySettings",
             AccessibleName = Strings.Menu_HotkeySettings,
             AccessibleDescription = Strings.Menu_HotkeySettings_Desc
         };
@@ -1174,6 +1176,7 @@ public partial class MainForm
         // 清空目前只保存在記憶體中的輸入歷程資料。
         ToolStripMenuItem tsmiClearHistory = new(ControlExtensions.GetMnemonicText(Strings.Menu_ClearHistory, 'C'))
         {
+            Name = "TsmiClearHistory",
             AccessibleName = Strings.Menu_ClearHistory,
             AccessibleDescription = Strings.Menu_ClearHistory_Desc
         };
@@ -1240,6 +1243,7 @@ public partial class MainForm
         // 片語子選單。
         _tsmiPhrases = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_Phrases, 'F'))
         {
+            Name = "TsmiPhrases",
             AccessibleName = Strings.Menu_Phrases
         };
 

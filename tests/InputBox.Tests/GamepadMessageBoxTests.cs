@@ -1,7 +1,5 @@
-﻿using InputBox.Core.Configuration;
-using InputBox.Core.Controls;
+﻿using InputBox.Core.Controls;
 using InputBox.Core.Input;
-using InputBox.Core.Services;
 using System.Reflection;
 using Xunit;
 
