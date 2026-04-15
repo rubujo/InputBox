@@ -235,20 +235,6 @@ jobs:
             Write-Host "已偵測到 VT_API_KEY，將進行 VirusTotal 掃描。"
         }
 
-    - name: 使用 VirusTotal 掃描壓縮檔
-      if: ${{ steps.vt-config.outputs.enabled == 'true' }}
-      continue-on-error: true
-      uses: cssnr/virustotal-action@v1
-      with:
-        vt_api_key: ${{ secrets.VT_API_KEY }}
-        file_globs: |
-          ${{ env.ZIP_FILENAME }}
-        rate_limit: 4
-        sha256: true
-        update_release: true
-        release_heading: "🛡️ **VirusTotal 掃描結果：**"
-        summary: true
-
     - name: 建立 GitHub Release
       id: release
       uses: softprops/action-gh-release@v3
@@ -268,3 +254,16 @@ jobs:
           > 本版本由 GitHub Actions 自動建置並發佈。詳細變更內容請參考下方的自動產生說明。
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 使用 VirusTotal 掃描並更新 Release
+      if: ${{ steps.vt-config.outputs.enabled == 'true' }}
+      continue-on-error: true
+      uses: cssnr/virustotal-action@v1
+      with:
+        vt_api_key: ${{ secrets.VT_API_KEY }}
+        release_id: ${{ steps.release.outputs.id }}
+        rate_limit: 4
+        sha256: true
+        update_release: true
+        release_heading: "🛡️ **VirusTotal 掃描結果：**"
+        summary: true
