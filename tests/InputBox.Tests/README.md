@@ -100,7 +100,7 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 
 本測試專案會使用第三方函式庫作為測試框架、Coverage 與 WinForms UI 冒煙測試用途。
 
-> 下列名稱已對齊 [tests/InputBox.Tests/InputBox.Tests.csproj](tests/InputBox.Tests/InputBox.Tests.csproj) 中的 NuGet 套件名稱；若 GitHub 原始碼儲存庫名稱不同，會另外標示為「原始碼儲存庫」。
+> 下列名稱已對齊 [InputBox.Tests.csproj](InputBox.Tests.csproj) 中的 NuGet 套件名稱；若 GitHub 原始碼儲存庫名稱不同，會另外標示為「原始碼儲存庫」。
 
 以下第三方元件之權利歸原作者所有，並遵循其各自之授權條款，不屬於主專案授權範圍：
 

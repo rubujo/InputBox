@@ -222,29 +222,51 @@
 
 可使用任何文字編輯器（如 [Windows Notepad](https://apps.microsoft.com/detail/9msmlrh6lzf3)、[Visual Studio Code](https://code.visualstudio.com)）開啟 `appsettings.json` 進行編輯。
 
-下表列出所有可調整的設定項目及其行為說明。
+下表列出所有可調整的設定項目及其行為說明。為了讓內容更容易直接完整顯示，以下改依分類拆成多個表格。
 
-| 分類 | 參數名稱 | 類型 | 預設值 | 有效範圍 | 說明 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **視窗操作** | `WindowOpacity` | 浮點數 | `1.0` | `0.1 ~ 1.0` | 視窗不透明度。低於 0.5（50%）時，UI 會顯示可讀性警告。當系統開啟「高對比」模式時，此值會被強制視為 `1.0` 以維護視覺安全。 |
-| | `WindowRestoreDelay` | 整數（毫秒） | `50` | `0 ~ 5000` | 還原視窗的緩衝時間（毫秒），電腦較慢者可調大此值以避免視窗全黑。 |
-| | `ClipboardRetryDelay` | 整數（毫秒）  | `20` | `0 ~ 1000` | 剪貼簿鎖定時的重試基礎間隔（毫秒）。 |
-| | `TouchKeyboardDismissDelay` | 整數（毫秒） | `300` | `0 ~ 5000` | 觸控鍵盤關閉後的緩衝時間（毫秒）。 |
-| | `WindowSwitchBufferBase` | 整數（毫秒） | `150` | `0 ~ 5000` | 切換回遊戲視窗前的基礎等待時間（毫秒）。 |
-| **操作體驗調整** | `IsPrivacyMode` | 布林值 | `false` | - | 是否開啟隱私模式（`true`／`false`）。開啟後標題列會顯示 `(🔒)` 且不記錄輸入歷程。 |
-| | `A11yInterruptEnabled` | 布林值 | `true` | - | 是否允許螢幕報讀廣播中斷前一則訊息。停用後每則訊息皆完整依序播報。 |
-| | `EnableAnimatedVisualAlerts` | 布林值 | `false` | - | 是否允許 1Hz 動畫式視覺警示。停用後將改用單次靜態脈衝，對光敏感使用者較安全；可於右鍵選單直接切換。 |
-| **遊戲控制器輸入 API** | `GamepadProviderType` | 字串 | `"XInput"` | - | 選擇遊戲控制器輸入 API：`"XInput"` 或 `"GameInput"`。若 GameInput 初始化失敗將自動退避至 XInput。**備註**：使用 **GameInput** 時，遊戲控制器可能需在實際產生輸入（如按鍵或搖桿操作）後，才會開始回報狀態。初次連線時若尚未有反應，請稍候或操作遊戲控制器一次即可。 |
-| | `GamepadFaceButtonModeType` | 字串 | `"Auto"` | `"Auto"`、`"Xbox"`、`"PlayStationTraditional"`、`"PlayStationCrossConfirm"`、`"Nintendo"` | 選擇控制器主按鍵配置模式。`"Auto"` 會在可辨識裝置型別時自動套用對應的顯示與功能對照；偵測到 PlayStation 時預設優先使用 **PlayStation（× 確認）**，Nintendo 則採 Nintendo 配置；若手動指定模式，會優先於自動判斷。 |
-| | `ThumbDeadzoneEnter` | 整數 | `7849` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿推動觸發閾值。若控制器搖桿因磨損而產生偏移，可提高此值。 |
-| | `ThumbDeadzoneExit` | 整數 | `2500` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿回彈重置閾值。此值必須顯著低於觸發閾值以防止抖動。 |
-| | `RepeatInitialDelayFrames` | 整數（幀） | `30` | `1 ~ 300` | 長按方向鍵時，開始重複輸入前的延遲（幀）。1 幀約為 16.6ms（60 FPS）。 |
-| | `RepeatIntervalFrames` | 整數（幀） | `5` | `1 ~ 100` | 長按方向鍵時的重複速度（幀），數值越小越快。1 幀約為 16.6ms（60 FPS）。 |
-| **操作體驗調整** | `HistoryCapacity` | 整數 | `100` | `1 ~ 1000` | 輸入歷程記錄的最大保存筆數。 |
-| **回饋** | `EnableVibration` | 布林值 | `true` | - | 是否啟用控制器震動回饋（`true`／`false`）。 |
-| | `VibrationIntensity` | 浮點數 | `0.7` | `0.0 ~ 1.0` | 全域震動強度（`0.0` ~ `1.0`）。若覺得震動太強可改為 `0.5`。 |
-| **快速鍵** | `HotKeyModifiers` | 字串 | `"Alt, Control, Shift"` | - | 喚醒輸入框的修飾鍵組合。可填寫：`Alt`、`Control`、`Shift`、`Win`，多個修飾鍵請以逗號隔開。例如 **Win** + **Ctrl** + **I** 請設為 `"Win, Control"`。 |
-| | `HotKeyKey` | 字串 | `"I"` | - | 喚醒輸入框的主要按鍵（支援按鍵名稱如 `"I"` 或虛擬鍵碼如 `"73"`）。 |
+##### 視窗操作
+
+| 參數名稱 | 類型 | 預設值 | 有效範圍 | 說明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `WindowOpacity` | 浮點數 | `1.0` | `0.1 ~ 1.0` | 視窗不透明度。低於 0.5（50%）時，UI 會顯示可讀性警告。當系統開啟「高對比」模式時，此值會被強制視為 `1.0` 以維護視覺安全。 |
+| `WindowRestoreDelay` | 整數（毫秒） | `50` | `0 ~ 5000` | 還原視窗的緩衝時間（毫秒），電腦較慢者可調大此值以避免視窗全黑。 |
+| `ClipboardRetryDelay` | 整數（毫秒） | `20` | `0 ~ 1000` | 剪貼簿鎖定時的重試基礎間隔（毫秒）。 |
+| `TouchKeyboardDismissDelay` | 整數（毫秒） | `300` | `0 ~ 5000` | 觸控鍵盤關閉後的緩衝時間（毫秒）。 |
+| `WindowSwitchBufferBase` | 整數（毫秒） | `150` | `0 ~ 5000` | 切換回遊戲視窗前的基礎等待時間（毫秒）。 |
+
+##### 操作體驗調整
+
+| 參數名稱 | 類型 | 預設值 | 有效範圍 | 說明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `IsPrivacyMode` | 布林值 | `false` | - | 是否開啟隱私模式（`true`／`false`）。開啟後標題列會顯示 `(🔒)` 且不記錄輸入歷程。 |
+| `A11yInterruptEnabled` | 布林值 | `true` | - | 是否允許螢幕報讀廣播中斷前一則訊息。停用後每則訊息皆完整依序播報。 |
+| `EnableAnimatedVisualAlerts` | 布林值 | `false` | - | 是否允許 1Hz 動畫式視覺警示。停用後將改用單次靜態脈衝，對光敏感使用者較安全；可於右鍵選單直接切換。 |
+| `HistoryCapacity` | 整數 | `100` | `1 ~ 1000` | 輸入歷程記錄的最大保存筆數。 |
+
+##### 遊戲控制器輸入 API
+
+| 參數名稱 | 類型 | 預設值 | 有效範圍 | 說明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `GamepadProviderType` | 字串 | `"XInput"` | - | 選擇遊戲控制器輸入 API：`"XInput"` 或 `"GameInput"`。若 GameInput 初始化失敗將自動退避至 XInput。**備註**：使用 **GameInput** 時，遊戲控制器可能需在實際產生輸入（如按鍵或搖桿操作）後，才會開始回報狀態。初次連線時若尚未有反應，請稍候或操作遊戲控制器一次即可。 |
+| `GamepadFaceButtonModeType` | 字串 | `"Auto"` | `"Auto"`<br>`"Xbox"`<br>`"PlayStationTraditional"`<br>`"PlayStationCrossConfirm"`<br>`"Nintendo"` | 選擇控制器主按鍵配置模式。`"Auto"` 會在可辨識裝置型別時自動套用對應的顯示與功能對照；偵測到 PlayStation 時預設優先使用 **PlayStation（× 確認）**，Nintendo 則採 Nintendo 配置；若手動指定模式，會優先於自動判斷。 |
+| `ThumbDeadzoneEnter` | 整數 | `7849` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿推動觸發閾值。若控制器搖桿因磨損而產生偏移，可提高此值。 |
+| `ThumbDeadzoneExit` | 整數 | `2500` | `0 ~ 30000` | XInput 標準值（0~32767），無單位。搖桿回彈重置閾值。此值必須顯著低於觸發閾值以防止抖動。 |
+| `RepeatInitialDelayFrames` | 整數（幀） | `30` | `1 ~ 300` | 長按方向鍵時，開始重複輸入前的延遲（幀）。1 幀約為 16.6ms（60 FPS）。 |
+| `RepeatIntervalFrames` | 整數（幀） | `5` | `1 ~ 100` | 長按方向鍵時的重複速度（幀），數值越小越快。1 幀約為 16.6ms（60 FPS）。 |
+
+##### 回饋
+
+| 參數名稱 | 類型 | 預設值 | 有效範圍 | 說明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `EnableVibration` | 布林值 | `true` | - | 是否啟用控制器震動回饋（`true`／`false`）。 |
+| `VibrationIntensity` | 浮點數 | `0.7` | `0.0 ~ 1.0` | 全域震動強度（`0.0` ~ `1.0`）。若覺得震動太強可改為 `0.5`。 |
+
+##### 快速鍵
+
+| 參數名稱 | 類型 | 預設值 | 有效範圍 | 說明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `HotKeyModifiers` | 字串 | `"Alt, Control, Shift"` | - | 喚醒輸入框的修飾鍵組合。可填寫：`Alt`、`Control`、`Shift`、`Win`，多個修飾鍵請以逗號隔開。例如 **Win** + **Ctrl** + **I** 請設為 `"Win, Control"`。 |
+| `HotKeyKey` | 字串 | `"I"` | - | 喚醒輸入框的主要按鍵（支援按鍵名稱如 `"I"` 或虛擬鍵碼如 `"73"`）。 |
 
 > **注意 1**：修改設定後，請重新啟動程式以套用變更。🔄
 >
