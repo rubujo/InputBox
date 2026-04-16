@@ -1,12 +1,6 @@
 name: 程式碼建置檢查
 
 on:
-  push:
-    # 排除標籤推送，因為標籤通常會走發佈流程。
-    branches:
-      - '**'
-    tags-ignore:
-      - 'v*'
   pull_request:
     branches:
       # 應用程式採用 main 保持可發布、dev 每輪先對齊 main 再提交 PR 的守門流程。
