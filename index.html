@@ -966,8 +966,10 @@
         margin-bottom: 0;
       }
 
-      .quick-setup-card + .table-wrapper {
-        margin-top: 1rem;
+      .quick-setup-card + .feature-card,
+      .quick-setup-card + .table-wrapper,
+      #usage .feature-card + .table-wrapper {
+        margin-top: 1.5rem;
       }
 
       /*
@@ -1044,9 +1046,6 @@
       }
 
       .usage-advanced-title {
-        margin-top: 3rem;
-        padding-top: 3rem;
-        border-top: 1px solid var(--border-color);
         font-size: 1.3rem;
       }
 
@@ -1573,13 +1572,13 @@
       }
 
       .xbox-b {
-        color: #fc8181;
-        text-shadow: 0 0 3px rgba(252, 129, 129, 0.4);
+        color: #fca5a5;
+        text-shadow: 0 0 3px rgba(252, 165, 165, 0.4);
       }
 
       .xbox-x {
-        color: #60a5fa;
-        text-shadow: 0 0 3px rgba(96, 165, 250, 0.4);
+        color: #93c5fd;
+        text-shadow: 0 0 3px rgba(147, 197, 253, 0.4);
       }
 
       .xbox-y {
@@ -2711,33 +2710,64 @@
               </h3>
               <p>
                 <span class="lang-zh"
-                  >原生支援 XInput 與 GameInput
-                  並具備自動退避機制。提供細膩震動回饋，並支援多裝置自動偵測與切換，確保最佳相容性。</span
+                  >原生支援 XInput 與
+                  GameInput，並具備自動退避機制。支援自動、Xbox、PlayStation（<span
+                    class="xbox-btn xbox-round xbox-a"
+                    >×</span
+                  >
+                  確認／<span class="xbox-btn xbox-round xbox-b">○</span> 確認）與 Nintendo
+                  等控制器主按鍵配置模式，畫面提示會隨目前配置同步切換，搭配細膩震動回饋與多裝置自動偵測，確保最佳相容性。</span
                 >
                 <span class="lang-de" lang="de"
-                  >Nativer XInput- und GameInput-Support mit automatischem Fallback. Taktiles
-                  Vibrationsfeedback und automatische Multi-Geräte-Umschaltung für maximale
-                  Kompatibilität.</span
+                  >Nativer XInput- und GameInput-Support mit automatischem Fallback. Unterstützt
+                  Controller-Haupttastenlayouts für Auto, Xbox, PlayStation (<span
+                    class="xbox-btn xbox-round xbox-a"
+                    >×</span
+                  >
+                  = Bestätigen / <span class="xbox-btn xbox-round xbox-b">○</span> = Bestätigen) und
+                  Nintendo, sodass Hinweise und Funktionen stets mit der aktiven Belegung
+                  übereinstimmen. Haptisches Feedback und automatische Multi-Geräte-Umschaltung
+                  sorgen für maximale Kompatibilität.</span
                 >
                 <span class="lang-en" lang="en"
-                  >Native XInput & GameInput support with automatic fallback. Tactile vibration
-                  feedback and multi-device auto-switching ensure maximum compatibility.</span
+                  >Native XInput & GameInput support with automatic fallback. Supports Auto, Xbox,
+                  PlayStation (<span class="xbox-btn xbox-round xbox-a">×</span> Confirm /
+                  <span class="xbox-btn xbox-round xbox-b">○</span> Confirm), and Nintendo
+                  controller primary-button layout modes so on-screen prompts stay aligned with the
+                  active mapping, alongside tactile vibration feedback and multi-device
+                  auto-switching for maximum compatibility.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  >Support natif XInput et GameInput avec retour automatique. Retour haptique et
-                  commutation automatique multi-appareils pour une compatibilité maximale.</span
+                  >Support natif XInput et GameInput avec retour automatique. Prend en charge les
+                  modes de disposition des boutons principaux de la manette pour Auto, Xbox,
+                  PlayStation (<span class="xbox-btn xbox-round xbox-a">×</span> = Confirmer /
+                  <span class="xbox-btn xbox-round xbox-b">○</span> = Confirmer) et Nintendo, afin
+                  que les indications à l'écran restent cohérentes avec la configuration active,
+                  avec retour haptique et commutation automatique entre périphériques.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >XInput と GameInput
-                  をネイティブサポートし、自動フォールバック機能を搭載。細やかな振動フィードバックと複数デバイスの自動切り替えに対応。</span
+                  >XInput と GameInput をネイティブサポートし、自動フォールバック機能を搭載。自動、
+                  Xbox、PlayStation（<span class="xbox-btn xbox-round xbox-a">×</span>決定／<span
+                    class="xbox-btn xbox-round xbox-b"
+                    >○</span
+                  >決定）、Nintendo のコントローラー主ボタン配置モードに対応し、
+                  画面上のヒントも現在の設定に合わせて切り替わります。細やかな振動フィードバックと
+                  複数デバイスの自動切り替えにも対応しています。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >자동 폴백이 있는 네이티브 XInput 및 GameInput 지원. 촉각 진동 피드백 및 다중 장치
-                  자동 전환으로 최대 호환성 보장.</span
+                  >자동 폴백이 있는 네이티브 XInput 및 GameInput 지원. 자동, Xbox,
+                  PlayStation（<span class="xbox-btn xbox-round xbox-a">×</span> 확인／<span
+                    class="xbox-btn xbox-round xbox-b"
+                    >○</span
+                  >
+                  확인）, Nintendo 컨트롤러 주 버튼 배치 모드를 지원하여 화면 안내가 현재 설정과
+                  항상 일치하며, 촉각 진동 피드백과 다중 장치 자동 전환으로 높은 호환성을
+                  제공합니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >原生支持 XInput 与 GameInput
-                  并具备自动退避机制。提供细腻震动反馈，并支持多设备自动侦测与切换，确保最佳兼容性。</span
+                  >原生支持 XInput 与 GameInput，并具备自动退避机制。支持自动、Xbox、PlayStation（×
+                  确认／○ 确认）与 Nintendo
+                  等控制器主按键布局模式，画面提示会随当前配置同步切换，搭配细腻震动反馈与多设备自动侦测，确保最佳兼容性。</span
                 >
               </p>
             </div>
@@ -2885,35 +2915,38 @@
               </h3>
               <p>
                 <span class="lang-zh"
-                  >標題列會即時顯示控制器輸入 API
-                  與裝置名稱。重複啟動時會自動喚醒既有視窗，避免多開造成焦點混亂。</span
+                  >標題列會即時顯示控制器輸入
+                  API、裝置名稱，以及目前生效的控制器主按鍵配置。重複啟動時會自動喚醒既有視窗，避免多開造成焦點混亂。</span
                 >
                 <span class="lang-de" lang="de"
-                  >Die Titelleiste zeigt die aktive Controller-Eingabe-API und den Gerätenamen in
-                  Echtzeit an. Ein erneutes Starten aktiviert das vorhandene Fenster, um
-                  Fokuskonflikte bei mehreren Instanzen zu vermeiden.</span
+                  >Die Titelleiste zeigt in Echtzeit die aktive Controller-Eingabe-API, den
+                  Gerätenamen und das aktuell wirksame Controller-Haupttasten-Layout an. Ein
+                  erneutes Starten aktiviert das vorhandene Fenster, um Fokuskonflikte bei mehreren
+                  Instanzen zu vermeiden.</span
                 >
                 <span class="lang-en" lang="en"
-                  >The title bar shows the active controller input API and device name in real time.
-                  Re-launching wakes the existing window to avoid multi-instance focus
-                  conflicts.</span
+                  >The title bar shows the active controller input API, device name, and current
+                  controller primary-button layout in real time. Re-launching wakes the existing
+                  window to avoid multi-instance focus conflicts.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  >La barre de titre affiche en temps réel l'API de saisie et le nom du périphérique
-                  actif. Un second lancement réactive la fenêtre existante afin d'éviter les
-                  conflits de focus multi-instances.</span
+                  >La barre de titre affiche en temps réel l'API de saisie du contrôleur, le nom du
+                  périphérique et la disposition active des boutons principaux de la manette. Un
+                  second lancement réactive la fenêtre existante afin d'éviter les conflits de focus
+                  multi-instances.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >タイトルバーに使用中の入力 API
-                  とデバイス名をリアルタイム表示します。重複起動時は既存ウィンドウを自動的に呼び出し、多重起動によるフォーカス競合を防ぎます。</span
+                  >タイトルバーに使用中の入力
+                  API、デバイス名、現在有効なコントローラー主ボタン配置をリアルタイム表示します。重複起動時は既存ウィンドウを自動的に呼び出し、多重起動によるフォーカス競合を防ぎます。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >제목 표시줄은 활성 컨트롤러 입력 API와 장치 이름을 실시간으로 표시합니다. 다시
-                  시작하면 기존 창을 활성화하여 다중 인스턴스 포커스 충돌을 방지합니다.</span
+                  >제목 표시줄은 활성 컨트롤러 입력 API, 장치 이름, 현재 적용 중인 컨트롤러 주 버튼
+                  배치를 실시간으로 표시합니다. 다시 시작하면 기존 창을 활성화하여 다중 인스턴스
+                  포커스 충돌을 방지합니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >标题栏会实时显示当前控制器输入 API
-                  与设备名称。重复启动时会自动唤醒既有窗口，避免多开造成焦点混乱。</span
+                  >标题栏会实时显示当前控制器输入
+                  API、设备名称，以及目前生效的控制器主按键布局。重复启动时会自动唤醒既有窗口，避免多开造成焦点混乱。</span
                 >
               </p>
             </div>
@@ -2973,41 +3006,60 @@
           <div class="feature-grid">
             <div class="feature-card">
               <h3>
-                <span class="lang-zh">背鍵與組合鍵對應 🔗</span>
-                <span class="lang-de" lang="de">Hintere Tasten belegen 🔗</span>
-                <span class="lang-en" lang="en">Back Buttons Mapping 🔗</span>
-                <span class="lang-fr" lang="fr">Mapping des touches arrière 🔗</span>
-                <span class="lang-ja" lang="ja">背面ボタンとショートカット 🔗</span>
-                <span class="lang-ko" lang="ko">뒤 버튼 매핑 🔗</span>
-                <span class="lang-sc" lang="zh-Hans">背键与组合键对应 🔗</span>
+                <span class="lang-zh">控制器按鍵組合對應 🔗</span>
+                <span class="lang-de" lang="de">Controller-Tastenkombinationen 🔗</span>
+                <span class="lang-en" lang="en">Controller Button Combo Mapping 🔗</span>
+                <span class="lang-fr" lang="fr">Combinaisons de touches de la manette 🔗</span>
+                <span class="lang-ja" lang="ja">コントローラーのボタン組み合わせ 🔗</span>
+                <span class="lang-ko" lang="ko">컨트롤러 버튼 조합 매핑 🔗</span>
+                <span class="lang-sc" lang="zh-Hans">控制器按键组合对应 🔗</span>
               </h3>
               <p>
                 <span class="lang-zh"
-                  >建議透過掌機管理軟體將本應用程式的呼叫組合鍵對應至背鍵。實現遊戲中一鍵喚醒，無需連接實體鍵盤。</span
+                  >建議透過掌機管理軟體，在公用應用程式設定（例如 Armory Crate
+                  SE）中，將遊戲控制器按鍵組合對應到本應用程式的自定義鍵盤快速鍵，例如
+                  <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+                  <kbd>I</kbd>，實現遊戲中一鍵喚醒，無需連接實體鍵盤。</span
                 >
                 <span class="lang-de" lang="de"
-                  >Weisen Sie den App-Aufrufbefehl über die Handheld-Verwaltungssoftware den
-                  hinteren Tasten zu, um die App ohne externe Tastatur per Knopfdruck zu
-                  öffnen.</span
+                  >Richten Sie in der Handheld-Verwaltungssoftware in den gemeinsamen
+                  App-Einstellungen (z. B. Armory Crate SE) eine Controller-Tastenkombination ein,
+                  die dem benutzerdefinierten Tastaturkürzel dieser App zugeordnet ist, etwa
+                  <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd>, um die App
+                  ohne externe Tastatur per Knopfdruck zu öffnen.</span
                 >
                 <span class="lang-en" lang="en"
-                  >Map the calling shortcut of this application to back buttons via handheld
-                  software for one-click activation without a keyboard.</span
+                  >Use your handheld software's shared app settings (for example, Armory Crate SE)
+                  to map a controller button combo to this application's custom keyboard shortcut,
+                  such as <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd>, for
+                  one-click activation without a physical keyboard.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  >Associez le raccourci de lancement aux touches arrière via le logiciel du
-                  handheld pour une activation en un clic sans clavier.</span
+                  >Utilisez les paramètres d'application partagés du logiciel handheld (par exemple
+                  Armory Crate SE) pour associer une combinaison de touches de la manette au
+                  raccourci clavier personnalisé de cette application, comme <kbd>Ctrl</kbd> +
+                  <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd>, afin de l'activer en un clic
+                  sans clavier physique.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >携帯型 PC
-                  管理ソフトウェアを使用して、本アプリケーションの呼び出しショートカットを背面ボタンに割り當てることをお勧めします。</span
+                  >携帯型 PC 管理ソフトウェアの共通アプリ設定（例：Armory Crate SE）で、
+                  コントローラーのボタン組み合わせを本アプリのカスタムキーボードショートカット（<kbd
+                    >Ctrl</kbd
+                  >
+                  + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd> など）に割り当てると、
+                  物理キーボードなしでワンボタン起動できます。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >키보드 없이 한 번에 활성화하려면 휴대용 PC 관리 소프트웨어를 통해 앱 호출
-                  단축키를 뒤 버튼에 매핑하세요.</span
+                  >휴대용 PC 관리 소프트웨어의 공용 앱 설정（예: Armory Crate SE）에서 컨트롤러 버튼
+                  조합을 이 앱의 사용자 지정 키보드 단축키(<kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
+                  <kbd>Shift</kbd> + <kbd>I</kbd> 등)에 매핑하면 물리 키보드 없이 한 번에 앱을
+                  호출할 수 있습니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >建议透过掌机管理软件将本应用程序的呼叫组合键对应至背键。实现游戏中一键唤醒，无需连接实体键盘。</span
+                  >建议透过掌机管理软件，在公用应用程序设置（例如 Armory Crate
+                  SE）中，将游戏控制器按键组合对应到本应用程序的自定义键盘快捷键，例如
+                  <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+                  <kbd>I</kbd>，实现游戏中一键唤醒，无需连接实体键盘。</span
                 >
               </p>
             </div>
@@ -3023,41 +3075,66 @@
               </h3>
               <p>
                 <span class="lang-zh"
-                  >本應用程式會自動將文字複製至剪貼簿。玩家返回《FINAL FANTASY XIV
-                  繁體中文版》後，只需使用遊戲內建的控制器貼上組合鍵（LB +
-                  RB）即可快速完成輸入。</span
+                  >本應用程式會自動將文字複製至 Windows 剪貼簿。玩家返回《FINAL FANTASY XIV
+                  繁體中文版》後，需先於遊戲設定中啟用相關貼上功能，再使用遊戲內建的控制器貼上組合鍵（<span
+                    class="xbox-btn xbox-bumper"
+                    >LB</span
+                  >
+                  + <span class="xbox-btn xbox-bumper">RB</span>）即可快速完成輸入。</span
                 >
                 <span class="lang-de" lang="de"
-                  >Die Anwendung kopiert Text automatisch in die Zwischenablage. In FINAL FANTASY
-                  XIV (Traditionelles Chinesisch) können Spieler einfach den eingebauten
-                  Controller-Kurzbefehl des Spiels (LB + RB) verwenden, um einzufügen und die
-                  Eingabe abzuschließen.</span
+                  >Die Anwendung kopiert Text automatisch in die Windows-Zwischenablage. In FINAL
+                  FANTASY XIV (Traditionelles Chinesisch) aktivieren Sie zuerst die entsprechende
+                  Einfügefunktion in den Spieleinstellungen und verwenden dann den eingebauten
+                  Controller-Kurzbefehl des Spiels (<span class="xbox-btn xbox-bumper">LB</span> +
+                  <span class="xbox-btn xbox-bumper">RB</span>), um einzufügen und die Eingabe
+                  abzuschließen.</span
                 >
                 <span class="lang-en" lang="en"
-                  >The application automatically copies text to the clipboard. Once back in FINAL
-                  FANTASY XIV (Traditional Chinese Version), players can simply use the game's
-                  built-in controller shortcut (LB + RB) to paste and complete the input.</span
+                  >The application automatically copies text to the Windows clipboard. Once back in
+                  FINAL FANTASY XIV (Traditional Chinese Version), first enable the relevant in-game
+                  paste setting, then use the game's built-in controller shortcut (<span
+                    class="xbox-btn xbox-bumper"
+                    >LB</span
+                  >
+                  + <span class="xbox-btn xbox-bumper">RB</span>) to paste and complete the
+                  input.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  >L'application copie automatiquement le texte dans le presse-papiers. Dans FINAL
-                  FANTASY XIV (version chinois traditionnel), utilisez simplement le raccourci
-                  manette intégré du jeu (LB + RB) pour coller et terminer la saisie.</span
+                  >L'application copie automatiquement le texte dans le presse-papiers Windows. Dans
+                  FINAL FANTASY XIV (version chinois traditionnel), activez d'abord la fonction de
+                  collage correspondante dans les paramètres du jeu, puis utilisez le raccourci
+                  manette intégré du jeu (<span class="xbox-btn xbox-bumper">LB</span> +
+                  <span class="xbox-btn xbox-bumper">RB</span>) pour coller et terminer la
+                  saisie.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >本アプリケーションはテキストを自動的にクリップボードにコピーします。『FINAL
-                  FANTASY XIV
-                  繁体字中国語版』に戻った後、ゲーム標準のコントローラー用ペーストショートカット（LB
-                  + RB）を使用するだけで入力を完了できます。</span
+                  >本アプリケーションはテキストを自動的に Windows
+                  クリップボードにコピーします。『FINAL FANTASY XIV
+                  繁体字中国語版』に戻った後、先にゲーム設定で該当するペースト機能を有効にしてから、ゲーム標準のコントローラー用ペーストショートカット（<span
+                    class="xbox-btn xbox-bumper"
+                    >LB</span
+                  >
+                  +
+                  <span class="xbox-btn xbox-bumper">RB</span
+                  >）を使用すると入力を完了できます。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >애플리케이션은 텍스트를 자동으로 클립보드에 복사합니다. FINAL FANTASY XIV (번체
-                  중국어 버전)로 돌아간 후 게임의 기본 컨트롤러 붙여넣기 단축키 (LB + RB)로 붙여넣고
-                  입력을 완료합니다.</span
+                  >애플리케이션은 텍스트를 자동으로 Windows 클립보드에 복사합니다. FINAL FANTASY XIV
+                  (번체 중국어 버전)로 돌아간 후 먼저 게임 설정에서 관련 붙여넣기 기능을 활성화한
+                  다음, 게임의 기본 컨트롤러 붙여넣기 단축키 (<span class="xbox-btn xbox-bumper"
+                    >LB</span
+                  >
+                  + <span class="xbox-btn xbox-bumper">RB</span>)로 붙여넣고 입력을
+                  완료합니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >本应用程序会自动将文字复制至剪贴簿。玩家返回《FINAL FANTASY XIV
-                  繁体中文版》后，只需使用游戏内置的控制器粘贴组合键（LB +
-                  RB）即可快速完成输入。</span
+                  >本应用程序会自动将文字复制至 Windows 剪贴板。玩家返回《FINAL FANTASY XIV
+                  繁体中文版》后，需先在游戏设置中启用相关粘贴功能，再使用游戏内置的控制器粘贴组合键（<span
+                    class="xbox-btn xbox-bumper"
+                    >LB</span
+                  >
+                  + <span class="xbox-btn xbox-bumper">RB</span>）即可快速完成输入。</span
                 >
               </p>
             </div>
@@ -3126,23 +3203,23 @@
             <ol class="quick-setup-list">
               <li>
                 <span class="lang-zh"
-                  ><strong>步驟一：叫出輸入框。</strong>在遊戲中按下您在 Windows 掌機公用程式（例如
-                  Armory Crate
+                  ><strong>步驟一：叫出輸入框。</strong>在遊戲中按下您在 Windows
+                  掌機公用應用程式（例如 Armory Crate
                   SE）中預先設定的呼叫組合鍵，即可快速切換到輸入框。（使用前請先啟動輸入框。）</span
                 >
                 <span class="lang-en" lang="en"
                   ><strong>Step 1: Open InputBox.</strong> In-game, press the launcher shortcut you
-                  mapped in your Windows handheld utility (for example, Armory Crate SE) to switch
-                  to InputBox quickly. (Make sure InputBox is already running.)</span
+                  mapped in your Windows handheld shared app (for example, Armory Crate SE) to
+                  switch to InputBox quickly. (Make sure InputBox is already running.)</span
                 >
                 <span class="lang-ja" lang="ja"
                   ><strong>手順1：本アプリケーションを呼び出す。</strong>ゲーム内で、Windows 携帯型
-                  PC 用ユーティリティ（例：Armory Crate
-                  SE）に事前設定した呼び出しショートカットを押すと、すばやく本アプリケーションに切り替えられます。（事前に本アプリケーションを起動してください。）</span
+                  PC 用共通アプリ（例：Armory Crate SE）に事前設定した呼び出し
+                  ショートカットを押すと、すばやく本アプリケーションに切り替えられます。（事前に本アプリケーションを起動してください。）</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  ><strong>步骤一：唤出输入框。</strong>在游戏中按下你在 Windows 掌机公用程序（例如
-                  Armory Crate
+                  ><strong>步骤一：唤出输入框。</strong>在游戏中按下你在 Windows
+                  掌机公用应用程序（例如 Armory Crate
                   SE）中预先设置的呼叫组合键，即可快速切换到输入框。（使用前请先启动输入框。）</span
                 >
                 <span class="lang-de" lang="de"
@@ -3165,43 +3242,115 @@
               </li>
               <li>
                 <span class="lang-zh"
-                  ><strong>步驟二：輸入後按遊戲控制器的 A 鍵。</strong>使用 Windows
-                  觸控式鍵盤完成輸入與選字後，先關閉 Windows 觸控式鍵盤，再按下遊戲控制器 A
-                  鍵。系統會將文字複製到 Windows 剪貼簿，並返回前一個視窗。</span
+                  ><strong
+                    >步驟二：輸入後按<span class="xbox-btn xbox-round xbox-a" aria-hidden="true"
+                      >✓</span
+                    >目前配置下的確認鍵。</strong
+                  >使用 Windows 觸控式鍵盤完成輸入與選字後，先關閉 Windows 觸控式鍵盤，再按下<span
+                    class="xbox-btn xbox-round xbox-a"
+                    aria-hidden="true"
+                    >✓</span
+                  >目前配置下的確認鍵。依設定可能為 Xbox 的
+                  <span class="xbox-btn xbox-round xbox-a">A</span>、PlayStation 的
+                  <span class="xbox-btn xbox-round xbox-b">○</span> 或
+                  <span class="xbox-btn xbox-round xbox-a">×</span>、Nintendo 的
+                  <span class="xbox-btn xbox-round xbox-a">A</span>。系統會將文字複製到 Windows
+                  剪貼簿，並返回前一個視窗。</span
                 >
                 <span class="lang-en" lang="en"
-                  ><strong>Step 2: Type, then press the controller A button.</strong> After typing
-                  and confirming text with the Windows touch keyboard, close the touch keyboard
-                  first, then press A. The text is copied to Windows clipboard and InputBox returns
-                  to the previous window.</span
+                  ><strong
+                    >Step 2: Type, then press the
+                    <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> current
+                    confirm button.</strong
+                  >
+                  After typing and confirming text with the Windows touch keyboard, close the touch
+                  keyboard first, then press the active confirm button marked with the green action
+                  style. Depending on the selected layout, this may be Xbox
+                  <span class="xbox-btn xbox-round xbox-a">A</span>, PlayStation
+                  <span class="xbox-btn xbox-round xbox-b">○</span> or
+                  <span class="xbox-btn xbox-round xbox-a">×</span>, or Nintendo
+                  <span class="xbox-btn xbox-round xbox-a">A</span>. The text is copied to Windows
+                  clipboard and InputBox returns to the previous window.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  ><strong>手順2：入力後にコントローラーの A ボタンを押す。</strong>Windows タッチ
-                  キーボードで入力と変換確定を終えたら、先にタッチ キーボードを閉じてから A
-                  ボタンを押します。文字列は Windows
+                  ><strong
+                    >手順2：入力後に<span class="xbox-btn xbox-round xbox-a" aria-hidden="true"
+                      >✓</span
+                    >現在の配置の決定ボタンを押す。</strong
+                  >Windows タッチ キーボードで入力と変換確定を終えたら、先にタッチ
+                  キーボードを閉じてから、<span
+                    class="xbox-btn xbox-round xbox-a"
+                    aria-hidden="true"
+                    >✓</span
+                  >現在の配置で決定に割り当てられたボタンを押します。設定に応じて Xbox の
+                  <span class="xbox-btn xbox-round xbox-a">A</span>、PlayStation の
+                  <span class="xbox-btn xbox-round xbox-b">○</span> または
+                  <span class="xbox-btn xbox-round xbox-a">×</span>、Nintendo の
+                  <span class="xbox-btn xbox-round xbox-a">A</span> になります。文字列は Windows
                   クリップボードへコピーされ、前のウィンドウへ戻ります。</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  ><strong>步骤二：输入后按游戏控制器 A 键。</strong>使用 Windows
-                  触摸键盘完成输入与选字后，先关闭 Windows 触摸键盘，再按下游戏控制器 A
-                  键。系统会将文字复制到 Windows 剪贴板，并返回前一个窗口。</span
+                  ><strong
+                    >步骤二：输入后按<span class="xbox-btn xbox-round xbox-a" aria-hidden="true"
+                      >✓</span
+                    >当前配置下的确认键。</strong
+                  >使用 Windows 触摸键盘完成输入与选字后，先关闭 Windows 触摸键盘，再按下<span
+                    class="xbox-btn xbox-round xbox-a"
+                    aria-hidden="true"
+                    >✓</span
+                  >当前配置下的确认键。依设置可能为 Xbox 的
+                  <span class="xbox-btn xbox-round xbox-a">A</span>、PlayStation 的
+                  <span class="xbox-btn xbox-round xbox-b">○</span> 或
+                  <span class="xbox-btn xbox-round xbox-a">×</span>、Nintendo 的
+                  <span class="xbox-btn xbox-round xbox-a">A</span>。系统会将文字复制到 Windows
+                  剪贴板，并返回前一个窗口。</span
                 >
                 <span class="lang-de" lang="de"
-                  ><strong>Schritt 2: Tippen, dann A-Taste drücken.</strong> Nach der Texteingabe
-                  und -bestätigung mit der Windows-Touch-Tastatur schließen Sie zunächst die
-                  Touch-Tastatur, dann drücken Sie A. Der Text wird in die Windows-Zwischenablage
-                  kopiert und Eingabefeld kehrt zum vorherigen Fenster zurück.</span
+                  ><strong
+                    >Schritt 2: Tippen, dann die
+                    <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> aktuelle
+                    Bestätigen-Taste drücken.</strong
+                  >
+                  Nach der Texteingabe und -bestätigung mit der Windows-Touch-Tastatur schließen Sie
+                  zunächst die Touch-Tastatur und drücken dann die derzeit als Bestätigen belegte
+                  Taste im grünen Stil. Je nach Layout ist dies Xbox
+                  <span class="xbox-btn xbox-round xbox-a">A</span>, PlayStation
+                  <span class="xbox-btn xbox-round xbox-b">○</span> oder
+                  <span class="xbox-btn xbox-round xbox-a">×</span> oder Nintendo
+                  <span class="xbox-btn xbox-round xbox-a">A</span>. Der Text wird in die
+                  Windows-Zwischenablage kopiert und Eingabefeld kehrt zum vorherigen Fenster
+                  zurück.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  ><strong>Étape 2 : Saisir, puis appuyer sur le bouton A.</strong> Après avoir
-                  saisi et confirmé le texte avec le clavier tactile Windows, fermez d'abord le
-                  clavier tactile, puis appuyez sur A. Le texte est copié dans le presse-papiers
-                  Windows et Zone de saisie retourne à la fenêtre précédente.</span
+                  ><strong
+                    >Étape 2 : Saisir, puis appuyer sur le
+                    <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> bouton de
+                    confirmation actif.</strong
+                  >
+                  Après avoir saisi et validé le texte avec le clavier tactile Windows, fermez
+                  d'abord le clavier tactile, puis appuyez sur le bouton actuellement affecté à la
+                  confirmation avec le style vert. Selon la configuration, il peut s'agir de
+                  <span class="xbox-btn xbox-round xbox-a">A</span> sur Xbox, de
+                  <span class="xbox-btn xbox-round xbox-b">○</span> ou
+                  <span class="xbox-btn xbox-round xbox-a">×</span> sur PlayStation, ou de
+                  <span class="xbox-btn xbox-round xbox-a">A</span> sur Nintendo. Le texte est copié
+                  dans le presse-papiers Windows et Zone de saisie retourne à la fenêtre
+                  précédente.</span
                 >
                 <span class="lang-ko" lang="ko"
-                  ><strong>2단계：입력 후 컨트롤러 A 버튼 누르기.</strong> Windows 터치 키보드로
-                  텍스트를 입력하고 확인한 후 터치 키보드를 먼저 닫고 A를 누릅니다. 텍스트가 Windows
-                  클립보드에 복사되고 입력 상자는 이전 창으로 돌아갑니다.</span
+                  ><strong
+                    >2단계：입력 후
+                    <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> 현재 배치의
+                    확인 버튼 누르기.</strong
+                  >
+                  Windows 터치 키보드로 텍스트를 입력하고 확인한 후 터치 키보드를 먼저 닫고,
+                  <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> 현재 설정에서
+                  확인에 해당하는 버튼을 누릅니다. 설정에 따라 Xbox
+                  <span class="xbox-btn xbox-round xbox-a">A</span>, PlayStation
+                  <span class="xbox-btn xbox-round xbox-b">○</span> 또는
+                  <span class="xbox-btn xbox-round xbox-a">×</span>, Nintendo
+                  <span class="xbox-btn xbox-round xbox-a">A</span>가 될 수 있습니다. 텍스트가
+                  Windows 클립보드에 복사되고 입력 상자는 이전 창으로 돌아갑니다.</span
                 >
               </li>
               <li>
@@ -3243,6 +3392,445 @@
                 >
               </li>
             </ol>
+          </div>
+
+          <div class="feature-card">
+            <h3 id="layout-overview-heading">
+              <span class="lang-zh">控制器配置對照</span>
+              <span class="lang-de" lang="de">Controller-Layout-Übersicht</span>
+              <span class="lang-en" lang="en">Controller Layout Overview</span>
+              <span class="lang-fr" lang="fr">Aperçu des configurations manette</span>
+              <span class="lang-ja" lang="ja">コントローラー配置一覧</span>
+              <span class="lang-ko" lang="ko">컨트롤러 배치 안내</span>
+              <span class="lang-sc" lang="zh-Hans">控制器布局对照</span>
+            </h3>
+            <p>
+              <span class="lang-zh"
+                >畫面上的按鍵提示、助記詞與實際功能會依目前配置同步切換。自動模式會依控制器類型選用最合適的配置，PlayStation
+                預設採 × 確認。</span
+              >
+              <span class="lang-de" lang="de"
+                >Hinweise, Merkhilfen und tatsächliche Funktionen auf dem Bildschirm folgen immer
+                dem aktuellen Layout. Im Auto-Modus wird je nach Controller-Typ die passendste
+                Belegung gewählt; für PlayStation ist standardmäßig × als Bestätigen aktiv.</span
+              >
+              <span class="lang-en" lang="en"
+                >On-screen prompts, mnemonics, and actions always follow the active layout. Auto
+                mode chooses the most suitable mapping for the detected controller family, with
+                PlayStation defaulting to × for confirm.</span
+              >
+              <span class="lang-fr" lang="fr"
+                >Les indications à l'écran, les mnémoniques et les actions réelles suivent toujours
+                la disposition active. Le mode Auto choisit la configuration la plus adaptée selon
+                le type de manette détecté, avec × comme validation par défaut sur
+                PlayStation.</span
+              >
+              <span class="lang-ja" lang="ja"
+                >画面上のヒント、助記表示、実際の動作は現在の配置に合わせて同期します。自動モードではコントローラー種別に応じて最適な設定を選び、PlayStation
+                は × 決定が既定です。</span
+              >
+              <span class="lang-ko" lang="ko"
+                >화면 안내, 니모닉, 실제 동작은 현재 배치에 맞춰 함께 전환됩니다. 자동 모드는 감지된
+                컨트롤러 종류에 따라 가장 적합한 구성을 선택하며, PlayStation 기본값은 ×
+                확인입니다.</span
+              >
+              <span class="lang-sc" lang="zh-Hans"
+                >画面上的按键提示、助记词与实际功能会依当前配置同步切换。自动模式会依控制器类型选用最合适的布局，PlayStation
+                默认采用 × 确认。</span
+              >
+            </p>
+            <p>
+              <span class="lang-zh"
+                >附註：彩色按鈕代表確認鍵、取消鍵、刪除鍵與選單鍵所對應的實體位置，綠色為下方、紅色為右側、藍色為左側、黃色為上方；不同品牌只會改變符號與名稱。</span
+              >
+              <span class="lang-de" lang="de"
+                >Hinweis: Die farbigen Tasten zeigen die physischen Positionen für Bestätigen,
+                Abbrechen, Löschen und Menü an: Grün = unten, Rot = rechts, Blau = links, Gelb =
+                oben. Je nach Hersteller ändern sich nur Symbol und Bezeichnung.</span
+              >
+              <span class="lang-en" lang="en"
+                >Note: The colored button chips indicate the physical positions for confirm, cancel,
+                delete, and menu: green = bottom, red = right, blue = left, and yellow = top. Only
+                the symbol and label change between controller brands.</span
+              >
+              <span class="lang-fr" lang="fr"
+                >Remarque : les boutons colorés indiquent la position physique de validation,
+                annulation, suppression et menu : vert = bas, rouge = droite, bleu = gauche et jaune
+                = haut. Seuls le symbole et le nom changent selon la marque de la manette.</span
+              >
+              <span class="lang-ja" lang="ja"
+                >注記：色付きボタンは決定・キャンセル・削除・メニューに対応する物理位置を表します。
+                緑 = 下、赤 = 右、青 = 左、黄 =
+                上で、メーカーごとに変わるのは記号と名称のみです。</span
+              >
+              <span class="lang-ko" lang="ko"
+                >참고：색상 버튼은 확인, 취소, 삭제, 메뉴에 대응하는 실제 위치를 뜻합니다. 초록 =
+                아래, 빨강 = 오른쪽, 파랑 = 왼쪽, 노랑 = 위이며, 제조사마다 달라지는 것은 기호와
+                이름뿐입니다.</span
+              >
+              <span class="lang-sc" lang="zh-Hans"
+                >附注：彩色按钮代表确认键、取消键、删除键与菜单键所对应的实体位置，绿色为下方、红色为右侧、蓝色为左侧、黄色为上方；不同品牌只会改变符号与名称。</span
+              >
+            </p>
+            <div class="table-wrapper">
+              <table aria-labelledby="layout-overview-heading">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <span class="lang-zh">模式</span>
+                      <span class="lang-de" lang="de">Modus</span>
+                      <span class="lang-en" lang="en">Mode</span>
+                      <span class="lang-fr" lang="fr">Mode</span>
+                      <span class="lang-ja" lang="ja">モード</span>
+                      <span class="lang-ko" lang="ko">모드</span>
+                      <span class="lang-sc" lang="zh-Hans">模式</span>
+                    </th>
+                    <th scope="col">
+                      <span class="lang-zh"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        確認鍵</span
+                      >
+                      <span class="lang-de" lang="de"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        Bestätigen</span
+                      >
+                      <span class="lang-en" lang="en"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        Confirm</span
+                      >
+                      <span class="lang-fr" lang="fr"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        Confirmer</span
+                      >
+                      <span class="lang-ja" lang="ja"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        決定</span
+                      >
+                      <span class="lang-ko" lang="ko"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        확인</span
+                      >
+                      <span class="lang-sc" lang="zh-Hans"
+                        ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                        确认键</span
+                      >
+                    </th>
+                    <th scope="col">
+                      <span class="lang-zh"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        取消鍵／清除</span
+                      >
+                      <span class="lang-de" lang="de"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        Abbrechen／Leeren</span
+                      >
+                      <span class="lang-en" lang="en"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        Cancel／Clear</span
+                      >
+                      <span class="lang-fr" lang="fr"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        Annuler／Effacer</span
+                      >
+                      <span class="lang-ja" lang="ja"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        キャンセル／クリア</span
+                      >
+                      <span class="lang-ko" lang="ko"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        취소／지우기</span
+                      >
+                      <span class="lang-sc" lang="zh-Hans"
+                        ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span>
+                        取消键／清空</span
+                      >
+                    </th>
+                    <th scope="col">
+                      <span class="lang-zh"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        刪除鍵</span
+                      >
+                      <span class="lang-de" lang="de"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        Löschen</span
+                      >
+                      <span class="lang-en" lang="en"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        Delete</span
+                      >
+                      <span class="lang-fr" lang="fr"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        Supprimer</span
+                      >
+                      <span class="lang-ja" lang="ja"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        削除</span
+                      >
+                      <span class="lang-ko" lang="ko"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        삭제</span
+                      >
+                      <span class="lang-sc" lang="zh-Hans"
+                        ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span>
+                        删除键</span
+                      >
+                    </th>
+                    <th scope="col">
+                      <span class="lang-zh"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        選單鍵</span
+                      >
+                      <span class="lang-de" lang="de"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        Menü</span
+                      >
+                      <span class="lang-en" lang="en"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        Menu</span
+                      >
+                      <span class="lang-fr" lang="fr"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        Menu</span
+                      >
+                      <span class="lang-ja" lang="ja"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        メニュー</span
+                      >
+                      <span class="lang-ko" lang="ko"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        메뉴</span
+                      >
+                      <span class="lang-sc" lang="zh-Hans"
+                        ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span>
+                        菜单键</span
+                      >
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Xbox</th>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">確認鍵</span>
+                        <span class="lang-de" lang="de">Bestätigen</span>
+                        <span class="lang-en" lang="en">Confirm</span>
+                        <span class="lang-fr" lang="fr">Confirmer</span>
+                        <span class="lang-ja" lang="ja">決定</span>
+                        <span class="lang-ko" lang="ko">확인</span>
+                        <span class="lang-sc" lang="zh-Hans">确认键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-a">A</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">取消鍵／清除</span>
+                        <span class="lang-de" lang="de">Abbrechen／Leeren</span>
+                        <span class="lang-en" lang="en">Cancel／Clear</span>
+                        <span class="lang-fr" lang="fr">Annuler／Effacer</span>
+                        <span class="lang-ja" lang="ja">キャンセル／クリア</span>
+                        <span class="lang-ko" lang="ko">취소／지우기</span>
+                        <span class="lang-sc" lang="zh-Hans">取消键／清空</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-b">B</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">刪除鍵</span>
+                        <span class="lang-de" lang="de">Löschen</span>
+                        <span class="lang-en" lang="en">Delete</span>
+                        <span class="lang-fr" lang="fr">Supprimer</span>
+                        <span class="lang-ja" lang="ja">削除</span>
+                        <span class="lang-ko" lang="ko">삭제</span>
+                        <span class="lang-sc" lang="zh-Hans">删除键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-x">X</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">選單鍵</span>
+                        <span class="lang-de" lang="de">Menü</span>
+                        <span class="lang-en" lang="en">Menu</span>
+                        <span class="lang-fr" lang="fr">Menu</span>
+                        <span class="lang-ja" lang="ja">メニュー</span>
+                        <span class="lang-ko" lang="ko">메뉴</span>
+                        <span class="lang-sc" lang="zh-Hans">菜单键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-y">Y</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <span class="lang-zh">PlayStation（× 確認）</span>
+                      <span class="lang-de" lang="de">PlayStation (× = Bestätigen)</span>
+                      <span class="lang-en" lang="en">PlayStation (× Confirm)</span>
+                      <span class="lang-fr" lang="fr">PlayStation (× = Confirmer)</span>
+                      <span class="lang-ja" lang="ja">PlayStation（×決定）</span>
+                      <span class="lang-ko" lang="ko">PlayStation（× 확인）</span>
+                      <span class="lang-sc" lang="zh-Hans">PlayStation（× 确认）</span>
+                    </th>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">確認鍵</span>
+                        <span class="lang-de" lang="de">Bestätigen</span>
+                        <span class="lang-en" lang="en">Confirm</span>
+                        <span class="lang-fr" lang="fr">Confirmer</span>
+                        <span class="lang-ja" lang="ja">決定</span>
+                        <span class="lang-ko" lang="ko">확인</span>
+                        <span class="lang-sc" lang="zh-Hans">确认键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-a">×</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">取消鍵／清除</span>
+                        <span class="lang-de" lang="de">Abbrechen／Leeren</span>
+                        <span class="lang-en" lang="en">Cancel／Clear</span>
+                        <span class="lang-fr" lang="fr">Annuler／Effacer</span>
+                        <span class="lang-ja" lang="ja">キャンセル／クリア</span>
+                        <span class="lang-ko" lang="ko">취소／지우기</span>
+                        <span class="lang-sc" lang="zh-Hans">取消键／清空</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-b">○</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">刪除鍵</span>
+                        <span class="lang-de" lang="de">Löschen</span>
+                        <span class="lang-en" lang="en">Delete</span>
+                        <span class="lang-fr" lang="fr">Supprimer</span>
+                        <span class="lang-ja" lang="ja">削除</span>
+                        <span class="lang-ko" lang="ko">삭제</span>
+                        <span class="lang-sc" lang="zh-Hans">删除键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-x">□</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">選單鍵</span>
+                        <span class="lang-de" lang="de">Menü</span>
+                        <span class="lang-en" lang="en">Menu</span>
+                        <span class="lang-fr" lang="fr">Menu</span>
+                        <span class="lang-ja" lang="ja">メニュー</span>
+                        <span class="lang-ko" lang="ko">메뉴</span>
+                        <span class="lang-sc" lang="zh-Hans">菜单键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-y">△</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <span class="lang-zh">PlayStation（○ 確認）</span>
+                      <span class="lang-de" lang="de">PlayStation (○ = Bestätigen)</span>
+                      <span class="lang-en" lang="en">PlayStation (○ Confirm)</span>
+                      <span class="lang-fr" lang="fr">PlayStation (○ = Confirmer)</span>
+                      <span class="lang-ja" lang="ja">PlayStation（○決定）</span>
+                      <span class="lang-ko" lang="ko">PlayStation（○ 확인）</span>
+                      <span class="lang-sc" lang="zh-Hans">PlayStation（○ 确认）</span>
+                    </th>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">確認鍵</span>
+                        <span class="lang-de" lang="de">Bestätigen</span>
+                        <span class="lang-en" lang="en">Confirm</span>
+                        <span class="lang-fr" lang="fr">Confirmer</span>
+                        <span class="lang-ja" lang="ja">決定</span>
+                        <span class="lang-ko" lang="ko">확인</span>
+                        <span class="lang-sc" lang="zh-Hans">确认键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-b">○</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">取消鍵／清除</span>
+                        <span class="lang-de" lang="de">Abbrechen／Leeren</span>
+                        <span class="lang-en" lang="en">Cancel／Clear</span>
+                        <span class="lang-fr" lang="fr">Annuler／Effacer</span>
+                        <span class="lang-ja" lang="ja">キャンセル／クリア</span>
+                        <span class="lang-ko" lang="ko">취소／지우기</span>
+                        <span class="lang-sc" lang="zh-Hans">取消键／清空</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-a">×</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">刪除鍵</span>
+                        <span class="lang-de" lang="de">Löschen</span>
+                        <span class="lang-en" lang="en">Delete</span>
+                        <span class="lang-fr" lang="fr">Supprimer</span>
+                        <span class="lang-ja" lang="ja">削除</span>
+                        <span class="lang-ko" lang="ko">삭제</span>
+                        <span class="lang-sc" lang="zh-Hans">删除键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-x">□</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">選單鍵</span>
+                        <span class="lang-de" lang="de">Menü</span>
+                        <span class="lang-en" lang="en">Menu</span>
+                        <span class="lang-fr" lang="fr">Menu</span>
+                        <span class="lang-ja" lang="ja">メニュー</span>
+                        <span class="lang-ko" lang="ko">메뉴</span>
+                        <span class="lang-sc" lang="zh-Hans">菜单键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-y">△</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Nintendo</th>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">確認鍵</span>
+                        <span class="lang-de" lang="de">Bestätigen</span>
+                        <span class="lang-en" lang="en">Confirm</span>
+                        <span class="lang-fr" lang="fr">Confirmer</span>
+                        <span class="lang-ja" lang="ja">決定</span>
+                        <span class="lang-ko" lang="ko">확인</span>
+                        <span class="lang-sc" lang="zh-Hans">确认键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-a">A</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">取消鍵／清除</span>
+                        <span class="lang-de" lang="de">Abbrechen／Leeren</span>
+                        <span class="lang-en" lang="en">Cancel／Clear</span>
+                        <span class="lang-fr" lang="fr">Annuler／Effacer</span>
+                        <span class="lang-ja" lang="ja">キャンセル／クリア</span>
+                        <span class="lang-ko" lang="ko">취소／지우기</span>
+                        <span class="lang-sc" lang="zh-Hans">取消键／清空</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-b">B</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">刪除鍵</span>
+                        <span class="lang-de" lang="de">Löschen</span>
+                        <span class="lang-en" lang="en">Delete</span>
+                        <span class="lang-fr" lang="fr">Supprimer</span>
+                        <span class="lang-ja" lang="ja">削除</span>
+                        <span class="lang-ko" lang="ko">삭제</span>
+                        <span class="lang-sc" lang="zh-Hans">删除键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-y">Y</span>
+                    </td>
+                    <td>
+                      <span class="mobile-label" aria-hidden="true">
+                        <span class="lang-zh">選單鍵</span>
+                        <span class="lang-de" lang="de">Menü</span>
+                        <span class="lang-en" lang="en">Menu</span>
+                        <span class="lang-fr" lang="fr">Menu</span>
+                        <span class="lang-ja" lang="ja">メニュー</span>
+                        <span class="lang-ko" lang="ko">메뉴</span>
+                        <span class="lang-sc" lang="zh-Hans">菜单键</span>
+                      </span>
+                      <span class="xbox-btn xbox-round xbox-x">X</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div class="table-wrapper">
@@ -3368,7 +3956,7 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      或 <span class="xbox-btn xbox-stick">L</span> 左搖桿（歷程）<br /><span
+                      或 <span class="xbox-btn xbox-stick">LS</span> 左搖桿（歷程）<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >／<span class="xbox-btn xbox-dpad">→</span>（游標）</span
@@ -3377,7 +3965,7 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      or <span class="xbox-btn xbox-stick">L</span> Left Stick (history)<br /><span
+                      or <span class="xbox-btn xbox-stick">LS</span> Left Stick (history)<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >/<span class="xbox-btn xbox-dpad">→</span> (cursor)</span
@@ -3387,7 +3975,7 @@
                         >↓</span
                       >
                       または
-                      <span class="xbox-btn xbox-stick">L</span> 左スティック（履歴）<br /><span
+                      <span class="xbox-btn xbox-stick">LS</span> 左スティック（履歴）<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >／<span class="xbox-btn xbox-dpad">→</span>（カーソル）</span
@@ -3396,7 +3984,7 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      或 <span class="xbox-btn xbox-stick">L</span> 左摇杆（历史）<br /><span
+                      或 <span class="xbox-btn xbox-stick">LS</span> 左摇杆（历史）<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >／<span class="xbox-btn xbox-dpad">→</span>（光标）</span
@@ -3405,7 +3993,7 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      oder <span class="xbox-btn xbox-stick">L</span> Linker Stick (Verlauf)<br /><span
+                      oder <span class="xbox-btn xbox-stick">LS</span> Linker Stick (Verlauf)<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >/<span class="xbox-btn xbox-dpad">→</span> (Cursor)</span
@@ -3414,7 +4002,7 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      ou <span class="xbox-btn xbox-stick">L</span> Stick gauche (historique)<br /><span
+                      ou <span class="xbox-btn xbox-stick">LS</span> Stick gauche (historique)<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >/<span class="xbox-btn xbox-dpad">→</span> (curseur)</span
@@ -3423,7 +4011,7 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      또는 <span class="xbox-btn xbox-stick">L</span> 왼쪽 스틱 (기록)<br /><span
+                      또는 <span class="xbox-btn xbox-stick">LS</span> 왼쪽 스틱 (기록)<br /><span
                         class="xbox-btn xbox-dpad"
                         >←</span
                       >/<span class="xbox-btn xbox-dpad">→</span> (커서)</span
@@ -3578,41 +4166,32 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-pill">M</span> 背鍵／<span
-                        class="xbox-btn xbox-pill"
-                        >Custom</span
-                      >
-                      鍵</span
+                      >在 Windows 掌機公用應用程式（例如 Armory Crate
+                      SE）中設定的控制器按鍵組合</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> Button /
-                      <span class="xbox-btn xbox-pill">Custom</span> Key</span
+                      >Controller button combo configured in a Windows handheld shared app (such as
+                      Armory Crate SE)</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-pill">M</span> 背面ボタン／<span
-                        class="xbox-btn xbox-pill"
-                        >Custom</span
-                      >
-                      ボタン</span
+                      >Windows 携帯型 PC 用共通アプリ（例：Armory Crate
+                      SE）で設定したコントローラーのボタン組み合わせ</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-pill">M</span> 背键／<span
-                        class="xbox-btn xbox-pill"
-                        >Custom</span
-                      >
-                      键</span
+                      >在 Windows 掌机公用应用程序（例如 Armory Crate
+                      SE）中设置的控制器按键组合</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-pill">M</span> Taste Zurück /
-                      <span class="xbox-btn xbox-pill">Custom</span>-Taste</span
+                      >In einer Windows-Handheld-Gemeinschafts-App (z. B. Armory Crate SE)
+                      konfigurierte Controller-Tastenkombination</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> / Touche
-                      <span class="xbox-btn xbox-pill">Custom</span></span
+                      >Combinaison de touches de la manette configurée dans une application partagée
+                      Windows pour handheld (par exemple Armory Crate SE)</span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-pill">M</span> Back 버튼 /
-                      <span class="xbox-btn xbox-pill">Custom</span> 키</span
+                      >Windows 휴대용 PC 공용 앱（예: Armory Crate SE）에서 설정한 컨트롤러 버튼
+                      조합</span
                     >
                   </td>
                   <td>
@@ -3678,41 +4257,41 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-round xbox-a">A</span> 鍵／<span
-                        class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
-                      >
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >目前配置下的確認鍵／<span class="xbox-btn xbox-pill xbox-start">Menu</span>
                       鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-round xbox-a">A</span> Button /
-                      <span class="xbox-btn xbox-pill xbox-start">Start</span> Button</span
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                      Current Confirm Button /
+                      <span class="xbox-btn xbox-pill xbox-start">Menu</span> Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-round xbox-a">A</span> ボタン／<span
-                        class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >現在の配置の決定ボタン／<span class="xbox-btn xbox-pill xbox-start"
+                        >Menu</span
                       >
                       ボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-round xbox-a">A</span> 键／<span
-                        class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
-                      >
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >当前配置下的确认键／<span class="xbox-btn xbox-pill xbox-start">Menu</span>
                       键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-round xbox-a">A</span>-Taste /
-                      <span class="xbox-btn xbox-pill xbox-start">Start</span>-Taste</span
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                      Aktuelle Bestätigen-Taste /
+                      <span class="xbox-btn xbox-pill xbox-start">Menu</span>-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-round xbox-a">A</span> / Bouton
-                      <span class="xbox-btn xbox-pill xbox-start">Start</span></span
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                      Bouton Confirmer actif / Bouton
+                      <span class="xbox-btn xbox-pill xbox-start">Menu</span></span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-round xbox-a">A</span> 버튼 /
-                      <span class="xbox-btn xbox-pill xbox-start">Start</span> 버튼</span
+                      ><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                      현재 배치의 확인 버튼 /
+                      <span class="xbox-btn xbox-pill xbox-start">Menu</span> 버튼</span
                     >
                   </td>
                   <td>
@@ -3776,25 +4355,32 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-round xbox-b">B</span> 鍵</span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span
+                      >目前配置下的取消鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-round xbox-b">B</span> Button</span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span> Current
+                      Cancel Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-round xbox-b">B</span> ボタン</span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span
+                      >現在の配置のキャンセルボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-round xbox-b">B</span> 键</span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span
+                      >当前配置下的取消键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-round xbox-b">B</span>-Taste</span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span> Aktuelle
+                      Abbrechen-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-round xbox-b">B</span></span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span> Bouton
+                      Annuler actif</span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-round xbox-b">B</span> 버튼</span
+                      ><span class="xbox-btn xbox-round xbox-b" aria-hidden="true">✕</span> 현재
+                      배치의 취소 버튼</span
                     >
                   </td>
                   <td>
@@ -3846,25 +4432,32 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span
+                      >目前配置下的刪除鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-round xbox-x">X</span> Button</span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span> Current
+                      Delete Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-round xbox-x">X</span> ボタン</span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span
+                      >現在の配置の削除ボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-round xbox-x">X</span> 键</span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span
+                      >当前配置下的删除键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-round xbox-x">X</span>-Taste</span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span> Aktuelle
+                      Löschen-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-round xbox-x">X</span></span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span> Bouton
+                      Supprimer actif</span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-round xbox-x">X</span> 버튼</span
+                      ><span class="xbox-btn xbox-round xbox-x" aria-hidden="true">⌫</span> 현재
+                      배치의 삭제 버튼</span
                     >
                   </td>
                   <td>
@@ -3918,52 +4511,52 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵／<span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 鍵／<span
                         class="xbox-btn xbox-bumper"
                         >LB</span
                       >
                       + <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">B</span> 鍵</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span> 鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> Button /
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> Button /
                       <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">B</span></span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span></span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> ボタン／<span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> ボタン／<span
                         class="xbox-btn xbox-bumper"
                         >LB</span
                       >
                       + <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">B</span> ボタン</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span> ボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 键／<span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 键／<span
                         class="xbox-btn xbox-bumper"
                         >LB</span
                       >
                       + <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">B</span> 键</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span> 键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span>-Taste /
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span>-Taste /
                       <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">B</span>-Taste</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span>-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> /
+                      >Bouton <span class="xbox-btn xbox-pill xbox-back">View</span> /
                       <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> + Bouton
-                      <span class="xbox-btn xbox-round xbox-b">B</span></span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span></span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 버튼 /
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 버튼 /
                       <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">B</span> 버튼</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span> 버튼</span
                     >
                   </td>
                   <td>
@@ -4029,25 +4622,25 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-pill xbox-start">Start</span> 鍵</span
+                      ><span class="xbox-btn xbox-pill xbox-start">Menu</span> 鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-pill xbox-start">Start</span> Button</span
+                      ><span class="xbox-btn xbox-pill xbox-start">Menu</span> Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-pill xbox-start">Start</span> ボタン</span
+                      ><span class="xbox-btn xbox-pill xbox-start">Menu</span> ボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-pill xbox-start">Start</span> 键</span
+                      ><span class="xbox-btn xbox-pill xbox-start">Menu</span> 键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-pill xbox-start">Start</span>-Taste</span
+                      ><span class="xbox-btn xbox-pill xbox-start">Menu</span>-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-pill xbox-start">Start</span></span
+                      >Bouton <span class="xbox-btn xbox-pill xbox-start">Menu</span></span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-pill xbox-start">Start</span> 버튼</span
+                      ><span class="xbox-btn xbox-pill xbox-start">Menu</span> 버튼</span
                     >
                   </td>
                   <td>
@@ -4099,25 +4692,32 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> 鍵</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span
+                      >目前配置下的選單鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> Button</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> Current
+                      Menu Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> ボタン</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span
+                      >現在の配置のメニューボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span
+                      >当前配置下的菜单键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span>-Taste</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> Aktuelle
+                      Menü-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-round xbox-y">Y</span></span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> Bouton
+                      Menu actif</span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> 버튼</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> 현재
+                      배치의 메뉴 버튼</span
                     >
                   </td>
                   <td>
@@ -4181,42 +4781,42 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵 +
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 鍵 +
                       <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       ></span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> Button +
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> Button +
                       <span class="xbox-btn xbox-dpad">↑</span> /
                       <span class="xbox-btn xbox-dpad">↓</span></span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> ボタン +
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> ボタン +
                       <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       ></span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 键 +
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 键 +
                       <span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       ></span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span>-Taste +
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span>-Taste +
                       <span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       ></span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> +
+                      >Bouton <span class="xbox-btn xbox-pill xbox-back">View</span> +
                       <span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       ></span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 버튼 +
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 버튼 +
                       <span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       ></span
@@ -4283,32 +4883,32 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 鍵 +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 鍵 +
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> Button +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> Button</span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> Button +
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> ボタン +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> ボタン</span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> ボタン +
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> ボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 键 +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> 键</span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 键 +
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span>-Taste +
-                      <span class="xbox-btn xbox-round xbox-x">X</span>-Taste</span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span>-Taste +
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span>-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-pill xbox-back">Back</span> + Bouton
-                      <span class="xbox-btn xbox-round xbox-x">X</span></span
+                      >Bouton <span class="xbox-btn xbox-pill xbox-back">View</span> + Bouton
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span></span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-pill xbox-back">Back</span> 버튼 +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> 버튼</span
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 버튼 +
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 버튼</span
                     >
                   </td>
                   <td>
@@ -4362,39 +4962,39 @@
                     <span class="lang-zh"
                       ><span class="xbox-btn xbox-bumper">LB</span>／<span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
                       右搖桿</span
                     >
                     <span class="lang-en" lang="en"
                       ><span class="xbox-btn xbox-bumper">LB</span> /
-                      <span class="xbox-btn xbox-stick">R</span> Right Stick</span
+                      <span class="xbox-btn xbox-stick">RS</span> Right Stick</span
                     >
                     <span class="lang-ja" lang="ja"
                       ><span class="xbox-btn xbox-bumper">LB</span>／<span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
                       右スティック</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
                       ><span class="xbox-btn xbox-bumper">LB</span>／<span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
                       右摇杆</span
                     >
                     <span class="lang-de" lang="de"
                       ><span class="xbox-btn xbox-bumper">LB</span> /
-                      <span class="xbox-btn xbox-stick">R</span> Rechter Stick</span
+                      <span class="xbox-btn xbox-stick">RS</span> Rechter Stick</span
                     >
                     <span class="lang-fr" lang="fr"
                       ><span class="xbox-btn xbox-bumper">LB</span> /
-                      <span class="xbox-btn xbox-stick">R</span> Stick droit</span
+                      <span class="xbox-btn xbox-stick">RS</span> Stick droit</span
                     >
                     <span class="lang-ko" lang="ko"
                       ><span class="xbox-btn xbox-bumper">LB</span> /
-                      <span class="xbox-btn xbox-stick">R</span> 오른쪽 스틱</span
+                      <span class="xbox-btn xbox-stick">RS</span> 오른쪽 스틱</span
                     >
                   </td>
                   <td>
@@ -4462,37 +5062,37 @@
                     <span class="lang-zh"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> 鍵</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 鍵</span
                     >
                     <span class="lang-en" lang="en"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> Button</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> Button</span
                     >
                     <span class="lang-ja" lang="ja"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> ボタン</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> ボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> 键</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 键</span
                     >
                     <span class="lang-de" lang="de"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span>-Taste</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span>-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
                       >Bouton <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span></span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span></span
                     >
                     <span class="lang-ko" lang="ko"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">X</span> 버튼</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 버튼</span
                     >
                   </td>
                   <td>
@@ -4593,25 +5193,32 @@
                       <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
                     </span>
                     <span class="lang-zh"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> 鍵</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span
+                      >目前配置下的選單鍵</span
                     >
                     <span class="lang-en" lang="en"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> Button</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> Current
+                      Menu Button</span
                     >
                     <span class="lang-ja" lang="ja"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> ボタン</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span
+                      >現在の配置のメニューボタン</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> 键</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span
+                      >当前配置下的菜单键</span
                     >
                     <span class="lang-de" lang="de"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span>-Taste</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> Aktuelle
+                      Menü-Taste</span
                     >
                     <span class="lang-fr" lang="fr"
-                      >Bouton <span class="xbox-btn xbox-round xbox-y">Y</span></span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> Bouton
+                      Menu actif</span
                     >
                     <span class="lang-ko" lang="ko"
-                      ><span class="xbox-btn xbox-round xbox-y">Y</span> 버튼</span
+                      ><span class="xbox-btn xbox-round xbox-y" aria-hidden="true">≡</span> 현재
+                      배치의 메뉴 버튼</span
                     >
                   </td>
                   <td>
@@ -4689,67 +5296,86 @@
                       ><span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      移動<br /><span class="xbox-btn xbox-round xbox-a">A</span> 鍵 執行<br /><span
+                      移動<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >目前配置下的確認鍵 執行<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >
-                      鍵 關閉</span
+                        aria-hidden="true"
+                        >✕</span
+                      >目前配置下的取消鍵 關閉</span
                     >
                     <span class="lang-en" lang="en"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      Move<br /><span class="xbox-btn xbox-round xbox-a">A</span> Button Select<br /><span
+                      Move<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                      Current Confirm Button Select<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
+                        aria-hidden="true"
+                        >✕</span
                       >
-                      Button Close</span
+                      Current Cancel Button Close</span
                     >
                     <span class="lang-ja" lang="ja"
                       ><span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      移動<br /><span class="xbox-btn xbox-round xbox-a">A</span> ボタン 決定<br /><span
+                      移動<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >現在の配置の決定ボタンで実行<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >
-                      ボタン 閉じる</span
+                        aria-hidden="true"
+                        >✕</span
+                      >現在の配置のキャンセルボタンで閉じる</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
                       ><span class="xbox-btn xbox-dpad">↑</span>／<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      移动<br /><span class="xbox-btn xbox-round xbox-a">A</span> 键 执行<br /><span
+                      移动<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >当前配置下的确认键 执行<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >
-                      键 关闭</span
+                        aria-hidden="true"
+                        >✕</span
+                      >当前配置下的取消键 关闭</span
                     >
                     <span class="lang-de" lang="de"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      Bewegen<br /><span class="xbox-btn xbox-round xbox-a">A</span>-Taste
-                      Ausführen<br /><span class="xbox-btn xbox-round xbox-b">B</span>-Taste
-                      Schließen</span
+                      Bewegen<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true"
+                        >✓</span
+                      >
+                      Mit der aktuellen Bestätigen-Taste ausführen<br /><span
+                        class="xbox-btn xbox-round xbox-b"
+                        aria-hidden="true"
+                        >✕</span
+                      >
+                      Mit der aktuellen Abbrechen-Taste schließen</span
                     >
                     <span class="lang-fr" lang="fr"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      Déplacer<br />Bouton
-                      <span class="xbox-btn xbox-round xbox-a">A</span> Sélectionner<br />Bouton
-                      <span class="xbox-btn xbox-round xbox-b">B</span> Fermer</span
+                      Déplacer<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true"
+                        >✓</span
+                      >
+                      Bouton Confirmer actif pour valider<br /><span
+                        class="xbox-btn xbox-round xbox-b"
+                        aria-hidden="true"
+                        >✕</span
+                      >
+                      Bouton Annuler actif pour fermer</span
                     >
                     <span class="lang-ko" lang="ko"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
                         >↓</span
                       >
-                      이동<br /><span class="xbox-btn xbox-round xbox-a">A</span> 버튼 선택<br /><span
+                      이동<br /><span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span>
+                      현재 배치의 확인 버튼으로 실행<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
+                        aria-hidden="true"
+                        >✕</span
                       >
-                      버튼 닫기</span
+                      현재 배치의 취소 버튼으로 닫기</span
                     >
                   </td>
                   <td>
@@ -4821,19 +5447,19 @@
                         >→</span
                       >（或 <span class="xbox-btn xbox-bumper">LB</span> + 方向鍵）移動<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      右搖桿 虛擬選取<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      右搖桿 虛擬選取<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      確定<br /><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      確定<br /><span class="xbox-btn xbox-round xbox-b">✕</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      取消<br /><span class="xbox-btn xbox-round xbox-x">X</span> 退格<br /><span
+                      取消<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> 退格<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       重設為預設值</span
                     >
@@ -4847,18 +5473,18 @@
                       >
                       (or <span class="xbox-btn xbox-bumper">LB</span> + D-pad) Move<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      Virtual Selection<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Virtual Selection<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      OK<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      OK<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      Cancel<br /><span class="xbox-btn xbox-round xbox-x">X</span>
-                      Backspace<br /><span class="xbox-btn xbox-round xbox-y">Y</span> Reset to
+                      Cancel<br /><span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      Backspace<br /><span class="xbox-btn xbox-round xbox-y">≡</span> Reset to
                       Default</span
                     >
                     <span class="lang-ja" lang="ja"
@@ -4870,15 +5496,15 @@
                         >→</span
                       >（或 <span class="xbox-btn xbox-bumper">LB</span> + D-pad）移動<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      右スティック 仮想選択<br /><span class="xbox-btn xbox-round xbox-a">A</span
-                      >／<span class="xbox-btn xbox-pill xbox-start">Start</span> 確定<br /><span
+                      右スティック 仮想選択<br /><span class="xbox-btn xbox-round xbox-a">✓</span
+                      >／<span class="xbox-btn xbox-pill xbox-start">Menu</span> 確定<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >／<span class="xbox-btn xbox-pill xbox-back">Back</span>
-                      キャンセル<br /><span class="xbox-btn xbox-round xbox-x">X</span>
-                      バックスペース<br /><span class="xbox-btn xbox-round xbox-y">Y</span>
+                        >✕</span
+                      >／<span class="xbox-btn xbox-pill xbox-back">View</span>
+                      キャンセル<br /><span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      バックスペース<br /><span class="xbox-btn xbox-round xbox-y">≡</span>
                       既定値にリセット</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
@@ -4890,19 +5516,19 @@
                         >→</span
                       >（或 <span class="xbox-btn xbox-bumper">LB</span> + 方向键）移动<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      右摇杆 虚拟选取<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      右摇杆 虚拟选取<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
+                        >Menu</span
                       >
-                      确定<br /><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      确定<br /><span class="xbox-btn xbox-round xbox-b">✕</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      取消<br /><span class="xbox-btn xbox-round xbox-x">X</span> 退格<br /><span
+                      取消<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> 退格<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       重置为默认值</span
                     >
@@ -4916,18 +5542,18 @@
                       >
                       (oder <span class="xbox-btn xbox-bumper">LB</span> + D-Pad) Bewegen<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      Virtuelle Auswahl<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Virtuelle Auswahl<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
+                        >Menu</span
                       >
-                      OK<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      OK<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      Abbrechen<br /><span class="xbox-btn xbox-round xbox-x">X</span>
-                      Rücktaste<br /><span class="xbox-btn xbox-round xbox-y">Y</span>
+                      Abbrechen<br /><span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      Rücktaste<br /><span class="xbox-btn xbox-round xbox-y">≡</span>
                       Standard</span
                     >
                     <span class="lang-fr" lang="fr"
@@ -4940,17 +5566,17 @@
                       >
                       (ou <span class="xbox-btn xbox-bumper">LB</span> + pavé dir.) Déplacer<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      Sélection virtuelle<br /><span class="xbox-btn xbox-round xbox-a">A</span
-                      >/<span class="xbox-btn xbox-pill xbox-start">Start</span> OK<br /><span
+                      Sélection virtuelle<br /><span class="xbox-btn xbox-round xbox-a">✓</span
+                      >/<span class="xbox-btn xbox-pill xbox-start">Menu</span> OK<br /><span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >/<span class="xbox-btn xbox-pill xbox-back">Back</span> Annuler<br /><span
+                        >✕</span
+                      >/<span class="xbox-btn xbox-pill xbox-back">View</span> Annuler<br /><span
                         class="xbox-btn xbox-round xbox-x"
-                        >X</span
+                        >⌫</span
                       >
-                      Retour arrière<br /><span class="xbox-btn xbox-round xbox-y">Y</span>
+                      Retour arrière<br /><span class="xbox-btn xbox-round xbox-y">≡</span>
                       Réinitialiser</span
                     >
                     <span class="lang-ko" lang="ko"
@@ -4963,18 +5589,18 @@
                       >
                       (또는 <span class="xbox-btn xbox-bumper">LB</span> + 방향 패드) 이동<br /><span
                         class="xbox-btn xbox-stick"
-                        >R</span
+                        >RS</span
                       >
-                      가상 선택<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      가상 선택<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      확인<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      확인<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      취소<br /><span class="xbox-btn xbox-round xbox-x">X</span>
-                      백스페이스<br /><span class="xbox-btn xbox-round xbox-y">Y</span> 기본값으로
+                      취소<br /><span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      백스페이스<br /><span class="xbox-btn xbox-round xbox-y">≡</span> 기본값으로
                       초기화</span
                     >
                   </td>
@@ -5055,12 +5681,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      翻頁<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      翻頁<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >／<span class="xbox-btn xbox-pill xbox-start">Start</span>／<span
+                        >✕</span
+                      >／<span class="xbox-btn xbox-pill xbox-start">Menu</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       關閉</span
                     >
@@ -5072,12 +5698,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      Page Up/Down<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Page Up/Down<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >/<span class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                        >✕</span
+                      >/<span class="xbox-btn xbox-pill xbox-start">Menu</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       Close</span
                     >
@@ -5089,12 +5715,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      ページ切替<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      ページ切替<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >／<span class="xbox-btn xbox-pill xbox-start">Start</span>／<span
+                        >✕</span
+                      >／<span class="xbox-btn xbox-pill xbox-start">Menu</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       閉じる</span
                     >
@@ -5106,12 +5732,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      翻页<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      翻页<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >／<span class="xbox-btn xbox-pill xbox-start">Start</span>／<span
+                        >✕</span
+                      >／<span class="xbox-btn xbox-pill xbox-start">Menu</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       关闭</span
                     >
@@ -5123,12 +5749,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      Seite wechseln<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Seite wechseln<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >/<span class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                        >✕</span
+                      >/<span class="xbox-btn xbox-pill xbox-start">Menu</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       Schließen</span
                     >
@@ -5140,12 +5766,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      Page préc./suiv.<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Page préc./suiv.<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >/<span class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                        >✕</span
+                      >/<span class="xbox-btn xbox-pill xbox-start">Menu</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       Fermer</span
                     >
@@ -5157,12 +5783,12 @@
                         class="xbox-btn xbox-trigger"
                         >RT</span
                       >
-                      페이지 전환<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      페이지 전환<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-round xbox-b"
-                        >B</span
-                      >/<span class="xbox-btn xbox-pill xbox-start">Start</span>/<span
+                        >✕</span
+                      >/<span class="xbox-btn xbox-pill xbox-start">Menu</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
                       닫기</span
                     >
@@ -5244,17 +5870,17 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      排序／換焦點<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      排序／換焦點<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
+                        >Menu</span
                       >
-                      插入<br /><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      插入<br /><span class="xbox-btn xbox-round xbox-b">✕</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      關閉<br /><span class="xbox-btn xbox-round xbox-x">X</span> 刪除<br /><span
+                      關閉<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> 刪除<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       添加</span
                     >
@@ -5266,17 +5892,17 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      Reorder/Focus<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Reorder/Focus<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
-                        >Start</span
+                        >Menu</span
                       >
-                      Insert<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      Insert<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      Close<br /><span class="xbox-btn xbox-round xbox-x">X</span> Delete<br /><span
+                      Close<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> Delete<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       Add</span
                     >
@@ -5288,17 +5914,17 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      並べ替え／移動<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      並べ替え／移動<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      挿入<br /><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      挿入<br /><span class="xbox-btn xbox-round xbox-b">✕</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      閉じる<br /><span class="xbox-btn xbox-round xbox-x">X</span> 削除<br /><span
+                      閉じる<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> 削除<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       追加</span
                     >
@@ -5310,17 +5936,17 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      排序／换焦点<br /><span class="xbox-btn xbox-round xbox-a">A</span>／<span
+                      排序／换焦点<br /><span class="xbox-btn xbox-round xbox-a">✓</span>／<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      插入<br /><span class="xbox-btn xbox-round xbox-b">B</span>／<span
+                      插入<br /><span class="xbox-btn xbox-round xbox-b">✕</span>／<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      关闭<br /><span class="xbox-btn xbox-round xbox-x">X</span> 删除<br /><span
+                      关闭<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> 删除<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       添加</span
                     >
@@ -5332,16 +5958,16 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      Sortieren/Fokus<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Sortieren/Fokus<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      Einfügen<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      Einfügen<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      Schließen<br /><span class="xbox-btn xbox-round xbox-x">X</span>
-                      Löschen<br /><span class="xbox-btn xbox-round xbox-y">Y</span>
+                      Schließen<br /><span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      Löschen<br /><span class="xbox-btn xbox-round xbox-y">≡</span>
                       Hinzufügen</span
                     >
                     <span class="lang-fr" lang="fr"
@@ -5352,16 +5978,16 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      Réordr./Focus<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      Réordr./Focus<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      Insérer<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      Insérer<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      Fermer<br /><span class="xbox-btn xbox-round xbox-x">X</span>
-                      Supprimer<br /><span class="xbox-btn xbox-round xbox-y">Y</span> Ajouter</span
+                      Fermer<br /><span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      Supprimer<br /><span class="xbox-btn xbox-round xbox-y">≡</span> Ajouter</span
                     >
                     <span class="lang-ko" lang="ko"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
@@ -5371,17 +5997,17 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      재정렬/포커스<br /><span class="xbox-btn xbox-round xbox-a">A</span>/<span
+                      재정렬/포커스<br /><span class="xbox-btn xbox-round xbox-a">✓</span>/<span
                         class="xbox-btn xbox-pill xbox-start"
                         >Start</span
                       >
-                      삽입<br /><span class="xbox-btn xbox-round xbox-b">B</span>/<span
+                      삽입<br /><span class="xbox-btn xbox-round xbox-b">✕</span>/<span
                         class="xbox-btn xbox-pill xbox-back"
                         >Back</span
                       >
-                      닫기<br /><span class="xbox-btn xbox-round xbox-x">X</span> 삭제<br /><span
+                      닫기<br /><span class="xbox-btn xbox-round xbox-x">⌫</span> 삭제<br /><span
                         class="xbox-btn xbox-round xbox-y"
-                        >Y</span
+                        >≡</span
                       >
                       추가</span
                     >
@@ -5474,15 +6100,15 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      移動游標<br /><span class="xbox-btn xbox-stick">R</span> 右搖桿 虛擬選取<br /><span
+                      移動游標<br /><span class="xbox-btn xbox-stick">RS</span> 右搖桿 虛擬選取<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      確定<br /><span class="xbox-btn xbox-round xbox-b">B</span> 清空<br /><span
+                      確定<br /><span class="xbox-btn xbox-round xbox-b">✕</span> 清空<br /><span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      取消<br /><span class="xbox-btn xbox-pill xbox-start">Start</span> 鍵盤</span
+                      取消<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span> 鍵盤</span
                     >
                     <span class="lang-en" lang="en"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
@@ -5492,13 +6118,13 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      Move<br /><span class="xbox-btn xbox-stick">R</span> Selection<br /><span
+                      Move<br /><span class="xbox-btn xbox-stick">RS</span> Selection<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      Confirm<br /><span class="xbox-btn xbox-round xbox-b">B</span>
-                      Clear<br /><span class="xbox-btn xbox-pill xbox-back">Back</span>
-                      Cancel<br /><span class="xbox-btn xbox-pill xbox-start">Start</span>
+                      Confirm<br /><span class="xbox-btn xbox-round xbox-b">✕</span>
+                      Clear<br /><span class="xbox-btn xbox-pill xbox-back">View</span>
+                      Cancel<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span>
                       Keyboard</span
                     >
                     <span class="lang-ja" lang="ja"
@@ -5509,15 +6135,15 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      移動<br /><span class="xbox-btn xbox-stick">R</span> 右スティック 選択<br /><span
+                      移動<br /><span class="xbox-btn xbox-stick">RS</span> 右スティック 選択<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      決定<br /><span class="xbox-btn xbox-round xbox-b">B</span> クリア<br /><span
+                      決定<br /><span class="xbox-btn xbox-round xbox-b">✕</span> クリア<br /><span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      キャンセル<br /><span class="xbox-btn xbox-pill xbox-start">Start</span>
+                      キャンセル<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span>
                       キーボード</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
@@ -5528,15 +6154,15 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      移动游标<br /><span class="xbox-btn xbox-stick">R</span> 右摇杆 虚拟选取<br /><span
+                      移动游标<br /><span class="xbox-btn xbox-stick">RS</span> 右摇杆 虚拟选取<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      确定<br /><span class="xbox-btn xbox-round xbox-b">B</span> 清空<br /><span
+                      确定<br /><span class="xbox-btn xbox-round xbox-b">✕</span> 清空<br /><span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      取消<br /><span class="xbox-btn xbox-pill xbox-start">Start</span> 键盘</span
+                      取消<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span> 键盘</span
                     >
                     <span class="lang-de" lang="de"
                       ><span class="xbox-btn xbox-dpad">↑</span>/<span class="xbox-btn xbox-dpad"
@@ -5546,13 +6172,13 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      Bewegen<br /><span class="xbox-btn xbox-stick">R</span> Auswahl<br /><span
+                      Bewegen<br /><span class="xbox-btn xbox-stick">RS</span> Auswahl<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      Bestätigen<br /><span class="xbox-btn xbox-round xbox-b">B</span>
-                      Löschen<br /><span class="xbox-btn xbox-pill xbox-back">Back</span>
-                      Abbrechen<br /><span class="xbox-btn xbox-pill xbox-start">Start</span>
+                      Bestätigen<br /><span class="xbox-btn xbox-round xbox-b">✕</span>
+                      Löschen<br /><span class="xbox-btn xbox-pill xbox-back">View</span>
+                      Abbrechen<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span>
                       Tastatur</span
                     >
                     <span class="lang-fr" lang="fr"
@@ -5563,13 +6189,13 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      Déplacer<br /><span class="xbox-btn xbox-stick">R</span> Sélection<br /><span
+                      Déplacer<br /><span class="xbox-btn xbox-stick">RS</span> Sélection<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      Confirmer<br /><span class="xbox-btn xbox-round xbox-b">B</span>
-                      Effacer<br /><span class="xbox-btn xbox-pill xbox-back">Back</span>
-                      Annuler<br /><span class="xbox-btn xbox-pill xbox-start">Start</span>
+                      Confirmer<br /><span class="xbox-btn xbox-round xbox-b">✕</span>
+                      Effacer<br /><span class="xbox-btn xbox-pill xbox-back">View</span>
+                      Annuler<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span>
                       Clavier</span
                     >
                     <span class="lang-ko" lang="ko"
@@ -5580,16 +6206,15 @@
                         class="xbox-btn xbox-dpad"
                         >→</span
                       >
-                      이동<br /><span class="xbox-btn xbox-stick">R</span> 선택<br /><span
+                      이동<br /><span class="xbox-btn xbox-stick">RS</span> 선택<br /><span
                         class="xbox-btn xbox-round xbox-a"
-                        >A</span
+                        >✓</span
                       >
-                      확인<br /><span class="xbox-btn xbox-round xbox-b">B</span> 지우기<br /><span
+                      확인<br /><span class="xbox-btn xbox-round xbox-b">✕</span> 지우기<br /><span
                         class="xbox-btn xbox-pill xbox-back"
-                        >Back</span
+                        >View</span
                       >
-                      취소<br /><span class="xbox-btn xbox-pill xbox-start">Start</span>
-                      키보드</span
+                      취소<br /><span class="xbox-btn xbox-pill xbox-start">Menu</span> 키보드</span
                     >
                   </td>
                   <td>
@@ -5876,26 +6501,31 @@
                 <span class="lang-sc" lang="zh-Hans">明确确认感 ✅</span>
               </h3>
               <p>
-                <span class="lang-zh">文字成功複製到剪貼簿、或成功切換回目標視窗時觸發。</span>
+                <span class="lang-zh"
+                  >文字成功複製到 Windows 剪貼簿、或成功切換回目標視窗時觸發。</span
+                >
                 <span class="lang-de" lang="de"
-                  >Ausgelöst bei erfolgreichem Kopieren in die Zwischenablage oder erfolgreichem
-                  Fensterwechsel.</span
+                  >Ausgelöst bei erfolgreichem Kopieren in die Windows-Zwischenablage oder
+                  erfolgreichem Fensterwechsel.</span
                 >
                 <span class="lang-en" lang="en"
-                  >Triggered when text is copied to clipboard or window switch is successful.</span
+                  >Triggered when text is copied to the Windows clipboard or window switch is
+                  successful.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  >Déclenché lorsque le texte est copié avec succès dans le presse-papiers ou lors
-                  d'un changement de fenêtre réussi.</span
+                  >Déclenché lorsque le texte est copié avec succès dans le presse-papiers Windows
+                  ou lors d'un changement de fenêtre réussi.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >クリップボードへのコピー成功時、またはウィンドウの切り替え成功時に発生。</span
+                  >Windows
+                  クリップボードへのコピー成功時、またはウィンドウの切り替え成功時に発生。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >텍스트가 클립보드에 성공적으로 복사되거나 창 전환이 성공했을 때 발생합니다.</span
+                  >텍스트가 Windows 클립보드에 성공적으로 복사되거나 창 전환이 성공했을 때
+                  발생합니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >文字成功复制到剪贴簿、或成功切换回目标窗口时触发。</span
+                  >文字成功复制到 Windows 剪贴板、或成功切换回目标窗口时触发。</span
                 >
               </p>
             </div>
@@ -5945,27 +6575,28 @@
               </h3>
               <p>
                 <span class="lang-zh"
-                  >操作發生錯誤、歷程記錄到達邊界、或寫入剪貼簿失敗時觸發。</span
+                  >操作發生錯誤、歷程記錄到達邊界、或寫入 Windows 剪貼簿失敗時觸發。</span
                 >
                 <span class="lang-de" lang="de"
                   >Ausgelöst bei Fehlern, Verlaufsgrenzen oder fehlgeschlagenem Kopieren in die
-                  Zwischenablage.</span
+                  Windows-Zwischenablage.</span
                 >
                 <span class="lang-en" lang="en"
-                  >Triggered on errors, history boundaries, or clipboard failures.</span
+                  >Triggered on errors, history boundaries, or Windows clipboard failures.</span
                 >
                 <span class="lang-fr" lang="fr"
                   >Déclenché en cas d'erreurs, de limites d'historique ou d'échec de copie dans le
-                  presse-papiers.</span
+                  presse-papiers Windows.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >エラー発生時、履歴の境界到達時、またはコピー失敗時に発生。</span
+                  >エラー発生時、履歴の境界到達時、または Windows
+                  クリップボードへのコピー失敗時に発生。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >오류 발생, 기록 경계 도달, 또는 클립보드 복사 실패 시 발생합니다.</span
+                  >오류 발생, 기록 경계 도달, 또는 Windows 클립보드 복사 실패 시 발생합니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >操作发生错误、历史记录到达边界、或写入剪贴簿失败时触发。</span
+                  >操作发生错误、历史记录到达边界、或写入 Windows 剪贴板失败时触发。</span
                 >
               </p>
             </div>
