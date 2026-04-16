@@ -182,7 +182,7 @@
     <comment>새로운 핫키가 성공적으로 캡처될 때 재생되는 메시지입니다. {0}은 결과 핫키 문자열입니다.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>{0} 또는 시작을 눌러 비어있을 때 키보드를 열거나 텍스트가 있을 때 복사 및 반환합니다. {1}를 눌러 백스페이스하고, D-패드로 커서를 이동하거나 기록을 확인합니다. 뒤로를 눌러 반환합니다. LB + RB + {2}로 빠르게 반환합니다. LB + RB + {3}를 눌러 종료합니다. 키보드: Enter로 복사/열기, Esc로 지우기, 위/아래로 기록 확인, Alt + B로 반환합니다.</value>
+    <value>{0}을 눌러 텍스트를 복사하고 이전 창으로 돌아가거나, 입력이 비어 있을 때 키보드를 엽니다. Start 또는 Menu를 누르면 언제든 키보드를 열 수 있습니다. {1}로 백스페이스하고, 방향 패드로 커서를 이동하거나 기록을 탐색합니다. Back 또는 View에서 손을 떼면 이전 창으로 돌아갑니다. LB + RB + {2}로 빠르게 반환합니다. LB + RB + {3}를 눌러 종료합니다. 키보드: Enter로 복사/열기, Esc로 지우기, 위/아래로 기록 확인, Alt + B로 반환합니다.</value>
     <comment>다양한 컨트롤러 및 키보드 작업을 설명하는 메인 창의 자세한 설명입니다. {0}은 확인 버튼, {1}은 삭제 버튼, {2}는 취소 버튼, {3}은 종료 단축키에 쓰이는 삭제 버튼입니다.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -884,19 +884,19 @@ Ctrl + M	텍스트 입력으로 이동
     <comment>도움말 대화 상자의 키보드 단축키 테이블의 탭 구분 행입니다. 형식: 키{tab}작업. 행당 한 줄씩입니다.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A / 시작	확인 및 반환 (또는 OSK 열기)
+    <value>A / 시작	확인 및 반환 / Start 또는 Menu로 키보드 열기
 B	입력 텍스트 지우기
 LB + RB + B	이전 창으로 빠르게 반환
-Back (해제)	이전 창으로 반환
+Back / View (해제)	이전 창으로 반환
 Y	기능 메뉴 열기
 X	백스페이스 (문자/선택 항목 삭제)
 LB + RB + X	응용 프로그램 종료
-Back + X	창 불투명도 재설정
+Back / View + X	창 불투명도 재설정
 ↑ / ↓	기록 탐색
 ← / →	커서 왼쪽/오른쪽으로 이동
 LB + ← / →	단어별로 커서 이동
 RS ← / →	선택 확장 또는 축소
-Back + ↑ / ↓	창 불투명도 조정 (±5%)</value>
+Back / View + ↑ / ↓	창 불투명도 조정 (±5%)</value>
     <comment>도움말 대화 상자의 게임패드 컨트롤 테이블의 탭 구분 행입니다. 형식: 단추{tab}작업. 행당 한 줄씩입니다.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">

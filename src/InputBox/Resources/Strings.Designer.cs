@@ -421,7 +421,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press {0} or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use {1} to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
+        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -1278,19 +1278,19 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 A / Start	Confirm &amp; Return (or open OSK)
+        ///   查詢類似 A / Start	Confirm &amp; Return / Start or Menu opens OSK
         ///B	Clear input text
         ///LB + RB + B	Quick return to previous window
-        ///Back (release)	Return to previous window
+        ///Back / View (release)	Return to previous window
         ///Y	Open feature menu
         ///X	Backspace (Delete character/selection)
         ///LB + RB + X	Exit application
-        ///Back + X	Reset window opacity
+        ///Back / View + X	Reset window opacity
         ///↑ / ↓	Navigate history
         ///← / →	Move cursor left / right
         ///LB + ← / →	Jump cursor by word
         ///RS ← / →	Expand or shrink selection
-        ///Back + ↑ / ↓	Adjust window opacity (±5%) 的當地語系化字串。
+        ///Back / View + ↑ / ↓	Adjust window opacity (±5%) 的當地語系化字串。
         /// </summary>
         internal static string Help_Gamepad_Rows {
             get {

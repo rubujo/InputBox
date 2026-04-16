@@ -487,13 +487,13 @@ internal readonly record struct GamepadFaceButtonProfile
 
         GamepadFaceButtonProfile profile = GetActiveProfile();
 
-        rows[0] = ReplaceButtonColumn(rows[0], $"{profile.ConfirmLabel} / Start");
+        rows[0] = ReplaceButtonColumn(rows[0], $"{profile.ConfirmLabel} / Start / Menu");
         rows[1] = ReplaceButtonColumn(rows[1], profile.CancelLabel);
         rows[2] = ReplaceButtonColumn(rows[2], $"LB + RB + {profile.CancelLabel}");
         rows[4] = ReplaceButtonColumn(rows[4], profile.MenuLabel);
         rows[5] = ReplaceButtonColumn(rows[5], profile.DeleteLabel);
         rows[6] = ReplaceButtonColumn(rows[6], $"LB + RB + {profile.DeleteLabel}");
-        rows[7] = ReplaceButtonColumn(rows[7], $"Back + {profile.DeleteLabel}");
+        rows[7] = ReplaceButtonColumn(rows[7], $"Back / View + {profile.DeleteLabel}");
 
         return string.Join(Environment.NewLine, rows);
     }
@@ -568,7 +568,7 @@ internal readonly record struct GamepadFaceButtonProfile
         => string.Format(
             GetResourceString(
                 "A11y_MainFormDesc",
-                "Press {0} or Start to open the keyboard when the input is empty, or copy text and return when text is entered. Use {1} to backspace and the D-pad to move the cursor or browse history. Press Back to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return."),
+                "Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return."),
             profile.ConfirmLabel,
             profile.DeleteLabel,
             profile.CancelLabel,

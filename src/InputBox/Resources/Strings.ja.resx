@@ -182,7 +182,7 @@
     <comment>新しいホットキーが正常にキャプチャされたときに再生されるアクセシビリティメッセージ。{0} は設定されたホットキーの文字列です。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>テキスト空欄時は {0} または Start でキーボード起動、入力後はコピーして戻ります。{1} で削除、十字キーで移動します。Back で戻ります。LB + RB + {2} でクイック戻る。LB + RB + {3} でアプリを終了。キーボード：Enter でコピー／起動、Esc でクリア、上下で履歴、Alt + B で戻る。</value>
+    <value>{0} でテキストをコピーして前のウィンドウに戻るか、未入力時にキーボードを開きます。Start／Menu でいつでもキーボードを開けます。{1} で削除し、十字キーでカーソル移動や履歴操作を行います。Back／View を離すと戻ります。LB + RB + {2} でクイック戻る。LB + RB + {3} でアプリを終了。キーボード：Enter でコピー／起動、Esc でクリア、上下で履歴、Alt + B で戻る。</value>
     <comment>メインウィンドウの詳細なアクセシビリティ記述です。各種コントローラーやキーボードの操作方法を説明します。{0} は決定、{1} は削除、{2} はキャンセル、{3} は終了ショートカットで使う削除ボタンです。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -884,19 +884,19 @@ Ctrl + M	テキスト入力欄にジャンプ
     <comment>ヘルプダイアログ内のキーボードショートカット表のデータ行。タブ区切り形式：キー{tab}操作、1行1項目。</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A／Start	確定して前のウィンドウに戻る（またはキーボード）
+    <value>A／Start	確定して戻る／Start／Menu でキーボードを開く
 B	文字をクリア
 LB + RB + B	前のウィンドウに素早く戻る
-Back（離す）	前のウィンドウに戻る
+Back／View（離す）	前のウィンドウに戻る
 Y	機能メニューを開く
 X	バックスペース（文字／選択範囲を削除）
 LB + RB + X	アプリを終了
-Back + X	ウィンドウの透明度をリセット
+Back／View + X	ウィンドウの透明度をリセット
 ↑／↓	履歴を移動
 ←／→	カーソルを移動
 LB + ←／→	単語単位でジャンプ
 RS ←／→	選択範囲を拡大または縮小
-Back + ↑／↓	透明度を調整（±5%）</value>
+Back／View + ↑／↓	透明度を調整（±5%）</value>
     <comment>ヘルプダイアログ内のゲームパッド操作表のデータ行。タブ区切り形式：ボタン{tab}操作、1行1項目。</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">

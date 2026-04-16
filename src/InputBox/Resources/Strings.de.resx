@@ -182,7 +182,7 @@
     <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn eine neue Tastenkombination erfolgreich abgerufen wurde. {0} ist die festgelegte Tastenkombinationszeichenfolge.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Drücken Sie {0} oder Start, um die Bildschirmtastatur zu öffnen, wenn das Eingabefeld leer ist. Wenn bereits Text vorhanden ist, wird er kopiert und Sie kehren zum vorherigen Fenster zurück. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Drücken Sie Zurück, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
+    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
     <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen. {0} ist Bestätigen, {1} ist Löschen, {2} ist Abbrechen und {3} ist die Löschtaste für den Beenden-Kurzbefehl.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -884,19 +884,19 @@ Ctrl + M	Zum Texteingabefeld springen
     <comment>Die Datenspalten der Tastaturkürzeltabelle im Beschreibungsdialogfeld sind durch Tab getrennt: die Funktion {tab}, eine Spalte pro Zeile.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A / Start	Bestätigen und zurückkehren (oder Bildschirmtastatur öffnen)
+    <value>A / Start	Bestätigen und zurückkehren / Start oder Menu öffnet die Bildschirmtastatur
 B	Eingabetext löschen
 LB + RB + B	Schnell zum vorherigen Fenster zurückkehren
-Zurück (loslassen)	Zum vorherigen Fenster zurückkehren
+Back / View (loslassen)	Zum vorherigen Fenster zurückkehren
 Y	Funktionsmenü öffnen
 X	Rücktaste (Zeichen/Auswahl löschen)
 LB + RB + X	Anwendung beenden
-Zurück + X	Fensterdeckkraft zurücksetzen
+Back / View + X	Fensterdeckkraft zurücksetzen
 ↑ / ↓	Verlauf durchsuchen
 ← / →	Cursor nach links / rechts bewegen
 LB + ← / →	Cursor wortweise bewegen
 RS ← / →	Auswahl erweitern oder verkleinern
-Zurück + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
+Back / View + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <comment>Die Controller-Tasten im Beschreibungsdialogfeld entsprechen den Datenspalten der Tabelle, und die Felder werden durch die Funktion Tab: Schaltfläche {Tab} getrennt, eine Spalte pro Zeile.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">

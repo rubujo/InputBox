@@ -182,7 +182,7 @@
     <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une nouvelle touche de raccourci est récupérée avec succès. {0} est la chaîne de touches de raccourci définie.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Appuyez sur {0} ou sur Démarrer pour ouvrir le clavier lorsque la saisie est vide. Si du texte est présent, le texte est copié puis vous revenez à la fenêtre précédente. Utilisez {1} pour supprimer en arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Appuyez sur Retour pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
+    <value>Appuyez sur {0} pour copier le texte et revenir à la fenêtre précédente, ou pour ouvrir le clavier lorsque la saisie est vide. Appuyez sur Start ou Menu pour ouvrir le clavier à tout moment. Utilisez {1} pour effacer vers l'arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Relâchez Back ou View pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
     <comment>Description détaillée de l&apos;accessibilité de la fenêtre principale, expliquant le fonctionnement des différents contrôleurs et claviers. {0} est le bouton de confirmation, {1} celui de suppression, {2} celui d&apos;annulation et {3} celui utilisé pour le raccourci de fermeture.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -884,19 +884,19 @@ Ctrl + M	Aller au champ de saisie
     <comment>Les colonnes de données du tableau des raccourcis clavier de la boîte de dialogue de description sont séparées par Tab : la fonction {tab}, une colonne par ligne.</comment>
   </data>
   <data name="Help_Gamepad_Rows" xml:space="preserve">
-    <value>A / Démarrer	Confirmer et revenir (ou ouvrir le clavier visuel)
+    <value>A / Démarrer	Confirmer et revenir / Start ou Menu ouvre le clavier visuel
 B	Effacer le texte saisi
 LB + RB + B	Retour rapide à la fenêtre précédente
-Retour (relâcher)	Revenir à la fenêtre précédente
+Back / View (relâcher)	Revenir à la fenêtre précédente
 Y	Ouvrir le menu des fonctionnalités
 X	Retour arrière (supprimer caractère/sélection)
 LB + RB + X	Quitter l'application
-Retour + X	Réinitialiser l'opacité de la fenêtre
+Back / View + X	Réinitialiser l'opacité de la fenêtre
 ↑ / ↓	Parcourir l'historique
 ← / →	Déplacer le curseur vers la gauche / droite
 LB + ← / →	Déplacer le curseur mot par mot
 RS ← / →	Étendre ou réduire la sélection
-Retour + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
+Back / View + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Les touches du contrôleur dans la boîte de dialogue de description correspondent aux colonnes de données de la table, et les champs sont séparés par Tab : bouton {tab} fonction, une colonne par ligne.</comment>
   </data>
   <data name="A11y_ContextMenu_Name" xml:space="preserve">
