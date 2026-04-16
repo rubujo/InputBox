@@ -55,23 +55,17 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 依目前控制器的即時連線狀態同步提示列顯示，避免對話框剛開啟時要等第二次事件才更新。
+    /// 依目前控制器的即時連線狀態同步無障礙描述，避免對話框剛開啟時要等第二次事件才更新。
     /// </summary>
     private void SyncHintVisibilityWithControllerState()
     {
         try
         {
-            if (_lblHint == null ||
-                _lblHint.IsDisposed)
-            {
-                return;
-            }
-
-            _lblHint.Visible = _gamepadController?.IsConnected == true;
+            UpdateDialogAccessibleDescription();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[GamepadMessageBox] 同步提示列狀態失敗：{ex.Message}");
+            Debug.WriteLine($"[GamepadMessageBox] 同步無障礙描述失敗：{ex.Message}");
         }
     }
 
@@ -187,11 +181,6 @@ internal sealed class GamepadMessageBox : Form
     private TableLayoutPanel? _contentPanel;
 
     /// <summary>
-    /// 操作提示標籤（DPI 更新時調整 Margin）
-    /// </summary>
-    private Label? _lblHint;
-
-    /// <summary>
     /// 按鈕流向面板（DPI 更新時調整 Margin）
     /// </summary>
     private FlowLayoutPanel? _buttonFlow;
@@ -252,18 +241,16 @@ internal sealed class GamepadMessageBox : Form
 
         _icon = icon;
 
-        // 外層垂直面板，由上而下：內容列 + 提示列 + 按鈕列 + 播報器。
+        // 外層垂直面板，由上而下：內容列 + 按鈕列 + 播報器。
         TableLayoutPanel outer = new()
         {
-            RowCount = 4,
+            RowCount = 3,
             ColumnCount = 1,
             Dock = DockStyle.Fill,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
         };
         // 內容列。
-        outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        // 提示列。
         outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         // 按鈕列。
         outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -329,19 +316,6 @@ internal sealed class GamepadMessageBox : Form
 
         outer.Controls.Add(content, 0, 0);
 
-        // 提示列：A: xxx · B: xxx。
-        Label lblHint = new()
-        {
-            AutoSize = true,
-            Margin = new Padding((int)(12 * scale), 0, (int)(12 * scale), (int)(4 * scale)),
-            ForeColor = SystemColors.GrayText,
-            // 在控制器連線後才顯示。
-            Visible = false,
-            Name = "_lblHint",
-        };
-        outer.Controls.Add(lblHint, 0, 1);
-        _lblHint = lblHint;
-
         // 按鈕列。
         FlowLayoutPanel buttonFlow = new()
         {
@@ -354,9 +328,9 @@ internal sealed class GamepadMessageBox : Form
         };
         _buttonFlow = buttonFlow;
 
-        BuildButtons(buttons, defaultButton, buttonFlow, lblHint, scale);
+        BuildButtons(buttons, defaultButton, buttonFlow, scale);
 
-        outer.Controls.Add(buttonFlow, 0, 2);
+        outer.Controls.Add(buttonFlow, 0, 1);
 
         // 播報器（A11y）。
         _announcer = new AnnouncerLabel
@@ -368,12 +342,12 @@ internal sealed class GamepadMessageBox : Form
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
         };
-        outer.Controls.Add(_announcer, 0, 3);
+        outer.Controls.Add(_announcer, 0, 2);
 
         Controls.Add(outer);
 
         // 對話框的 AccessibleDescription（播報 A／B 按鈕對應關係）。
-        UpdateDialogAccessibleDescription(lblHint);
+        UpdateDialogAccessibleDescription();
     }
 
     /// <summary>
@@ -388,7 +362,6 @@ internal sealed class GamepadMessageBox : Form
         MessageBoxButtons buttons,
         MessageBoxDefaultButton defaultButton,
         FlowLayoutPanel flow,
-        Label lblHint,
         float scale)
     {
         // 決定按鈕清單（由右至左順序，因為 FlowDirection = RightToLeft）。
@@ -431,8 +404,8 @@ internal sealed class GamepadMessageBox : Form
             AcceptButton = _primaryButton;
         }
 
-        // 更新提示標籤。
-        UpdateHintLabel(lblHint);
+        // 依最新的按鈕配置更新無障礙描述。
+        UpdateDialogAccessibleDescription();
     }
 
     /// <summary>
@@ -559,19 +532,18 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 更新提示標籤文字，顯示 A／B 鍵對應的按鈕名稱，供玩家參考控制器操作
+    /// 依目前按鈕配置建立控制器動作提示摘要，供無障礙描述使用。
     /// </summary>
-    /// <param name="lblHint">提示標籤</param>
-    private void UpdateHintLabel(Label lblHint)
+    /// <returns>格式化後的控制器提示摘要。</returns>
+    private string BuildActionHintSummary()
     {
-        // 提示標籤使用純文字（不含助記詞括號），並依目前主按鍵配置同步顯示實際可按的控制器提示。
         GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
         string primaryText = profile.FormatPrimaryActionHintText(StripMnemonic(_primaryButton?.Text) ?? Strings.Btn_OK),
             cancelText = string.IsNullOrWhiteSpace(_cancelButton?.Text) ?
                 string.Empty :
                 profile.FormatCancelActionHintText(StripMnemonic(_cancelButton?.Text) ?? string.Empty);
 
-        lblHint.Text = !string.IsNullOrEmpty(cancelText) ?
+        return !string.IsNullOrEmpty(cancelText) ?
             string.Format(Strings.GmBox_A11y_Hint, primaryText, cancelText) :
             primaryText;
     }
@@ -600,15 +572,17 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
-    /// 更新對話框的 AccessibleDescription，包含圖示語義、基本描述與按鈕提示，讓螢幕閱讀器能播報完整的操作說明
+    /// 更新對話框的 AccessibleDescription，包含圖示語義、基本描述與按鈕提示，讓螢幕閱讀器能播報完整的操作說明。
     /// </summary>
-    /// <param name="lblHint">提示標籤</param>
-    private void UpdateDialogAccessibleDescription(Label lblHint)
+    private void UpdateDialogAccessibleDescription()
     {
         string? iconLabel = GetIconAccessibleName(_icon);
-        string baseDesc = string.IsNullOrEmpty(lblHint.Text) ?
+        string actionHintSummary = _gamepadController?.IsConnected == true ?
+            BuildActionHintSummary() :
+            string.Empty;
+        string baseDesc = string.IsNullOrEmpty(actionHintSummary) ?
             Strings.GmBox_A11y_Dialog_Desc :
-            $"{Strings.GmBox_A11y_Dialog_Desc} {lblHint.Text}";
+            $"{Strings.GmBox_A11y_Dialog_Desc} {actionHintSummary}";
 
         AccessibleDescription = iconLabel is null ?
             baseDesc :
@@ -749,7 +723,6 @@ internal sealed class GamepadMessageBox : Form
         _iconPictureBox = null;
         _lblText = null;
         _contentPanel = null;
-        _lblHint = null;
         _buttonFlow = null;
     }
 
@@ -830,12 +803,6 @@ internal sealed class GamepadMessageBox : Form
         {
             _lblText.MaximumSize = new Size((int)(380 * scale), 0);
             _lblText.Margin = new Padding(0, (int)(4 * scale), 0, (int)(4 * scale));
-        }
-
-        if (_lblHint is { IsDisposed: false })
-        {
-            _lblHint.Margin = new Padding(
-                (int)(12 * scale), 0, (int)(12 * scale), (int)(4 * scale));
         }
 
         if (_buttonFlow is { IsDisposed: false })
@@ -1074,8 +1041,8 @@ internal sealed class GamepadMessageBox : Form
             {
                 try
                 {
-                    // 顯示／隱藏提示標籤。
-                    _lblHint?.Visible = connected;
+                    // 連線狀態改變時同步更新可存取描述。
+                    UpdateDialogAccessibleDescription();
 
                     // 播報連線狀態。
                     AnnounceA11y(connected ?

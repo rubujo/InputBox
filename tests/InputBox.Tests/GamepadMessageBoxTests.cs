@@ -125,10 +125,10 @@ public sealed class GamepadMessageBoxTests
     }
 
     /// <summary>
-    /// 當對話框一開始就綁定到已連線的控制器時，提示列應立即可見，避免不同 API 後端出現一邊有提示、一邊沒有提示的不一致行為。
+    /// 當對話框一開始就綁定到已連線的控制器時，提示文字與可見狀態都應立即同步，避免不同 API 後端出現初始狀態不一致。
     /// </summary>
     [Fact]
-    public void GamepadControllerSetter_WhenControllerAlreadyConnected_ShowsHintImmediately()
+    public void GamepadControllerSetter_WhenControllerAlreadyConnected_SynchronizesHintTextAndVisibilityImmediately()
     {
         using GamepadMessageBox dialog = new(
             "test message",
@@ -145,29 +145,59 @@ public sealed class GamepadMessageBoxTests
         dialog.Show();
         Application.DoEvents();
 
-        FieldInfo hintField = typeof(GamepadMessageBox).GetField(
-            "_lblHint",
-            BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("找不到 GamepadMessageBox._lblHint 欄位。");
-
-        Label hintLabel = Assert.IsType<Label>(hintField.GetValue(dialog));
-
         GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
 
-        Assert.True(hintLabel.Visible);
-        Assert.Equal(
+        Assert.Empty(dialog.Controls.Find("_lblHint", true));
+        Assert.Contains(
             string.Format(
                 Resources.Strings.GmBox_A11y_Hint,
                 profile.FormatPrimaryActionHintText(Resources.Strings.Btn_Yes),
                 profile.FormatCancelActionHintText(Resources.Strings.Btn_No)),
-            hintLabel.Text);
+            dialog.AccessibleDescription);
     }
 
     /// <summary>
-    /// PlayStation 傳統配置下，提示列必須改用實際生效的 B / A 對應，避免仍固定顯示成 Xbox 風格的 A / B。
+    /// 非 PlayStation 配置下，畫面不應額外顯示重複的提示列；提示文字仍應保留供無障礙描述使用。
     /// </summary>
     [Fact]
-    public void GamepadControllerSetter_PlayStationTraditional_UsesSwappedHintLabels()
+    public void GamepadControllerSetter_NintendoLayout_HidesVisualHintRow()
+    {
+        AppSettings.GamepadFaceButtonMode previousMode = AppSettings.Current.GamepadFaceButtonModeType;
+
+        try
+        {
+            AppSettings.Current.GamepadFaceButtonModeType = AppSettings.GamepadFaceButtonMode.Nintendo;
+
+            using GamepadMessageBox dialog = new(
+                "test message",
+                "test caption",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            StubGamepadController controller = new()
+            {
+                IsConnected = true
+            };
+
+            dialog.GamepadController = controller;
+            dialog.Show();
+            Application.DoEvents();
+
+            Assert.Empty(dialog.Controls.Find("_lblHint", true));
+            Assert.Contains(ControlExtensions.GetActionHintText('A', Resources.Strings.Btn_Yes), dialog.AccessibleDescription);
+            Assert.Contains(ControlExtensions.GetActionHintText('B', Resources.Strings.Btn_No), dialog.AccessibleDescription);
+        }
+        finally
+        {
+            AppSettings.Current.GamepadFaceButtonModeType = previousMode;
+        }
+    }
+
+    /// <summary>
+    /// PlayStation 傳統配置下，畫面不再顯示額外提示列，但無障礙描述仍須保留實際生效的 B / A 對應。
+    /// </summary>
+    [Fact]
+    public void GamepadControllerSetter_PlayStationTraditional_KeepsMappedHintsOnlyInAccessibilityDescription()
     {
         AppSettings.GamepadFaceButtonMode previousMode = AppSettings.Current.GamepadFaceButtonModeType;
 
@@ -190,16 +220,9 @@ public sealed class GamepadMessageBoxTests
             dialog.Show();
             Application.DoEvents();
 
-            FieldInfo hintField = typeof(GamepadMessageBox).GetField(
-                "_lblHint",
-                BindingFlags.Instance | BindingFlags.NonPublic)
-                ?? throw new InvalidOperationException("找不到 GamepadMessageBox._lblHint 欄位。");
-
-            Label hintLabel = Assert.IsType<Label>(hintField.GetValue(dialog));
-            GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
-
-            Assert.Contains(ControlExtensions.GetActionHintText('B', $"○ {Resources.Strings.Btn_Yes}"), hintLabel.Text);
-            Assert.Contains(ControlExtensions.GetActionHintText('A', $"× {Resources.Strings.Btn_No}"), hintLabel.Text);
+            Assert.Empty(dialog.Controls.Find("_lblHint", true));
+            Assert.Contains(ControlExtensions.GetActionHintText('B', $"○ {Resources.Strings.Btn_Yes}"), dialog.AccessibleDescription);
+            Assert.Contains(ControlExtensions.GetActionHintText('A', $"× {Resources.Strings.Btn_No}"), dialog.AccessibleDescription);
         }
         finally
         {
