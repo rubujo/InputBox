@@ -9,6 +9,7 @@ on:
       - 'v*'
   pull_request:
     branches:
+      # 應用程式採用以 dev 為整合分支、PR 合併回 main 的守門流程。
       - main
 
 jobs:
