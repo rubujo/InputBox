@@ -730,12 +730,24 @@
     <comment>啟動時控制器初始化失敗後，透過 A11y 廣播的語音訊息內容。</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>套用系統主題（需重啟）</value>
-    <comment>右鍵選單項目，提示使用者重啟程式以完全套用深色/淺色主題變更。</comment>
+    <value>立即重新啟動程式</value>
+    <comment>右鍵選單項目，當應用程式內設定變更待套用時，提示使用者立即重新啟動程式。</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>套用系統變更並重新啟動</value>
+    <comment>右鍵選單項目，當系統主題或高對比等環境變更待套用時，提示使用者重新啟動程式。</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>重新啟動以套用所有變更</value>
+    <comment>右鍵選單項目，當應用程式與系統變更都待套用時，提示使用者重新啟動程式以一次完成。</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>目前有應用程式與系統變更尚未套用。請立即重新啟動程式以完整套用所有變更。</value>
+    <comment>無障礙描述，當應用程式與系統變更同時待重啟時，用於說明右鍵選單的重啟項目。</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>系統主題已變更。請至右鍵選單點選「套用系統主題」以重啟程式並完全套用視覺效果。</value>
-    <comment>無障礙語音播報，當偵測到主題變更並需要使用者手動重啟時播放。</comment>
+    <value>目前有系統變更需要重新啟動後才能完整套用。請至右鍵選單點選「套用系統變更並重新啟動」以完成套用。</value>
+    <comment>無障礙語音播報，當系統設定變更待套用且可由右鍵選單立即觸發重啟時播放。</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>

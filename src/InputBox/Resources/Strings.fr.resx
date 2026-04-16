@@ -730,16 +730,28 @@ Continuer ?</value>
     <comment>Le contenu du message vocal diffusé via A11y après l&apos;échec de l&apos;initialisation du contrôleur au démarrage.</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>Appliquer le thème système (redémarrage requis)</value>
-    <comment>Un élément de menu contextuel qui invite l&apos;utilisateur à redémarrer le programme pour appliquer entièrement les modifications du thème sombre/clair.</comment>
+    <value>Redémarrer l&apos;application maintenant</value>
+    <comment>Élément du menu contextuel affiché lorsqu&apos;une modification des paramètres de l&apos;application est en attente et qu&apos;un redémarrage immédiat est possible.</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>Appliquer les changements système et redémarrer</value>
+    <comment>Élément du menu contextuel affiché lorsqu&apos;une modification système est en attente et nécessite un redémarrage pour être complètement appliquée.</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>Redémarrer pour appliquer tous les changements</value>
+    <comment>Élément du menu contextuel affiché lorsque des changements de l&apos;application et du système sont tous deux en attente.</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>Des changements de l&apos;application et du système sont encore en attente. Redémarrez maintenant pour tout appliquer complètement.</value>
+    <comment>Description d&apos;accessibilité du menu de redémarrage lorsque des changements de l&apos;application et du système sont en attente en même temps.</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>Le thème système a changé. Sélectionnez « Appliquer le thème système » dans le menu contextuel pour redémarrer l&apos;application et appliquer entièrement les effets visuels.</value>
-    <comment>Diffusion vocale accessible, diffusée lorsqu&apos;un changement de thème est détecté et nécessite un redémarrage manuel de l&apos;utilisateur.</comment>
+    <value>Une modification système nécessitant un redémarrage est en attente. Sélectionnez « Appliquer les changements système et redémarrer » dans le menu contextuel pour l&apos;appliquer complètement.</value>
+    <comment>Annonce vocale d&apos;accessibilité diffusée lorsqu&apos;un changement système en attente peut être appliqué via le menu contextuel.</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>L&apos;icône affichée derrière le nom de l&apos;application dans la barre de titre lorsqu&apos;un changement de thème du système est détecté mais n&apos;a pas encore été redémarré.</comment>
+    <comment>Icône affichée après le nom de l&apos;application dans la barre de titre lorsqu&apos;une modification en attente nécessite encore un redémarrage pour être pleinement appliquée.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>Accès au sous-menu {0}</value>

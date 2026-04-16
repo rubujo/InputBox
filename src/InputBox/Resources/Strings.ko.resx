@@ -730,16 +730,28 @@
     <comment>시작 시 게임패드 컨트롤러 초기화가 실패할 때 A11y를 통해 재생되는 오류 메시지입니다.</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>시스템 테마 적용(다시 시작 필요)</value>
-    <comment>사용자에게 응용 프로그램을 다시 시작하여 어두운/밝은 테마 변경을 완전히 적용하도록 요청하는 메뉴 항목입니다.</comment>
+    <value>지금 앱 다시 시작</value>
+    <comment>앱 내부 설정 변경이 보류 중이며 즉시 다시 시작해 적용할 수 있을 때 표시되는 메뉴 항목입니다.</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>시스템 변경 적용 후 다시 시작</value>
+    <comment>시스템 설정 변경이 보류 중이며 다시 시작 후 완전히 적용할 수 있을 때 표시되는 메뉴 항목입니다.</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>다시 시작하여 모든 변경 적용</value>
+    <comment>앱과 시스템 변경이 모두 보류 중일 때 한 번에 적용하도록 안내하는 메뉴 항목입니다.</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>앱과 시스템 변경 사항이 아직 모두 적용되지 않았습니다. 지금 다시 시작하여 모든 변경을 완전히 적용하세요.</value>
+    <comment>앱과 시스템 변경이 동시에 보류 중일 때 재시작 메뉴 항목에 제공되는 접근성 설명입니다.</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>시스템 테마가 변경되었습니다. 상황에 맞는 메뉴에서 "시스템 테마 적용"을 선택하여 응용 프로그램을 다시 시작하고 시각 효과를 완전히 적용하세요.</value>
-    <comment>테마 변경이 감지되었지만 응용 프로그램이 아직 다시 시작되지 않았을 때 재생되는 접근성 음성 프롬프트입니다.</comment>
+    <value>시스템 변경 사항이 남아 있어 완전히 적용하려면 다시 시작이 필요합니다. 상황에 맞는 메뉴에서 "시스템 변경 적용 후 다시 시작"을 선택하세요.</value>
+    <comment>보류 중인 시스템 변경 사항을 상황에 맞는 메뉴에서 적용할 수 있을 때 재생되는 접근성 음성 안내입니다.</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>시스템 테마 변경이 감지되었지만 응용 프로그램이 아직 다시 시작되지 않았을 때 제목 표시줄에 표시되는 아이콘 표시입니다.</comment>
+    <comment>대기 중인 변경 사항을 완전히 적용하려면 아직 다시 시작이 필요할 때 제목 표시줄의 앱 이름 뒤에 표시되는 아이콘입니다.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>{0} 하위 메뉴 진입</value>

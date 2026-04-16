@@ -730,16 +730,28 @@ Fortfahren?</value>
     <comment>Der Inhalt der über A11y gesendeten Sprachnachricht, nachdem die Initialisierung des Controllers beim Start fehlgeschlagen ist.</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>Systemthema anwenden (Neustart erforderlich)</value>
-    <comment>Ein Rechtsklick-Menüelement, das den Benutzer auffordert, das Programm neu zu starten, um die Änderungen im Dunkel-/Hell-Design vollständig anzuwenden.</comment>
+    <value>Anwendung jetzt neu starten</value>
+    <comment>Kontextmenüeintrag, wenn eine App-Einstellungsänderung aussteht und die Anwendung sofort neu gestartet werden kann.</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>Systemänderungen anwenden und neu starten</value>
+    <comment>Kontextmenüeintrag, wenn ausstehende Systemänderungen durch einen Neustart vollständig übernommen werden können.</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>Neu starten, um alle Änderungen anzuwenden</value>
+    <comment>Kontextmenüeintrag, wenn sowohl App- als auch Systemänderungen ausstehen und gemeinsam übernommen werden sollen.</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>Es gibt noch ausstehende App- und Systemänderungen. Starten Sie die Anwendung jetzt neu, um alles vollständig zu übernehmen.</value>
+    <comment>Barrierefreie Beschreibung für den Neustart-Eintrag, wenn App- und Systemänderungen gleichzeitig ausstehen.</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>Das Systemdesign hat sich geändert. Bitte wählen Sie "Systemthema anwenden" aus dem Kontextmenü, um die Anwendung neu zu starten und visuelle Effekte vollständig anzuwenden.</value>
-    <comment>Zugängliche Sprachübertragung, die abgespielt wird, wenn ein Themenwechsel erkannt wird und einen manuellen Neustart durch den Benutzer erfordert.</comment>
+    <value>Eine Systemänderung erfordert noch einen Neustart. Bitte wählen Sie im Kontextmenü „Systemänderungen anwenden und neu starten“, um die Aktualisierung vollständig zu übernehmen.</value>
+    <comment>Barrierefreie Sprachansage, die abgespielt wird, wenn eine ausstehende Systemänderung über das Kontextmenü angewendet werden kann.</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>Die Symbolmarkierung wird hinter dem Anwendungsnamen in der Titelleiste angezeigt, wenn eine Änderung des Systemdesigns erkannt, aber noch nicht neu gestartet wurde.</comment>
+    <comment>Symbolmarkierung hinter dem App-Namen in der Titelleiste, wenn noch eine Änderung zur vollständigen Übernahme einen Neustart benötigt.</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>Aufrufen des Untermenüs {0}</value>

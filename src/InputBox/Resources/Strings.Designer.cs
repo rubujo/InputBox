@@ -763,6 +763,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 There are pending app and system changes. Restart the application now to fully apply everything. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Restart_AllChanges_Desc {
+            get {
+                return ResourceManager.GetString("A11y_Restart_AllChanges_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Returning to previous window. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Returning {
@@ -880,7 +889,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 System theme has changed. Please select &quot;Apply System Theme&quot; from the context menu to restart the application and fully apply visual effects. 的當地語系化字串。
+        ///   查詢類似 A system change that requires a restart is pending. Please select &quot;Apply System Changes and Restart&quot; from the context menu to fully apply the update. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Theme_Changed_Hint {
             get {
@@ -1384,7 +1393,25 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Apply System Theme (Restart Required) 的當地語系化字串。
+        ///   查詢類似 Restart to Apply All Changes 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_ApplyAllChangesRestart {
+            get {
+                return ResourceManager.GetString("Menu_ApplyAllChangesRestart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Apply System Changes and Restart 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_ApplySystemChangesRestart {
+            get {
+                return ResourceManager.GetString("Menu_ApplySystemChangesRestart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Restart Application Now 的當地語系化字串。
         /// </summary>
         internal static string Menu_ApplyThemeRestart {
             get {
