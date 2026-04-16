@@ -10,15 +10,24 @@ on:
       VT_API_KEY:
         required: false
 
+concurrency:
+  # 相同 tag 的重複發版只保留最新一次，避免重覆占用 runner 與 API 配額。
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-release:
     runs-on: windows-latest
+    timeout-minutes: 25
     permissions:
       contents: write
 
     # 定義環境變數，方便統一管理。
     env:
       DOTNET_MAJOR_VERSION: '10'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+      DOTNET_NOLOGO: '1'
       PUBLISH_DIR: "./src/InputBox/out"
       EXE_NAME: 'InputBox.exe'
       SHA256_HASH: ''
@@ -28,13 +37,15 @@ jobs:
     - name: 簽出原始碼（Checkout）
       uses: actions/checkout@v6
       with:
-        fetch-depth: 0
+        # 發版僅需目前 tag 對應提交，避免抓取完整歷史紀錄。
+        fetch-depth: 1
 
     - name: 驗證版本標籤來源為 main 最新提交
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
-        git fetch origin main --depth=1
+        # 僅抓取 main 的最新遠端頭，避免不必要的歷史下載。
+        git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
 
         $tagCommit = (git rev-list -n 1 "${{ github.ref_name }}").Trim()
         $mainHead = (git rev-parse origin/main).Trim()
@@ -73,8 +84,12 @@ jobs:
     - name: 自動產生第三方套件授權聲明（sensslen/nuget-license）
       shell: pwsh
       run: |
-        Write-Host "安裝 nuget-license 工具……"
-        dotnet tool install --global nuget-license
+        if (Get-Command nuget-license -ErrorAction SilentlyContinue) {
+            Write-Host "nuget-license 已可直接使用，略過重複安裝。"
+        } else {
+            Write-Host "安裝 nuget-license 工具……"
+            dotnet tool install --global nuget-license
+        }
 
         Write-Host "掃描專案 NuGet 套件並匯出 ThirdPartyNotices.txt……"
         # -i：指定專案檔路徑。

@@ -8,7 +8,7 @@
 - [A11y 無障礙與視覺安全 (A11y)](docs/engineering/a11y-safety.md)
 - [遊戲控制器 API (Gamepad)](docs/engineering/gamepad-api.md)
 - [在地化與術語表 (Localization)](docs/engineering/localization.md)
-- [Git 提交規範與安全性紅線 (Git/Safety)](docs/engineering/git-commit-safety.md)（包含 Conventional Commits、GPG 簽章提交、Trunk Based 分支守門與合規紅線）
+- [Git 提交規範與安全性紅線 (Git/Safety)](docs/engineering/git-commit-safety.md)（包含 Conventional Commits、GPG 簽章提交、main-first 分支守門與合規紅線）
 
 ## AI 技能位置
 - **Gemini CLI**: `.agents/skills/inputbox-dev/`（目前共用）
