@@ -263,9 +263,9 @@ internal sealed class PhraseEditDialog : Form
             Margin = new Padding(0, 4, 0, 4),
             PlaceholderText = GetPhraseTextOrFallback("Phrase_Edit_Name_Placeholder", Strings.Phrase_Edit_Name)
         };
-        _txtName.Enter += HandleInputBoxEnter;
-        _txtName.Leave += HandleInputBoxLeave;
-        _txtName.TextChanged += (s, e) => UpdateNameCharCount();
+        _txtName.Enter += HandleTextBoxEnter;
+        _txtName.Leave += HandleTextBoxLeave;
+        _txtName.TextChanged += (_, _) => UpdateNameCharCount();
         tlp.Controls.Add(_txtName, 1, 0);
 
         // 名稱字數提示標籤（顯示名稱已輸入字元數 / 上限）。
@@ -315,8 +315,8 @@ internal sealed class PhraseEditDialog : Form
             Margin = new Padding(0, 4, 0, 4),
             PlaceholderText = GetPhraseTextOrFallback("Phrase_Edit_Content_Placeholder", Strings.Phrase_Edit_Content)
         };
-        _txtContent.Enter += HandleInputBoxEnter;
-        _txtContent.Leave += HandleInputBoxLeave;
+        _txtContent.Enter += HandleTextBoxEnter;
+        _txtContent.Leave += HandleTextBoxLeave;
         tlp.Controls.Add(_txtContent, 1, 2);
 
         // 字元數提示標籤（顯示內容已輸入字元數 / 上限）。
@@ -915,74 +915,74 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 輸入框取得焦點時套用強化焦點視覺
+    /// 輸入框取得焦點時套用強化焦點視覺。
     /// </summary>
-    /// <param name="sender">事件來源。</param>
-    /// <param name="e">事件參數。</param>
-    private void HandleInputBoxEnter(object? sender, EventArgs e)
+    /// <param name="sender">觸發事件的輸入框。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private void HandleTextBoxEnter(object? sender, EventArgs eventArgs)
     {
         try
         {
-            if (sender is TextBox tb)
+            if (sender is TextBox textBox)
             {
-                ApplyInputBoxStrongVisual(tb);
+                ApplyInputBoxStrongVisual(textBox);
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleInputBoxEnter 失敗：{ex.Message}");
+            Debug.WriteLine($"[片語編輯] HandleTextBoxEnter 失敗：{ex.Message}");
         }
     }
 
     /// <summary>
-    /// 輸入框失去焦點時還原一般視覺樣式
+    /// 輸入框失去焦點時還原一般視覺樣式。
     /// </summary>
-    /// <param name="sender">事件來源。</param>
-    /// <param name="e">事件參數。</param>
-    private void HandleInputBoxLeave(object? sender, EventArgs e)
+    /// <param name="sender">觸發事件的輸入框。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private void HandleTextBoxLeave(object? sender, EventArgs eventArgs)
     {
         try
         {
-            if (sender is TextBox tb)
+            if (sender is TextBox textBox)
             {
-                ResetInputBoxVisual(tb);
+                ResetInputBoxVisual(textBox);
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[片語編輯] HandleInputBoxLeave 失敗：{ex.Message}");
+            Debug.WriteLine($"[片語編輯] HandleTextBoxLeave 失敗：{ex.Message}");
         }
     }
 
     /// <summary>
-    /// 套用與主輸入框一致的強視覺焦點樣式（高對比優先，其次主題感知反轉）
+    /// 套用與主輸入框一致的強視覺焦點樣式（高對比優先，其次主題感知反轉）。
     /// </summary>
-    private static void ApplyInputBoxStrongVisual(TextBox tb)
+    private static void ApplyInputBoxStrongVisual(TextBox textBox)
     {
-        if (tb.IsDisposed)
+        if (textBox.IsDisposed)
         {
             return;
         }
 
         if (SystemInformation.HighContrast)
         {
-            tb.BackColor = SystemColors.Highlight;
-            tb.ForeColor = SystemColors.HighlightText;
+            textBox.BackColor = SystemColors.Highlight;
+            textBox.ForeColor = SystemColors.HighlightText;
 
             return;
         }
 
-        if (tb.IsDarkModeActive())
+        if (textBox.IsDarkModeActive())
         {
             // 深色模式：反轉為白底黑字。
-            tb.BackColor = Color.White;
-            tb.ForeColor = Color.Black;
+            textBox.BackColor = Color.White;
+            textBox.ForeColor = Color.Black;
         }
         else
         {
             // 淺色模式：反轉為黑底白字。
-            tb.BackColor = Color.Black;
-            tb.ForeColor = Color.White;
+            textBox.BackColor = Color.Black;
+            textBox.ForeColor = Color.White;
         }
     }
 

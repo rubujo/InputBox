@@ -134,9 +134,9 @@ public class VibrationPatternsTests
     [Fact]
     public void VibrationProfile_SameValues_AreEqual()
     {
-        var a = new VibrationProfile(30000, 120);
-        var b = new VibrationProfile(30000, 120);
-        Assert.Equal(a, b);
+        var firstProfile = new VibrationProfile(30000, 120);
+        var secondProfile = new VibrationProfile(30000, 120);
+        Assert.Equal(firstProfile, secondProfile);
     }
 
     /// <summary>
@@ -145,8 +145,8 @@ public class VibrationPatternsTests
     [Fact]
     public void VibrationProfile_DifferentValues_AreNotEqual()
     {
-        var a = new VibrationProfile(30000, 120);
-        var b = new VibrationProfile(30000, 121);
-        Assert.NotEqual(a, b);
+        var firstProfile = new VibrationProfile(30000, 120);
+        var secondProfile = new VibrationProfile(30000, 121);
+        Assert.NotEqual(firstProfile, secondProfile);
     }
 }

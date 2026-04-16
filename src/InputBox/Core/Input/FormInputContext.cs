@@ -4,12 +4,12 @@ using System.Diagnostics;
 namespace InputBox.Core.Input;
 
 /// <summary>
-/// FormInputContext
+/// 提供主表單輸入狀態的即時判斷，統一封裝可見性、啟用狀態與焦點切換條件。
 /// </summary>
 internal sealed class FormInputContext : IInputContext, IDisposable
 {
     /// <summary>
-    /// Form
+    /// 受監看的主表單實例。
     /// </summary>
     private readonly Form _form;
 
@@ -25,15 +25,15 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// FormInputContext
+    /// 建立輸入狀態內容物件，並開始監看主表單生命週期事件。
     /// </summary>
-    /// <param name="form">Form</param>
+    /// <param name="form">要追蹤輸入狀態的主表單。</param>
     public FormInputContext(Form form)
     {
         _form = form;
 
         // 初始狀態檢查。
-        UpdateState();
+        RefreshInputState();
 
         // 訂閱事件以被動更新狀態。
         _form.VisibleChanged += OnFormStateChanged;
@@ -48,7 +48,7 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     }
 
     /// <summary>
-    /// Input 是否啟用
+    /// 取得目前是否允許處理輸入。
     /// </summary>
     public bool IsInputActive
     {
@@ -65,15 +65,15 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     }
 
     /// <summary>
-    /// Form 狀態變更
+    /// 在主表單可見性、啟用狀態或尺寸改變時重新整理輸入狀態。
     /// </summary>
-    /// <param name="sender">object?</param>
-    /// <param name="e">EventArgs</param>
-    private void OnFormStateChanged(object? sender, EventArgs e)
+    /// <param name="sender">觸發事件的表單或控制項。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private void OnFormStateChanged(object? sender, EventArgs eventArgs)
     {
         try
         {
-            UpdateState();
+            RefreshInputState();
         }
         catch (Exception ex)
         {
@@ -84,15 +84,15 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     }
 
     /// <summary>
-    /// 系統閒置時的輔助更新
+    /// 在應用程式進入閒置時補做一次輸入狀態同步，降低焦點轉換空窗期。
     /// </summary>
-    /// <param name="sender">object?</param>
-    /// <param name="e">EventArgs</param>
-    private void OnApplicationIdle(object? sender, EventArgs e)
+    /// <param name="sender">觸發閒置事件的來源。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private void OnApplicationIdle(object? sender, EventArgs eventArgs)
     {
         try
         {
-            UpdateState();
+            RefreshInputState();
         }
         catch (Exception ex)
         {
@@ -103,11 +103,11 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     }
 
     /// <summary>
-    /// Form 關閉
+    /// 在主表單關閉時立即停用輸入，避免背景輪詢誤判為仍可互動。
     /// </summary>
-    /// <param name="sender">object?</param>
-    /// <param name="e">EventArgs</param>
-    private void OnFormClosed(object? sender, FormClosedEventArgs e)
+    /// <param name="sender">觸發關閉事件的表單。</param>
+    /// <param name="eventArgs">關閉事件參數。</param>
+    private void OnFormClosed(object? sender, FormClosedEventArgs eventArgs)
     {
         try
         {
@@ -122,9 +122,9 @@ internal sealed class FormInputContext : IInputContext, IDisposable
     }
 
     /// <summary>
-    /// 更新狀態
+    /// 重新計算目前是否應允許處理表單輸入。
     /// </summary>
-    private void UpdateState()
+    private void RefreshInputState()
     {
         if (_form.IsDisposed)
         {

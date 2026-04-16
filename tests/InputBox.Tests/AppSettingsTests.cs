@@ -63,8 +63,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void WindowRestoreDelay_BelowMin_ClampsToZero()
     {
-        var s = new AppSettings { WindowRestoreDelay = -1 };
-        Assert.Equal(0, s.WindowRestoreDelay);
+        var settings = new AppSettings { WindowRestoreDelay = -1 };
+        Assert.Equal(0, settings.WindowRestoreDelay);
     }
 
     /// <summary>
@@ -73,8 +73,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void WindowRestoreDelay_AboveMax_ClampsTo5000()
     {
-        var s = new AppSettings { WindowRestoreDelay = 99999 };
-        Assert.Equal(5000, s.WindowRestoreDelay);
+        var settings = new AppSettings { WindowRestoreDelay = 99999 };
+        Assert.Equal(5000, settings.WindowRestoreDelay);
     }
 
     /// <summary>
@@ -83,8 +83,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void HistoryCapacity_Zero_ClampsToOne()
     {
-        var s = new AppSettings { HistoryCapacity = 0 };
-        Assert.Equal(1, s.HistoryCapacity);
+        var settings = new AppSettings { HistoryCapacity = 0 };
+        Assert.Equal(1, settings.HistoryCapacity);
     }
 
     /// <summary>
@@ -93,8 +93,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void HistoryCapacity_AboveMax_ClampsTo1000()
     {
-        var s = new AppSettings { HistoryCapacity = 5000 };
-        Assert.Equal(1000, s.HistoryCapacity);
+        var settings = new AppSettings { HistoryCapacity = 5000 };
+        Assert.Equal(1000, settings.HistoryCapacity);
     }
 
     /// <summary>
@@ -108,8 +108,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(9999, 1000)]
     public void ClipboardRetryDelay_ClampsCorrectly(int input, int expected)
     {
-        var s = new AppSettings { ClipboardRetryDelay = input };
-        Assert.Equal(expected, s.ClipboardRetryDelay);
+        var settings = new AppSettings { ClipboardRetryDelay = input };
+        Assert.Equal(expected, settings.ClipboardRetryDelay);
     }
 
     /// <summary>
@@ -121,8 +121,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(5001, 5000)]
     public void TouchKeyboardDismissDelay_ClampsCorrectly(int input, int expected)
     {
-        var s = new AppSettings { TouchKeyboardDismissDelay = input };
-        Assert.Equal(expected, s.TouchKeyboardDismissDelay);
+        var settings = new AppSettings { TouchKeyboardDismissDelay = input };
+        Assert.Equal(expected, settings.TouchKeyboardDismissDelay);
     }
 
     // ── 浮點屬性夾緊 ────────────────────────────────────────────────────────
@@ -133,8 +133,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void WindowOpacity_BelowMin_ClampsTo01()
     {
-        var s = new AppSettings { WindowOpacity = 0.0f };
-        Assert.Equal(0.1f, s.WindowOpacity, precision: 5);
+        var settings = new AppSettings { WindowOpacity = 0.0f };
+        Assert.Equal(0.1f, settings.WindowOpacity, precision: 5);
     }
 
     /// <summary>
@@ -143,8 +143,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void WindowOpacity_AboveMax_ClampsTo10()
     {
-        var s = new AppSettings { WindowOpacity = 1.5f };
-        Assert.Equal(1.0f, s.WindowOpacity, precision: 5);
+        var settings = new AppSettings { WindowOpacity = 1.5f };
+        Assert.Equal(1.0f, settings.WindowOpacity, precision: 5);
     }
 
     /// <summary>
@@ -156,8 +156,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(1.1f, 1.0f)]
     public void VibrationIntensity_ClampsCorrectly(float input, float expected)
     {
-        var s = new AppSettings { VibrationIntensity = input };
-        Assert.Equal(expected, s.VibrationIntensity, precision: 5);
+        var settings = new AppSettings { VibrationIntensity = input };
+        Assert.Equal(expected, settings.VibrationIntensity, precision: 5);
     }
 
     // ── HotKeyKey null 守衛 ──────────────────────────────────────────────────
@@ -168,8 +168,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void HotKeyKey_SetNull_FallsBackToDefaultI()
     {
-        var s = new AppSettings { HotKeyKey = null! };
-        Assert.Equal("I", s.HotKeyKey);
+        var settings = new AppSettings { HotKeyKey = null! };
+        Assert.Equal("I", settings.HotKeyKey);
     }
 
     /// <summary>
@@ -178,8 +178,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void HotKeyKey_ValidString_StoredAsIs()
     {
-        var s = new AppSettings { HotKeyKey = "F12" };
-        Assert.Equal("F12", s.HotKeyKey);
+        var settings = new AppSettings { HotKeyKey = "F12" };
+        Assert.Equal("F12", settings.HotKeyKey);
     }
 
     // ── GamepadConfigSnapshot 死區遲滯計算 ─────────────────────────────────
@@ -190,8 +190,8 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void ThumbDeadzoneEnter_Set_SnapshotReflectsNewValue()
     {
-        var s = new AppSettings { ThumbDeadzoneEnter = 12000 };
-        Assert.Equal(12000, s.GamepadSettings.ThumbDeadzoneEnter);
+        var settings = new AppSettings { ThumbDeadzoneEnter = 12000 };
+        Assert.Equal(12000, settings.GamepadSettings.ThumbDeadzoneEnter);
     }
 
     /// <summary>
@@ -201,12 +201,12 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void ThumbDeadzoneExit_TooHigh_IsAdjustedByHysteresis()
     {
-        var s = new AppSettings
+        var settings = new AppSettings
         {
             ThumbDeadzoneEnter = 10000,
             ThumbDeadzoneExit = 9000  // 9000 > 7000 → 下調至 7000
         };
-        Assert.Equal(7000, s.GamepadSettings.ThumbDeadzoneExit);
+        Assert.Equal(7000, settings.GamepadSettings.ThumbDeadzoneExit);
     }
 
     /// <summary>
@@ -215,12 +215,12 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void ThumbDeadzoneExit_WithinHysteresis_KeptAsIs()
     {
-        var s = new AppSettings
+        var settings = new AppSettings
         {
             ThumbDeadzoneEnter = 10000,
             ThumbDeadzoneExit = 5000  // 5000 < 7000 → 維持
         };
-        Assert.Equal(5000, s.GamepadSettings.ThumbDeadzoneExit);
+        Assert.Equal(5000, settings.GamepadSettings.ThumbDeadzoneExit);
     }
 
     /// <summary>
@@ -230,12 +230,12 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void ThumbDeadzoneExit_SmallEnter_UsesMinimumMargin()
     {
-        var s = new AppSettings
+        var settings = new AppSettings
         {
             ThumbDeadzoneEnter = 3000,
             ThumbDeadzoneExit = 2500  // 2500 > 1000 → 下調至 1000
         };
-        Assert.Equal(1000, s.GamepadSettings.ThumbDeadzoneExit);
+        Assert.Equal(1000, settings.GamepadSettings.ThumbDeadzoneExit);
     }
 
     /// <summary>
@@ -244,17 +244,17 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void ThumbDeadzoneEnter_LoweredAfterExitWasSet_ReclampsExit()
     {
-        var s = new AppSettings
+        var settings = new AppSettings
         {
             ThumbDeadzoneEnter = 12000,
             ThumbDeadzoneExit = 8000
         };
 
-        Assert.Equal(8000, s.GamepadSettings.ThumbDeadzoneExit);
+        Assert.Equal(8000, settings.GamepadSettings.ThumbDeadzoneExit);
 
-        s.ThumbDeadzoneEnter = 6000;
+        settings.ThumbDeadzoneEnter = 6000;
 
-        Assert.Equal(4000, s.GamepadSettings.ThumbDeadzoneExit);
+        Assert.Equal(4000, settings.GamepadSettings.ThumbDeadzoneExit);
     }
 
     /// <summary>
@@ -263,7 +263,7 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void GamepadSettings_SequentialMenuStyleUpdates_KeepSnapshotConsistent()
     {
-        var s = new AppSettings
+        var settings = new AppSettings
         {
             ThumbDeadzoneEnter = 11000,
             ThumbDeadzoneExit = 7000,
@@ -271,12 +271,12 @@ public sealed class AppSettingsTests : IDisposable
             RepeatIntervalFrames = 6
         };
 
-        AppSettings.GamepadConfigSnapshot snap = s.GamepadSettings;
+        AppSettings.GamepadConfigSnapshot snapshot = settings.GamepadSettings;
 
-        Assert.Equal(11000, snap.ThumbDeadzoneEnter);
-        Assert.Equal(7000, snap.ThumbDeadzoneExit);
-        Assert.Equal(45, snap.RepeatInitialDelayFrames);
-        Assert.Equal(6, snap.RepeatIntervalFrames);
+        Assert.Equal(11000, snapshot.ThumbDeadzoneEnter);
+        Assert.Equal(7000, snapshot.ThumbDeadzoneExit);
+        Assert.Equal(45, snapshot.RepeatInitialDelayFrames);
+        Assert.Equal(6, snapshot.RepeatIntervalFrames);
     }
 
     /// <summary>
@@ -288,8 +288,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(999, 300)]
     public void RepeatInitialDelayFrames_ClampsAndUpdatesSnapshot(int input, int expected)
     {
-        var s = new AppSettings { RepeatInitialDelayFrames = input };
-        Assert.Equal(expected, s.GamepadSettings.RepeatInitialDelayFrames);
+        var settings = new AppSettings { RepeatInitialDelayFrames = input };
+        Assert.Equal(expected, settings.GamepadSettings.RepeatInitialDelayFrames);
     }
 
     /// <summary>
@@ -301,8 +301,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(200, 100)]
     public void RepeatIntervalFrames_ClampsAndUpdatesSnapshot(int input, int expected)
     {
-        var s = new AppSettings { RepeatIntervalFrames = input };
-        Assert.Equal(expected, s.GamepadSettings.RepeatIntervalFrames);
+        var settings = new AppSettings { RepeatIntervalFrames = input };
+        Assert.Equal(expected, settings.GamepadSettings.RepeatIntervalFrames);
     }
 
     // ── GamepadConfigSnapshot record ────────────────────────────────────────
@@ -313,11 +313,11 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void GamepadConfigSnapshot_Properties_MatchConstructorArgs()
     {
-        var snap = new AppSettings.GamepadConfigSnapshot(7849, 2500, 30, 5);
-        Assert.Equal(7849, snap.ThumbDeadzoneEnter);
-        Assert.Equal(2500, snap.ThumbDeadzoneExit);
-        Assert.Equal(30, snap.RepeatInitialDelayFrames);
-        Assert.Equal(5, snap.RepeatIntervalFrames);
+        var snapshot = new AppSettings.GamepadConfigSnapshot(7849, 2500, 30, 5);
+        Assert.Equal(7849, snapshot.ThumbDeadzoneEnter);
+        Assert.Equal(2500, snapshot.ThumbDeadzoneExit);
+        Assert.Equal(30, snapshot.RepeatInitialDelayFrames);
+        Assert.Equal(5, snapshot.RepeatIntervalFrames);
     }
 
     // ── WindowSwitchBufferBase 夾緊 ─────────────────────────────────────────
@@ -331,8 +331,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(9999, 5000)]
     public void WindowSwitchBufferBase_ClampsCorrectly(int input, int expected)
     {
-        var s = new AppSettings { WindowSwitchBufferBase = input };
-        Assert.Equal(expected, s.WindowSwitchBufferBase);
+        var settings = new AppSettings { WindowSwitchBufferBase = input };
+        Assert.Equal(expected, settings.WindowSwitchBufferBase);
     }
 
     // ── ThumbDeadzoneEnter 夾緊 ──────────────────────────────────────────────
@@ -346,8 +346,8 @@ public sealed class AppSettingsTests : IDisposable
     [InlineData(30001, 30000)]
     public void ThumbDeadzoneEnter_ClampsToRange(int input, int expected)
     {
-        var s = new AppSettings { ThumbDeadzoneEnter = input };
-        Assert.Equal(expected, s.GamepadSettings.ThumbDeadzoneEnter);
+        var settings = new AppSettings { ThumbDeadzoneEnter = input };
+        Assert.Equal(expected, settings.GamepadSettings.ThumbDeadzoneEnter);
     }
 
     // ── 預設值驗證 ──────────────────────────────────────────────────────────
@@ -358,17 +358,17 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void NewInstance_HasExpectedDefaults()
     {
-        var s = new AppSettings();
-        Assert.Equal(50, s.WindowRestoreDelay);
-        Assert.Equal(20, s.ClipboardRetryDelay);
-        Assert.Equal(300, s.TouchKeyboardDismissDelay);
-        Assert.Equal(150, s.WindowSwitchBufferBase);
-        Assert.Equal(100, s.HistoryCapacity);
-        Assert.Equal(1.0f, s.WindowOpacity, precision: 5);
-        Assert.Equal(0.7f, s.VibrationIntensity, precision: 5);
-        Assert.Equal("I", s.HotKeyKey);
-        Assert.True(s.A11yInterruptEnabled);
-        Assert.False(s.EnableAnimatedVisualAlerts);
+        var settings = new AppSettings();
+        Assert.Equal(50, settings.WindowRestoreDelay);
+        Assert.Equal(20, settings.ClipboardRetryDelay);
+        Assert.Equal(300, settings.TouchKeyboardDismissDelay);
+        Assert.Equal(150, settings.WindowSwitchBufferBase);
+        Assert.Equal(100, settings.HistoryCapacity);
+        Assert.Equal(1.0f, settings.WindowOpacity, precision: 5);
+        Assert.Equal(0.7f, settings.VibrationIntensity, precision: 5);
+        Assert.Equal("I", settings.HotKeyKey);
+        Assert.True(settings.A11yInterruptEnabled);
+        Assert.False(settings.EnableAnimatedVisualAlerts);
     }
 
     /// <summary>
@@ -377,10 +377,10 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void NewInstance_GamepadSnapshotHasExpectedDefaults()
     {
-        var s = new AppSettings();
-        Assert.Equal(7849, s.GamepadSettings.ThumbDeadzoneEnter);
-        Assert.Equal(30, s.GamepadSettings.RepeatInitialDelayFrames);
-        Assert.Equal(5, s.GamepadSettings.RepeatIntervalFrames);
+        var settings = new AppSettings();
+        Assert.Equal(7849, settings.GamepadSettings.ThumbDeadzoneEnter);
+        Assert.Equal(30, settings.GamepadSettings.RepeatInitialDelayFrames);
+        Assert.Equal(5, settings.GamepadSettings.RepeatIntervalFrames);
     }
 
     /// <summary>
