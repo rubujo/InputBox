@@ -915,6 +915,7 @@ public class AppSettings
                         File.Move(tempPath, ConfigPath);
                     }
 
+                    UnregisterActiveConfigTempFile(tempPath);
                     tempPath = string.Empty;
                     return;
                 }
