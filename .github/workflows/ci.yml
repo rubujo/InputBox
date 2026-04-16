@@ -9,12 +9,58 @@ on:
       - 'v*'
   pull_request:
     branches:
-      # 應用程式採用以 dev 為整合分支、PR 合併回 main 的守門流程。
+      # 應用程式採用 main 保持可發布、dev 每輪先對齊 main 再提交 PR 的守門流程。
       - main
 
+concurrency:
+  # 同一分支或 PR 只保留最新一次執行，降低重複建置浪費。
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      ui: ${{ steps.filter.outputs.ui }}
+
+    steps:
+    - name: 簽出原始碼（Checkout）
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+
+    - name: 判斷是否涉及 UI 冒煙測試範圍
+      id: filter
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          code:
+            - 'src/**'
+            - 'tests/**'
+            - '.github/workflows/**'
+            - 'global.json'
+            - '*.sln'
+            - '*.slnx'
+            - '**/*.csproj'
+            - '**/*.props'
+            - '**/*.targets'
+          ui:
+            - 'src/InputBox/MainForm*.cs'
+            - 'src/InputBox/MainForm.resx'
+            - 'src/InputBox/Core/Controls/**'
+            - 'src/InputBox/Resources/**'
+            - 'tests/InputBox.Tests/MainFormUiSmokeTests.cs'
+            - 'tests/InputBox.Tests/UiSmokeTestRequirements.cs'
+
   build-check:
+    if: needs.changes.outputs.code == 'true'
+    needs: changes
     runs-on: windows-latest
+    timeout-minutes: 15
     permissions:
       # 只需要讀取原始碼進行建置即可。
       contents: read
@@ -22,6 +68,8 @@ jobs:
     # 定義環境變數，方便統一管理。
     env:
       DOTNET_MAJOR_VERSION: '10'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
       # xUnit v3 MTP 的 coverage 輸出在 bin 輸出目錄的 TestResults 子目錄下。
       COVERAGE_GLOB: tests/**/coverage.cobertura.xml
       REPORT_DIR: CoverageReport
@@ -45,14 +93,10 @@ jobs:
         # 同時涵蓋主專案與測試專案，確保 NuGet 套件快取完整。
         cache-dependency-path: '**/*.csproj'
 
-    - name: 執行專案建置（Build）
-      working-directory: ./src/InputBox
-      # 使用 --no-incremental 確保每次都是完整檢查，避免部分編譯遺漏錯誤。
-      run: dotnet build -c Release --no-incremental
-
-    - name: 建置測試專案（Build Tests）
+    - name: 建置應用程式與測試專案（Build App + Tests）
       working-directory: ./tests/InputBox.Tests
-      run: dotnet build -c Release --no-incremental
+      # 測試專案會連同主專案相依一起建置，避免重複編譯浪費資源。
+      run: dotnet build InputBox.Tests.csproj -c Release --no-incremental
 
     - name: 執行非 UI 單元測試並收集覆蓋率（Test + Coverage）
       working-directory: ./tests/InputBox.Tests
@@ -80,11 +124,13 @@ jobs:
           Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
     - name: 上傳覆蓋率報告（Artifact）
+      if: github.event_name == 'pull_request'
       uses: actions/upload-artifact@v7
       with:
         name: coverage-report
         path: ${{ env.REPORT_DIR }}
         if-no-files-found: error
+        retention-days: 7
 
     - name: 覆蓋率門檻檢查（Coverage Threshold Gate）
       run: |
@@ -103,14 +149,19 @@ jobs:
       run: Write-Host "建置與測試全部通過！程式碼狀態良好。"
 
   ui-smoke:
+    if: needs.changes.outputs.ui == 'true'
     runs-on: windows-latest
     timeout-minutes: 8
-    needs: build-check
+    needs:
+      - changes
+      - build-check
     permissions:
       contents: read
 
     env:
       DOTNET_MAJOR_VERSION: '10'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
       INPUTBOX_RUN_UI_TESTS: '1'
       INPUTBOX_UI_ARTIFACT_DIR: '${{ github.workspace }}/TestResults/UiArtifacts'
 
@@ -125,13 +176,9 @@ jobs:
         cache: true
         cache-dependency-path: '**/*.csproj'
 
-    - name: 建置主專案（Build App）
-      working-directory: ./src/InputBox
-      run: dotnet build -c Release --no-incremental
-
-    - name: 建置測試專案（Build Tests）
+    - name: 建置 UI 冒煙測試所需專案（Build App + Tests）
       working-directory: ./tests/InputBox.Tests
-      run: dotnet build -c Release --no-incremental
+      run: dotnet build InputBox.Tests.csproj -c Release --no-incremental
 
     - name: 執行 UI 冒煙測試（FlaUI Smoke）
       id: ui_smoke
@@ -155,3 +202,4 @@ jobs:
         name: ui-smoke-artifacts
         path: TestResults/UiArtifacts
         if-no-files-found: ignore
+        retention-days: 5
