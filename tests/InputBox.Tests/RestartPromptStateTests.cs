@@ -10,6 +10,7 @@ namespace InputBox.Tests;
 /// <summary>
 /// 驗證需重新啟動設定在使用者選擇稍後重啟時，仍會維持可見提醒，避免對話框取消後失去再次提示的入口。
 /// </summary>
+[Collection(AppSettingsTestRequirements.CollectionName)]
 public sealed class RestartPromptStateTests : IDisposable
 {
     /// <summary>

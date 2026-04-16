@@ -9,6 +9,7 @@ namespace InputBox.Tests;
 /// AppSettings 關鍵常數驗證、屬性夾緊與 GamepadConfigSnapshot 快照邏輯測試
 /// <para>確保影響安全、A11y 與行為邊界的常數及夾緊規則不會因重構而意外改變。</para>
 /// </summary>
+[Collection(AppSettingsTestRequirements.CollectionName)]
 public sealed class AppSettingsTests : IDisposable
 {
     /// <summary>
