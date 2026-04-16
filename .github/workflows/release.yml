@@ -27,6 +27,30 @@ jobs:
     steps:
     - name: 簽出原始碼（Checkout）
       uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: 驗證版本標籤來源為 main 最新提交
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        git fetch origin main --depth=1
+
+        $tagCommit = (git rev-list -n 1 "${{ github.ref_name }}").Trim()
+        $mainHead = (git rev-parse origin/main).Trim()
+
+        Write-Host "Tag commit:  $tagCommit"
+        Write-Host "main HEAD:   $mainHead"
+
+        if ([string]::IsNullOrWhiteSpace($tagCommit) -or [string]::IsNullOrWhiteSpace($mainHead)) {
+            Write-Error "無法解析版本標籤或 main 分支的提交資訊。"
+        }
+
+        if ($tagCommit -ne $mainHead) {
+            Write-Error "正式版本標籤只能從 main 分支最新提交建立；目前 tag 未指向 origin/main 的最新 commit。"
+        }
+
+        Write-Host "版本標籤來源驗證通過。"
 
     - name: 安裝 .NET 環境
       uses: actions/setup-dotnet@v5

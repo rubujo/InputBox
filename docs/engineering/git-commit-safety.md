@@ -25,7 +25,14 @@
 - **所有 Git 提交預設必須使用 GPG 簽章**，並在提交後以 `git log --show-signature -1` 或 `git verify-commit HEAD` 驗證為有效簽章。
 - **不得** 為了繞過本機 pinentry、gpg-agent 或終端互動問題，而使用 `--no-gpg-sign`、`git -c commit.gpgsign=false` 等方式提交；除非維護者明確授權，否則應先修復簽章環境再提交。
 
-## 4. 法律合規工作流
+## 4. 分支策略與合併守門
+- **採用 Trunk Based 變體**：應用程式日常開發、修補與緊急修復一律以 `dev` 為整合分支進行。
+- **合併路徑固定**：功能完成後，必須由 `dev` 提出 Pull Request 合併回 `main`；不得直接將應用程式變更推入 `main`。
+- **CI 為必要守門**：Pull Request 在合併前，必須先確認 `.github/workflows/ci.yml` 全部必要檢查為成功狀態，未通過不得合併。
+- **保留長存整合分支**：`dev` 為長期存在的共享分支；Pull Request 合併完成後，**不得刪除 `dev` 分支**。
+- **發版來源限制**：建立正式版本標籤時，只能以 `main` 分支最新提交為基準；不得從 `dev`、舊提交或其他分支直接打 tag 發布。
+
+## 5. 法律合規工作流
 1. 若任務涉及「按鍵處理」、「剪貼簿自動化」或「控制器映射」。
 2. 使用對應代理可用的網頁抓取工具訪問上述連結（例如 Copilot：`fetch_webpage`；Gemini：`web_fetch`）。
 3. 比對異動是否符合「非自動化」、「非模擬」原則。
