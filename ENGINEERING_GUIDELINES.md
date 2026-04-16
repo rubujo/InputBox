@@ -8,7 +8,7 @@
 - [多語系機制 (Web Localization)](docs/engineering/web-localization.md)
 - [A11y 無障礙與視覺安全 (Web A11y)](docs/engineering/web-a11y-safety.md)
 - [排版與標籤規範 (Web Typography)](docs/engineering/web-style-typography.md)
-- [Git 提交與驗證 (Web Git)](docs/engineering/web-git.md)
+- [Git 提交與驗證 (Web Git)](docs/engineering/web-git.md)（包含 Conventional Commits、GPG 簽章提交與驗證要求）
 
 ## 格式化流程
 
