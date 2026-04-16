@@ -22,6 +22,8 @@
 - 格式：`<type>(<scope>): <description>`。
 - 提交訊息必須包含 **Subject** 與 **Body**。
 - 訊息預設使用 **正體中文**。
+- **所有 Git 提交預設必須使用 GPG 簽章**，並在提交後以 `git log --show-signature -1` 或 `git verify-commit HEAD` 驗證為有效簽章。
+- **不得** 為了繞過本機 pinentry、gpg-agent 或終端互動問題，而使用 `--no-gpg-sign`、`git -c commit.gpgsign=false` 等方式提交；除非維護者明確授權，否則應先修復簽章環境再提交。
 
 ## 4. 法律合規工作流
 1. 若任務涉及「按鍵處理」、「剪貼簿自動化」或「控制器映射」。
