@@ -1,4 +1,5 @@
-﻿using InputBox.Core.Configuration;
+﻿using InputBox;
+using InputBox.Core.Configuration;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Reflection;
@@ -60,22 +61,30 @@ public sealed class RestartPromptStateTests : IDisposable
         AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
         AppSettings.Current.HistoryCapacity = 100;
 
-        using MainForm form = new();
+        MainForm form = new();
 
-        AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.GameInput;
+        try
+        {
+            AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.GameInput;
 
-        form.RefreshMenu();
+            form.CreateControl();
+            form.RefreshMenu();
 
-        FieldInfo menuField = typeof(MainForm).GetField(
-            "_cmsInput",
-            BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("找不到 MainForm._cmsInput 欄位。");
+            FieldInfo menuField = typeof(MainForm).GetField(
+                "_cmsInput",
+                BindingFlags.Instance | BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("找不到 MainForm._cmsInput 欄位。");
 
-        ContextMenuStrip menu = Assert.IsType<ContextMenuStrip>(menuField.GetValue(form));
+            ContextMenuStrip menu = Assert.IsType<ContextMenuStrip>(menuField.GetValue(form));
 
-        Assert.Contains(
-            menu.Items.OfType<ToolStripMenuItem>(),
-            item => item.AccessibleName == Strings.Menu_ApplyThemeRestart);
+            Assert.Contains(
+                menu.Items.OfType<ToolStripMenuItem>(),
+                item => item.AccessibleName == Strings.Menu_ApplyThemeRestart);
+        }
+        finally
+        {
+            form.Close();
+        }
     }
 
     /// <summary>
@@ -87,20 +96,28 @@ public sealed class RestartPromptStateTests : IDisposable
         AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
         AppSettings.Current.HistoryCapacity = 100;
 
-        using MainForm form = new();
+        MainForm form = new();
 
-        AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.GameInput;
+        try
+        {
+            AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.GameInput;
 
-        form.RefreshMenu();
+            form.CreateControl();
+            form.RefreshMenu();
 
-        FieldInfo titleField = typeof(MainForm).GetField(
-            "_cachedTitlePrefix",
-            BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("找不到 MainForm._cachedTitlePrefix 欄位。");
+            FieldInfo titleField = typeof(MainForm).GetField(
+                "_cachedTitlePrefix",
+                BindingFlags.Instance | BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("找不到 MainForm._cachedTitlePrefix 欄位。");
 
-        string titlePrefix = Assert.IsType<string>(titleField.GetValue(form));
+            string titlePrefix = Assert.IsType<string>(titleField.GetValue(form));
 
-        Assert.Contains(Strings.App_ThemePending_Suffix, titlePrefix, StringComparison.Ordinal);
+            Assert.Contains(Strings.App_ThemePending_Suffix, titlePrefix, StringComparison.Ordinal);
+        }
+        finally
+        {
+            form.Close();
+        }
     }
 
     /// <summary>
