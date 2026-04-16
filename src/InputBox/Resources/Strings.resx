@@ -730,12 +730,24 @@ Continue?</value>
     <comment>Error message played via A11y when the gamepad controller fails to initialize at startup.</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>Apply System Theme (Restart Required)</value>
-    <comment>Menu item prompting the user to restart the application to fully apply dark/light theme changes.</comment>
+    <value>Restart Application Now</value>
+    <comment>Menu item shown when an app setting change is pending and the user can immediately restart the application.</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>Apply System Changes and Restart</value>
+    <comment>Menu item shown when a system setting change is pending and the user can restart to fully apply it.</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>Restart to Apply All Changes</value>
+    <comment>Menu item shown when both app and system changes are pending and the user can restart to apply everything.</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>There are pending app and system changes. Restart the application now to fully apply everything.</value>
+    <comment>Accessibility description for the restart item when both app settings and system changes are pending.</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>System theme has changed. Please select "Apply System Theme" from the context menu to restart the application and fully apply visual effects.</value>
-    <comment>Accessibility voice prompt played when a theme change is detected and requires a manual restart.</comment>
+    <value>A system change that requires a restart is pending. Please select "Apply System Changes and Restart" from the context menu to fully apply the update.</value>
+    <comment>Accessibility voice prompt played when a system change is pending and the user can restart the application from the context menu to fully apply it.</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>

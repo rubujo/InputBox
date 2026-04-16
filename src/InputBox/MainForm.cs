@@ -172,21 +172,33 @@ public partial class MainForm : Form
     private string _cachedTitlePrefix = string.Empty;
 
     /// <summary>
-    /// 啟動時是否為深色模式
+    /// 啟動時的需重啟設定快照。
     /// </summary>
-    private readonly bool _initialIsDarkMode;
+    private readonly RestartRequirementSnapshot _restartRequirementSnapshot;
 
     /// <summary>
-    /// 啟動時是否為高對比模式
+    /// 目前待處理的重啟原因旗標。
     /// </summary>
-    private readonly bool _initialHighContrast;
+    private RestartPendingReason CurrentRestartPendingReason =>
+        _restartRequirementSnapshot.GetPendingReason(
+            AppSettings.Current,
+            this.IsDarkModeActive(),
+            SystemInformation.HighContrast);
 
     /// <summary>
-    /// 判斷是否有待處理的主題變更（需重啟以完全套用）
+    /// 判斷是否仍有待處理的重啟需求（主題、控制器輸入 API 或歷程容量）。
     /// </summary>
-    private bool IsThemeUpdatePending =>
-        _initialIsDarkMode != this.IsDarkModeActive() ||
-        _initialHighContrast != SystemInformation.HighContrast;
+    private bool IsRestartUpdatePending => CurrentRestartPendingReason != RestartPendingReason.None;
+
+    /// <summary>
+    /// 依目前待重啟原因動態產生右鍵選單中的重啟項目文字。
+    /// </summary>
+    private string RestartMenuLabel => RestartMenuTextResolver.GetMenuLabel(CurrentRestartPendingReason);
+
+    /// <summary>
+    /// 依目前待重啟原因動態產生右鍵選單中的重啟項目無障礙描述。
+    /// </summary>
+    private string RestartMenuAccessibleDescription => RestartMenuTextResolver.GetAccessibleDescription(CurrentRestartPendingReason);
 
     /// <summary>
     /// 啟動時是否應強制把主視窗重新帶回前景（例如由本程式要求的重新啟動）。
@@ -240,9 +252,10 @@ public partial class MainForm : Form
         // 記錄啟動時是否需要執行一次性的前景搶回流程。
         _forceForegroundOnFirstShow = forceForegroundOnFirstShow;
 
-        // 記錄啟動時的主題狀態基準值。
-        _initialIsDarkMode = this.IsDarkModeActive();
-        _initialHighContrast = SystemInformation.HighContrast;
+        // 記錄啟動時所有需重啟才會完全生效的基準狀態。
+        bool initialIsDarkMode = this.IsDarkModeActive();
+        bool initialHighContrast = SystemInformation.HighContrast;
+        _restartRequirementSnapshot = RestartRequirementSnapshot.CaptureCurrent(initialIsDarkMode, initialHighContrast);
 
         Disposed += (s, e) =>
         {
@@ -901,7 +914,7 @@ public partial class MainForm : Form
             privacyInfo = AppSettings.Current.IsPrivacyMode ?
                 Strings.App_Privacy_Suffix :
                 string.Empty,
-            themeInfo = IsThemeUpdatePending ?
+            restartInfo = IsRestartUpdatePending ?
                 Strings.App_ThemePending_Suffix :
                 string.Empty,
             gamepadLayoutInfo = GamepadFaceButtonProfile.GetActiveTitleLayoutHint();
@@ -911,7 +924,7 @@ public partial class MainForm : Form
             string[] titleParts =
             [
                 Strings.App_Title,
-                themeInfo,
+                restartInfo,
                 privacyInfo,
                 gamepadLayoutInfo,
                 hotkeyInfo,
@@ -1086,48 +1099,63 @@ public partial class MainForm : Form
     }
 
     /// <summary>
-    /// 要求使用者重啟應用程式以套用變更
+    /// 依觸發來源決定是否需要詢問使用者，並在確認後重新啟動應用程式。
     /// </summary>
-    private void AskForRestart()
+    /// <param name="source">重啟要求來源。</param>
+    private void AskForRestart(RestartRequestSource source = RestartRequestSource.SettingChange)
     {
-        if (GamepadMessageBox.Show(
-            this,
-            Strings.Msg_RestartRequired,
-            Strings.Wrn_Title,
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Question,
-            MessageBoxDefaultButton.Button2,
-            gamepad: _gamepadController) == DialogResult.Yes)
+        bool shouldRestart = RestartRequestDecider.ShouldRestart(
+            source,
+            () => GamepadMessageBox.Show(
+                this,
+                Strings.Msg_RestartRequired,
+                Strings.Wrn_Title,
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2,
+                gamepad: _gamepadController));
+
+        if (!shouldRestart)
         {
-            // 標記為程式內部重啟，避免在舊實例退場時把焦點空窗誤捕捉為返回目標。
-            Interlocked.Exchange(ref _isRestartingApplication, 1);
-
-            // 為下一個重啟後的執行個體建立一次性前景啟用請求，降低焦點跳回前一個視窗的機率。
-            RestartActivationCoordinator.Shared.RequestActivationOnNextLaunch();
-
-            // 由目前前景執行個體主動授權新的重啟程序可呼叫 SetForegroundWindow，
-            // 提升 Hosted Runner 與桌面自動化環境下的前景恢復成功率。
-            _ = User32.AllowSetForegroundWindow(User32.AllowSetForegroundWindowAnyProcess);
-
-            // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
-            FeedbackService.EmergencyStopAllActiveControllers();
-
-            Program.ReleaseMutex();
-
-            // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
-            // 從而釋放全域的 SystemEvents 鉤子，防止重啟時發生靜態資源洩漏。
-            foreach (Form form in Application.OpenForms.Cast<Form>().ToList())
-            {
-                if (form is MainForm mainForm)
-                {
-                    mainForm.Close();
-                }
-            }
-
-            Application.Restart();
-
-            Environment.Exit(0);
+            return;
         }
+
+        RestartApplication();
+    }
+
+    /// <summary>
+    /// 立即重新啟動應用程式並完成前景恢復交接。
+    /// </summary>
+    private void RestartApplication()
+    {
+        // 標記為程式內部重啟，避免在舊實例退場時把焦點空窗誤捕捉為返回目標。
+        Interlocked.Exchange(ref _isRestartingApplication, 1);
+
+        // 為下一個重啟後的執行個體建立一次性前景啟用請求，降低焦點跳回前一個視窗的機率。
+        RestartActivationCoordinator.Shared.RequestActivationOnNextLaunch();
+
+        // 由目前前景執行個體主動授權新的重啟程序可呼叫 SetForegroundWindow，
+        // 提升 Hosted Runner 與桌面自動化環境下的前景恢復成功率。
+        _ = User32.AllowSetForegroundWindow(User32.AllowSetForegroundWindowAnyProcess);
+
+        // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
+        FeedbackService.EmergencyStopAllActiveControllers();
+
+        Program.ReleaseMutex();
+
+        // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
+        // 從而釋放全域的 SystemEvents 鉤子，防止重啟時發生靜態資源洩漏。
+        foreach (Form form in Application.OpenForms.Cast<Form>().ToList())
+        {
+            if (form is MainForm mainForm)
+            {
+                mainForm.Close();
+            }
+        }
+
+        Application.Restart();
+
+        Environment.Exit(0);
     }
 
     /// <summary>

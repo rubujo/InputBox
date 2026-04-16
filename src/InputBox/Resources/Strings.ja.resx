@@ -730,16 +730,28 @@
     <comment>起動時にゲームパッドの初期化に失敗した際、A11y を通じて再生される音声メッセージの内容。</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>システムテーマを適用（再起動が必要）</value>
-    <comment>右クリックメニュー項目。ユーザーにアプリの再起動を促し、ダーク/ライトテーマの変更を完全に適用します。</comment>
+    <value>今すぐアプリを再起動</value>
+    <comment>アプリ内設定の変更が保留されており、すぐに再起動して適用できる場合の右クリックメニュー項目です。</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>システム変更を適用して再起動</value>
+    <comment>システム設定の変更が保留されており、再起動で完全に適用できる場合の右クリックメニュー項目です。</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>再起動してすべての変更を適用</value>
+    <comment>アプリとシステムの両方の変更が保留されている場合に表示される右クリックメニュー項目です。</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>アプリとシステムの変更がまだ保留されています。今すぐ再起動して、すべての変更を完全に適用してください。</value>
+    <comment>アプリとシステムの変更が同時に保留されている場合の再起動メニュー項目向けアクセシビリティ説明です。</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>システムテーマが変更されました。右クリックメニューから「システムテーマを適用」を選択してアプリを再起動し、視覚効果を完全に反映させてください。</value>
-    <comment>テーマの変更が検出され、手動での再起動が必要な際に再生されるアクセシビリティ音声ガイドです。</comment>
+    <value>システム変更が保留されており、完全な反映には再起動が必要です。右クリックメニューから「システム変更を適用して再起動」を選択してください。</value>
+    <comment>保留中のシステム変更を右クリックメニューから適用できるときに再生されるアクセシビリティ音声ガイドです。</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>システムテーマの変更が検出されましたが、まだ再起動されていない場合に、タイトルバーのアプリ名の後ろに表示されるアイコンマーカーです。</comment>
+    <comment>保留中の変更を完全に反映するため、まだ再起動が必要な場合にタイトルバーのアプリ名の後ろへ表示されるアイコンです。</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>{0} サブメニューに入ります</value>

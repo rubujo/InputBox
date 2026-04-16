@@ -25,39 +25,50 @@ internal static class ContextMenuBuilder
     }
 
     /// <summary>
-    /// 依需求注入主題套用重啟項目，並避免重複加入
+    /// 依需求注入根層重啟項目，並避免重複加入。
     /// </summary>
     /// <param name="menu">目標選單。</param>
-    /// <param name="isThemeUpdatePending">是否有待套用主題變更。</param>
+    /// <param name="isRestartPending">是否仍有待重新啟動套用的變更。</param>
     /// <param name="pendingPrefix">待套用前綴文字。</param>
     /// <param name="restartLabel">重啟項目標籤。</param>
     /// <param name="onRestart">點擊重啟項目時執行的動作。</param>
     public static void EnsureRestartItem(
         ContextMenuStrip menu,
-        bool isThemeUpdatePending,
+        bool isRestartPending,
         string pendingPrefix,
         string restartLabel,
-        Action onRestart)
+        Action onRestart,
+        string? restartAccessibleDescription = null)
     {
-        if (!isThemeUpdatePending)
+        const string restartItemName = "PendingRestartItem";
+        const string restartSeparatorName = "PendingRestartSeparator";
+
+        foreach (ToolStripItem existing in menu.Items.Cast<ToolStripItem>().Where(static item =>
+                     item.Name == restartItemName ||
+                     item.Name == restartSeparatorName).ToList())
         {
-            return;
+            menu.Items.Remove(existing);
+            existing.Dispose();
         }
 
-        if (menu.Items.Cast<ToolStripItem>().Any(n => n.AccessibleName == restartLabel))
+        if (!isRestartPending)
         {
             return;
         }
 
         ToolStripMenuItem tsmiRestart = new()
         {
+            Name = restartItemName,
             Text = $"{pendingPrefix} {restartLabel}",
-            AccessibleName = restartLabel
+            AccessibleName = restartLabel,
+            AccessibleDescription = string.IsNullOrWhiteSpace(restartAccessibleDescription) ?
+                restartLabel :
+                restartAccessibleDescription
         };
         tsmiRestart.Click += (s, e) => onRestart();
 
         menu.Items.Insert(0, tsmiRestart);
-        menu.Items.Insert(1, new ToolStripSeparator());
+        menu.Items.Insert(1, new ToolStripSeparator { Name = restartSeparatorName });
     }
 
     /// <summary>

@@ -94,14 +94,14 @@ public partial class MainForm
 
         ContextMenuBuilder.EnsureRestartItem(
             _cmsInput,
-            IsThemeUpdatePending,
+            IsRestartUpdatePending,
             Strings.App_ThemePending_Suffix,
-            Strings.Menu_ApplyThemeRestart,
+            RestartMenuLabel,
             () =>
             {
                 try
                 {
-                    AskForRestart();
+                    AskForRestart(RestartRequestSource.ManualMenu);
                 }
                 catch (Exception ex)
                 {
@@ -109,7 +109,8 @@ public partial class MainForm
 
                     Debug.WriteLine($"[選單] tsmiRestart.Click 失敗：{ex.Message}");
                 }
-            });
+            },
+            RestartMenuAccessibleDescription);
 
         // 隱私模式。
         _tsmiPrivacyMode = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_PrivacyMode, 'P'))
@@ -896,6 +897,11 @@ public partial class MainForm
                         AppSettings.Current.GamepadProviderType = provider;
                         AppSettings.Save();
 
+                        RefreshMenu();
+                    }
+
+                    if (IsRestartUpdatePending)
+                    {
                         AnnounceA11y(Strings.Msg_RestartRequired);
 
                         AskForRestart();
@@ -930,6 +936,11 @@ public partial class MainForm
                     AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
                     AppSettings.Save();
 
+                    RefreshMenu();
+                }
+
+                if (IsRestartUpdatePending)
+                {
                     AnnounceA11y(Strings.Msg_RestartRequired);
 
                     AskForRestart();
@@ -1395,15 +1406,20 @@ public partial class MainForm
     {
         this.SafeInvoke(() =>
         {
+            // 選單與標題列共用同一組待重啟狀態來源；重新整理選單時必須同步刷新標題提示。
+            UpdateTitlePrefix();
+            UpdateTitle();
+
             if (_cmsInput != null)
             {
                 // 在重新整理時，若有待處理變更則動態注入重啟選項。
                 ContextMenuBuilder.EnsureRestartItem(
                     _cmsInput,
-                    IsThemeUpdatePending,
+                    IsRestartUpdatePending,
                     Strings.App_ThemePending_Suffix,
-                    Strings.Menu_ApplyThemeRestart,
-                    AskForRestart);
+                    RestartMenuLabel,
+                    () => AskForRestart(RestartRequestSource.ManualMenu),
+                    RestartMenuAccessibleDescription);
 
 
                 foreach (ToolStripItem item in _cmsInput.Items)

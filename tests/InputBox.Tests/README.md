@@ -12,7 +12,7 @@
 | 測試類別 | 被測目標 | 測試數 |
 |---|---|---|
 | `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊、Dispose 行為與關閉時背景工作退出保護 | 5 |
-| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照與設定檔併發保存／暫存清理及併發暫存檔誤刪回歸保護 | 50 |
+| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照，以及設定檔實際保存／讀回、併發保存、暫存清理與併發暫存檔誤刪回歸保護 | 51 |
 | `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
@@ -31,10 +31,12 @@
 | `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框、程式內確認重啟後主視窗保持前景，以及基本複製流程的 UI 冒煙測試 | 9 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出、併發暫存檔誤刪，以及持久化失敗時的記憶體回滾回歸保護 | 39 |
 | `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護 | 3 |
+| `RestartPromptStateTests` | 需重啟設定的待處理狀態追蹤、標題列提示，以及右鍵選單依 App 設定／系統變更／兩者同時存在而動態切換文案的回歸保護 | 7 |
+| `RestartRequestDeciderTests` | 手動重啟與設定變更兩種入口的確認策略回歸保護 | 3 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 震動模式常數與行為 | 13 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **259** |
+| **合計** | | **270** |
 
 ## 二、執行方式 🚀
 

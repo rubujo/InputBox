@@ -730,16 +730,28 @@
     <comment>启动时控制器初始化失败后，通过 A11y 广播的语音消息内容。</comment>
   </data>
   <data name="Menu_ApplyThemeRestart" xml:space="preserve">
-    <value>应用系统主题（需重启）</value>
-    <comment>右键菜单项目，提示用户重启程序以完全应用深色/浅色主题变更。</comment>
+    <value>立即重新启动应用程序</value>
+    <comment>右键菜单项，当应用程序内部设置更改待应用时，提示用户立即重新启动程序。</comment>
+  </data>
+  <data name="Menu_ApplySystemChangesRestart" xml:space="preserve">
+    <value>应用系统更改并重新启动</value>
+    <comment>右键菜单项，当系统主题或高对比等环境更改待应用时，提示用户重新启动程序。</comment>
+  </data>
+  <data name="Menu_ApplyAllChangesRestart" xml:space="preserve">
+    <value>重新启动以应用所有更改</value>
+    <comment>右键菜单项，当应用程序与系统更改都待应用时，提示用户重新启动程序以一次完成。</comment>
+  </data>
+  <data name="A11y_Restart_AllChanges_Desc" xml:space="preserve">
+    <value>当前有应用程序和系统更改尚未应用。请立即重新启动程序以完整应用所有更改。</value>
+    <comment>无障碍说明，当应用程序与系统更改同时待重启时，用于解释右键菜单中的重启项。</comment>
   </data>
   <data name="A11y_Theme_Changed_Hint" xml:space="preserve">
-    <value>系统主题已变更。请在右键菜单中点击“应用系统主题”，以重启程序并完整应用视觉效果。</value>
-    <comment>无障碍语音播报，当检测到主题变更并需要用户手动重启时播放。</comment>
+    <value>当前有系统更改仍需重启后才能完整应用。请在右键菜单中点击“应用系统更改并重新启动”以完成更新。</value>
+    <comment>无障碍语音播报，当系统设置更改待应用且可立即从右键菜单触发重启时播放。</comment>
   </data>
   <data name="App_ThemePending_Suffix" xml:space="preserve">
     <value>🔄</value>
-    <comment>检测到系统主题变更但尚未重启时，显示在标题栏应用程序名称后方的图标标记。</comment>
+    <comment>当仍有待处理更改需要通过重启完整应用时，显示在标题栏应用程序名称后方的图标标记。</comment>
   </data>
   <data name="A11y_Menu_Submenu_Enter" xml:space="preserve">
     <value>进入 {0} 子菜单</value>

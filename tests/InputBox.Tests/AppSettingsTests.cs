@@ -23,6 +23,21 @@ public sealed class AppSettingsTests : IDisposable
     private static readonly string BackupPath = ConfigPath + ".testbackup";
 
     /// <summary>
+    /// 測試開始前的快速鍵設定，供測試後還原記憶體內狀態。
+    /// </summary>
+    private readonly string _originalHotKeyKey = AppSettings.Current.HotKeyKey;
+
+    /// <summary>
+    /// 測試開始前的遊戲控制器輸入 API 設定，供測試後還原記憶體內狀態。
+    /// </summary>
+    private readonly AppSettings.GamepadProvider _originalGamepadProvider = AppSettings.Current.GamepadProviderType;
+
+    /// <summary>
+    /// 測試開始前的歷程容量設定，供測試後還原記憶體內狀態。
+    /// </summary>
+    private readonly int _originalHistoryCapacity = AppSettings.Current.HistoryCapacity;
+
+    /// <summary>
     /// 建構子：若設定檔存在則先備份，確保測試不污染使用者原始資料。
     /// </summary>
     public AppSettingsTests()
@@ -40,6 +55,10 @@ public sealed class AppSettingsTests : IDisposable
     /// </summary>
     public void Dispose()
     {
+        AppSettings.Current.HotKeyKey = _originalHotKeyKey;
+        AppSettings.Current.GamepadProviderType = _originalGamepadProvider;
+        AppSettings.Current.HistoryCapacity = _originalHistoryCapacity;
+
         foreach (string tempFile in Directory.GetFiles(AppSettings.ConfigDirectory, "appsettings.json*.tmp"))
         {
             File.Delete(tempFile);
@@ -381,6 +400,34 @@ public sealed class AppSettingsTests : IDisposable
         Assert.Equal(7849, settings.GamepadSettings.ThumbDeadzoneEnter);
         Assert.Equal(30, settings.GamepadSettings.RepeatInitialDelayFrames);
         Assert.Equal(5, settings.GamepadSettings.RepeatIntervalFrames);
+    }
+
+    /// <summary>
+    /// 實際儲存後重新載入時，需重啟相關設定應能從設定檔正確讀回，避免只驗證記憶體狀態而漏掉持久化回歸。
+    /// </summary>
+    [Fact]
+    public void Save_ThenLoad_PersistsRestartRelatedSettings()
+    {
+        AppSettings.Current.HotKeyKey = "F9";
+        AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.GameInput;
+        AppSettings.Current.HistoryCapacity = 321;
+
+        AppSettings.Save();
+
+        AppSettings.Current.HotKeyKey = "F1";
+        AppSettings.Current.GamepadProviderType = AppSettings.GamepadProvider.XInput;
+        AppSettings.Current.HistoryCapacity = 100;
+
+        AppSettings.Load();
+
+        Assert.Equal("F9", AppSettings.Current.HotKeyKey);
+        Assert.Equal(AppSettings.GamepadProvider.GameInput, AppSettings.Current.GamepadProviderType);
+        Assert.Equal(321, AppSettings.Current.HistoryCapacity);
+
+        string json = File.ReadAllText(ConfigPath);
+        Assert.Contains("\"HotKeyKey\": \"F9\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"HistoryCapacity\": 321", json, StringComparison.Ordinal);
+        Assert.Contains("\"GamepadProviderType\": \"GameInput\"", json, StringComparison.Ordinal);
     }
 
     /// <summary>
