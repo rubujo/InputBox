@@ -101,13 +101,13 @@ public class AnnouncementServiceTests : IDisposable
     {
         _svc = new AnnouncementService(async (_, _, _) => await Task.CompletedTask);
 
-        var ex = Record.Exception(() =>
+        var capturedException = Record.Exception(() =>
         {
             _svc.Dispose();
             _svc.Dispose();
         });
 
-        Assert.Null(ex);
+        Assert.Null(capturedException);
     }
 
     /// <summary>

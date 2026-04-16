@@ -73,7 +73,7 @@ public static class ButtonEyeTrackerExtensions
     /// 按鈕與其視覺狀態的映射表，
     /// 用於管理按鈕的眼動儀回饋與無障礙狀態
     /// </summary>
-    private static readonly ConditionalWeakTable<Button, ButtonVisualState> _btnStates = [];
+    private static readonly ConditionalWeakTable<Button, ButtonVisualState> _buttonStates = [];
 
     /// <summary>
     /// 為按鈕綁定眼動儀與無障礙完整事件（包含 Paint、Focus、Hover、Pressed 與 Dwell 凝視回饋）
@@ -92,39 +92,39 @@ public static class ButtonEyeTrackerExtensions
         CancellationToken formCt,
         Action<bool>? onFocusStateChanged = null)
     {
-        ButtonVisualState st = new()
+        ButtonVisualState state = new()
         {
             BaseDescription = baseDescription,
-            // Fallback。
+            // 若未提供字型，則沿用按鈕目前的字型設定。
             RegularFont = regularFont ?? btn.Font,
             BoldFont = boldFont,
             FormCt = formCt,
             OnFocusStateChanged = onFocusStateChanged,
             OriginalPadding = btn.Padding
         };
-        _btnStates.AddOrUpdate(btn, st);
+        _buttonStates.AddOrUpdate(btn, state);
 
         // 避免重複綁定。
-        btn.Paint -= Btn_Paint;
-        btn.Paint += Btn_Paint;
+        btn.Paint -= HandleButtonPaint;
+        btn.Paint += HandleButtonPaint;
 
-        btn.GotFocus -= Btn_GotFocus;
-        btn.GotFocus += Btn_GotFocus;
+        btn.GotFocus -= HandleButtonGotFocus;
+        btn.GotFocus += HandleButtonGotFocus;
 
-        btn.LostFocus -= Btn_LostFocus;
-        btn.LostFocus += Btn_LostFocus;
+        btn.LostFocus -= HandleButtonLostFocus;
+        btn.LostFocus += HandleButtonLostFocus;
 
-        btn.MouseEnter -= Btn_MouseEnter;
-        btn.MouseEnter += Btn_MouseEnter;
+        btn.MouseEnter -= HandleButtonMouseEnter;
+        btn.MouseEnter += HandleButtonMouseEnter;
 
-        btn.MouseLeave -= Btn_MouseLeave;
-        btn.MouseLeave += Btn_MouseLeave;
+        btn.MouseLeave -= HandleButtonMouseLeave;
+        btn.MouseLeave += HandleButtonMouseLeave;
 
-        btn.MouseDown -= Btn_MouseDown;
-        btn.MouseDown += Btn_MouseDown;
+        btn.MouseDown -= HandleButtonMouseDown;
+        btn.MouseDown += HandleButtonMouseDown;
 
-        btn.MouseUp -= Btn_MouseUp;
-        btn.MouseUp += Btn_MouseUp;
+        btn.MouseUp -= HandleButtonMouseUp;
+        btn.MouseUp += HandleButtonMouseUp;
     }
 
     /// <summary>
@@ -136,14 +136,14 @@ public static class ButtonEyeTrackerExtensions
     /// <returns>表示非同步重置與接合操作的工作任務。</returns>
     public static async Task CompleteClickAndReGazeAsync(this Button btn)
     {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+        if (!_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
         {
             return;
         }
 
-        Interlocked.Increment(ref st.AnimId);
+        Interlocked.Increment(ref state.AnimId);
 
-        st.DwellProgress = 0f;
+        state.DwellProgress = 0f;
 
         btn.Invalidate();
 
@@ -159,13 +159,13 @@ public static class ButtonEyeTrackerExtensions
 
         if (btn.ClientRectangle.Contains(cursorPos))
         {
-            st.IsHovered = true;
+            state.IsHovered = true;
 
             StartAnimationFeedback(btn);
         }
         else
         {
-            st.IsHovered = false;
+            state.IsHovered = false;
 
             StopFeedback(btn);
         }
@@ -178,14 +178,14 @@ public static class ButtonEyeTrackerExtensions
     /// <param name="btn">目標按鈕</param>
     public static void CancelDwellAnimation(this Button btn)
     {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+        if (!_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
         {
             return;
         }
 
-        Interlocked.Increment(ref st.AnimId);
+        Interlocked.Increment(ref state.AnimId);
 
-        st.DwellProgress = 0f;
+        state.DwellProgress = 0f;
 
         btn.Invalidate();
     }
@@ -194,20 +194,20 @@ public static class ButtonEyeTrackerExtensions
     /// 取得鍵盤焦點時套用強視覺狀態，
     /// 並觸發焦點狀態改變回呼以連動提示標籤等 UI 元件的更新
     /// </summary>
-    /// <param name="sender">事件觸發的按鈕</param>
-    /// <param name="e">事件參數</param>
-    private static void Btn_GotFocus(object? sender, EventArgs e)
+    /// <param name="sender">事件觸發的按鈕。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private static void HandleButtonGotFocus(object? sender, EventArgs eventArgs)
     {
         if (sender is Button btn)
         {
-            if (_btnStates.TryGetValue(btn, out var st))
+            if (_buttonStates.TryGetValue(btn, out var buttonState))
             {
-                st.OnFocusStateChanged?.Invoke(true);
+                buttonState.OnFocusStateChanged?.Invoke(true);
             }
 
             // 如果同時處於懸停狀態，應維持懸停溫和視覺，不強制套用強烈視覺。
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? state) &&
-                state.IsHovered)
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? hoverState) &&
+                hoverState.IsHovered)
             {
                 StartAnimationFeedback(btn);
             }
@@ -222,16 +222,16 @@ public static class ButtonEyeTrackerExtensions
     /// 失去鍵盤焦點時重置強視覺狀態，
     /// 並觸發焦點狀態改變回呼以連動提示標籤等 UI 元件的更新
     /// </summary>
-    /// <param name="sender">事件觸發的按鈕</param>
-    /// <param name="e">事件參數</param>
-    private static void Btn_LostFocus(object? sender, EventArgs e)
+    /// <param name="sender">事件觸發的按鈕。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private static void HandleButtonLostFocus(object? sender, EventArgs eventArgs)
     {
         if (sender is Button btn)
         {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                st.IsPressed = false;
-                st.OnFocusStateChanged?.Invoke(st.IsHovered);
+                state.IsPressed = false;
+                state.OnFocusStateChanged?.Invoke(state.IsHovered);
             }
 
             StopFeedback(btn);
@@ -241,11 +241,11 @@ public static class ButtonEyeTrackerExtensions
     /// <summary>
     /// 滑鼠進入按鈕區域時啟動懸停回饋，
     /// 並透過焦點狀態回呼讓外部 UI 可同步更新提示或邊框狀態，
-    /// 提升眼動儀使用者的互動體驗
+    /// 提升眼動儀使用者的互動體驗。
     /// </summary>
-    /// <param name="sender">事件觸發的按鈕</param>
-    /// <param name="e">事件參數</param>
-    private static void Btn_MouseEnter(object? sender, EventArgs e)
+    /// <param name="sender">事件觸發的按鈕。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private static void HandleButtonMouseEnter(object? sender, EventArgs eventArgs)
     {
         if (sender is Button btn)
         {
@@ -254,10 +254,10 @@ public static class ButtonEyeTrackerExtensions
                 return;
             }
 
-            if (_btnStates.TryGetValue(btn, out var st))
+            if (_buttonStates.TryGetValue(btn, out var state))
             {
-                st.IsHovered = true;
-                st.OnFocusStateChanged?.Invoke(true);
+                state.IsHovered = true;
+                state.OnFocusStateChanged?.Invoke(true);
             }
 
             StartAnimationFeedback(btn);
@@ -268,19 +268,19 @@ public static class ButtonEyeTrackerExtensions
     /// 滑鼠離開按鈕區域時停止懸停回饋，
     /// 並透過焦點狀態回呼讓外部 UI 邏輯可依目前焦點狀態還原提示，
     /// 確保視覺反饋與使用者互動保持一致，
-    /// 避免誤導眼動儀使用者的視線追蹤與互動判斷
+    /// 避免誤導眼動儀使用者的視線追蹤與互動判斷。
     /// </summary>
-    /// <param name="sender">事件觸發的按鈕</param>
-    /// <param name="e">事件參數</param>
-    private static void Btn_MouseLeave(object? sender, EventArgs e)
+    /// <param name="sender">事件觸發的按鈕。</param>
+    /// <param name="eventArgs">事件參數。</param>
+    private static void HandleButtonMouseLeave(object? sender, EventArgs eventArgs)
     {
         if (sender is Button btn)
         {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                st.IsHovered = false;
-                st.IsPressed = false;
-                st.OnFocusStateChanged?.Invoke(btn.Focused);
+                state.IsHovered = false;
+                state.IsPressed = false;
+                state.OnFocusStateChanged?.Invoke(btn.Focused);
             }
 
             StopFeedback(btn);
@@ -288,18 +288,18 @@ public static class ButtonEyeTrackerExtensions
     }
 
     /// <summary>
-    /// 滑鼠左鍵按下時套用按壓狀態
+    /// 滑鼠左鍵按下時套用按壓狀態。
     /// </summary>
-    /// <param name="sender">事件觸發的按鈕</param>
-    /// <param name="e">事件參數</param>
-    private static void Btn_MouseDown(object? sender, MouseEventArgs e)
+    /// <param name="sender">事件觸發的按鈕。</param>
+    /// <param name="eventArgs">滑鼠事件參數。</param>
+    private static void HandleButtonMouseDown(object? sender, MouseEventArgs eventArgs)
     {
         if (sender is Button btn &&
-            e.Button == MouseButtons.Left)
+            eventArgs.Button == MouseButtons.Left)
         {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                st.IsPressed = true;
+                state.IsPressed = true;
             }
 
             StartAnimationFeedback(btn);
@@ -307,18 +307,18 @@ public static class ButtonEyeTrackerExtensions
     }
 
     /// <summary>
-    /// 滑鼠左鍵放開時重置按壓狀態
+    /// 滑鼠左鍵放開時重置按壓狀態。
     /// </summary>
-    /// <param name="sender">事件觸發的按鈕</param>
-    /// <param name="e">事件參數</param>
-    private static void Btn_MouseUp(object? sender, MouseEventArgs e)
+    /// <param name="sender">事件觸發的按鈕。</param>
+    /// <param name="eventArgs">滑鼠事件參數。</param>
+    private static void HandleButtonMouseUp(object? sender, MouseEventArgs eventArgs)
     {
         if (sender is Button btn &&
-            e.Button == MouseButtons.Left)
+            eventArgs.Button == MouseButtons.Left)
         {
-            if (_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                st.IsPressed = false;
+                state.IsPressed = false;
             }
 
             StartAnimationFeedback(btn);
@@ -331,7 +331,7 @@ public static class ButtonEyeTrackerExtensions
     /// <param name="btn">目標按鈕</param>
     private static void ApplyStrongVisual(Button btn)
     {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+        if (!_buttonStates.TryGetValue(btn, out ButtonVisualState? st))
         {
             return;
         }
@@ -397,7 +397,7 @@ public static class ButtonEyeTrackerExtensions
             return;
         }
 
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+        if (!_buttonStates.TryGetValue(btn, out ButtonVisualState? st))
         {
             return;
         }
@@ -459,7 +459,7 @@ public static class ButtonEyeTrackerExtensions
     /// <param name="btn">目標按鈕</param>
     private static void StopFeedback(Button btn)
     {
-        if (!_btnStates.TryGetValue(btn, out ButtonVisualState? st))
+        if (!_buttonStates.TryGetValue(btn, out ButtonVisualState? st))
         {
             return;
         }
@@ -505,7 +505,7 @@ public static class ButtonEyeTrackerExtensions
     /// </summary>
     /// <param name="sender">事件的發送者，通常是按鈕</param>
     /// <param name="e">包含繪圖資訊的事件參數</param>
-    private static void Btn_Paint(object? sender, PaintEventArgs e)
+    private static void HandleButtonPaint(object? sender, PaintEventArgs e)
     {
         if (sender is not Button btn)
         {
@@ -514,7 +514,7 @@ public static class ButtonEyeTrackerExtensions
 
         try
         {
-            _btnStates.TryGetValue(btn, out var st);
+            _buttonStates.TryGetValue(btn, out var st);
 
             Graphics g = e.Graphics;
 

@@ -17,8 +17,8 @@ public class TaskExtensionsTests
     public void CancelAndDispose_Null_DoesNotThrow()
     {
         CancellationTokenSource? cts = null;
-        var ex = Record.Exception(() => cts.CancelAndDispose());
-        Assert.Null(ex);
+        var capturedException = Record.Exception(() => cts.CancelAndDispose());
+        Assert.Null(capturedException);
     }
 
     /// <summary>
@@ -30,9 +30,9 @@ public class TaskExtensionsTests
         var cts = new CancellationTokenSource();
         Assert.False(cts.IsCancellationRequested);
 
-        var ex = Record.Exception(() => cts.CancelAndDispose());
+        var capturedException = Record.Exception(() => cts.CancelAndDispose());
 
-        Assert.Null(ex);
+        Assert.Null(capturedException);
         // 呼叫後 cts 已被 Dispose，無法再讀取 IsCancellationRequested，不驗證此屬性
     }
 
@@ -45,9 +45,9 @@ public class TaskExtensionsTests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var ex = Record.Exception(() => cts.CancelAndDispose());
+        var capturedException = Record.Exception(() => cts.CancelAndDispose());
 
-        Assert.Null(ex);
+        Assert.Null(capturedException);
     }
 
     /// <summary>
@@ -59,9 +59,9 @@ public class TaskExtensionsTests
         var cts = new CancellationTokenSource();
         cts.Dispose();
 
-        var ex = Record.Exception(() => cts.CancelAndDispose());
+        var capturedException = Record.Exception(() => cts.CancelAndDispose());
 
-        Assert.Null(ex);
+        Assert.Null(capturedException);
     }
 
     // ── TryCreateLinkedTokenSource ──────────────────────────────────────────

@@ -860,29 +860,29 @@ public class AppSettings
     public static void Save()
     {
         // 只在鎖內進行序列化（讀取 Current），I/O 操作在鎖外執行。
-        string strJsonContent;
+        string jsonContent;
 
         lock (ConfigLock)
         {
-            strJsonContent = JsonSerializer.Serialize(Current, Options);
+            jsonContent = JsonSerializer.Serialize(Current, Options);
         }
 
-        WriteConfigToFile(strJsonContent);
+        WriteConfigToFile(jsonContent);
     }
 
     /// <summary>
     /// 將 JSON 字串安全地寫入設定檔（不含鎖，由呼叫端控制）。
     /// <para>使用唯一暫存檔、原子替換與退避重試，降低多執行緒保存或外部檔案鎖造成的覆寫風險。</para>
     /// </summary>
-    /// <param name="strJsonContent">已序列化、準備寫入磁碟的 JSON 字串內容。</param>
-    private static void WriteConfigToFile(string strJsonContent)
+    /// <param name="jsonContent">已序列化、準備寫入磁碟的 JSON 字串內容。</param>
+    private static void WriteConfigToFile(string jsonContent)
     {
         // 使用唯一 GUID 暫存檔名進行原子寫入，避免與其他同步保存流程互相覆寫。
-        string strTempPath = Path.Combine(
+        string tempPath = Path.Combine(
             ConfigDirectory,
             $"{Path.GetFileName(ConfigPath)}.{Guid.NewGuid():N}.tmp");
 
-        RegisterActiveConfigTempFile(strTempPath);
+        RegisterActiveConfigTempFile(tempPath);
 
         try
         {
@@ -893,7 +893,7 @@ public class AppSettings
             }
 
             // 寫入臨時檔案。使用唯一檔名避免多執行緒保存時互相覆寫。
-            File.WriteAllText(strTempPath, strJsonContent, Utf8NoBom);
+            File.WriteAllText(tempPath, jsonContent, Utf8NoBom);
 
             // 記錄最後一次 I/O 失敗原因，供所有重試都失敗時重新拋出。
             Exception? lastIoException = null;
@@ -908,14 +908,15 @@ public class AppSettings
                 {
                     if (File.Exists(ConfigPath))
                     {
-                        File.Replace(strTempPath, ConfigPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                        File.Replace(tempPath, ConfigPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
                     }
                     else
                     {
-                        File.Move(strTempPath, ConfigPath);
+                        File.Move(tempPath, ConfigPath);
                     }
 
-                    strTempPath = string.Empty;
+                    UnregisterActiveConfigTempFile(tempPath);
+                    tempPath = string.Empty;
                     return;
                 }
                 catch (IOException ex) when (attempt < 5)
@@ -942,8 +943,8 @@ public class AppSettings
         }
         finally
         {
-            UnregisterActiveConfigTempFile(strTempPath);
-            TryDeleteConfigTempFile(strTempPath);
+            UnregisterActiveConfigTempFile(tempPath);
+            TryDeleteConfigTempFile(tempPath);
             CleanupConfigTempFiles();
         }
     }
