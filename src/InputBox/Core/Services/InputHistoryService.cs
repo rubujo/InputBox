@@ -200,4 +200,45 @@ internal sealed class InputHistoryService(int maxHistory = 100)
                 TotalCount: _listHistory.Count);
         }
     }
+
+    /// <summary>
+    /// 以固定步數快速翻頁導覽輸入歷程。
+    /// <para>方向規則與 <see cref="Navigate(int)"/> 相同：-1 代表向較舊項目跳轉，+1 代表向較新項目跳轉。</para>
+    /// </summary>
+    /// <param name="direction">方向（-1：上一頁／較舊，+1：下一頁／較新）。</param>
+    /// <param name="pageSize">每次要嘗試移動的最大筆數。</param>
+    /// <returns>最後一次成功移動後的結果；若第一步就撞牆則回傳撞牆結果。</returns>
+    public NavigationResult NavigatePage(int direction, int pageSize = 5)
+    {
+        if (direction is not -1 and not 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(direction));
+        }
+
+        if (pageSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize));
+        }
+
+        NavigationResult lastSuccessfulResult = default;
+
+        for (int i = 0; i < pageSize; i++)
+        {
+            NavigationResult result = Navigate(direction);
+
+            if (!result.Success)
+            {
+                return i == 0 ? result : lastSuccessfulResult;
+            }
+
+            lastSuccessfulResult = result;
+
+            if (result.IsCleared)
+            {
+                return result;
+            }
+        }
+
+        return lastSuccessfulResult;
+    }
 }

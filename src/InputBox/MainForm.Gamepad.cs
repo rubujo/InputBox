@@ -42,9 +42,112 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 文字邊界回饋的節奏分級。
+    /// </summary>
+    private enum BoundaryFeedbackStage
+    {
+        Full,
+        SoftRepeat,
+        Suppressed
+    }
+
+    /// <summary>
     /// 追蹤 Back 鍵是否已作為組合鍵使用（用於防止放開時觸發返回動作）
     /// </summary>
     private bool _isBackUsedAsModifier = false;
+
+    /// <summary>
+    /// 肩鍵與板機鍵在主輸入區的組合判斷延遲，避免單擊捷徑與修飾鍵語義互相衝突。
+    /// </summary>
+    private const int GamepadModifierGraceDelayMs = 120;
+
+    /// <summary>
+    /// 連發觸發時的邊界回饋節流時間，避免長按撞牆造成提示音與震動風暴。
+    /// </summary>
+    private const int RepeatedBoundaryFeedbackThrottleMs = 180;
+
+    /// <summary>
+    /// LB + RB + X 的長按結束保護時間。
+    /// </summary>
+    private const int GamepadExitHoldDelayMs = 800;
+
+    /// <summary>
+    /// 在短時間內重複撞到同一個文字邊界時，改用較柔和回饋的視窗時間。
+    /// </summary>
+    private const int BoundarySoftRepeatWindowMs = 1200;
+
+    /// <summary>
+    /// 快速連續翻閱歷程時，用來模擬阻尼滾輪手感的 burst 視窗。
+    /// </summary>
+    private const int HistoryScrollBurstWindowMs = 220;
+
+    /// <summary>
+    /// 右搖桿快速選取時，用來形成拉鏈感的 burst 視窗。
+    /// </summary>
+    private const int SelectionBurstWindowMs = 110;
+
+    /// <summary>
+    /// 文字接近輸入上限時開始提供物理預警的剩餘字元門檻。
+    /// </summary>
+    private const int TextLimitWarningThreshold = 10;
+
+    /// <summary>
+    /// 暫存肩鍵單擊捷徑的取消權杖，用來區分單擊翻頁與肩鍵＋方向鍵的單字跳轉。
+    /// </summary>
+    private CancellationTokenSource? _leftShoulderShortcutCts;
+    private CancellationTokenSource? _rightShoulderShortcutCts;
+
+    /// <summary>
+    /// 暫存板機單擊捷徑的取消權杖，用來讓 LT+RT 雙壓優先切換隱私模式。
+    /// </summary>
+    private CancellationTokenSource? _leftTriggerShortcutCts;
+    private CancellationTokenSource? _rightTriggerShortcutCts;
+
+    /// <summary>
+    /// 結束程式長按確認流程的取消權杖。
+    /// </summary>
+    private CancellationTokenSource? _exitHoldCts;
+
+    /// <summary>
+    /// 防止 LT+RT 在同一次長按期間重複切換隱私模式。
+    /// </summary>
+    private int _privacyTriggerComboLatched;
+
+    /// <summary>
+    /// 防止 LB + RB + X 在同一次長按期間重複建立結束流程。
+    /// </summary>
+    private int _exitHoldLatched;
+
+    /// <summary>
+    /// 肩鍵作為單字跳轉修飾鍵時，暫時抑制歷程翻頁連發，避免兩種語意衝突。
+    /// </summary>
+    private DateTime _suppressShoulderPagingUntilUtc = DateTime.MinValue;
+
+    /// <summary>
+    /// 追蹤最近一次邊界回饋的 key 與時間，用於長按時節流。
+    /// </summary>
+    private string _lastBoundaryFeedbackKey = string.Empty;
+    private DateTime _lastBoundaryFeedbackUtc = DateTime.MinValue;
+
+    /// <summary>
+    /// 記錄最近一次歷程滾輪手感回饋的時間與 burst 等級。
+    /// </summary>
+    private DateTime _lastHistoryScrollFeedbackUtc = DateTime.MinValue;
+    private int _historyScrollBurstLevel;
+
+    /// <summary>
+    /// 記錄最近一次右搖桿選取回饋的時間與 burst 等級。
+    /// </summary>
+    private DateTime _lastSelectionFeedbackUtc = DateTime.MinValue;
+    private int _selectionFeedbackBurstLevel;
+
+    /// <summary>
+    /// 追蹤主輸入框目前長度，用於偵測接近字數上限時的物理預警。
+    /// </summary>
+    private int _lastObservedTextLength;
+    private int _lastTextLimitWarningBucket = -1;
+    private int _suppressNextTextLimitFeedback;
+    private DateTime _lastTextLimitWallUtc = DateTime.MinValue;
 
     /// <summary>
     /// 初始化 GamepadController
@@ -259,18 +362,22 @@ public partial class MainForm
                 () => HandleHorizontalGamepadInput("Right", MoveCursorRight)),
             OnLeftShoulderPressed: CreateSafeGamepadActionHandler(
                 HandleLeftShoulderAction),
+            OnLeftShoulderRepeat: CreateSafeGamepadActionHandler(
+                HandleLeftShoulderRepeat),
             OnRightShoulderPressed: CreateSafeGamepadActionHandler(
                 HandleRightShoulderAction),
+            OnRightShoulderRepeat: CreateSafeGamepadActionHandler(
+                HandleRightShoulderRepeat),
             OnLeftTriggerPressed: CreateSafeGamepadActionHandler(
                 HandleLeftTriggerAction,
                 "LeftTriggerPressed"),
             OnLeftTriggerRepeat: CreateSafeGamepadActionHandler(
-                HandleLeftTriggerAction),
+                HandleLeftTriggerRepeat),
             OnRightTriggerPressed: CreateSafeGamepadActionHandler(
                 HandleRightTriggerAction,
                 "RightTriggerPressed"),
             OnRightTriggerRepeat: CreateSafeGamepadActionHandler(
-                HandleRightTriggerAction),
+                HandleRightTriggerRepeat),
             OnStartPressed: CreateSafeGamepadActionHandler(
                 ExecuteGamepadShowKeyboardIfAllowed),
             OnAPressed: CreateSafeGamepadActionHandler(
@@ -612,7 +719,7 @@ public partial class MainForm
                     AnnounceA11y(announcement, interrupt: true);
                 }
 
-                VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+                VibrateNavigationAsync(VibrationSemantic.CursorMove, forward ? 1 : -1).SafeFireAndForget();
 
                 return;
             }
@@ -878,49 +985,665 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 處理 LB 鍵行為（片語子選單上一頁）。
+    /// 處理 LB 鍵行為（片語子選單上一頁，或主輸入區向較舊歷程翻頁）。
     /// </summary>
     private void HandleLeftShoulderAction()
-    {
-        _ = HandleContextMenuGamepadInput("PhrasePagePrevious");
-    }
+        => HandleShoulderAction(direction: -1, "PhrasePagePrevious", ref _leftShoulderShortcutCts, allowDelayedShortcut: true);
 
     /// <summary>
-    /// 處理 RB 鍵行為（片語子選單下一頁）。
+    /// 處理 LB 長按連發，讓歷程或片語翻頁可持續捲動。
+    /// </summary>
+    private void HandleLeftShoulderRepeat()
+        => HandleShoulderAction(direction: -1, "PhrasePagePrevious", ref _leftShoulderShortcutCts, allowDelayedShortcut: false);
+
+    /// <summary>
+    /// 處理 RB 鍵行為（片語子選單下一頁，或主輸入區向較新歷程翻頁）。
     /// </summary>
     private void HandleRightShoulderAction()
+        => HandleShoulderAction(direction: +1, "PhrasePageNext", ref _rightShoulderShortcutCts, allowDelayedShortcut: true);
+
+    /// <summary>
+    /// 處理 RB 長按連發，讓歷程或片語翻頁可持續捲動。
+    /// </summary>
+    private void HandleRightShoulderRepeat()
+        => HandleShoulderAction(direction: +1, "PhrasePageNext", ref _rightShoulderShortcutCts, allowDelayedShortcut: false);
+
+    /// <summary>
+    /// 統一處理肩鍵單擊與連發的翻頁邏輯。
+    /// </summary>
+    private void HandleShoulderAction(
+        int direction,
+        string phrasePagingAction,
+        ref CancellationTokenSource? pendingShortcutCts,
+        bool allowDelayedShortcut)
     {
-        _ = HandleContextMenuGamepadInput("PhrasePageNext");
+        if (HandleContextMenuGamepadInput(phrasePagingAction) ||
+            _cmsInput?.Visible == true ||
+            IsGamepadInputSuppressed() ||
+            IsShoulderPagingTemporarilySuppressed())
+        {
+            return;
+        }
+
+        if (allowDelayedShortcut)
+        {
+            QueueShoulderHistoryShortcut(direction, ref pendingShortcutCts);
+            return;
+        }
+
+        CancelPendingShoulderShortcuts();
+        NavigateHistoryPage(direction, pageSize: 5);
     }
 
     /// <summary>
-    /// 處理 LT 鍵行為（片語首頁或輸入框行首）。
+    /// 處理 LT 鍵行為（片語首頁、輸入框行首，或與 RT 組合切換隱私模式）。
     /// </summary>
     private void HandleLeftTriggerAction()
     {
-        if (HandleContextMenuGamepadInput("PhrasePageFirst") ||
-            _cmsInput?.Visible == true ||
-            IsGamepadInputSuppressed())
-        {
-            return;
-        }
-
-        MoveCursorToBoundary(moveToEnd: false);
+        HandleTriggerShortcut(moveToEnd: false, allowDelayedShortcut: true);
     }
 
     /// <summary>
-    /// 處理 RT 鍵行為（片語末頁或輸入框行尾）。
+    /// 處理 LT 長按連發。
+    /// </summary>
+    private void HandleLeftTriggerRepeat()
+    {
+        HandleTriggerShortcut(moveToEnd: false, allowDelayedShortcut: false);
+    }
+
+    /// <summary>
+    /// 處理 RT 鍵行為（片語末頁、輸入框行尾，或與 LT 組合切換隱私模式）。
     /// </summary>
     private void HandleRightTriggerAction()
     {
-        if (HandleContextMenuGamepadInput("PhrasePageLast") ||
+        HandleTriggerShortcut(moveToEnd: true, allowDelayedShortcut: true);
+    }
+
+    /// <summary>
+    /// 處理 RT 長按連發。
+    /// </summary>
+    private void HandleRightTriggerRepeat()
+    {
+        HandleTriggerShortcut(moveToEnd: true, allowDelayedShortcut: false);
+    }
+
+    /// <summary>
+    /// 以短延遲區分肩鍵單擊翻頁與肩鍵作為單字跳轉修飾鍵的情境。
+    /// </summary>
+    /// <param name="direction">歷程翻頁方向。</param>
+    /// <param name="pendingShortcutCts">對應肩鍵的暫存取消權杖欄位。</param>
+    private void QueueShoulderHistoryShortcut(int direction, ref CancellationTokenSource? pendingShortcutCts)
+    {
+        ScheduleDelayedGamepadAction(
+            ref pendingShortcutCts,
+            () => NavigateHistoryPage(direction, pageSize: 5));
+    }
+
+    /// <summary>
+    /// 處理 LT／RT 單擊與雙壓組合的行為分流。
+    /// </summary>
+    /// <param name="moveToEnd">true 代表行尾；false 代表行首。</param>
+    private void HandleTriggerShortcut(bool moveToEnd, bool allowDelayedShortcut)
+    {
+        if (HandleContextMenuGamepadInput(moveToEnd ? "PhrasePageLast" : "PhrasePageFirst") ||
             _cmsInput?.Visible == true ||
             IsGamepadInputSuppressed())
         {
             return;
         }
 
-        MoveCursorToBoundary(moveToEnd: true);
+        if (TryTogglePrivacyModeFromTriggerCombo())
+        {
+            return;
+        }
+
+        // 下一次重新以單鍵按下時，允許再次進行 LT+RT 的一次性切換。
+        if (_gamepadController?.IsLeftTriggerHeld != true ||
+            _gamepadController?.IsRightTriggerHeld != true)
+        {
+            Interlocked.Exchange(ref _privacyTriggerComboLatched, 0);
+        }
+
+        if (!allowDelayedShortcut)
+        {
+            CancelPendingTriggerShortcuts();
+            MoveCursorToBoundary(moveToEnd);
+            return;
+        }
+
+        if (moveToEnd)
+        {
+            ScheduleDelayedGamepadAction(ref _rightTriggerShortcutCts, () =>
+            {
+                if (!TryTogglePrivacyModeFromTriggerCombo())
+                {
+                    MoveCursorToBoundary(moveToEnd: true);
+                }
+            });
+
+            return;
+        }
+
+        ScheduleDelayedGamepadAction(ref _leftTriggerShortcutCts, () =>
+        {
+            if (!TryTogglePrivacyModeFromTriggerCombo())
+            {
+                MoveCursorToBoundary(moveToEnd: false);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 嘗試用 LT+RT 雙壓切換隱私模式，只在同一次組合按壓中觸發一次。
+    /// </summary>
+    /// <returns>若已處理隱私模式切換則回傳 true。</returns>
+    private bool TryTogglePrivacyModeFromTriggerCombo()
+    {
+        if (_gamepadController?.IsLeftTriggerHeld != true ||
+            _gamepadController?.IsRightTriggerHeld != true)
+        {
+            return false;
+        }
+
+        if (Interlocked.Exchange(ref _privacyTriggerComboLatched, 1) != 0)
+        {
+            return true;
+        }
+
+        CancelPendingTriggerShortcuts();
+
+        TogglePrivacyMode();
+        int privacyDirection = AppSettings.Current.IsPrivacyMode ? 1 : -1;
+        FeedbackService.PlaySound(SystemSounds.Asterisk);
+        VibrateNavigationAsync(VibrationSemantic.ModeToggle, privacyDirection, VibrationContext.PrivacyMode).SafeFireAndForget();
+
+        return true;
+    }
+
+    /// <summary>
+    /// 取消待執行的肩鍵單擊捷徑。
+    /// </summary>
+    private void CancelPendingShoulderShortcuts()
+    {
+        Interlocked.Exchange(ref _leftShoulderShortcutCts, null)?.CancelAndDispose();
+        Interlocked.Exchange(ref _rightShoulderShortcutCts, null)?.CancelAndDispose();
+    }
+
+    /// <summary>
+    /// 取消待執行的板機單擊捷徑。
+    /// </summary>
+    private void CancelPendingTriggerShortcuts()
+    {
+        Interlocked.Exchange(ref _leftTriggerShortcutCts, null)?.CancelAndDispose();
+        Interlocked.Exchange(ref _rightTriggerShortcutCts, null)?.CancelAndDispose();
+    }
+
+    /// <summary>
+    /// 肩鍵已作為單字跳轉修飾鍵時，短暫抑制翻頁連發，避免雙重動作競爭。
+    /// </summary>
+    private void SuppressShoulderPagingTemporarily()
+    {
+        _suppressShoulderPagingUntilUtc = DateTime.UtcNow.AddMilliseconds(GamepadModifierGraceDelayMs + 80);
+        CancelPendingShoulderShortcuts();
+    }
+
+    /// <summary>
+    /// 判斷肩鍵翻頁是否暫時被修飾鍵行為抑制。
+    /// </summary>
+    private bool IsShoulderPagingTemporarilySuppressed()
+        => DateTime.UtcNow < _suppressShoulderPagingUntilUtc;
+
+    /// <summary>
+    /// 長按時節流重複的邊界提示音與震動，避免回饋過於密集。
+    /// </summary>
+    private bool ShouldThrottleRepeatedBoundaryFeedback(string key)
+    {
+        return GetBoundaryFeedbackStage(key) == BoundaryFeedbackStage.Suppressed;
+    }
+
+    /// <summary>
+    /// 解析目前文字邊界回饋應採用完整、柔和或抑制模式。
+    /// </summary>
+    private BoundaryFeedbackStage GetBoundaryFeedbackStage(string key)
+    {
+        DateTime now = DateTime.UtcNow;
+
+        if (string.Equals(_lastBoundaryFeedbackKey, key, StringComparison.Ordinal))
+        {
+            double elapsedMs = (now - _lastBoundaryFeedbackUtc).TotalMilliseconds;
+
+            if (elapsedMs < RepeatedBoundaryFeedbackThrottleMs)
+            {
+                return BoundaryFeedbackStage.Suppressed;
+            }
+
+            _lastBoundaryFeedbackUtc = now;
+
+            return elapsedMs < BoundarySoftRepeatWindowMs ?
+                BoundaryFeedbackStage.SoftRepeat :
+                BoundaryFeedbackStage.Full;
+        }
+
+        _lastBoundaryFeedbackKey = key;
+        _lastBoundaryFeedbackUtc = now;
+
+        return BoundaryFeedbackStage.Full;
+    }
+
+    /// <summary>
+    /// 在游標成功離開邊界後重設最近一次撞牆節流視窗。
+    /// </summary>
+    private void ResetBoundaryFeedbackWindow()
+    {
+        _lastBoundaryFeedbackKey = string.Empty;
+        _lastBoundaryFeedbackUtc = DateTime.MinValue;
+    }
+
+    /// <summary>
+    /// 推進某類觸覺回饋的 burst 等級，用於快速連發時做輕量阻尼。
+    /// </summary>
+    private static int AdvanceFeedbackBurst(ref DateTime lastUtc, ref int burstLevel, int fastWindowMs)
+    {
+        DateTime now = DateTime.UtcNow;
+        burstLevel = (now - lastUtc).TotalMilliseconds <= fastWindowMs ?
+            Math.Min(burstLevel + 1, 3) :
+            0;
+        lastUtc = now;
+
+        return burstLevel;
+    }
+
+    /// <summary>
+    /// 播放歷程導覽的阻尼滾輪手感回饋。
+    /// </summary>
+    private void PlayHistoryScrollFeedback(int direction)
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            return;
+        }
+
+        int burstLevel = AdvanceFeedbackBurst(
+            ref _lastHistoryScrollFeedbackUtc,
+            ref _historyScrollBurstLevel,
+            HistoryScrollBurstWindowMs);
+
+        VibrateSequenceAsync(
+            VibrationPatterns.GetHistoryScrollSequence(direction, burstLevel, controller.VibrationMotorSupport)).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 暫時抑制下一次文字長度變化所觸發的上限預警；用於歷程載入等程式主導更新。
+    /// </summary>
+    private void SuppressNextTextLimitFeedback()
+    {
+        Interlocked.Exchange(ref _suppressNextTextLimitFeedback, 1);
+    }
+
+    /// <summary>
+    /// 依剩餘字元數分級，目前只在接近上限時回傳有效 bucket。
+    /// </summary>
+    private static int GetTextLimitWarningBucket(int remainingCharacters)
+    {
+        return remainingCharacters switch
+        {
+            <= 0 => 3,
+            <= 2 => 2,
+            <= 5 => 1,
+            <= TextLimitWarningThreshold => 0,
+            _ => -1
+        };
+    }
+
+    /// <summary>
+    /// 當主輸入框長度變動時，提供接近字數上限的物理預警與硬牆回饋。
+    /// </summary>
+    private void HandleTextLimitFeedbackFromLengthChange()
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        int currentLength = TBInput.TextLength;
+
+        if (Interlocked.Exchange(ref _suppressNextTextLimitFeedback, 0) != 0)
+        {
+            _lastObservedTextLength = currentLength;
+            return;
+        }
+
+        if (currentLength < _lastObservedTextLength)
+        {
+            _lastObservedTextLength = currentLength;
+            _lastTextLimitWarningBucket = currentLength >= AppSettings.MaxInputLength - TextLimitWarningThreshold ?
+                GetTextLimitWarningBucket(AppSettings.MaxInputLength - currentLength) :
+                -1;
+            return;
+        }
+
+        int remainingCharacters = AppSettings.MaxInputLength - currentLength;
+
+        if (remainingCharacters > TextLimitWarningThreshold)
+        {
+            _lastObservedTextLength = currentLength;
+            _lastTextLimitWarningBucket = -1;
+            return;
+        }
+
+        int currentBucket = GetTextLimitWarningBucket(remainingCharacters);
+
+        if (currentLength > _lastObservedTextLength &&
+            (currentBucket != _lastTextLimitWarningBucket || remainingCharacters <= 2))
+        {
+            if (remainingCharacters <= 0)
+            {
+                FeedbackService.PlaySound(SystemSounds.Beep);
+            }
+
+            VibrateSequenceAsync(
+                VibrationPatterns.GetTextLimitSequence(
+                    remainingCharacters,
+                    _gamepadController?.VibrationMotorSupport ?? VibrationMotorSupport.None)).SafeFireAndForget();
+        }
+
+        _lastObservedTextLength = currentLength;
+        _lastTextLimitWarningBucket = currentBucket;
+    }
+
+    /// <summary>
+    /// 使用者在字數已滿時仍嘗試輸入一般字元，播放硬牆回饋。
+    /// </summary>
+    private void HandleTextLimitKeyPress(KeyPressEventArgs e)
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed ||
+            char.IsControl(e.KeyChar) ||
+            TBInput.TextLength < AppSettings.MaxInputLength)
+        {
+            return;
+        }
+
+        if ((DateTime.UtcNow - _lastTextLimitWallUtc).TotalMilliseconds < RepeatedBoundaryFeedbackThrottleMs)
+        {
+            return;
+        }
+
+        _lastTextLimitWallUtc = DateTime.UtcNow;
+        FeedbackService.PlaySound(SystemSounds.Beep);
+        VibrateSequenceAsync(
+            VibrationPatterns.GetTextLimitSequence(
+                0,
+                _gamepadController?.VibrationMotorSupport ?? VibrationMotorSupport.None)).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 根據選取粒度與速度播放不同的右搖桿文字選取回饋。
+    /// </summary>
+    private void PlaySelectionFeedback(int direction, bool wordGranularity)
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            return;
+        }
+
+        int burstLevel = wordGranularity ? 0 : AdvanceFeedbackBurst(
+            ref _lastSelectionFeedbackUtc,
+            ref _selectionFeedbackBurstLevel,
+            SelectionBurstWindowMs);
+
+        VibrateSequenceAsync(
+            VibrationPatterns.GetSelectionSequence(direction, wordGranularity, burstLevel, controller.VibrationMotorSupport)).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
+    /// </summary>
+    private int GetWordSelectionCaretTarget(int caret, int direction)
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return caret;
+        }
+
+        int originalStart = TBInput.SelectionStart;
+        int originalLength = TBInput.SelectionLength;
+
+        try
+        {
+            TBInput.SelectionStart = Math.Clamp(caret, 0, TBInput.TextLength);
+            TBInput.SelectionLength = 0;
+            TBInput.WordJump(direction > 0);
+
+            return TBInput.SelectionStart;
+        }
+        finally
+        {
+            TBInput.SelectionStart = originalStart;
+            TBInput.SelectionLength = originalLength;
+        }
+    }
+
+    /// <summary>
+    /// 取得資源字串；若缺少翻譯則回退到預設文字。
+    /// </summary>
+    private static string GetLocalizedString(string resourceKey, string fallback)
+    {
+        string? localized = Strings.ResourceManager.GetString(resourceKey, Strings.Culture);
+        return string.IsNullOrWhiteSpace(localized) ? fallback : localized;
+    }
+
+    /// <summary>
+    /// 取消待處理的結束程式長按確認。
+    /// </summary>
+    private void CancelPendingExitHold()
+    {
+        Interlocked.Exchange(ref _exitHoldLatched, 0);
+        Interlocked.Exchange(ref _exitHoldCts, null)?.CancelAndDispose();
+    }
+
+    /// <summary>
+    /// 啟動 LB + RB + X 的長按結束保護流程。
+    /// </summary>
+    private void BeginExitHoldConfirmation(IGamepadController controller)
+    {
+        if (Interlocked.Exchange(ref _exitHoldLatched, 1) != 0)
+        {
+            return;
+        }
+
+        CancellationTokenSource newExitHoldCts = _formCts.TryCreateLinkedTokenSource() ?? new CancellationTokenSource();
+        Interlocked.Exchange(ref _exitHoldCts, newExitHoldCts)?.CancelAndDispose();
+
+        AnnounceA11y(
+            GetLocalizedString(
+                "A11y_Gamepad_ExitHoldStart",
+                "Hold LB + RB + X for 0.8 seconds to exit."),
+            interrupt: true);
+
+        FeedbackService.VibrateSequenceAsync(
+            controller,
+            VibrationPatterns.GetExitHoldSequence(confirmed: false, controller.VibrationMotorSupport),
+            newExitHoldCts.Token).SafeFireAndForget();
+
+        ConfirmExitHoldAsync(controller, newExitHoldCts).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 非同步等待長按結束保護時間，確認使用者仍持續按住完整組合鍵後才關閉程式。
+    /// </summary>
+    private async Task ConfirmExitHoldAsync(IGamepadController controller, CancellationTokenSource exitHoldCts)
+    {
+        try
+        {
+            await Task.Delay(GamepadExitHoldDelayMs, exitHoldCts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        this.SafeInvoke(() =>
+        {
+            try
+            {
+                if (exitHoldCts.IsCancellationRequested ||
+                    !controller.IsLeftShoulderHeld ||
+                    !controller.IsRightShoulderHeld ||
+                    !controller.IsXHeld)
+                {
+                    return;
+                }
+
+                AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
+
+                FeedbackService.VibrateSequenceAsync(
+                    controller,
+                    VibrationPatterns.GetExitHoldSequence(confirmed: true, controller.VibrationMotorSupport),
+                    CancellationToken.None).SafeFireAndForget();
+
+                Close();
+            }
+            finally
+            {
+                CancelPendingExitHold();
+            }
+        });
+    }
+
+    /// <summary>
+    /// 以柔和、分級的方式播放文字邊界回饋，避免長按撞牆時造成疲勞。
+    /// </summary>
+    private void PlayTextBoundaryFeedback(int direction, string boundaryKey, string announcement)
+    {
+        BoundaryFeedbackStage stage = GetBoundaryFeedbackStage(boundaryKey);
+
+        if (stage == BoundaryFeedbackStage.Suppressed)
+        {
+            return;
+        }
+
+        if (stage == BoundaryFeedbackStage.Full)
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+            VibrateNavigationAsync(VibrationSemantic.Boundary, direction, VibrationContext.TextBoundary).SafeFireAndForget();
+            AnnounceA11y(announcement, interrupt: true);
+            return;
+        }
+
+        VibrateAsync(VibrationPatterns.GetRepeatedBoundaryProfile(direction)).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 讓使用者以獨特震動快速辨識目前作用中的控制器。
+    /// </summary>
+    private Task IdentifyCurrentControllerAsync()
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+            AnnounceA11y(
+                GetLocalizedString(
+                    "A11y_Gamepad_IdentifyUnavailable",
+                    "No active controller is available to identify."),
+                interrupt: true);
+
+            return Task.CompletedTask;
+        }
+
+        string controllerName = string.IsNullOrWhiteSpace(controller.DeviceName) ?
+            GetLocalizedString("Menu_Settings_Gamepad", "Gamepad") :
+            controller.DeviceName;
+
+        AnnounceA11y(
+            string.Format(
+                GetLocalizedString(
+                    "A11y_Gamepad_IdentifyStarted",
+                    "Identifying current controller: {0}."),
+                controllerName),
+            interrupt: true);
+
+        return FeedbackService.VibrateSequenceAsync(
+            controller,
+            VibrationPatterns.GetControllerIdentifySequence(controller.VibrationMotorSupport),
+            _formCts?.Token ?? CancellationToken.None);
+    }
+
+    /// <summary>
+    /// 當主視窗由快速鍵喚起時，播放一個輕巧的控制器握手序列。
+    /// </summary>
+    private Task PlayShowInputReadyFeedbackAsync()
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            return VibrateAsync(VibrationPatterns.ShowInput);
+        }
+
+        return FeedbackService.VibrateSequenceAsync(
+            controller,
+            VibrationPatterns.GetFocusHandshakeSequence(controller.VibrationMotorSupport),
+            _formCts?.Token ?? CancellationToken.None);
+    }
+
+    /// <summary>
+    /// 以短延遲排程控制器單擊捷徑，讓組合鍵擁有優先權。
+    /// </summary>
+    /// <param name="pendingShortcutCts">目前捷徑的取消權杖欄位。</param>
+    /// <param name="action">延遲後要執行的動作。</param>
+    private void ScheduleDelayedGamepadAction(ref CancellationTokenSource? pendingShortcutCts, Action action)
+    {
+        Interlocked.Exchange(ref pendingShortcutCts, null)?.CancelAndDispose();
+
+        CancellationTokenSource pendingCts = new();
+        pendingShortcutCts = pendingCts;
+
+        CancellationToken externalToken = _formCts?.Token ?? CancellationToken.None;
+
+        RunDelayedGamepadActionAsync(pendingCts, action, externalToken).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 非同步等待單擊寬限期，若期間未被組合鍵取消再執行實際動作。
+    /// </summary>
+    private async Task RunDelayedGamepadActionAsync(
+        CancellationTokenSource pendingCts,
+        Action action,
+        CancellationToken externalToken)
+    {
+        using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            pendingCts.Token,
+            externalToken);
+
+        try
+        {
+            await Task.Delay(GamepadModifierGraceDelayMs, linkedCts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        this.SafeInvoke(() =>
+        {
+            if (!linkedCts.IsCancellationRequested)
+            {
+                action();
+            }
+        });
     }
 
     /// <summary>
@@ -979,17 +1702,15 @@ public partial class MainForm
             return;
         }
 
-        // 組合鍵：LB + RB + X 直接結束應用程式。
+        // 組合鍵：LB + RB + X 改為長按確認，避免誤觸直接結束程式。
         if (controller.IsLeftShoulderHeld &&
             controller.IsRightShoulderHeld)
         {
-            // 告知使用者正在關閉程式。
-            AnnounceA11y(Strings.A11y_Menu_Exit_Desc, interrupt: true);
-
-            this.SafeInvoke(Close);
-
+            BeginExitHoldConfirmation(controller);
             return;
         }
+
+        CancelPendingExitHold();
 
         // 組合鍵：Back + X 重設透明度（100%）。
         if (controller.IsBackHeld)
@@ -1129,7 +1850,7 @@ public partial class MainForm
 
         SelectFirstVisibleMenuItemAndAnnounce(_cmsInput);
 
-        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+        VibrateNavigationAsync(VibrationSemantic.CursorMove, 1).SafeFireAndForget();
     }
 
     /// <summary>
@@ -1235,6 +1956,7 @@ public partial class MainForm
         }
 
         bool hasSelection = TBInput.SelectionLength > 0;
+        bool usedWordJump = false;
 
         if (hasSelection ||
             TBInput.SelectionStart > 0)
@@ -1243,10 +1965,13 @@ public partial class MainForm
             {
                 TBInput.SelectionLength = 0;
             }
-            // 組合鍵：LB + Left 執行單字跳轉。
-            else if (_gamepadController?.IsLeftShoulderHeld == true)
+            // 組合鍵：LB／RB + Left 執行單字跳轉。
+            else if (_gamepadController?.IsLeftShoulderHeld == true ||
+                     _gamepadController?.IsRightShoulderHeld == true)
             {
+                SuppressShoulderPagingTemporarily();
                 TBInput.WordJump(false);
+                usedWordJump = true;
             }
             else
             {
@@ -1254,23 +1979,21 @@ public partial class MainForm
             }
 
             TBInput.ScrollToCaret();
+            ResetBoundaryFeedbackWindow();
 
             // 手動報讀游標目前的絕對位置。
             AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
                 Strings.A11y_Cursor_Move_PrivacySafe :
                 string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
 
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+            VibrateNavigationAsync(
+                usedWordJump ? VibrationSemantic.WordJump : VibrationSemantic.CursorMove,
+                -1,
+                usedWordJump ? VibrationContext.TextBoundary : VibrationContext.General).SafeFireAndForget();
         }
         else if (TBInput.SelectionStart == 0)
         {
-            FeedbackService.PlaySound(SystemSounds.Beep);
-
-            // 只有在撞牆時才震動，避免長按時一直震動。
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-            // 撞到最左邊。
-            AnnounceA11y(Strings.A11y_Nav_Top, interrupt: true);
+            PlayTextBoundaryFeedback(-1, "CursorStart", Strings.A11y_Nav_Top);
         }
     }
 
@@ -1286,6 +2009,7 @@ public partial class MainForm
         }
 
         bool hasSelection = TBInput.SelectionLength > 0;
+        bool usedWordJump = false;
 
         if (hasSelection ||
             TBInput.SelectionStart < TBInput.Text.Length)
@@ -1295,10 +2019,13 @@ public partial class MainForm
                 TBInput.SelectionStart += TBInput.SelectionLength;
                 TBInput.SelectionLength = 0;
             }
-            // 組合鍵：LB + Right 執行單字跳轉。
-            else if (_gamepadController?.IsLeftShoulderHeld == true)
+            // 組合鍵：LB／RB + Right 執行單字跳轉。
+            else if (_gamepadController?.IsLeftShoulderHeld == true ||
+                     _gamepadController?.IsRightShoulderHeld == true)
             {
+                SuppressShoulderPagingTemporarily();
                 TBInput.WordJump(true);
+                usedWordJump = true;
             }
             else
             {
@@ -1306,21 +2033,21 @@ public partial class MainForm
             }
 
             TBInput.ScrollToCaret();
+            ResetBoundaryFeedbackWindow();
 
             // 手動報讀游標目前的絕對位置。
             AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
                 Strings.A11y_Cursor_Move_PrivacySafe :
                 string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+
+            VibrateNavigationAsync(
+                usedWordJump ? VibrationSemantic.WordJump : VibrationSemantic.CursorMove,
+                1,
+                usedWordJump ? VibrationContext.TextBoundary : VibrationContext.General).SafeFireAndForget();
         }
         else if (TBInput.SelectionStart == TBInput.Text.Length)
         {
-            FeedbackService.PlaySound(SystemSounds.Beep);
-
-            // 只有在撞牆時才震動，避免長按時一直震動。
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
-
-            // 撞到最右邊。
-            AnnounceA11y(Strings.A11y_Nav_Bottom, interrupt: true);
+            PlayTextBoundaryFeedback(1, "CursorEnd", Strings.A11y_Nav_Bottom);
         }
     }
 
@@ -1341,22 +2068,21 @@ public partial class MainForm
         if (TBInput.SelectionLength == 0 &&
             TBInput.SelectionStart == target)
         {
-            FeedbackService.PlaySound(SystemSounds.Beep);
-            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
-            AnnounceA11y(moveToEnd ? Strings.A11y_Nav_Bottom : Strings.A11y_Nav_Top, interrupt: true);
-
+            string boundaryKey = moveToEnd ? "CursorEnd" : "CursorStart";
+            PlayTextBoundaryFeedback(moveToEnd ? 1 : -1, boundaryKey, moveToEnd ? Strings.A11y_Nav_Bottom : Strings.A11y_Nav_Top);
             return;
         }
 
         TBInput.SelectionStart = target;
         TBInput.SelectionLength = 0;
         TBInput.ScrollToCaret();
+        ResetBoundaryFeedbackWindow();
 
         AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
             Strings.A11y_Cursor_Move_PrivacySafe :
             string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
 
-        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+        VibrateNavigationAsync(VibrationSemantic.PageSwitch, moveToEnd ? 1 : -1, VibrationContext.TextBoundary).SafeFireAndForget();
     }
 
     /// <summary>
@@ -1370,6 +2096,33 @@ public partial class MainForm
         return FeedbackService.VibrateAsync(
             _gamepadController,
             profile,
+            _formCts?.Token ?? CancellationToken.None);
+    }
+
+    /// <summary>
+    /// 以目前控制器播放自訂的多段式震動序列。
+    /// </summary>
+    private Task VibrateSequenceAsync(IReadOnlyList<VibrationSequenceStep> sequence)
+    {
+        return FeedbackService.VibrateSequenceAsync(
+            _gamepadController,
+            sequence,
+            _formCts?.Token ?? CancellationToken.None);
+    }
+
+    /// <summary>
+    /// 以語意、方向與情境播放最佳化的控制器觸覺序列。
+    /// </summary>
+    private Task VibrateNavigationAsync(
+        VibrationSemantic semantic,
+        int direction,
+        VibrationContext context = VibrationContext.General)
+    {
+        return FeedbackService.VibrateNavigationAsync(
+            _gamepadController,
+            semantic,
+            direction,
+            context,
             _formCts?.Token ?? CancellationToken.None);
     }
 
@@ -1407,8 +2160,17 @@ public partial class MainForm
 
         // 防禦性寫法：確保方向永遠只會是 -1、0 或 1，杜絕任何溢出造成的邏輯錯亂。
         int safeDirection = Math.Sign(direction);
+        bool wordGranularity = _gamepadController?.IsLeftShoulderHeld == true ||
+                               _gamepadController?.IsRightShoulderHeld == true;
 
-        int newCaret = Math.Clamp(caret + safeDirection, 0, TBInput.TextLength);
+        if (wordGranularity)
+        {
+            SuppressShoulderPagingTemporarily();
+        }
+
+        int newCaret = wordGranularity ?
+            GetWordSelectionCaretTarget(caret, safeDirection) :
+            Math.Clamp(caret + safeDirection, 0, TBInput.TextLength);
 
         if (newCaret == caret)
         {
@@ -1429,6 +2191,6 @@ public partial class MainForm
                 string.Format(Strings.A11y_Selected_Text, TBInput.SelectedText), interrupt: true);
         }
 
-        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+        PlaySelectionFeedback(safeDirection, wordGranularity);
     }
 }

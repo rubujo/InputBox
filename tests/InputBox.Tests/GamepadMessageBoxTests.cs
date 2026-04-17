@@ -1,6 +1,7 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Controls;
 using InputBox.Core.Extensions;
+using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using System.Reflection;
 using Xunit;
@@ -35,6 +36,8 @@ public sealed class GamepadMessageBoxTests
         public bool IsRightTriggerHeld => false;
         public bool IsBackHeld => false;
         public bool IsBHeld => false;
+        public bool IsXHeld => false;
+        public VibrationMotorSupport VibrationMotorSupport => VibrationMotorSupport.DualMain;
         public GamepadRepeatSettings RepeatSettings { get; set; } = new();
         public int ThumbDeadzoneEnter { get; set; }
         public int ThumbDeadzoneExit { get; set; }
@@ -45,7 +48,9 @@ public sealed class GamepadMessageBoxTests
         public event Action? LeftPressed;
         public event Action? RightPressed;
         public event Action? LeftShoulderPressed;
+        public event Action? LeftShoulderRepeat;
         public event Action? RightShoulderPressed;
+        public event Action? RightShoulderRepeat;
         public event Action? StartPressed;
         public event Action? BackPressed;
         public event Action? BackReleased;
@@ -69,6 +74,9 @@ public sealed class GamepadMessageBoxTests
         public Task VibrateAsync(ushort strength, int milliseconds = 60, VibrationPriority priority = VibrationPriority.Normal, CancellationToken ct = default)
             => Task.CompletedTask;
 
+        public Task VibrateAsync(VibrationProfile profile, VibrationPriority priority = VibrationPriority.Normal, CancellationToken ct = default)
+            => Task.CompletedTask;
+
         public void StopVibration() { }
         public void Pause() { }
         public void Resume() { }
@@ -87,7 +95,9 @@ public sealed class GamepadMessageBoxTests
             _ = LeftPressed;
             _ = RightPressed;
             _ = LeftShoulderPressed;
+            _ = LeftShoulderRepeat;
             _ = RightShoulderPressed;
+            _ = RightShoulderRepeat;
             _ = StartPressed;
             _ = BackPressed;
             _ = BackReleased;

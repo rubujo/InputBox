@@ -1,5 +1,6 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
+using InputBox.Core.Feedback;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Resources;
@@ -12,6 +13,11 @@ namespace InputBox.Core.Input;
 /// </summary>
 internal sealed partial class XInputGamepadController : IGamepadController
 {
+    /// <summary>
+    /// XInput 僅支援左右兩顆主震動馬達。
+    /// </summary>
+    public VibrationMotorSupport VibrationMotorSupport => VibrationMotorSupport.DualMain;
+
     /// <summary>
     /// 輸入上下文，提供 UI 狀態與控制器動作執行所需的環境資訊。
     /// </summary>
@@ -66,6 +72,26 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 右搖桿重複計數器
     /// </summary>
     private int _rsRepeatCounter;
+
+    /// <summary>
+    /// LB 連發計數器
+    /// </summary>
+    private int _lbRepeatCounter;
+
+    /// <summary>
+    /// LB 目前動態計算的連發間隔幀數
+    /// </summary>
+    private int _currentLBRepeatInterval;
+
+    /// <summary>
+    /// RB 連發計數器
+    /// </summary>
+    private int _rbRepeatCounter;
+
+    /// <summary>
+    /// RB 目前動態計算的連發間隔幀數
+    /// </summary>
+    private int _currentRBRepeatInterval;
 
     /// <summary>
     /// LT 連發計數器
@@ -440,9 +466,19 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? LeftShoulderPressed;
 
     /// <summary>
+    /// 左肩鍵（LB）持續按住時的連發事件。
+    /// </summary>
+    public event Action? LeftShoulderRepeat;
+
+    /// <summary>
     /// 當右肩鍵（RB 鍵）被按下時觸發。
     /// </summary>
     public event Action? RightShoulderPressed;
+
+    /// <summary>
+    /// 右肩鍵（RB）持續按住時的連發事件。
+    /// </summary>
+    public event Action? RightShoulderRepeat;
 
     /// <summary>
     /// 右搖桿左推按下事件。
@@ -513,6 +549,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 控制器 B 鍵是否按住
     /// </summary>
     public bool IsBHeld { get; private set; }
+
+    /// <summary>
+    /// 控制器 X 鍵是否按住
+    /// </summary>
+    public bool IsXHeld { get; private set; }
 
     /// <summary>
     /// 震動 Token（用於追蹤目前的震動狀態，確保在非同步震動期間不會重複觸發震動或錯誤停止震動）
@@ -842,6 +883,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
                 _repeatDirection = null;
                 _rsRepeatCounter = 0;
                 _rsRepeatDirection = 0;
+                _lbRepeatCounter = 0;
+                _currentLBRepeatInterval = 0;
+                _rbRepeatCounter = 0;
+                _currentRBRepeatInterval = 0;
                 _ltRepeatCounter = 0;
                 _currentLTRepeatInterval = 0;
                 _rtRepeatCounter = 0;
@@ -862,6 +907,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
             _repeatDirection = null;
             _rsRepeatCounter = 0;
             _rsRepeatDirection = 0;
+            _lbRepeatCounter = 0;
+            _currentLBRepeatInterval = 0;
+            _rbRepeatCounter = 0;
+            _currentRBRepeatInterval = 0;
             _directionalStaleFrameCounter = 0;
             _directionalGhostFrameCounter = 0;
 
@@ -891,6 +940,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             IsRightShoulderHeld = currentState.Has(XInput.GamepadButton.RightShoulder);
             IsBackHeld = currentState.Has(XInput.GamepadButton.Back);
             IsBHeld = currentState.Has(XInput.GamepadButton.B);
+            IsXHeld = currentState.Has(XInput.GamepadButton.X);
 
             // 處理觸發鍵。
             // 更新「按住」狀態。
@@ -1379,6 +1429,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
         ResetHoldStates();
         ResetDirectionalRepeatState();
 
+        _lbRepeatCounter = 0;
+        _currentLBRepeatInterval = 0;
+        _rbRepeatCounter = 0;
+        _currentRBRepeatInterval = 0;
         _ltRepeatCounter = 0;
         _currentLTRepeatInterval = 0;
         _rtRepeatCounter = 0;
@@ -1509,6 +1563,28 @@ internal sealed partial class XInputGamepadController : IGamepadController
                 emittedRsRightRepeat = true;
 #endif
             }
+        }
+
+        // 處理左肩鍵（LB）連發輸入。
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                IsLeftShoulderHeld,
+                ref _lbRepeatCounter,
+                ref _currentLBRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
+        {
+            LeftShoulderRepeat?.Invoke();
+        }
+
+        // 處理右肩鍵（RB）連發輸入。
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                IsRightShoulderHeld,
+                ref _rbRepeatCounter,
+                ref _currentRBRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
+        {
+            RightShoulderRepeat?.Invoke();
         }
 
         // 處理左觸發鍵（LT）連發輸入。
@@ -1737,27 +1813,34 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 震動
+    /// 震動。
     /// </summary>
-    /// <param name="strength">強度</param>
-    /// <param name="milliseconds">毫秒，預設為 60</param>
-    /// <param name="priority">震動優先級</param>
-    /// <param name="ct">取消權杖</param>
-    /// <returns>Task</returns>
     public Task VibrateAsync(
         ushort strength,
         int milliseconds = 60,
         VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default)
     {
-        // 如果外部在呼叫前就已經要求取消，直接返回（Fast-path）。
+        return VibrateAsync(new VibrationProfile(strength, milliseconds), priority, ct);
+    }
+
+    /// <summary>
+    /// 依多馬達震動設定讓 XInput 控制器震動；扳機比例會退化為左右主馬達的方向差異。
+    /// </summary>
+    public Task VibrateAsync(
+        VibrationProfile profile,
+        VibrationPriority priority = VibrationPriority.Normal,
+        CancellationToken ct = default)
+    {
         if (ct.IsCancellationRequested)
         {
             return Task.CompletedTask;
         }
 
-        // 強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
-        if (strength == 0)
+        ushort requestedStrength = profile.GetPeakMotorStrength();
+        int milliseconds = profile.Duration;
+
+        if (requestedStrength == 0)
         {
             StopVibration();
 
@@ -1765,7 +1848,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         }
 
         bool accepted = _vibrationSafetyLimiter.TryApplyWithDiagnostics(
-            strength,
+            requestedStrength,
             milliseconds,
             priority,
             out ushort safeStrength,
@@ -1779,7 +1862,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             AppSettings.Current.VibrationIntensity > 0f;
 
         bool shouldLogAccepted = priority != VibrationPriority.Ambient ||
-            safeStrength != strength ||
+            safeStrength != requestedStrength ||
             safeDurationMs != Math.Clamp(milliseconds, 1, 1000) ||
             Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
 
@@ -1788,7 +1871,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             if (enableDebugDiagnostics)
             {
                 LoggerService.LogInfo(
-                    $"VibrationDiag source=XInput stage=limiter decision=blocked priority={priority} reqStrength={strength} reqMs={milliseconds} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} ambientCooldownMs={limiterDiagnostics.AmbientCooldownRemainingMs} fwProtectionSuspect=no appProtection=true");
+                    $"VibrationDiag source=XInput stage=limiter decision=blocked priority={priority} reqStrength={requestedStrength} reqMs={milliseconds} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} ambientCooldownMs={limiterDiagnostics.AmbientCooldownRemainingMs} fwProtectionSuspect=no appProtection=true");
             }
         }
         else if (enableDebugDiagnostics && shouldLogAccepted)
@@ -1796,7 +1879,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             bool firmwareProtectionRisk = safeStrength >= 50000 && safeDurationMs >= 120 && priority != VibrationPriority.Critical;
 
             LoggerService.LogInfo(
-                $"VibrationDiag source=XInput stage=limiter decision=accepted priority={priority} reqStrength={strength} reqMs={milliseconds} safeStrength={safeStrength} safeMs={safeDurationMs} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} appProtection={(safeStrength != strength || safeDurationMs != Math.Clamp(milliseconds, 1, 1000))} fwProtectionSuspect={(firmwareProtectionRisk ? "possible" : "low")}");
+                $"VibrationDiag source=XInput stage=limiter decision=accepted priority={priority} reqStrength={requestedStrength} reqMs={milliseconds} safeStrength={safeStrength} safeMs={safeDurationMs} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} appProtection={(safeStrength != requestedStrength || safeDurationMs != Math.Clamp(milliseconds, 1, 1000))} fwProtectionSuspect={(firmwareProtectionRisk ? "possible" : "low")}");
         }
 #endif
 
@@ -1805,43 +1888,30 @@ internal sealed partial class XInputGamepadController : IGamepadController
             return Task.CompletedTask;
         }
 
-        // 將 XInput 呼叫推入背景執行緒，避免因藍牙控制器休眠或驅動延遲而阻塞 UI 執行緒。
         return Task.Run(async () =>
         {
-            // 再檢查一次：避免在 Task ThreadPool 排隊等待時，外部就已經取消了。
             if (ct.IsCancellationRequested)
             {
                 return;
             }
 
-            // 捕獲目前的索引快照，確保開始與停止動作作用於同一個 Port。
             uint userIndex = _userIndex;
-
             long currentToken;
-
             CancellationTokenSource newCts = new();
-
             CancellationToken token;
 
             lock (_vibrationLock)
             {
-                // 每次呼叫時產生一個新的通行證（Token）。
                 currentToken = Interlocked.Increment(ref _vibrationToken);
-
-                // 取消並更換 CTS，確保只有最後一個震動任務的延遲會執行。
                 Interlocked.Exchange(ref _vibrationCts, null)?.CancelAndDispose();
-
                 _vibrationCts = newCts;
-
-                // 在鎖內取得 Token，避免鎖外其他執行緒 CancelAndDispose() 後
-                // 再存取 newCts.Token 屬性時拋出 ObjectDisposedException。
                 token = newCts.Token;
             }
 
             XInput.XInputVibration vibration = new()
             {
-                LeftMotorSpeed = safeStrength,
-                RightMotorSpeed = safeStrength
+                LeftMotorSpeed = ScaleMotorStrength(safeStrength, profile.LowFrequencyMotorScale),
+                RightMotorSpeed = ScaleMotorStrength(safeStrength, profile.HighFrequencyMotorScale)
             };
 
             uint startResult = XInput.XInputSetState(userIndex, in vibration);
@@ -1870,24 +1940,17 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
 #endif
 
-            // 將「內部震動覆蓋權杖」與「外部傳入的取消權杖」綁定在一起。
-            using CancellationTokenSource linkedCts = CancellationTokenSource
-                .CreateLinkedTokenSource(token, ct);
+            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, ct);
 
             try
             {
-                // 只要有新震動進來，或外部要求取消，這裡的 Delay 就會立刻中斷。
                 await Task.Delay(safeDurationMs, linkedCts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                // 判斷是誰觸發了取消？
                 if (ct.IsCancellationRequested)
                 {
-                    // 狀況 A：外部 ct 被取消了（例如：使用者關閉視窗、切換頁面）
-                    // 這種情況下，不會有新的震動來接管，我們必須「強制煞車」！
                     XInput.XInputVibration stop = default;
-
                     uint stopResult = XInput.XInputSetState(userIndex, in stop);
 
 #if DEBUG
@@ -1899,15 +1962,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
 #endif
                 }
 
-                // 狀況 B：外部 ct 沒事，是內部的 newCts 取消了
-                // 代表「有新的震動請求進來了」，新的 Task 已經啟動了馬達。
-                // 我們這裡什麼都不用做，直接 return 默默退場即可。
                 return;
             }
 
-            // 檢查：
-            // 1. 是否已處置。
-            // 2. 我的通行證是不是最新的？
             if (_disposed != 0 ||
                 currentToken != Interlocked.Read(ref _vibrationToken))
             {
@@ -1915,7 +1972,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
 
             XInput.XInputVibration stopVibration = default;
-
             uint stopFinalResult = XInput.XInputSetState(userIndex, in stopVibration);
 
 #if DEBUG
@@ -1926,6 +1982,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
 #endif
         }, ct);
+    }
+
+    /// <summary>
+    /// 依指定比例計算單顆 XInput 馬達的安全強度。
+    /// </summary>
+    private static ushort ScaleMotorStrength(ushort strength, float motorScale)
+    {
+        float clampedScale = VibrationProfile.ClampMotorScale(motorScale);
+
+        return (ushort)Math.Clamp(strength * clampedScale, ushort.MinValue, ushort.MaxValue);
     }
 
     /// <summary>
@@ -2079,6 +2145,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
         IsRightTriggerHeld = false;
         IsBackHeld = false;
         IsBHeld = false;
+        IsXHeld = false;
     }
 
     /// <summary>
@@ -2106,7 +2173,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
         RSLeftRepeat = null;
         RSRightRepeat = null;
         LeftShoulderPressed = null;
+        LeftShoulderRepeat = null;
         RightShoulderPressed = null;
+        RightShoulderRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         LeftTriggerRepeat = null;

@@ -1031,8 +1031,31 @@ public partial class MainForm
         AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.PlayStationTraditional);
         AddFaceLayoutItem(AppSettings.GamepadFaceButtonMode.Nintendo);
 
+        string identifyControllerLabel = GetLocalizedString("Menu_Gamepad_IdentifyController", "Identify Controller");
+        string identifyControllerDescription = GetLocalizedString(
+            "Menu_Gamepad_IdentifyController_Desc",
+            "Play a distinct vibration on the active controller so you can find it quickly.");
+        ToolStripMenuItem tsmiIdentifyController = new(ControlExtensions.GetMnemonicText(identifyControllerLabel, 'I'))
+        {
+            AccessibleName = identifyControllerLabel,
+            AccessibleDescription = identifyControllerDescription
+        };
+        tsmiIdentifyController.Click += (s, e) =>
+        {
+            try
+            {
+                IdentifyCurrentControllerAsync().SafeFireAndForget();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "識別目前控制器失敗");
+                Debug.WriteLine($"[選單] tsmiIdentifyController.Click 失敗：{ex.Message}");
+            }
+        };
+
         tsmiGamepad.DropDownItems.Add(tsmiProvider);
         tsmiGamepad.DropDownItems.Add(tsmiFaceLayout);
+        tsmiGamepad.DropDownItems.Add(tsmiIdentifyController);
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
 
         // Deadzone & Repeat。
@@ -2191,6 +2214,11 @@ public partial class MainForm
 
         if (totalPages <= 1)
         {
+            if (ShouldThrottleRepeatedBoundaryFeedback("PhraseSinglePage"))
+            {
+                return true;
+            }
+
             FeedbackService.PlaySound(SystemSounds.Beep);
             VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
 
@@ -2206,18 +2234,28 @@ public partial class MainForm
 
         if (clampedPage == _phraseMenuPage)
         {
+            int boundaryDirection = targetPage < _phraseMenuPage ? -1 : 1;
+            string boundaryKey = boundaryDirection < 0 ? "PhrasePreviousBoundary" : "PhraseNextBoundary";
+
+            if (ShouldThrottleRepeatedBoundaryFeedback(boundaryKey))
+            {
+                return true;
+            }
+
             FeedbackService.PlaySound(SystemSounds.Beep);
-            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+            VibrateNavigationAsync(VibrationSemantic.Boundary, boundaryDirection, VibrationContext.PhraseMenu).SafeFireAndForget();
             AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages), interrupt: true);
 
             return true;
         }
 
+        int direction = clampedPage < _phraseMenuPage ? -1 : 1;
+
         _phraseMenuPage = clampedPage;
         _keepPhrasePageOnNextOpen = true;
 
         AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages), interrupt: true);
-        VibrateAsync(VibrationPatterns.PageSwitch).SafeFireAndForget();
+        VibrateNavigationAsync(VibrationSemantic.PageSwitch, direction, VibrationContext.PhraseMenu).SafeFireAndForget();
         ReopenPhraseSubMenuAndSelectFirst();
 
         return true;

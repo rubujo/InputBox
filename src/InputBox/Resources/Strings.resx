@@ -182,7 +182,7 @@
     <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Use LT and RT to jump to the text start or end. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
+    <value>Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Tap or hold LB or RB to page through history in steps of five; keep holding to continue paging, or hold either shoulder with Left/Right to jump by word. Use LT and RT to jump to the text start or end, and in page-aware views you can hold them to repeat the paging action; press LT + RT together to toggle Privacy Mode. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. Release Back or View to return. Press LB + RB + {2} for quick return. Hold LB + RB + {3} for 0.8 seconds to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
     <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations. {0} is confirm, {1} is delete, {2} is cancel, and {3} is delete for the exit shortcut.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -507,6 +507,14 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Clear the runtime-learned neutral offset for the current game controller without changing the saved deadzone or repeat settings.</value>
     <comment>Accessible description for the Reset Current Calibration State menu item.</comment>
   </data>
+  <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
+    <value>Identify Controller</value>
+    <comment>Menu item label for playing a distinct vibration on the active controller.</comment>
+  </data>
+  <data name="Menu_Gamepad_IdentifyController_Desc" xml:space="preserve">
+    <value>Play a distinct vibration on the active controller so you can find it quickly.</value>
+    <comment>Accessibility description for the identify controller menu item.</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>This change requires a restart to take effect. Restart now?</value>
     <comment>Prompt message informing users that a restart is required for settings to apply.</comment>
@@ -662,6 +670,18 @@ Make sure that multiple instances of this application are not running at the sam
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>Current game controller calibration state reset.</value>
     <comment>Announcement played after resetting the runtime calibration state.</comment>
+  </data>
+  <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
+    <value>Hold LB + RB + X for 0.8 seconds to exit.</value>
+    <comment>Accessibility guidance announced when the user begins the guarded exit shortcut.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
+    <value>Identifying current controller: {0}.</value>
+    <comment>Announced before playing the identify vibration on the active controller. {0} is the controller name.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyUnavailable" xml:space="preserve">
+    <value>No active controller is available to identify.</value>
+    <comment>Announced when the user requests controller identification but no active controller is connected.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Toggle all controller vibration effects on or off.</value>
@@ -902,14 +922,16 @@ LB + RB + B	Quick return to previous window
 Back / View (release)	Return to previous window
 Y	Open feature menu
 X	Backspace (Delete character/selection)
-LB + RB + X	Exit application
+Hold LB + RB + X	Exit application
 Back / View + X	Reset window opacity
 ↑ / ↓	Navigate history
 ← / →	Move cursor left / right
-LB + ← / →	Jump cursor by word
-LT / RT	Jump to text start / end
-Phrases submenu: LB / RB	Switch to previous / next page
-Phrases submenu: LT / RT	Jump to first / last page
+LB / RB (tap / hold)	Page history up / down by 5 entries; hold to repeat
+LB / RB + ← / →	Jump cursor by word
+LT / RT	Jump to text start / end; hold in paging views to repeat
+LT + RT	Toggle Privacy Mode
+Phrases submenu: LB / RB	Switch to previous / next page (hold to repeat)
+Phrases submenu: LT / RT	Jump to first / last page (hold to repeat)
 RS ← / →	Expand or shrink selection
 Back / View + ↑ / ↓	Adjust window opacity (±5%)</value>
     <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>

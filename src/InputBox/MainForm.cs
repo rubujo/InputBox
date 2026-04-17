@@ -304,6 +304,9 @@ public partial class MainForm : Form
 
         // 限制輸入字數，與 InputHistoryService 的上限保持一致。
         TBInput.MaxLength = AppSettings.MaxInputLength;
+        _lastObservedTextLength = TBInput.TextLength;
+        TBInput.TextChanged += (_, _) => HandleTextLimitFeedbackFromLengthChange();
+        TBInput.KeyPress += (_, e) => HandleTextLimitKeyPress(e);
 
         // 精確的滑鼠滾輪導覽歷程。
         TBInput.MouseWheel += (s, e) =>

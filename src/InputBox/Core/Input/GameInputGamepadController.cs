@@ -4,6 +4,7 @@ using GameInputDotNet.Interop.Structs;
 using GameInputDotNet.States;
 using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
+using InputBox.Core.Feedback;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Collections.Concurrent;
@@ -18,6 +19,11 @@ namespace InputBox.Core.Input;
 /// </summary>
 internal sealed partial class GameInputGamepadController : IGamepadController
 {
+    /// <summary>
+    /// GameInput 可在支援的裝置上輸出左右主馬達與雙扳機馬達。
+    /// </summary>
+    public VibrationMotorSupport VibrationMotorSupport => VibrationMotorSupport.DualMain | VibrationMotorSupport.TriggerMotors;
+
     /// <summary>
     /// 輸入上下文，提供 UI 狀態與控制器動作執行所需的環境資訊。
     /// </summary>
@@ -117,6 +123,26 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 右搖桿重複計數器
     /// </summary>
     private int _rsRepeatCounter;
+
+    /// <summary>
+    /// LB 連發計數器
+    /// </summary>
+    private int _lbRepeatCounter;
+
+    /// <summary>
+    /// LB 目前動態計算的連發間隔幀數
+    /// </summary>
+    private int _currentLBRepeatInterval;
+
+    /// <summary>
+    /// RB 連發計數器
+    /// </summary>
+    private int _rbRepeatCounter;
+
+    /// <summary>
+    /// RB 目前動態計算的連發間隔幀數。
+    /// </summary>
+    private int _currentRBRepeatInterval;
 
     /// <summary>
     /// LT 連發計數器
@@ -495,9 +521,19 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? LeftShoulderPressed;
 
     /// <summary>
+    /// 左肩鍵（LB）持續按住時的連發事件。
+    /// </summary>
+    public event Action? LeftShoulderRepeat;
+
+    /// <summary>
     /// 當右肩鍵（RB 鍵）被按下時觸發。
     /// </summary>
     public event Action? RightShoulderPressed;
+
+    /// <summary>
+    /// 右肩鍵（RB）持續按住時的連發事件。
+    /// </summary>
+    public event Action? RightShoulderRepeat;
 
     /// <summary>
     /// 右搖桿左推按下事件。
@@ -568,6 +604,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 控制器 B 鍵是否按住
     /// </summary>
     public bool IsBHeld { get; private set; }
+
+    /// <summary>
+    /// 控制器 X 鍵是否按住
+    /// </summary>
+    public bool IsXHeld { get; private set; }
 
     /// <summary>
     /// 震動 Token
@@ -1168,6 +1209,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _repeatDirection = null;
             _rsRepeatCounter = 0;
             _rsRepeatDirection = 0;
+            _lbRepeatCounter = 0;
+            _currentLBRepeatInterval = 0;
+            _rbRepeatCounter = 0;
+            _currentRBRepeatInterval = 0;
             _previousProcessedButtons = currentButtons;
 
             return;
@@ -1179,6 +1224,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _repeatDirection = null;
             _rsRepeatCounter = 0;
             _rsRepeatDirection = 0;
+            _lbRepeatCounter = 0;
+            _currentLBRepeatInterval = 0;
+            _rbRepeatCounter = 0;
+            _currentRBRepeatInterval = 0;
             _ltRepeatCounter = 0;
             _currentLTRepeatInterval = 0;
             _rtRepeatCounter = 0;
@@ -1341,6 +1390,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         ResetHoldStates();
         ResetDirectionalRepeatState();
 
+        _lbRepeatCounter = 0;
+        _currentLBRepeatInterval = 0;
+        _rbRepeatCounter = 0;
+        _currentRBRepeatInterval = 0;
         _ltRepeatCounter = 0;
         _currentLTRepeatInterval = 0;
         _rtRepeatCounter = 0;
@@ -1620,6 +1673,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
         IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.View);
         IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.B);
+        IsXHeld = currentButtons.HasFlag(GameInputGamepadButtons.X);
         IsLeftTriggerHeld = state.LeftTrigger > AppSettings.GameInputTriggerThreshold;
         IsRightTriggerHeld = state.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
@@ -2048,6 +2102,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
         IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.View);
         IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.B);
+        IsXHeld = currentButtons.HasFlag(GameInputGamepadButtons.X);
         IsLeftTriggerHeld = currentState.LeftTrigger > AppSettings.GameInputTriggerThreshold;
         IsRightTriggerHeld = currentState.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
@@ -2190,6 +2245,28 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
         }
 
+        // 處理左肩鍵（LB）連發輸入。
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                IsLeftShoulderHeld,
+                ref _lbRepeatCounter,
+                ref _currentLBRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
+        {
+            LeftShoulderRepeat?.Invoke();
+        }
+
+        // 處理右肩鍵（RB）連發輸入。
+        if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
+                IsRightShoulderHeld,
+                ref _rbRepeatCounter,
+                ref _currentRBRepeatInterval,
+                config.RepeatInitialDelayFrames,
+                config.RepeatIntervalFrames))
+        {
+            RightShoulderRepeat?.Invoke();
+        }
+
         // 處理左觸發鍵（LT）連發輸入。
         if (GamepadRepeatStateMachine.AdvanceHeldRepeat(
                 IsLeftTriggerHeld,
@@ -2259,6 +2336,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default)
     {
+        return VibrateAsync(new VibrationProfile(strength, milliseconds), priority, ct);
+    }
+
+    /// <summary>
+    /// 依多馬達震動設定讓 GameInput 控制器震動，保留左右與板機馬達差異。
+    /// </summary>
+    public Task VibrateAsync(
+        VibrationProfile profile,
+        VibrationPriority priority = VibrationPriority.Normal,
+        CancellationToken ct = default)
+    {
         GameInputDevice? dev = _device;
 
         if (dev == null ||
@@ -2267,8 +2355,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return Task.CompletedTask;
         }
 
-        // 強度為 0 時直接停止並回傳，減少 GC 分配（Fast-path）。
-        if (strength == 0)
+        ushort requestedStrength = profile.GetPeakMotorStrength();
+        int milliseconds = profile.Duration;
+
+        if (requestedStrength == 0)
         {
             StopVibration();
 
@@ -2276,7 +2366,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool accepted = _vibrationSafetyLimiter.TryApplyWithDiagnostics(
-            strength,
+            requestedStrength,
             milliseconds,
             priority,
             out ushort safeStrength,
@@ -2290,7 +2380,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             AppSettings.Current.VibrationIntensity > 0f;
 
         bool shouldLogAccepted = priority != VibrationPriority.Ambient ||
-            safeStrength != strength ||
+            safeStrength != requestedStrength ||
             safeDurationMs != Math.Clamp(milliseconds, 1, 1000) ||
             Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
 
@@ -2299,7 +2389,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             if (enableDebugDiagnostics)
             {
                 LoggerService.LogInfo(
-                    $"VibrationDiag source=GameInput stage=limiter decision=blocked priority={priority} reqStrength={strength} reqMs={milliseconds} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} ambientCooldownMs={limiterDiagnostics.AmbientCooldownRemainingMs} fwProtectionSuspect=no appProtection=true");
+                    $"VibrationDiag source=GameInput stage=limiter decision=blocked priority={priority} reqStrength={requestedStrength} reqMs={milliseconds} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} ambientCooldownMs={limiterDiagnostics.AmbientCooldownRemainingMs} fwProtectionSuspect=no appProtection=true");
             }
         }
         else if (enableDebugDiagnostics && shouldLogAccepted)
@@ -2307,7 +2397,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             bool firmwareProtectionRisk = safeStrength >= 50000 && safeDurationMs >= 120 && priority != VibrationPriority.Critical;
 
             LoggerService.LogInfo(
-                $"VibrationDiag source=GameInput stage=limiter decision=accepted priority={priority} reqStrength={strength} reqMs={milliseconds} safeStrength={safeStrength} safeMs={safeDurationMs} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} appProtection={(safeStrength != strength || safeDurationMs != Math.Clamp(milliseconds, 1, 1000))} fwProtectionSuspect={(firmwareProtectionRisk ? "possible" : "low")}");
+                $"VibrationDiag source=GameInput stage=limiter decision=accepted priority={priority} reqStrength={requestedStrength} reqMs={milliseconds} safeStrength={safeStrength} safeMs={safeDurationMs} duty={limiterDiagnostics.DutyCycle:F3} thermal={limiterDiagnostics.ThermalLoad:F2} scale={limiterDiagnostics.AppliedScale:F3} flags={limiterDiagnostics.Flags} appProtection={(safeStrength != requestedStrength || safeDurationMs != Math.Clamp(milliseconds, 1, 1000))} fwProtectionSuspect={(firmwareProtectionRisk ? "possible" : "low")}");
         }
 #endif
 
@@ -2350,15 +2440,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             CancellationToken ctsToken = finalCts.Token;
 
-            // 強度。
             float intensity = safeStrength / 65535f;
 
             GameInputRumbleParams rumble = new()
             {
-                LowFrequency = intensity,
-                HighFrequency = intensity,
-                LeftTrigger = intensity,
-                RightTrigger = intensity
+                LowFrequency = intensity * VibrationProfile.ClampMotorScale(profile.LowFrequencyMotorScale),
+                HighFrequency = intensity * VibrationProfile.ClampMotorScale(profile.HighFrequencyMotorScale),
+                LeftTrigger = intensity * VibrationProfile.ClampMotorScale(profile.LeftTriggerMotorScale),
+                RightTrigger = intensity * VibrationProfile.ClampMotorScale(profile.RightTriggerMotorScale)
             };
 
             try
@@ -2706,6 +2795,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         IsRightTriggerHeld = false;
         IsBackHeld = false;
         IsBHeld = false;
+        IsXHeld = false;
     }
 
     /// <summary>
@@ -2733,7 +2823,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         RSLeftRepeat = null;
         RSRightRepeat = null;
         LeftShoulderPressed = null;
+        LeftShoulderRepeat = null;
         RightShoulderPressed = null;
+        RightShoulderRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         LeftTriggerRepeat = null;

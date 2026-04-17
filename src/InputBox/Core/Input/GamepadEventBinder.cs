@@ -20,7 +20,9 @@ internal sealed class GamepadEventBinder
     /// <param name="OnRightPressed">控制器右鍵按下時執行的處理常式。</param>
     /// <param name="OnRightRepeat">控制器右鍵連發時執行的處理常式。</param>
     /// <param name="OnLeftShoulderPressed">左肩鍵按下時執行的處理常式。</param>
+    /// <param name="OnLeftShoulderRepeat">左肩鍵連發時執行的處理常式。</param>
     /// <param name="OnRightShoulderPressed">右肩鍵按下時執行的處理常式。</param>
+    /// <param name="OnRightShoulderRepeat">右肩鍵連發時執行的處理常式。</param>
     /// <param name="OnLeftTriggerPressed">左觸發鍵按下時執行的處理常式。</param>
     /// <param name="OnLeftTriggerRepeat">左觸發鍵連發時執行的處理常式。</param>
     /// <param name="OnRightTriggerPressed">右觸發鍵按下時執行的處理常式。</param>
@@ -47,7 +49,9 @@ internal sealed class GamepadEventBinder
         Action OnRightPressed,
         Action OnRightRepeat,
         Action OnLeftShoulderPressed,
+        Action OnLeftShoulderRepeat,
         Action OnRightShoulderPressed,
+        Action OnRightShoulderRepeat,
         Action OnLeftTriggerPressed,
         Action OnLeftTriggerRepeat,
         Action OnRightTriggerPressed,
@@ -85,7 +89,9 @@ internal sealed class GamepadEventBinder
         controller.RightRepeat += map.OnRightRepeat;
 
         controller.LeftShoulderPressed += map.OnLeftShoulderPressed;
+        controller.LeftShoulderRepeat += map.OnLeftShoulderRepeat;
         controller.RightShoulderPressed += map.OnRightShoulderPressed;
+        controller.RightShoulderRepeat += map.OnRightShoulderRepeat;
         controller.LeftTriggerPressed += map.OnLeftTriggerPressed;
         controller.LeftTriggerRepeat += map.OnLeftTriggerRepeat;
         controller.RightTriggerPressed += map.OnRightTriggerPressed;
