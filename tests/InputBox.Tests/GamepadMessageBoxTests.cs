@@ -16,7 +16,6 @@ public sealed class GamepadMessageBoxTests
     /// <summary>
     /// 測試替身控制器：可指定連線狀態，供對話框初始化提示列與事件綁定驗證使用。
     /// </summary>
-#pragma warning disable CS0067
     private sealed class StubGamepadController : IGamepadController
     {
         /// <summary>
@@ -45,6 +44,8 @@ public sealed class GamepadMessageBoxTests
         public event Action? DownPressed;
         public event Action? LeftPressed;
         public event Action? RightPressed;
+        public event Action? LeftShoulderPressed;
+        public event Action? RightShoulderPressed;
         public event Action? StartPressed;
         public event Action? BackPressed;
         public event Action? BackReleased;
@@ -76,20 +77,67 @@ public sealed class GamepadMessageBoxTests
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         /// <summary>
+        /// 讓測試替身讀取所有事件欄位，避免以 pragma 抑制未使用事件警告。
+        /// </summary>
+        private void TouchRegisteredEvents()
+        {
+            _ = ConnectionChanged;
+            _ = UpPressed;
+            _ = DownPressed;
+            _ = LeftPressed;
+            _ = RightPressed;
+            _ = LeftShoulderPressed;
+            _ = RightShoulderPressed;
+            _ = StartPressed;
+            _ = BackPressed;
+            _ = BackReleased;
+            _ = APressed;
+            _ = BPressed;
+            _ = XPressed;
+            _ = YPressed;
+            _ = UpRepeat;
+            _ = DownRepeat;
+            _ = LeftRepeat;
+            _ = RightRepeat;
+            _ = RSLeftPressed;
+            _ = RSRightPressed;
+            _ = RSLeftRepeat;
+            _ = RSRightRepeat;
+            _ = LeftTriggerPressed;
+            _ = RightTriggerPressed;
+            _ = LeftTriggerRepeat;
+            _ = RightTriggerRepeat;
+        }
+
+        /// <summary>
         /// 手動觸發連線狀態變更，供對話框測試驗證提示列與事件綁定流程。
         /// </summary>
         /// <param name="connected">是否模擬為已連線狀態。</param>
         public void RaiseConnectionChanged(bool connected)
         {
+            TouchRegisteredEvents();
             IsConnected = connected;
             ConnectionChanged?.Invoke(connected);
         }
 
-        public void RaiseAPressed() => APressed?.Invoke();
+        /// <summary>
+        /// 模擬按下確認鍵。
+        /// </summary>
+        public void RaiseAPressed()
+        {
+            TouchRegisteredEvents();
+            APressed?.Invoke();
+        }
 
-        public void RaiseBPressed() => BPressed?.Invoke();
+        /// <summary>
+        /// 模擬按下返回／取消鍵。
+        /// </summary>
+        public void RaiseBPressed()
+        {
+            TouchRegisteredEvents();
+            BPressed?.Invoke();
+        }
     }
-#pragma warning restore CS0067
 
     /// <summary>
     /// 若 FormClosing 被取消，對話框應保留取消權杖等執行期資源，避免仍顯示於畫面上卻失去互動能力。

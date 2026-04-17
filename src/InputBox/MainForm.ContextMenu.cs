@@ -1370,7 +1370,7 @@ public partial class MainForm
         {
             try
             {
-                AnnounceA11y(string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Phrases));
+                AnnouncePhraseSubMenuOpened();
             }
             catch (Exception ex)
             {
@@ -1729,14 +1729,7 @@ public partial class MainForm
                 };
                 prevPage.Click += (s, e) =>
                 {
-                    if (_phraseMenuPage <= 0)
-                    {
-                        return;
-                    }
-
-                    _phraseMenuPage--;
-                    _keepPhrasePageOnNextOpen = true;
-                    ReopenPhraseSubMenuAndSelectFirst();
+                    _ = TryNavigatePhraseMenuPage(-1);
                 };
 
                 ToolStripMenuItem pageInfo = new($"{_phraseMenuPage + 1}/{totalPages}")
@@ -1755,14 +1748,7 @@ public partial class MainForm
                 };
                 nextPage.Click += (s, e) =>
                 {
-                    if (_phraseMenuPage >= totalPages - 1)
-                    {
-                        return;
-                    }
-
-                    _phraseMenuPage++;
-                    _keepPhrasePageOnNextOpen = true;
-                    ReopenPhraseSubMenuAndSelectFirst();
+                    _ = TryNavigatePhraseMenuPage(1);
                 };
 
                 _tsmiPhrases.DropDownItems.Add(prevPage);
@@ -2128,6 +2114,113 @@ public partial class MainForm
         }
 
         return RecentPhraseLimitLarge;
+    }
+
+    /// <summary>
+    /// 取得片語子選單的總頁數。
+    /// </summary>
+    private int GetPhraseMenuTotalPages()
+    {
+        int phraseCount = _phraseService.Phrases.Count;
+        int pageSize = Math.Max(1, GetPhraseMenuPageSize());
+
+        return phraseCount <= 0 ?
+            0 :
+            (phraseCount + pageSize - 1) / pageSize;
+    }
+
+    /// <summary>
+    /// 播報目前片語子選單的頁碼與快捷操作提示。
+    /// </summary>
+    private void AnnouncePhraseSubMenuOpened()
+    {
+        string message = string.Format(Strings.A11y_Menu_Submenu_Enter, Strings.Menu_Phrases);
+        int totalPages = GetPhraseMenuTotalPages();
+
+        if (totalPages > 1)
+        {
+            message = $"{message} {string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages)} {Strings.Phrase_A11y_Page_Shortcuts}";
+        }
+
+        AnnounceA11y(message, interrupt: true);
+    }
+
+    /// <summary>
+    /// 嘗試切換片語子選單頁碼。
+    /// </summary>
+    /// <param name="delta">頁碼增量（-1 = 上一頁，+1 = 下一頁）。</param>
+    /// <returns>若片語子選單已接收此操作則回傳 true。</returns>
+    private bool TryNavigatePhraseMenuPage(int delta)
+    {
+        if (_tsmiPhrases?.DropDown.Visible != true)
+        {
+            return false;
+        }
+
+        return TrySetPhraseMenuPage(_phraseMenuPage + delta);
+    }
+
+    /// <summary>
+    /// 嘗試將片語子選單跳到首頁或末頁。
+    /// </summary>
+    /// <param name="lastPage">true = 末頁；false = 首頁。</param>
+    /// <returns>若片語子選單已接收此操作則回傳 true。</returns>
+    private bool TryJumpPhraseMenuToBoundary(bool lastPage)
+    {
+        if (_tsmiPhrases?.DropDown.Visible != true)
+        {
+            return false;
+        }
+
+        int totalPages = GetPhraseMenuTotalPages();
+        int targetPage = lastPage && totalPages > 0 ?
+            totalPages - 1 :
+            0;
+
+        return TrySetPhraseMenuPage(targetPage);
+    }
+
+    /// <summary>
+    /// 依指定目標頁碼更新片語子選單，並提供震動與無障礙回饋。
+    /// </summary>
+    /// <param name="targetPage">目標頁碼索引（0-based）。</param>
+    /// <returns>若片語子選單已接收此操作則回傳 true。</returns>
+    private bool TrySetPhraseMenuPage(int targetPage)
+    {
+        int totalPages = GetPhraseMenuTotalPages();
+
+        if (totalPages <= 1)
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+
+            if (totalPages == 1)
+            {
+                AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, 1, 1), interrupt: true);
+            }
+
+            return true;
+        }
+
+        int clampedPage = Math.Clamp(targetPage, 0, totalPages - 1);
+
+        if (clampedPage == _phraseMenuPage)
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+            AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages), interrupt: true);
+
+            return true;
+        }
+
+        _phraseMenuPage = clampedPage;
+        _keepPhrasePageOnNextOpen = true;
+
+        AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages), interrupt: true);
+        VibrateAsync(VibrationPatterns.PageSwitch).SafeFireAndForget();
+        ReopenPhraseSubMenuAndSelectFirst();
+
+        return true;
     }
 
     /// <summary>

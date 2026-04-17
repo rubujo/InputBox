@@ -421,7 +421,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return. 的當地語系化字串。
+        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Use LT and RT to jump to the text start or end. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to c [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -1298,8 +1298,9 @@ namespace InputBox.Resources {
         ///↑ / ↓	Navigate history
         ///← / →	Move cursor left / right
         ///LB + ← / →	Jump cursor by word
-        ///RS ← / →	Expand or shrink selection
-        ///Back / View + ↑ / ↓	Adjust window opacity (±5%) 的當地語系化字串。
+        ///LT / RT	Jump to text start / end
+        ///Phrases submenu: LB / RB	Switch to previous / next page
+        ///Phrases submenu: LT / RT	Jump to f [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string Help_Gamepad_Rows {
             get {
@@ -2192,6 +2193,15 @@ namespace InputBox.Resources {
         internal static string Phrase_A11y_Page_Previous {
             get {
                 return ResourceManager.GetString("Phrase_A11y_Page_Previous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Use LB and RB to switch pages quickly, and LT and RT to jump to the first or last page. 的當地語系化字串。
+        /// </summary>
+        internal static string Phrase_A11y_Page_Shortcuts {
+            get {
+                return ResourceManager.GetString("Phrase_A11y_Page_Shortcuts", resourceCulture);
             }
         }
         

@@ -182,7 +182,7 @@
     <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une nouvelle touche de raccourci est récupérée avec succès. {0} est la chaîne de touches de raccourci définie.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Appuyez sur {0} pour copier le texte et revenir à la fenêtre précédente, ou pour ouvrir le clavier lorsque la saisie est vide. Appuyez sur Start ou Menu pour ouvrir le clavier à tout moment. Utilisez {1} pour effacer vers l'arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Relâchez Back ou View pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
+    <value>Appuyez sur {0} pour copier le texte et revenir à la fenêtre précédente, ou pour ouvrir le clavier lorsque la saisie est vide. Appuyez sur Start ou Menu pour ouvrir le clavier à tout moment. Utilisez {1} pour effacer vers l'arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. LT et RT permettent d'aller rapidement au début ou à la fin du texte. Dans le sous-menu des phrases, LB et RB changent de page, tandis que LT et RT vont à la première ou à la dernière page. Relâchez Back ou View pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
     <comment>Description détaillée de l&apos;accessibilité de la fenêtre principale, expliquant le fonctionnement des différents contrôleurs et claviers. {0} est le bouton de confirmation, {1} celui de suppression, {2} celui d&apos;annulation et {3} celui utilisé pour le raccourci de fermeture.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -907,6 +907,9 @@ Back / View + X	Réinitialiser l'opacité de la fenêtre
 ↑ / ↓	Parcourir l'historique
 ← / →	Déplacer le curseur vers la gauche / droite
 LB + ← / →	Déplacer le curseur mot par mot
+LT / RT	Aller au début / à la fin du texte
+Sous-menu des phrases : LB / RB	Passer rapidement à la page précédente / suivante
+Sous-menu des phrases : LT / RT	Aller à la première / dernière page
 RS ← / →	Étendre ou réduire la sélection
 Back / View + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Les touches du contrôleur dans la boîte de dialogue de description correspondent aux colonnes de données de la table, et les champs sont séparés par Tab : bouton {tab} fonction, une colonne par ligne.</comment>
@@ -1066,6 +1069,10 @@ Back / View + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
   <data name="Phrase_A11y_Page_Info" xml:space="preserve">
     <value>Page {0} sur {1}</value>
     <comment>Nom d&apos;accessibilité de l&apos;élément d&apos;information de pagination dans le sous-menu d&apos;expression. {0} = numéro de page actuel, {1} = nombre total de pages.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Shortcuts" xml:space="preserve">
+    <value>Utilisez LB et RB pour changer rapidement de page, et LT et RT pour aller à la première ou à la dernière page.</value>
+    <comment>Indication de navigation rapide annoncée à l’ouverture du sous-menu des phrases.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
     <value>Ajoute une nouvelle phrase. Manette : bouton Y.</value>

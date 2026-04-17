@@ -6,8 +6,34 @@
 internal sealed class GamepadEventBinder
 {
     /// <summary>
-    /// 事件對映資料
+    /// 事件對映資料。
     /// </summary>
+    /// <param name="OnConnectionChanged">控制器連線狀態變更時執行的處理常式。</param>
+    /// <param name="OnBackPressed">控制器返回鍵按下時執行的處理常式。</param>
+    /// <param name="OnBackReleased">控制器返回鍵放開時執行的處理常式。</param>
+    /// <param name="OnUpPressed">控制器上鍵按下時執行的處理常式。</param>
+    /// <param name="OnDownPressed">控制器下鍵按下時執行的處理常式。</param>
+    /// <param name="OnUpRepeat">控制器上鍵連發時執行的處理常式。</param>
+    /// <param name="OnDownRepeat">控制器下鍵連發時執行的處理常式。</param>
+    /// <param name="OnLeftPressed">控制器左鍵按下時執行的處理常式。</param>
+    /// <param name="OnLeftRepeat">控制器左鍵連發時執行的處理常式。</param>
+    /// <param name="OnRightPressed">控制器右鍵按下時執行的處理常式。</param>
+    /// <param name="OnRightRepeat">控制器右鍵連發時執行的處理常式。</param>
+    /// <param name="OnLeftShoulderPressed">左肩鍵按下時執行的處理常式。</param>
+    /// <param name="OnRightShoulderPressed">右肩鍵按下時執行的處理常式。</param>
+    /// <param name="OnLeftTriggerPressed">左觸發鍵按下時執行的處理常式。</param>
+    /// <param name="OnLeftTriggerRepeat">左觸發鍵連發時執行的處理常式。</param>
+    /// <param name="OnRightTriggerPressed">右觸發鍵按下時執行的處理常式。</param>
+    /// <param name="OnRightTriggerRepeat">右觸發鍵連發時執行的處理常式。</param>
+    /// <param name="OnStartPressed">開始鍵按下時執行的處理常式。</param>
+    /// <param name="OnAPressed">A 鍵按下時執行的處理常式。</param>
+    /// <param name="OnBPressed">B 鍵按下時執行的處理常式。</param>
+    /// <param name="OnYPressed">Y 鍵按下時執行的處理常式。</param>
+    /// <param name="OnRSLeftPressed">右搖桿左推按下時執行的處理常式。</param>
+    /// <param name="OnRSLeftRepeat">右搖桿左推連發時執行的處理常式。</param>
+    /// <param name="OnRSRightPressed">右搖桿右推按下時執行的處理常式。</param>
+    /// <param name="OnRSRightRepeat">右搖桿右推連發時執行的處理常式。</param>
+    /// <param name="OnXPressed">X 鍵按下時執行的處理常式。</param>
     internal sealed record BindingMap(
         Action<bool> OnConnectionChanged,
         Action OnBackPressed,
@@ -20,6 +46,12 @@ internal sealed class GamepadEventBinder
         Action OnLeftRepeat,
         Action OnRightPressed,
         Action OnRightRepeat,
+        Action OnLeftShoulderPressed,
+        Action OnRightShoulderPressed,
+        Action OnLeftTriggerPressed,
+        Action OnLeftTriggerRepeat,
+        Action OnRightTriggerPressed,
+        Action OnRightTriggerRepeat,
         Action OnStartPressed,
         Action OnAPressed,
         Action OnBPressed,
@@ -51,6 +83,13 @@ internal sealed class GamepadEventBinder
         controller.LeftRepeat += map.OnLeftRepeat;
         controller.RightPressed += map.OnRightPressed;
         controller.RightRepeat += map.OnRightRepeat;
+
+        controller.LeftShoulderPressed += map.OnLeftShoulderPressed;
+        controller.RightShoulderPressed += map.OnRightShoulderPressed;
+        controller.LeftTriggerPressed += map.OnLeftTriggerPressed;
+        controller.LeftTriggerRepeat += map.OnLeftTriggerRepeat;
+        controller.RightTriggerPressed += map.OnRightTriggerPressed;
+        controller.RightTriggerRepeat += map.OnRightTriggerRepeat;
 
         controller.StartPressed += map.OnStartPressed;
         controller.APressed += map.OnAPressed;

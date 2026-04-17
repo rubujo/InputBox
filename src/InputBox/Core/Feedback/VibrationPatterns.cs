@@ -26,6 +26,12 @@ public static class VibrationPatterns
     public static readonly VibrationProfile CursorMove = new(18000, 50);
 
     /// <summary>
+    /// 分頁切換（比游標移動更明確的翻頁感）
+    /// 說明：略強於一般游標移動，讓使用者能清楚感知已切換到另一頁，但不至於干擾連續導覽。
+    /// </summary>
+    public static readonly VibrationProfile PageSwitch = new(26000, 80);
+
+    /// <summary>
     /// 複製成功（強烈且明確的確認感）
     /// 說明：提供約 60% 的強度與 150ms 的持續時間，給予使用者明確「任務已完成」的安全感。
     /// </summary>
