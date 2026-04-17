@@ -2139,7 +2139,7 @@ public partial class MainForm
 
         if (totalPages > 1)
         {
-            message = $"{message} {string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages)}。{Strings.Phrase_A11y_Page_Shortcuts}";
+            message = $"{message} {string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages)} {Strings.Phrase_A11y_Page_Shortcuts}";
         }
 
         AnnounceA11y(message, interrupt: true);
