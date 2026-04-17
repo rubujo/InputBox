@@ -292,6 +292,27 @@ internal static class FeedbackService
     }
 
     /// <summary>
+    /// 為右搖桿文字選取播放輕量同步音效，只使用 Windows 內建系統音避免外部素材與額外刺激。
+    /// </summary>
+    /// <param name="wordGranularity">是否為單字粒度選取。</param>
+    /// <param name="burstLevel">快速連續選取的 burst 等級。</param>
+    public static void PlaySelectionCue(bool wordGranularity, int burstLevel)
+    {
+        try
+        {
+            SystemSound sound = wordGranularity || burstLevel <= 0 ?
+                SystemSounds.Asterisk :
+                SystemSounds.Beep;
+
+            PlaySound(sound);
+        }
+        catch
+        {
+            // 若系統音效不可用則靜默略過，不影響主要操作流程。
+        }
+    }
+
+    /// <summary>
     /// 緊急嘗試停止所有可能的控制器震動（用於崩潰處理情境）
     /// </summary>
     public static void EmergencyStopAllActiveControllers()

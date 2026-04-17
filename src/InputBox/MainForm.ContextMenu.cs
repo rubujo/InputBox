@@ -756,33 +756,44 @@ public partial class MainForm
         {
             try
             {
-                float? val = AskForFloat(
+                _ = AskForFloat(
                     Strings.Settings_VibrationIntensity,
                     AppSettings.Current.VibrationIntensity,
                     0.7f,
                     0.0f,
                     1.0f,
                     0.05m,
-                    2);
+                    2,
+                    confirmBeforeClose: previewValue =>
+                    {
+                        bool valueChanged = Math.Abs(AppSettings.Current.VibrationIntensity - previewValue) > 0.0001f;
 
-                if (val.HasValue)
-                {
-                    AppSettings.Current.VibrationIntensity = val.Value;
+                        AppSettings.Current.VibrationIntensity = previewValue;
 
-                    // 即時更新靜態震動強度倍率，不需重啟。
-                    VibrationPatterns.GlobalIntensityMultiplier = val.Value;
+                        // 即時更新靜態震動強度倍率，不需重啟。
+                        VibrationPatterns.GlobalIntensityMultiplier = previewValue;
 
-                    AppSettings.Save();
+                        if (valueChanged)
+                        {
+                            AppSettings.Save();
+                            RefreshMenu();
+                        }
 
 #if DEBUG
-                    LoggerService.LogInfo($"VibrationDiag source=Settings stage=intensity vibrationIntensity={AppSettings.Current.VibrationIntensity:F2}");
+                        LoggerService.LogInfo($"VibrationDiag source=Settings stage=intensity vibrationIntensity={AppSettings.Current.VibrationIntensity:F2}");
 #endif
 
-                    RefreshMenu();
+                        FeedbackService.VibrateAsync(
+                                _gamepadController,
+                                VibrationPatterns.IntensityPreview,
+                                CancellationToken.None)
+                            .SafeFireAndForget();
 
-                    // 告知強度已更新。
-                    AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {val.Value}");
-                }
+                        // 告知強度已更新，並立即以目前新強度播放短預覽。
+                        AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {previewValue:F2}");
+
+                        return true;
+                    });
             }
             catch (Exception ex)
             {
@@ -815,6 +826,11 @@ public partial class MainForm
                 RefreshMenu();
 
                 FeedbackService.PlaySound(SystemSounds.Asterisk);
+                FeedbackService.VibrateAsync(
+                        _gamepadController,
+                        VibrationPatterns.IntensityPreview,
+                        CancellationToken.None)
+                    .SafeFireAndForget();
 
                 // 告知回饋設定已重置。
                 AnnounceA11y(Strings.Msg_InputCleared);
@@ -1127,6 +1143,7 @@ public partial class MainForm
                 _gamepadController?.ResetCalibration();
 
                 FeedbackService.PlaySound(SystemSounds.Asterisk);
+                FlashAlertAsync().SafeFireAndForget();
                 AnnounceA11y(Strings.A11y_Gamepad_CalibrationReset);
             }
             catch (Exception ex)

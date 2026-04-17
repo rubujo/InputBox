@@ -118,6 +118,16 @@ public class VibrationPatternsTests
         Assert.Equal(200, VibrationPatterns.ControllerConnected.Duration);
     }
 
+    /// <summary>
+    /// 強度預覽應維持短促且中等強度，方便安全地立即確認目前震動設定。
+    /// </summary>
+    [Fact]
+    public void IntensityPreview_UsesModerateShortPulse()
+    {
+        Assert.Equal(26000, VibrationPatterns.IntensityPreview.Strength);
+        Assert.Equal(75, VibrationPatterns.IntensityPreview.Duration);
+    }
+
     // ── VibrationProfile 值語義 ────────────────────────────────────────────
 
     /// <summary>

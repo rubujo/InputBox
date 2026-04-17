@@ -274,6 +274,11 @@ public static class VibrationPatterns
     public static readonly VibrationProfile ControllerConnected = new(30000, 200);
 
     /// <summary>
+    /// 調整震動強度後的即時預覽脈衝，維持中等強度與短時間以避免突兀。
+    /// </summary>
+    public static readonly VibrationProfile IntensityPreview = new(26000, 75, 0.72f, 0.72f, 0.30f, 0.30f);
+
+    /// <summary>
     /// 識別目前控制器時的第一拍定位脈衝。
     /// </summary>
     public static readonly VibrationProfile ControllerIdentifyLead = new(24000, 44, 1.0f, 0.34f, 0.26f, 0.08f);
