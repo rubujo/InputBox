@@ -5,10 +5,29 @@
 /// </summary>
 internal enum VibrationSemantic
 {
+    /// <summary>
+    /// 一般游標或焦點的細微移動。
+    /// </summary>
     CursorMove,
+
+    /// <summary>
+    /// 以單字為粒度的快速跳轉。
+    /// </summary>
     WordJump,
+
+    /// <summary>
+    /// 頁級或區段級的切換。
+    /// </summary>
     PageSwitch,
+
+    /// <summary>
+    /// 撞牆、越界或失敗警示。
+    /// </summary>
     Boundary,
+
+    /// <summary>
+    /// 模式狀態切換。
+    /// </summary>
     ModeToggle
 }
 
@@ -17,11 +36,51 @@ internal enum VibrationSemantic
 /// </summary>
 internal enum VibrationContext
 {
+    /// <summary>
+    /// 一般導覽情境。
+    /// </summary>
     General,
+
+    /// <summary>
+    /// 主輸入區的歷程導覽。
+    /// </summary>
     History,
+
+    /// <summary>
+    /// 片語子選單的翻頁與巡覽。
+    /// </summary>
     PhraseMenu,
+
+    /// <summary>
+    /// 文字邊界或游標起訖點相關操作。
+    /// </summary>
     TextBoundary,
+
+    /// <summary>
+    /// 隱私模式切換相關操作。
+    /// </summary>
     PrivacyMode
+}
+
+/// <summary>
+/// 控制器組合鍵進入保留或修飾狀態時的提示類型。
+/// </summary>
+internal enum GamepadComboCueKind
+{
+    /// <summary>
+    /// 雙肩鍵組合的預備提示。
+    /// </summary>
+    ShoulderChord,
+
+    /// <summary>
+    /// 雙板機組合的預備提示。
+    /// </summary>
+    TriggerChord,
+
+    /// <summary>
+    /// Back 作為修飾鍵時的系統控制提示。
+    /// </summary>
+    SystemModifier
 }
 
 /// <summary>
@@ -252,6 +311,31 @@ public static class VibrationPatterns
     /// 隱私模式關閉時的鬆開收尾。
     /// </summary>
     public static readonly VibrationProfile PrivacyModeReleaseSettle = new(8500, 32, 0.16f, 0.16f, 0.18f, 0.18f);
+
+    /// <summary>
+    /// 雙肩鍵保留成功時的短促預備脈衝。
+    /// </summary>
+    public static readonly VibrationProfile ShoulderComboArm = new(16000, 26, 0.74f, 0.74f, 0.30f, 0.30f);
+
+    /// <summary>
+    /// 雙肩鍵保留後的穩定收尾，提示後續可接 B／X 動作。
+    /// </summary>
+    public static readonly VibrationProfile ShoulderComboSettle = new(9000, 16, 0.28f, 0.28f, 0.10f, 0.10f);
+
+    /// <summary>
+    /// 雙板機組合進入模式切換前的扳機導向提示。
+    /// </summary>
+    public static readonly VibrationProfile TriggerComboArm = new(17500, 24, 0.16f, 0.16f, 1.0f, 1.0f);
+
+    /// <summary>
+    /// 雙板機組合的短收尾，降低與正式模式切換主震動之間的黏連感。
+    /// </summary>
+    public static readonly VibrationProfile TriggerComboSettle = new(8500, 14, 0.12f, 0.12f, 0.34f, 0.34f);
+
+    /// <summary>
+    /// Back 修飾鍵進入系統控制語意時的輕量提示。
+    /// </summary>
+    public static readonly VibrationProfile SystemModifierArm = new(12000, 18, 0.44f, 0.44f, 0.12f, 0.12f);
 
     /// <summary>
     /// 顯示輸入視窗（明確的喚醒感）。
@@ -539,6 +623,40 @@ public static class VibrationPatterns
             VibrationSemantic.Boundary => normalizedDirection < 0 ? BoundaryLeft : BoundaryRight,
             VibrationSemantic.ModeToggle => normalizedDirection < 0 ? PrivacyModeReleaseLatch : PrivacyModeToggle,
             _ => CursorMove
+        };
+    }
+
+    /// <summary>
+    /// 依組合鍵家族回傳進入保留或修飾狀態時的短提示序列，讓肩鍵、板機與 Back 修飾鍵有明確區隔。
+    /// </summary>
+    /// <param name="kind">要產生提示序列的組合鍵類型。</param>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>對應情境的短提示震動序列。</returns>
+    internal static IReadOnlyList<VibrationSequenceStep> GetComboCueSequence(
+        GamepadComboCueKind kind,
+        VibrationMotorSupport motorSupport = VibrationMotorSupport.DualMain)
+    {
+        // 有扳機馬達時可使用更鮮明的前後拍層次；否則退化為雙主馬達可辨識版本。
+        bool supportsTriggers = (motorSupport & VibrationMotorSupport.TriggerMotors) != 0;
+
+        return kind switch
+        {
+            GamepadComboCueKind.ShoulderChord when supportsTriggers =>
+                [new VibrationSequenceStep(ShoulderComboArm, 6), new VibrationSequenceStep(ShoulderComboSettle)],
+
+            GamepadComboCueKind.TriggerChord when supportsTriggers =>
+                [new VibrationSequenceStep(TriggerComboArm, 5), new VibrationSequenceStep(TriggerComboSettle)],
+
+            GamepadComboCueKind.SystemModifier when supportsTriggers =>
+                [new VibrationSequenceStep(SystemModifierArm)],
+
+            GamepadComboCueKind.ShoulderChord =>
+                [new VibrationSequenceStep(new VibrationProfile(ShoulderComboArm.Strength, ShoulderComboArm.Duration, 0.65f, 0.65f, 0f, 0f))],
+
+            GamepadComboCueKind.TriggerChord =>
+                [new VibrationSequenceStep(new VibrationProfile(TriggerComboArm.Strength, TriggerComboArm.Duration, 0.30f, 0.30f, 0f, 0f))],
+
+            _ => [new VibrationSequenceStep(new VibrationProfile(SystemModifierArm.Strength, SystemModifierArm.Duration, 0.40f, 0.40f, 0f, 0f))]
         };
     }
 

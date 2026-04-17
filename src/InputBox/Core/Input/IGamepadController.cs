@@ -53,6 +53,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     event Action? LeftShoulderPressed;
 
     /// <summary>
+    /// 當左肩鍵（LB 鍵）被放開時觸發
+    /// </summary>
+    event Action? LeftShoulderReleased;
+
+    /// <summary>
     /// 左肩鍵（LB）持續按住時的連發事件
     /// </summary>
     event Action? LeftShoulderRepeat;
@@ -61,6 +66,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     /// 當右肩鍵（RB 鍵）被按下時觸發
     /// </summary>
     event Action? RightShoulderPressed;
+
+    /// <summary>
+    /// 當右肩鍵（RB 鍵）被放開時觸發
+    /// </summary>
+    event Action? RightShoulderReleased;
 
     /// <summary>
     /// 右肩鍵（RB）持續按住時的連發事件

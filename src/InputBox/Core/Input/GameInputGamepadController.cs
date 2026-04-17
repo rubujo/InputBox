@@ -521,6 +521,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? LeftShoulderPressed;
 
     /// <summary>
+    /// 當左肩鍵（LB 鍵）被放開時觸發。
+    /// </summary>
+    public event Action? LeftShoulderReleased;
+
+    /// <summary>
     /// 左肩鍵（LB）持續按住時的連發事件。
     /// </summary>
     public event Action? LeftShoulderRepeat;
@@ -529,6 +534,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 當右肩鍵（RB 鍵）被按下時觸發。
     /// </summary>
     public event Action? RightShoulderPressed;
+
+    /// <summary>
+    /// 當右肩鍵（RB 鍵）被放開時觸發。
+    /// </summary>
+    public event Action? RightShoulderReleased;
 
     /// <summary>
     /// 右肩鍵（RB）持續按住時的連發事件。
@@ -2116,6 +2126,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Menu, StartPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.View, BackPressed);
         DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.View, BackReleased);
+        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.LeftShoulder, LeftShoulderReleased);
+        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.RightShoulder, RightShoulderReleased);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.A, APressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.B, BPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.X, XPressed);

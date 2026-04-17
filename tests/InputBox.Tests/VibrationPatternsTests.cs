@@ -471,6 +471,40 @@ public class VibrationPatternsTests
     }
 
     /// <summary>
+    /// 肩鍵雙壓與板機雙壓的準備回饋應維持可辨識的不同節奏，避免組合家族彼此混淆。
+    /// </summary>
+    [Fact]
+    public void VibrationPatterns_GetComboCueSequence_ShoulderAndTriggerChords_StayDistinct()
+    {
+        IReadOnlyList<VibrationSequenceStep> shoulderSequence = VibrationPatterns.GetComboCueSequence(
+            GamepadComboCueKind.ShoulderChord,
+            VibrationMotorSupport.DualMain | VibrationMotorSupport.TriggerMotors);
+        IReadOnlyList<VibrationSequenceStep> triggerSequence = VibrationPatterns.GetComboCueSequence(
+            GamepadComboCueKind.TriggerChord,
+            VibrationMotorSupport.DualMain | VibrationMotorSupport.TriggerMotors);
+
+        Assert.True(shoulderSequence.Count >= 2);
+        Assert.True(triggerSequence.Count >= 2);
+        Assert.NotEqual(shoulderSequence[0].Profile, triggerSequence[0].Profile);
+        Assert.NotEqual(shoulderSequence[^1].Profile, triggerSequence[^1].Profile);
+    }
+
+    /// <summary>
+    /// Back 修飾鍵的提示應明顯輕於真正執行系統動作的強回饋，避免反客為主。
+    /// </summary>
+    [Fact]
+    public void VibrationPatterns_GetComboCueSequence_SystemModifier_RemainsSubtle()
+    {
+        IReadOnlyList<VibrationSequenceStep> sequence = VibrationPatterns.GetComboCueSequence(
+            GamepadComboCueKind.SystemModifier,
+            VibrationMotorSupport.DualMain | VibrationMotorSupport.TriggerMotors);
+
+        Assert.NotEmpty(sequence);
+        Assert.True(sequence[0].Profile.Strength < VibrationPatterns.HistoryPageBackward.Strength);
+        Assert.True(sequence[0].Profile.Duration < VibrationPatterns.PrivacyModeToggle.Duration);
+    }
+
+    /// <summary>
     /// VibrationProfile 不同值的兩個實例應不相等。
     /// </summary>
     [Fact]
@@ -510,8 +544,10 @@ public class VibrationPatternsTests
         public event Action? LeftPressed;
         public event Action? RightPressed;
         public event Action? LeftShoulderPressed;
+        public event Action? LeftShoulderReleased;
         public event Action? LeftShoulderRepeat;
         public event Action? RightShoulderPressed;
+        public event Action? RightShoulderReleased;
         public event Action? RightShoulderRepeat;
         public event Action? StartPressed;
         public event Action? BackPressed;
@@ -544,8 +580,10 @@ public class VibrationPatternsTests
             _ = LeftPressed;
             _ = RightPressed;
             _ = LeftShoulderPressed;
+            _ = LeftShoulderReleased;
             _ = LeftShoulderRepeat;
             _ = RightShoulderPressed;
+            _ = RightShoulderReleased;
             _ = RightShoulderRepeat;
             _ = StartPressed;
             _ = BackPressed;
