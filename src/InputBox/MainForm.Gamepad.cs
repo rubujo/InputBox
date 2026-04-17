@@ -390,13 +390,11 @@ public partial class MainForm
             OnLeftTriggerPressed: CreateSafeGamepadActionHandler(
                 HandleLeftTriggerAction,
                 "LeftTriggerPressed"),
-            OnLeftTriggerRepeat: CreateSafeGamepadActionHandler(
-                HandleLeftTriggerRepeat),
+            OnLeftTriggerRepeat: static () => { },
             OnRightTriggerPressed: CreateSafeGamepadActionHandler(
                 HandleRightTriggerAction,
                 "RightTriggerPressed"),
-            OnRightTriggerRepeat: CreateSafeGamepadActionHandler(
-                HandleRightTriggerRepeat),
+            OnRightTriggerRepeat: static () => { },
             OnStartPressed: CreateSafeGamepadActionHandler(
                 ExecuteGamepadShowKeyboardIfAllowed),
             OnAPressed: CreateSafeGamepadActionHandler(
@@ -1172,27 +1170,11 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 處理 LT 長按連發。
-    /// </summary>
-    private void HandleLeftTriggerRepeat()
-    {
-        HandleTriggerShortcut(moveToEnd: false, allowDelayedShortcut: false);
-    }
-
-    /// <summary>
     /// 處理 RT 鍵行為（片語末頁、輸入框行尾，或與 LT 組合切換隱私模式）。
     /// </summary>
     private void HandleRightTriggerAction()
     {
         HandleTriggerShortcut(moveToEnd: true, allowDelayedShortcut: true);
-    }
-
-    /// <summary>
-    /// 處理 RT 長按連發。
-    /// </summary>
-    private void HandleRightTriggerRepeat()
-    {
-        HandleTriggerShortcut(moveToEnd: true, allowDelayedShortcut: false);
     }
 
     /// <summary>

@@ -448,7 +448,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Tap or hold LB or RB to page through history in steps of five; keep holding to continue paging, or hold either shoulder with Left/Right to jump by word. Use LT and RT to jump to the text start or end, and in page-aware views you can hold them to repeat the paging action; press LT + RT together to toggle [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
+        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Tap or hold LB or RB to page through history in steps of five; keep holding to continue paging, or hold either shoulder with Left/Right to jump by word. Use LT and RT to jump to the text start or end, and press LT + RT together to toggle Privacy Mode. In the Phrases submenu, use LB and RB to switch page [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -1326,7 +1326,8 @@ namespace InputBox.Resources {
         ///← / →	Move cursor left / right
         ///LB / RB (tap / hold)	Page history up / down by 5 entries; hold to repeat
         ///LB / RB + ← / →	Jump cursor by word
-        ///LT / RT	Jump to text start / end; hold in [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
+        ///LT / RT	Jump to text start / end
+        ///LT + RT [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string Help_Gamepad_Rows {
             get {

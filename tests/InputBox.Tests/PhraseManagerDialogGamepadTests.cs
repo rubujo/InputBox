@@ -99,6 +99,35 @@ public sealed class PhraseManagerDialogGamepadTests : IDisposable
         Assert.Equal(0, list.SelectedIndex);
     }
 
+    /// <summary>
+    /// LT 與 RT 的長按連發不應在片語管理對話框中重複觸發邊界跳轉，避免一次到位後仍持續搶走操作節奏。
+    /// </summary>
+    [Fact]
+    public void TriggerRepeat_DoesNotJumpPhraseListBoundariesAgain()
+    {
+        PhraseService phraseService = CreatePhraseServiceWithEntries();
+        using PhraseManagerDialog dialog = new(phraseService);
+        using StubGamepadController controller = new();
+
+        dialog.GamepadController = controller;
+        IntPtr handle = dialog.Handle;
+        dialog.Show();
+        Application.DoEvents();
+
+        ListBox list = GetRequiredPrivateField<ListBox>(dialog, "_lstPhrases");
+        list.SelectedIndex = 1;
+        list.Focus();
+        Application.DoEvents();
+
+        controller.RaiseRightTriggerRepeat();
+        Application.DoEvents();
+        Assert.Equal(1, list.SelectedIndex);
+
+        controller.RaiseLeftTriggerRepeat();
+        Application.DoEvents();
+        Assert.Equal(1, list.SelectedIndex);
+    }
+
     private static PhraseService CreatePhraseServiceWithEntries()
     {
         PhraseService phraseService = new();
@@ -238,6 +267,20 @@ public sealed class PhraseManagerDialogGamepadTests : IDisposable
             TouchRegisteredEvents();
             IsRightTriggerHeld = true;
             RightTriggerPressed?.Invoke();
+        }
+
+        public void RaiseLeftTriggerRepeat()
+        {
+            TouchRegisteredEvents();
+            IsLeftTriggerHeld = true;
+            LeftTriggerRepeat?.Invoke();
+        }
+
+        public void RaiseRightTriggerRepeat()
+        {
+            TouchRegisteredEvents();
+            IsRightTriggerHeld = true;
+            RightTriggerRepeat?.Invoke();
         }
     }
 }
