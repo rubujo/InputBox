@@ -576,6 +576,11 @@ public partial class MainForm
             return;
         }
 
+        if (TryHandlePhrasePagingConfirm(selectedForConfirm))
+        {
+            return;
+        }
+
         // 邏輯最佳化：若點擊的是含有子選單的項目（如語系切換或進階設定），
         // A 鍵（Confirm）的行為應改為「展開並自動進入子選單」以提升操作流暢度。
         if (!TryEnterSubmenu(selectedForConfirm))
@@ -583,6 +588,16 @@ public partial class MainForm
             // 對於一般功能項目，執行點擊動作（通常會伴隨選單自動關閉）。
             selectedForConfirm.PerformClick();
         }
+    }
+
+    /// <summary>
+    /// 當確認鍵命中片語分頁控制項時，直接執行換頁並保留子選單開啟狀態。
+    /// </summary>
+    /// <param name="selectedItem">目前被確認的選單項目。</param>
+    /// <returns>若已處理片語分頁行為則回傳 true。</returns>
+    private bool TryHandlePhrasePagingConfirm(ToolStripItem selectedItem)
+    {
+        return TryHandlePhraseMenuPagingItem(selectedItem);
     }
 
     /// <summary>
@@ -604,9 +619,15 @@ public partial class MainForm
         // 展開子選單。
         tsmi.ShowDropDown();
 
-        // 展開後立即將焦點導向子選單內的第一個有效項目。
-        if (tsmi.DropDown.Items.Count > 0)
+        // 片語子選單一律直接落在第一個實際片語項目，
+        // 不受上方分頁控制、最近使用區或其他輔助項目影響。
+        if (ReferenceEquals(tsmi, _tsmiPhrases))
         {
+            SelectFirstPhraseInDropDown();
+        }
+        else if (tsmi.DropDown.Items.Count > 0)
+        {
+            // 其他子選單維持原本的第一個可操作項目導覽。
             NavigateToolStrip(tsmi.DropDown, forward: true);
         }
 

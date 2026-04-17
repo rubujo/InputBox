@@ -42,11 +42,27 @@ public class AppSettings
     private static readonly UTF8Encoding Utf8NoBom = new(false);
 
     /// <summary>
-    /// 定義儲存路徑：%AppData%\InputBox
+    /// 定義儲存路徑：預設為 %AppData%\InputBox；若設定 INPUTBOX_CONFIG_DIRECTORY，則優先使用覆寫路徑。
     /// </summary>
-    public static readonly string ConfigDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "InputBox");
+    public static readonly string ConfigDirectory = ResolveConfigDirectory();
+
+    /// <summary>
+    /// 解析目前應使用的設定目錄，供正式執行與測試環境共用。
+    /// </summary>
+    /// <returns>設定目錄完整路徑。</returns>
+    private static string ResolveConfigDirectory()
+    {
+        string? overrideDirectory = Environment.GetEnvironmentVariable("INPUTBOX_CONFIG_DIRECTORY");
+
+        if (!string.IsNullOrWhiteSpace(overrideDirectory))
+        {
+            return Path.GetFullPath(overrideDirectory);
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "InputBox");
+    }
 
     /// <summary>
     /// 設定檔檔案路徑

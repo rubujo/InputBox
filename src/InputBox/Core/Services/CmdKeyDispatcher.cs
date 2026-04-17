@@ -25,6 +25,69 @@ internal enum InputBoxCmdResult
 internal static class CmdKeyDispatcher
 {
     /// <summary>
+    /// 當右鍵選單顯示時，將鍵盤輸入轉譯為統一的選單操作命令，確保滑鼠、鍵盤與控制器可交替接手。
+    /// </summary>
+    /// <param name="keyData">目前命令鍵組合。</param>
+    /// <param name="menuVisible">右鍵選單是否顯示中。</param>
+    /// <param name="action">轉譯後的選單動作名稱。</param>
+    /// <returns>若已對應到選單動作則回傳 true。</returns>
+    public static bool TryGetContextMenuAction(Keys keyData, bool menuVisible, out string? action)
+    {
+        action = null;
+
+        if (!menuVisible)
+        {
+            return false;
+        }
+
+        switch (keyData)
+        {
+            case Keys.Up:
+                action = "Up";
+
+                return true;
+            case Keys.Down:
+                action = "Down";
+
+                return true;
+            case Keys.Left:
+                action = "Left";
+
+                return true;
+            case Keys.Right:
+                action = "Right";
+
+                return true;
+            case Keys.Enter:
+                action = "Confirm";
+
+                return true;
+            case Keys.Escape:
+                action = "Cancel";
+
+                return true;
+            case Keys.PageUp:
+                action = "PhrasePagePrevious";
+
+                return true;
+            case Keys.PageDown:
+                action = "PhrasePageNext";
+
+                return true;
+            case Keys.Home:
+                action = "PhrasePageFirst";
+
+                return true;
+            case Keys.End:
+                action = "PhrasePageLast";
+
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
     /// 處理全域命令鍵（不限定輸入框焦點）
     /// </summary>
     /// <param name="keyData">目前命令鍵組合。</param>

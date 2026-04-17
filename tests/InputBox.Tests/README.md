@@ -13,8 +13,10 @@
 |---|---|---|
 | `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊、Dispose 行為與關閉時背景工作退出保護 | 5 |
 | `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照，以及設定檔實際保存／讀回、併發保存、暫存清理與併發暫存檔誤刪回歸保護 | 51 |
+| `CmdKeyDispatcherTests` | `CmdKeyDispatcher` 對右鍵選單混合輸入的鍵盤命令轉譯與原生確認鍵行為回歸保護 | 4 |
 | `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
-| `DialogLabelStabilityTests` | 片語管理／編輯對話框的動態計數標籤固定寬度與零抖動回歸保護 | 2 |
+| `DialogLabelStabilityTests` | 片語管理／編輯對話框的動態計數標籤固定寬度、完整數字可視與零抖動回歸保護 | 3 |
+| `PhraseManagerDialogGamepadTests` | `PhraseManagerDialog` 左側片語清單的 LB/RB/LT/RT 快速切換、邊界跳轉與焦點接手回歸保護 | 2 |
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載） | 12 |
@@ -39,7 +41,7 @@
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 30 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **311** |
+| **合計** | | **318** |
 
 ## 二、執行方式 🚀
 

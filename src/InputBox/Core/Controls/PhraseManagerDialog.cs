@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
@@ -427,9 +427,12 @@ internal sealed class PhraseManagerDialog : Form
         _lblPhraseCount = new Label()
         {
             AutoSize = false,
-            Anchor = AnchorStyles.Left,
+            Dock = DockStyle.Fill,
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            AutoEllipsis = false,
+            UseMnemonic = false,
             TextAlign = ContentAlignment.MiddleLeft,
-            Margin = new Padding(0, 12, 0, 0),
+            Margin = new Padding(0, 12, 12, 0),
             AccessibleRole = AccessibleRole.StaticText
         };
 
@@ -796,12 +799,13 @@ internal sealed class PhraseManagerDialog : Form
             Size.Empty,
             TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-        int width = Math.Max(_lblPhraseCount.MinimumSize.Width, measured.Width + 6);
-        int height = Math.Max(_lblPhraseCount.MinimumSize.Height, measured.Height);
+        int horizontalPadding = (int)Math.Ceiling(12 * (DeviceDpi / AppSettings.BaseDpi));
+        int width = Math.Max(_lblPhraseCount.MinimumSize.Width, measured.Width + horizontalPadding);
+        int height = Math.Max(_lblPhraseCount.MinimumSize.Height, measured.Height + 2);
 
         _lblPhraseCount.AutoSize = false;
         _lblPhraseCount.MinimumSize = new Size(width, height);
-        _lblPhraseCount.Size = new Size(width, height);
+        _lblPhraseCount.Size = new Size(Math.Max(_lblPhraseCount.Width, width), height);
     }
 
     /// <summary>
@@ -1081,13 +1085,28 @@ internal sealed class PhraseManagerDialog : Form
     #region 控制器事件處理
 
     /// <summary>
+    /// 判斷片語管理對話框目前是否應接手控制器輸入。
+    /// </summary>
+    /// <returns>若對話框可安全處理控制器操作則回傳 true。</returns>
+    private bool CanHandleGamepadInput()
+    {
+        return Visible &&
+            !IsDisposed &&
+            (ActiveForm == this ||
+             ContainsFocus ||
+             _lstPhrases.Focused ||
+             _lstPhrases.ContainsFocus ||
+             IsButtonAreaFocused());
+    }
+
+    /// <summary>
     /// 控制器向上輸入時在清單項目或按鈕焦點之間移動
     /// </summary>
     private void HandleUp() => this.SafeInvoke(() =>
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1127,7 +1146,7 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1168,7 +1187,7 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1202,7 +1221,7 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1222,7 +1241,7 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1242,7 +1261,7 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1256,13 +1275,116 @@ internal sealed class PhraseManagerDialog : Form
     });
 
     /// <summary>
+    /// LB／RB 捷徑切換左側片語清單中的上一筆或下一筆，讓使用者可快速瀏覽而不影響右側按鈕區焦點邏輯。
+    /// </summary>
+    /// <param name="delta">-1 代表上一筆，+1 代表下一筆。</param>
+    private void HandlePhraseShortcutStep(int delta) => this.SafeInvoke(() =>
+    {
+        try
+        {
+            if (!CanHandleGamepadInput() ||
+                _lstPhrases.Items.Count == 0)
+            {
+                return;
+            }
+
+            int currentIndex = _lstPhrases.SelectedIndex < 0 ?
+                0 :
+                _lstPhrases.SelectedIndex;
+            int targetIndex = Math.Clamp(currentIndex + delta, 0, _lstPhrases.Items.Count - 1);
+
+            _lstPhrases.Focus();
+
+            if (targetIndex == _lstPhrases.SelectedIndex)
+            {
+                FeedbackService.PlaySound(SystemSounds.Beep);
+
+                return;
+            }
+
+            _lstPhrases.SelectedIndex = targetIndex;
+
+            FeedbackService.VibrateAsync(
+                _gamepadController,
+                VibrationPatterns.CursorMove,
+                _cts?.Token ?? CancellationToken.None)
+                .SafeFireAndForget();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandlePhraseShortcutStep 失敗：{ex.Message}");
+        }
+    });
+
+    /// <summary>
+    /// LT／RT 捷徑直接跳到左側片語清單的第一筆或最後一筆，加快大量片語時的巡覽效率。
+    /// </summary>
+    /// <param name="last">true 表示跳到最後一筆；false 表示跳到第一筆。</param>
+    private void HandlePhraseShortcutBoundary(bool last) => this.SafeInvoke(() =>
+    {
+        try
+        {
+            if (!CanHandleGamepadInput() ||
+                _lstPhrases.Items.Count == 0)
+            {
+                return;
+            }
+
+            int targetIndex = last ?
+                _lstPhrases.Items.Count - 1 :
+                0;
+
+            _lstPhrases.Focus();
+
+            if (targetIndex == _lstPhrases.SelectedIndex)
+            {
+                FeedbackService.PlaySound(SystemSounds.Beep);
+
+                return;
+            }
+
+            _lstPhrases.SelectedIndex = targetIndex;
+
+            FeedbackService.VibrateAsync(
+                _gamepadController,
+                VibrationPatterns.CursorMove,
+                _cts?.Token ?? CancellationToken.None)
+                .SafeFireAndForget();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語] HandlePhraseShortcutBoundary 失敗：{ex.Message}");
+        }
+    });
+
+    /// <summary>
+    /// 控制器 LB 捷徑切換到上一個片語。
+    /// </summary>
+    private void HandlePreviousPhraseShortcut() => HandlePhraseShortcutStep(-1);
+
+    /// <summary>
+    /// 控制器 RB 捷徑切換到下一個片語。
+    /// </summary>
+    private void HandleNextPhraseShortcut() => HandlePhraseShortcutStep(1);
+
+    /// <summary>
+    /// 控制器 LT 捷徑直接跳到第一個片語。
+    /// </summary>
+    private void HandleFirstPhraseShortcut() => HandlePhraseShortcutBoundary(last: false);
+
+    /// <summary>
+    /// 控制器 RT 捷徑直接跳到最後一個片語。
+    /// </summary>
+    private void HandleLastPhraseShortcut() => HandlePhraseShortcutBoundary(last: true);
+
+    /// <summary>
     /// 控制器左向輸入時回到清單或將片語上移
     /// </summary>
     private void HandleMoveUp() => this.SafeInvoke(() =>
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1310,7 +1432,7 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
-            if (ActiveForm != this)
+            if (!CanHandleGamepadInput())
             {
                 return;
             }
@@ -1539,6 +1661,14 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.LeftRepeat += HandleMoveUp;
                 _gamepadController.RightPressed += HandleMoveDown;
                 _gamepadController.RightRepeat += HandleMoveDown;
+                _gamepadController.LeftShoulderPressed += HandlePreviousPhraseShortcut;
+                _gamepadController.LeftShoulderRepeat += HandlePreviousPhraseShortcut;
+                _gamepadController.RightShoulderPressed += HandleNextPhraseShortcut;
+                _gamepadController.RightShoulderRepeat += HandleNextPhraseShortcut;
+                _gamepadController.LeftTriggerPressed += HandleFirstPhraseShortcut;
+                _gamepadController.LeftTriggerRepeat += HandleFirstPhraseShortcut;
+                _gamepadController.RightTriggerPressed += HandleLastPhraseShortcut;
+                _gamepadController.RightTriggerRepeat += HandleLastPhraseShortcut;
                 _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
             }
         }
@@ -1573,6 +1703,14 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.LeftRepeat -= HandleMoveUp;
                 _gamepadController.RightPressed -= HandleMoveDown;
                 _gamepadController.RightRepeat -= HandleMoveDown;
+                _gamepadController.LeftShoulderPressed -= HandlePreviousPhraseShortcut;
+                _gamepadController.LeftShoulderRepeat -= HandlePreviousPhraseShortcut;
+                _gamepadController.RightShoulderPressed -= HandleNextPhraseShortcut;
+                _gamepadController.RightShoulderRepeat -= HandleNextPhraseShortcut;
+                _gamepadController.LeftTriggerPressed -= HandleFirstPhraseShortcut;
+                _gamepadController.LeftTriggerRepeat -= HandleFirstPhraseShortcut;
+                _gamepadController.RightTriggerPressed -= HandleLastPhraseShortcut;
+                _gamepadController.RightTriggerRepeat -= HandleLastPhraseShortcut;
                 _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
             }
         }
@@ -1651,6 +1789,9 @@ internal sealed class PhraseManagerDialog : Form
             regularFont: _a11yFont,
             boldFont: _boldFont,
             formCt: _cts?.Token ?? CancellationToken.None);
+
+        _lblPhraseCount.Font = _a11yFont;
+        UpdatePhraseCountLabelMinimumWidth();
     }
 
     /// <summary>
