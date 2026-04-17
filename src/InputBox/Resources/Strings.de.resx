@@ -182,7 +182,7 @@
     <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn eine neue Tastenkombination erfolgreich abgerufen wurde. {0} ist die festgelegte Tastenkombinationszeichenfolge.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Tippen oder halten Sie LB bzw. RB, um den Verlauf in 5er-Schritten zu blättern; halten Sie weiter gedrückt, um fortlaufend zu blättern, oder halten Sie eine Schultertaste zusammen mit Links/Rechts gedrückt, um wortweise zu springen. Mit LT und RT springen Sie an den Anfang bzw. das Ende des Textes; in Ansichten mit Seitenwechsel können Sie durch Gedrückthalten weiterblättern. LT + RT zusammen schaltet den Privatmodus um. Im Phrasen-Untermenü wechseln Sie mit LB und RB die Seiten und springen mit LT und RT zur ersten oder letzten Seite. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
+    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Tippen oder halten Sie LB bzw. RB, um den Verlauf in 5er-Schritten zu blättern; halten Sie weiter gedrückt, um fortlaufend zu blättern, oder halten Sie eine Schultertaste zusammen mit Links/Rechts gedrückt, um wortweise zu springen. Mit LT und RT springen Sie an den Anfang bzw. das Ende des Textes. LT + RT zusammen schaltet den Privatmodus um. Im Phrasen-Untermenü wechseln Sie mit LB und RB die Seiten und springen mit LT und RT zur ersten oder letzten Seite. Im Phrasen-Manager wechseln Sie mit LB und RB zum vorherigen oder nächsten Eintrag und springen mit LT und RT zum ersten oder letzten Eintrag. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
     <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen. {0} ist Bestätigen, {1} ist Löschen, {2} ist Abbrechen und {3} ist die Löschtaste für den Beenden-Kurzbefehl.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -928,10 +928,12 @@ Back / View + X	Fensterdeckkraft zurücksetzen
 ← / →	Cursor nach links / rechts bewegen
 LB / RB (tippen / halten)	Verlauf um 5 Einträge hoch / runter blättern; halten zum Wiederholen
 LB / RB + ← / →	Cursor wortweise bewegen
-LT / RT	Zum Textanfang / Textende springen; in Seitenansichten halten zum Wiederholen
+LT / RT	Zum Textanfang / Textende springen
 LT + RT	Privatmodus umschalten
 Phrasen-Untermenü: LB / RB	Schnell zur vorigen / nächsten Seite wechseln (halten zum Wiederholen)
-Phrasen-Untermenü: LT / RT	Zur ersten / letzten Seite springen (halten zum Wiederholen)
+Phrasen-Untermenü: LT / RT	Zur ersten / letzten Seite springen
+Phrasen-Manager: LB / RB	Vorherigen / nächsten Eintrag auswählen
+Phrasen-Manager: LT / RT	Zur ersten / letzten Phrase springen
 RS ← / →	Auswahl erweitern oder verkleinern
 Back / View + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <comment>Die Controller-Tasten im Beschreibungsdialogfeld entsprechen den Datenspalten der Tabelle, und die Felder werden durch die Funktion Tab: Schaltfläche {Tab} getrennt, eine Spalte pro Zeile.</comment>

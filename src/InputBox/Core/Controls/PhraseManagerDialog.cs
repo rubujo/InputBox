@@ -1666,9 +1666,7 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.RightShoulderPressed += HandleNextPhraseShortcut;
                 _gamepadController.RightShoulderRepeat += HandleNextPhraseShortcut;
                 _gamepadController.LeftTriggerPressed += HandleFirstPhraseShortcut;
-                _gamepadController.LeftTriggerRepeat += HandleFirstPhraseShortcut;
                 _gamepadController.RightTriggerPressed += HandleLastPhraseShortcut;
-                _gamepadController.RightTriggerRepeat += HandleLastPhraseShortcut;
                 _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
             }
         }
@@ -1708,9 +1706,7 @@ internal sealed class PhraseManagerDialog : Form
                 _gamepadController.RightShoulderPressed -= HandleNextPhraseShortcut;
                 _gamepadController.RightShoulderRepeat -= HandleNextPhraseShortcut;
                 _gamepadController.LeftTriggerPressed -= HandleFirstPhraseShortcut;
-                _gamepadController.LeftTriggerRepeat -= HandleFirstPhraseShortcut;
                 _gamepadController.RightTriggerPressed -= HandleLastPhraseShortcut;
-                _gamepadController.RightTriggerRepeat -= HandleLastPhraseShortcut;
                 _gamepadController.ConnectionChanged -= HandleGamepadConnectionChanged;
             }
         }

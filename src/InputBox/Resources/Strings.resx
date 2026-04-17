@@ -182,7 +182,7 @@
     <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Tap or hold LB or RB to page through history in steps of five; keep holding to continue paging, or hold either shoulder with Left/Right to jump by word. Use LT and RT to jump to the text start or end, and in page-aware views you can hold them to repeat the paging action; press LT + RT together to toggle Privacy Mode. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. Release Back or View to return. Press LB + RB + {2} for quick return. Hold LB + RB + {3} for 0.8 seconds to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
+    <value>Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Tap or hold LB or RB to page through history in steps of five; keep holding to continue paging, or hold either shoulder with Left/Right to jump by word. Use LT and RT to jump to the text start or end, and press LT + RT together to toggle Privacy Mode. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. In the Phrase Manager, use LB and RB to select the previous or next phrase, and LT and RT to jump to the first or last phrase. Release Back or View to return. Press LB + RB + {2} for quick return. Hold LB + RB + {3} for 0.8 seconds to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
     <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations. {0} is confirm, {1} is delete, {2} is cancel, and {3} is delete for the exit shortcut.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -928,10 +928,12 @@ Back / View + X	Reset window opacity
 ← / →	Move cursor left / right
 LB / RB (tap / hold)	Page history up / down by 5 entries; hold to repeat
 LB / RB + ← / →	Jump cursor by word
-LT / RT	Jump to text start / end; hold in paging views to repeat
+LT / RT	Jump to text start / end
 LT + RT	Toggle Privacy Mode
 Phrases submenu: LB / RB	Switch to previous / next page (hold to repeat)
-Phrases submenu: LT / RT	Jump to first / last page (hold to repeat)
+Phrases submenu: LT / RT	Jump to first / last page
+Phrase Manager: LB / RB	Select previous / next phrase
+Phrase Manager: LT / RT	Jump to first / last phrase
 RS ← / →	Expand or shrink selection
 Back / View + ↑ / ↓	Adjust window opacity (±5%)</value>
     <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>
