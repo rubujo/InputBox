@@ -48,8 +48,10 @@ public sealed class GamepadMessageBoxTests
         public event Action? LeftPressed;
         public event Action? RightPressed;
         public event Action? LeftShoulderPressed;
+        public event Action? LeftShoulderReleased;
         public event Action? LeftShoulderRepeat;
         public event Action? RightShoulderPressed;
+        public event Action? RightShoulderReleased;
         public event Action? RightShoulderRepeat;
         public event Action? StartPressed;
         public event Action? BackPressed;
@@ -95,8 +97,10 @@ public sealed class GamepadMessageBoxTests
             _ = LeftPressed;
             _ = RightPressed;
             _ = LeftShoulderPressed;
+            _ = LeftShoulderReleased;
             _ = LeftShoulderRepeat;
             _ = RightShoulderPressed;
+            _ = RightShoulderReleased;
             _ = RightShoulderRepeat;
             _ = StartPressed;
             _ = BackPressed;

@@ -388,6 +388,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? BackReleased;
 
     /// <summary>
+    /// 左肩鍵放開事件。
+    /// </summary>
+    public event Action? LeftShoulderReleased;
+
+    /// <summary>
+    /// 右肩鍵放開事件。
+    /// </summary>
+    public event Action? RightShoulderReleased;
+
+    /// <summary>
     /// 快取的裝置名稱
     /// </summary>
     private string _cachedDeviceName = string.Empty;
@@ -954,6 +964,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.Start, StartPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Back, BackPressed);
             DetectReleased(currentState, _previousState, XInput.GamepadButton.Back, BackReleased);
+            DetectReleased(currentState, _previousState, XInput.GamepadButton.LeftShoulder, LeftShoulderReleased);
+            DetectReleased(currentState, _previousState, XInput.GamepadButton.RightShoulder, RightShoulderReleased);
             Detect(currentState, _previousState, XInput.GamepadButton.A, APressed);
             Detect(currentState, _previousState, XInput.GamepadButton.B, BPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);

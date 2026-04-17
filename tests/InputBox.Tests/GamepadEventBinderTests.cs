@@ -37,8 +37,10 @@ public sealed class GamepadEventBinderTests
                 OnRightPressed: () => { },
                 OnRightRepeat: () => { },
                 OnLeftShoulderPressed: () => leftShoulderCount++,
+                OnLeftShoulderReleased: () => leftShoulderCount++,
                 OnLeftShoulderRepeat: () => leftShoulderCount++,
                 OnRightShoulderPressed: () => rightShoulderCount++,
+                OnRightShoulderReleased: () => rightShoulderCount++,
                 OnRightShoulderRepeat: () => rightShoulderCount++,
                 OnLeftTriggerPressed: () => leftTriggerCount++,
                 OnLeftTriggerRepeat: () => leftTriggerCount++,
@@ -55,16 +57,18 @@ public sealed class GamepadEventBinderTests
                 OnXPressed: () => { }));
 
         controller.RaiseLeftShoulderPressed();
+        controller.RaiseLeftShoulderReleased();
         controller.RaiseLeftShoulderRepeat();
         controller.RaiseRightShoulderPressed();
+        controller.RaiseRightShoulderReleased();
         controller.RaiseRightShoulderRepeat();
         controller.RaiseLeftTriggerPressed();
         controller.RaiseLeftTriggerRepeat();
         controller.RaiseRightTriggerPressed();
         controller.RaiseRightTriggerRepeat();
 
-        Assert.Equal(2, leftShoulderCount);
-        Assert.Equal(2, rightShoulderCount);
+        Assert.Equal(3, leftShoulderCount);
+        Assert.Equal(3, rightShoulderCount);
         Assert.Equal(2, leftTriggerCount);
         Assert.Equal(2, rightTriggerCount);
     }
@@ -95,8 +99,10 @@ public sealed class GamepadEventBinderTests
         public event Action? LeftPressed;
         public event Action? RightPressed;
         public event Action? LeftShoulderPressed;
+        public event Action? LeftShoulderReleased;
         public event Action? LeftShoulderRepeat;
         public event Action? RightShoulderPressed;
+        public event Action? RightShoulderReleased;
         public event Action? RightShoulderRepeat;
         public event Action? StartPressed;
         public event Action? BackPressed;
@@ -142,8 +148,10 @@ public sealed class GamepadEventBinderTests
             _ = LeftPressed;
             _ = RightPressed;
             _ = LeftShoulderPressed;
+            _ = LeftShoulderReleased;
             _ = LeftShoulderRepeat;
             _ = RightShoulderPressed;
+            _ = RightShoulderReleased;
             _ = RightShoulderRepeat;
             _ = StartPressed;
             _ = BackPressed;
@@ -172,6 +180,12 @@ public sealed class GamepadEventBinderTests
             LeftShoulderPressed?.Invoke();
         }
 
+        public void RaiseLeftShoulderReleased()
+        {
+            TouchRegisteredEvents();
+            LeftShoulderReleased?.Invoke();
+        }
+
         public void RaiseLeftShoulderRepeat()
         {
             TouchRegisteredEvents();
@@ -182,6 +196,12 @@ public sealed class GamepadEventBinderTests
         {
             TouchRegisteredEvents();
             RightShoulderPressed?.Invoke();
+        }
+
+        public void RaiseRightShoulderReleased()
+        {
+            TouchRegisteredEvents();
+            RightShoulderReleased?.Invoke();
         }
 
         public void RaiseRightShoulderRepeat()

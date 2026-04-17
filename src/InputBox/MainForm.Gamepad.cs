@@ -92,10 +92,9 @@ public partial class MainForm
     private const int TextLimitWarningThreshold = 10;
 
     /// <summary>
-    /// 暫存肩鍵單擊捷徑的取消權杖，用來區分單擊翻頁與肩鍵＋方向鍵的單字跳轉。
+    /// 仲裁肩鍵在單按翻頁、長按連發、單字跳轉與雙肩鍵組合之間的優先序。
     /// </summary>
-    private CancellationTokenSource? _leftShoulderShortcutCts;
-    private CancellationTokenSource? _rightShoulderShortcutCts;
+    private readonly GamepadShoulderShortcutArbiter _shoulderShortcutArbiter = new();
 
     /// <summary>
     /// 暫存板機單擊捷徑的取消權杖，用來讓 LT+RT 雙壓優先切換隱私模式。
@@ -112,6 +111,21 @@ public partial class MainForm
     /// 防止 LT+RT 在同一次長按期間重複切換隱私模式。
     /// </summary>
     private int _privacyTriggerComboLatched;
+
+    /// <summary>
+    /// 防止同一輪雙肩鍵組合重複播放進入提示。
+    /// </summary>
+    private int _dualShoulderComboCueLatched;
+
+    /// <summary>
+    /// 防止同一輪 LT+RT 組合重複播放進入提示。
+    /// </summary>
+    private int _triggerComboCueLatched;
+
+    /// <summary>
+    /// 防止同一輪 Back 修飾鍵操作重複播放系統提示。
+    /// </summary>
+    private int _backModifierCueLatched;
 
     /// <summary>
     /// 防止 LB + RB + X 在同一次長按期間重複建立結束流程。
@@ -338,6 +352,7 @@ public partial class MainForm
 
                 // 按下時重置旗標。
                 _isBackUsedAsModifier = false;
+                Interlocked.Exchange(ref _backModifierCueLatched, 0);
             }),
             OnBackReleased: CreateDebugOnlyGamepadActionHandler(
                 HandleBackReleasedAction,
@@ -362,10 +377,14 @@ public partial class MainForm
                 () => HandleHorizontalGamepadInput("Right", MoveCursorRight)),
             OnLeftShoulderPressed: CreateSafeGamepadActionHandler(
                 HandleLeftShoulderAction),
+            OnLeftShoulderReleased: CreateSafeGamepadActionHandler(
+                HandleLeftShoulderReleased),
             OnLeftShoulderRepeat: CreateSafeGamepadActionHandler(
                 HandleLeftShoulderRepeat),
             OnRightShoulderPressed: CreateSafeGamepadActionHandler(
                 HandleRightShoulderAction),
+            OnRightShoulderReleased: CreateSafeGamepadActionHandler(
+                HandleRightShoulderReleased),
             OnRightShoulderRepeat: CreateSafeGamepadActionHandler(
                 HandleRightShoulderRepeat),
             OnLeftTriggerPressed: CreateSafeGamepadActionHandler(
@@ -795,9 +814,12 @@ public partial class MainForm
         if (_isBackUsedAsModifier)
         {
             _isBackUsedAsModifier = false;
+            Interlocked.Exchange(ref _backModifierCueLatched, 0);
 
             return;
         }
+
+        Interlocked.Exchange(ref _backModifierCueLatched, 0);
 
         HandleReturnToPreviousWindowSafeAsync().SafeFireAndForget();
     }
@@ -846,6 +868,7 @@ public partial class MainForm
         {
             try
             {
+                _shoulderShortcutArbiter.Reset();
                 UpdateTitle();
 
                 // 防止重複廣播相同的連線狀態。
@@ -960,6 +983,7 @@ public partial class MainForm
         if (controller.IsBackHeld)
         {
             _isBackUsedAsModifier = true;
+            TryPlayBackModifierCue();
 
             AdjustOpacity(opacityDelta);
 
@@ -985,38 +1009,89 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 處理 LB 鍵行為（片語子選單上一頁，或主輸入區向較舊歷程翻頁）。
+    /// 處理 LB 鍵按下，先建立單按候選；若後續進入組合鍵或長按連發，會由仲裁器自動取消。
     /// </summary>
     private void HandleLeftShoulderAction()
-        => HandleShoulderAction(direction: -1, "PhrasePagePrevious", ref _leftShoulderShortcutCts, allowDelayedShortcut: true);
+        => HandleShoulderPressed(direction: -1);
+
+    /// <summary>
+    /// 處理 LB 鍵放開，只有在本輪互動沒有被連發或組合鍵消耗時，才提交單按翻頁。
+    /// </summary>
+    private void HandleLeftShoulderReleased()
+        => HandleShoulderReleased(direction: -1, "PhrasePagePrevious");
 
     /// <summary>
     /// 處理 LB 長按連發，讓歷程或片語翻頁可持續捲動。
     /// </summary>
     private void HandleLeftShoulderRepeat()
-        => HandleShoulderAction(direction: -1, "PhrasePagePrevious", ref _leftShoulderShortcutCts, allowDelayedShortcut: false);
+        => HandleShoulderRepeat(direction: -1, "PhrasePagePrevious");
 
     /// <summary>
-    /// 處理 RB 鍵行為（片語子選單下一頁，或主輸入區向較新歷程翻頁）。
+    /// 處理 RB 鍵按下，先建立單按候選；若後續進入組合鍵或長按連發，會由仲裁器自動取消。
     /// </summary>
     private void HandleRightShoulderAction()
-        => HandleShoulderAction(direction: +1, "PhrasePageNext", ref _rightShoulderShortcutCts, allowDelayedShortcut: true);
+        => HandleShoulderPressed(direction: +1);
+
+    /// <summary>
+    /// 處理 RB 鍵放開，只有在本輪互動沒有被連發或組合鍵消耗時，才提交單按翻頁。
+    /// </summary>
+    private void HandleRightShoulderReleased()
+        => HandleShoulderReleased(direction: +1, "PhrasePageNext");
 
     /// <summary>
     /// 處理 RB 長按連發，讓歷程或片語翻頁可持續捲動。
     /// </summary>
     private void HandleRightShoulderRepeat()
-        => HandleShoulderAction(direction: +1, "PhrasePageNext", ref _rightShoulderShortcutCts, allowDelayedShortcut: false);
+        => HandleShoulderRepeat(direction: +1, "PhrasePageNext");
 
     /// <summary>
-    /// 統一處理肩鍵單擊與連發的翻頁邏輯。
+    /// 記錄肩鍵按下，並在必要時保留給雙肩鍵組合。
     /// </summary>
-    private void HandleShoulderAction(
-        int direction,
-        string phrasePagingAction,
-        ref CancellationTokenSource? pendingShortcutCts,
-        bool allowDelayedShortcut)
+    /// <param name="direction">肩鍵方向；負值代表 LB，正值代表 RB。</param>
+    private void HandleShoulderPressed(int direction)
     {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null)
+        {
+            return;
+        }
+
+        if (controller.IsLeftShoulderHeld &&
+            controller.IsRightShoulderHeld)
+        {
+            _shoulderShortcutArbiter.ReserveDualShoulderCombo();
+            TryPlayDualShoulderComboCue();
+            return;
+        }
+
+        Interlocked.Exchange(ref _dualShoulderComboCueLatched, 0);
+        _shoulderShortcutArbiter.ArmTap(direction);
+    }
+
+    /// <summary>
+    /// 在肩鍵放開時，若本輪互動仍符合單按條件，才提交翻頁動作。
+    /// </summary>
+    /// <param name="direction">肩鍵方向；負值代表 LB，正值代表 RB。</param>
+    /// <param name="phrasePagingAction">片語子選單中對應的翻頁動作名稱。</param>
+    private void HandleShoulderReleased(int direction, string phrasePagingAction)
+    {
+        IGamepadController? controller = _gamepadController;
+
+        bool isLeftStillHeld = controller?.IsLeftShoulderHeld == true,
+            isRightStillHeld = controller?.IsRightShoulderHeld == true;
+
+        if (!isLeftStillHeld ||
+            !isRightStillHeld)
+        {
+            Interlocked.Exchange(ref _dualShoulderComboCueLatched, 0);
+        }
+
+        if (!_shoulderShortcutArbiter.TryConsumeTapOnRelease(direction, isLeftStillHeld, isRightStillHeld))
+        {
+            return;
+        }
+
         if (HandleContextMenuGamepadInput(phrasePagingAction) ||
             _cmsInput?.Visible == true ||
             IsGamepadInputSuppressed() ||
@@ -1025,13 +1100,45 @@ public partial class MainForm
             return;
         }
 
-        if (allowDelayedShortcut)
+        NavigateHistoryPage(direction, pageSize: 5);
+    }
+
+    /// <summary>
+    /// 處理肩鍵長按連發，並在雙肩鍵或修飾鍵情境下主動避讓。
+    /// </summary>
+    /// <param name="direction">肩鍵方向；負值代表 LB，正值代表 RB。</param>
+    /// <param name="phrasePagingAction">片語子選單中對應的翻頁動作名稱。</param>
+    private void HandleShoulderRepeat(int direction, string phrasePagingAction)
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller != null &&
+            controller.IsLeftShoulderHeld &&
+            controller.IsRightShoulderHeld)
         {
-            QueueShoulderHistoryShortcut(direction, ref pendingShortcutCts);
+            _shoulderShortcutArbiter.ReserveDualShoulderCombo();
+            TryPlayDualShoulderComboCue();
             return;
         }
 
-        CancelPendingShoulderShortcuts();
+        if (IsShoulderPagingTemporarilySuppressed())
+        {
+            return;
+        }
+
+        if (HandleContextMenuGamepadInput(phrasePagingAction))
+        {
+            _shoulderShortcutArbiter.MarkRepeatConsumed(direction);
+            return;
+        }
+
+        if (_cmsInput?.Visible == true ||
+            IsGamepadInputSuppressed())
+        {
+            return;
+        }
+
+        _shoulderShortcutArbiter.MarkRepeatConsumed(direction);
         NavigateHistoryPage(direction, pageSize: 5);
     }
 
@@ -1068,21 +1175,10 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 以短延遲區分肩鍵單擊翻頁與肩鍵作為單字跳轉修飾鍵的情境。
-    /// </summary>
-    /// <param name="direction">歷程翻頁方向。</param>
-    /// <param name="pendingShortcutCts">對應肩鍵的暫存取消權杖欄位。</param>
-    private void QueueShoulderHistoryShortcut(int direction, ref CancellationTokenSource? pendingShortcutCts)
-    {
-        ScheduleDelayedGamepadAction(
-            ref pendingShortcutCts,
-            () => NavigateHistoryPage(direction, pageSize: 5));
-    }
-
-    /// <summary>
     /// 處理 LT／RT 單擊與雙壓組合的行為分流。
     /// </summary>
     /// <param name="moveToEnd">true 代表行尾；false 代表行首。</param>
+    /// <param name="allowDelayedShortcut">是否允許先暫存單鍵捷徑，以便雙板機組合優先攔截。</param>
     private void HandleTriggerShortcut(bool moveToEnd, bool allowDelayedShortcut)
     {
         if (HandleContextMenuGamepadInput(moveToEnd ? "PhrasePageLast" : "PhrasePageFirst") ||
@@ -1142,6 +1238,7 @@ public partial class MainForm
         if (_gamepadController?.IsLeftTriggerHeld != true ||
             _gamepadController?.IsRightTriggerHeld != true)
         {
+            Interlocked.Exchange(ref _triggerComboCueLatched, 0);
             return false;
         }
 
@@ -1151,22 +1248,13 @@ public partial class MainForm
         }
 
         CancelPendingTriggerShortcuts();
+        TryPlayTriggerComboCue();
 
         TogglePrivacyMode();
         int privacyDirection = AppSettings.Current.IsPrivacyMode ? 1 : -1;
-        FeedbackService.PlaySound(SystemSounds.Asterisk);
         VibrateNavigationAsync(VibrationSemantic.ModeToggle, privacyDirection, VibrationContext.PrivacyMode).SafeFireAndForget();
 
         return true;
-    }
-
-    /// <summary>
-    /// 取消待執行的肩鍵單擊捷徑。
-    /// </summary>
-    private void CancelPendingShoulderShortcuts()
-    {
-        Interlocked.Exchange(ref _leftShoulderShortcutCts, null)?.CancelAndDispose();
-        Interlocked.Exchange(ref _rightShoulderShortcutCts, null)?.CancelAndDispose();
     }
 
     /// <summary>
@@ -1179,19 +1267,85 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 播放不同組合家族的進入提示，讓肩鍵、板機與 Back 修飾鍵在手感上更容易區分。
+    /// </summary>
+    /// <param name="kind">要播放的組合鍵提示種類。</param>
+    /// <param name="sound">要同步播放的系統提示音。</param>
+    private void PlayGamepadComboCue(GamepadComboCueKind kind, SystemSound sound)
+    {
+        FeedbackService.PlaySound(sound);
+
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            return;
+        }
+
+        VibrateSequenceAsync(
+            VibrationPatterns.GetComboCueSequence(kind, controller.VibrationMotorSupport)).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 雙肩鍵進入保留狀態時，只播放一次簡短的「已進入組合模式」提示。
+    /// </summary>
+    private void TryPlayDualShoulderComboCue()
+    {
+        if (Interlocked.Exchange(ref _dualShoulderComboCueLatched, 1) != 0)
+        {
+            return;
+        }
+
+        PlayGamepadComboCue(GamepadComboCueKind.ShoulderChord, SystemSounds.Asterisk);
+    }
+
+    /// <summary>
+    /// LT+RT 切換隱私模式前，播放一次專屬的板機組合提示。
+    /// </summary>
+    private void TryPlayTriggerComboCue()
+    {
+        if (Interlocked.Exchange(ref _triggerComboCueLatched, 1) != 0)
+        {
+            return;
+        }
+
+        PlayGamepadComboCue(GamepadComboCueKind.TriggerChord, SystemSounds.Exclamation);
+    }
+
+    /// <summary>
+    /// Back 被當成修飾鍵使用時，播放一次較輕的系統控制提示。
+    /// </summary>
+    private void TryPlayBackModifierCue()
+    {
+        if (Interlocked.Exchange(ref _backModifierCueLatched, 1) != 0)
+        {
+            return;
+        }
+
+        PlayGamepadComboCue(GamepadComboCueKind.SystemModifier, SystemSounds.Beep);
+    }
+
+    /// <summary>
     /// 肩鍵已作為單字跳轉修飾鍵時，短暫抑制翻頁連發，避免雙重動作競爭。
     /// </summary>
     private void SuppressShoulderPagingTemporarily()
     {
+        _shoulderShortcutArbiter.MarkModifierUsed();
         _suppressShoulderPagingUntilUtc = DateTime.UtcNow.AddMilliseconds(GamepadModifierGraceDelayMs + 80);
-        CancelPendingShoulderShortcuts();
     }
 
     /// <summary>
     /// 判斷肩鍵翻頁是否暫時被修飾鍵行為抑制。
     /// </summary>
     private bool IsShoulderPagingTemporarilySuppressed()
-        => DateTime.UtcNow < _suppressShoulderPagingUntilUtc;
+    {
+        bool isLeftHeld = _gamepadController?.IsLeftShoulderHeld == true,
+            isRightHeld = _gamepadController?.IsRightShoulderHeld == true;
+
+        return DateTime.UtcNow < _suppressShoulderPagingUntilUtc ||
+               _shoulderShortcutArbiter.ShouldSuppressPaging(isLeftHeld, isRightHeld);
+    }
 
     /// <summary>
     /// 長按時節流重複的邊界提示音與震動，避免回饋過於密集。
@@ -1672,6 +1826,9 @@ public partial class MainForm
         if (controller.IsLeftShoulderHeld &&
             controller.IsRightShoulderHeld)
         {
+            _shoulderShortcutArbiter.ReserveDualShoulderCombo();
+            TryPlayDualShoulderComboCue();
+
             if (IsGamepadReturnSuppressed())
             {
                 return;
@@ -1708,6 +1865,8 @@ public partial class MainForm
         if (controller.IsLeftShoulderHeld &&
             controller.IsRightShoulderHeld)
         {
+            _shoulderShortcutArbiter.ReserveDualShoulderCombo();
+            TryPlayDualShoulderComboCue();
             BeginExitHoldConfirmation(controller);
             return;
         }
@@ -1718,6 +1877,7 @@ public partial class MainForm
         if (controller.IsBackHeld)
         {
             _isBackUsedAsModifier = true;
+            TryPlayBackModifierCue();
 
             ResetOpacity();
 
