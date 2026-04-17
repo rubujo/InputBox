@@ -56,9 +56,25 @@ public class AppSettings
 
         if (!string.IsNullOrWhiteSpace(overrideDirectory))
         {
-            return Path.GetFullPath(overrideDirectory);
+            try
+            {
+                return Path.GetFullPath(overrideDirectory);
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+            {
+                Debug.WriteLine($"Invalid INPUTBOX_CONFIG_DIRECTORY '{overrideDirectory}', falling back to default config directory. {ex}");
+            }
         }
 
+        return GetDefaultConfigDirectory();
+    }
+
+    /// <summary>
+    /// 取得預設設定目錄：%AppData%\InputBox。
+    /// </summary>
+    /// <returns>預設設定目錄完整路徑。</returns>
+    private static string GetDefaultConfigDirectory()
+    {
         return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "InputBox");
