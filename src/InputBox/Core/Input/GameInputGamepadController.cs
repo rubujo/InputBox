@@ -490,6 +490,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? RightRepeat;
 
     /// <summary>
+    /// 當左肩鍵（LB 鍵）被按下時觸發
+    /// </summary>
+    public event Action? LeftShoulderPressed;
+
+    /// <summary>
+    /// 當右肩鍵（RB 鍵）被按下時觸發
+    /// </summary>
+    public event Action? RightShoulderPressed;
+
+    /// <summary>
     /// 右搖桿左推按下事件
     /// </summary>
     public event Action? RSLeftPressed;
@@ -2046,6 +2056,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadDown, DownPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadLeft, LeftPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadRight, RightPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.LeftShoulder, LeftShoulderPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.RightShoulder, RightShoulderPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Menu, StartPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.View, BackPressed);
         DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.View, BackReleased);
@@ -2720,6 +2732,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         RSRightPressed = null;
         RSLeftRepeat = null;
         RSRightRepeat = null;
+        LeftShoulderPressed = null;
+        RightShoulderPressed = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         LeftTriggerRepeat = null;

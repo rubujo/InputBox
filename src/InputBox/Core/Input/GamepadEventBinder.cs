@@ -20,6 +20,12 @@ internal sealed class GamepadEventBinder
         Action OnLeftRepeat,
         Action OnRightPressed,
         Action OnRightRepeat,
+        Action OnLeftShoulderPressed,
+        Action OnRightShoulderPressed,
+        Action OnLeftTriggerPressed,
+        Action OnLeftTriggerRepeat,
+        Action OnRightTriggerPressed,
+        Action OnRightTriggerRepeat,
         Action OnStartPressed,
         Action OnAPressed,
         Action OnBPressed,
@@ -51,6 +57,13 @@ internal sealed class GamepadEventBinder
         controller.LeftRepeat += map.OnLeftRepeat;
         controller.RightPressed += map.OnRightPressed;
         controller.RightRepeat += map.OnRightRepeat;
+
+        controller.LeftShoulderPressed += map.OnLeftShoulderPressed;
+        controller.RightShoulderPressed += map.OnRightShoulderPressed;
+        controller.LeftTriggerPressed += map.OnLeftTriggerPressed;
+        controller.LeftTriggerRepeat += map.OnLeftTriggerRepeat;
+        controller.RightTriggerPressed += map.OnRightTriggerPressed;
+        controller.RightTriggerRepeat += map.OnRightTriggerRepeat;
 
         controller.StartPressed += map.OnStartPressed;
         controller.APressed += map.OnAPressed;

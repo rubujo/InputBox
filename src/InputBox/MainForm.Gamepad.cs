@@ -257,6 +257,20 @@ public partial class MainForm
                 "RightPressed"),
             OnRightRepeat: CreateSafeGamepadActionHandler(
                 () => HandleHorizontalGamepadInput("Right", MoveCursorRight)),
+            OnLeftShoulderPressed: CreateSafeGamepadActionHandler(
+                HandleLeftShoulderAction),
+            OnRightShoulderPressed: CreateSafeGamepadActionHandler(
+                HandleRightShoulderAction),
+            OnLeftTriggerPressed: CreateSafeGamepadActionHandler(
+                HandleLeftTriggerAction,
+                "LeftTriggerPressed"),
+            OnLeftTriggerRepeat: CreateSafeGamepadActionHandler(
+                HandleLeftTriggerAction),
+            OnRightTriggerPressed: CreateSafeGamepadActionHandler(
+                HandleRightTriggerAction,
+                "RightTriggerPressed"),
+            OnRightTriggerRepeat: CreateSafeGamepadActionHandler(
+                HandleRightTriggerAction),
             OnStartPressed: CreateSafeGamepadActionHandler(
                 ExecuteGamepadShowKeyboardIfAllowed),
             OnAPressed: CreateSafeGamepadActionHandler(
@@ -373,6 +387,14 @@ public partial class MainForm
                 HandleContextMenuRightAction(activeTs);
 
                 return true;
+            case "PhrasePagePrevious":
+                return TryNavigatePhraseMenuPage(-1);
+            case "PhrasePageNext":
+                return TryNavigatePhraseMenuPage(1);
+            case "PhrasePageFirst":
+                return TryJumpPhraseMenuToBoundary(lastPage: false);
+            case "PhrasePageLast":
+                return TryJumpPhraseMenuToBoundary(lastPage: true);
             case "Confirm":
                 HandleContextMenuConfirmAction(activeTs);
 
@@ -856,6 +878,52 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 處理 LB 鍵行為（片語子選單上一頁）。
+    /// </summary>
+    private void HandleLeftShoulderAction()
+    {
+        _ = HandleContextMenuGamepadInput("PhrasePagePrevious");
+    }
+
+    /// <summary>
+    /// 處理 RB 鍵行為（片語子選單下一頁）。
+    /// </summary>
+    private void HandleRightShoulderAction()
+    {
+        _ = HandleContextMenuGamepadInput("PhrasePageNext");
+    }
+
+    /// <summary>
+    /// 處理 LT 鍵行為（片語首頁或輸入框行首）。
+    /// </summary>
+    private void HandleLeftTriggerAction()
+    {
+        if (HandleContextMenuGamepadInput("PhrasePageFirst") ||
+            _cmsInput?.Visible == true ||
+            IsGamepadInputSuppressed())
+        {
+            return;
+        }
+
+        MoveCursorToBoundary(moveToEnd: false);
+    }
+
+    /// <summary>
+    /// 處理 RT 鍵行為（片語末頁或輸入框行尾）。
+    /// </summary>
+    private void HandleRightTriggerAction()
+    {
+        if (HandleContextMenuGamepadInput("PhrasePageLast") ||
+            _cmsInput?.Visible == true ||
+            IsGamepadInputSuppressed())
+        {
+            return;
+        }
+
+        MoveCursorToBoundary(moveToEnd: true);
+    }
+
+    /// <summary>
     /// 處理 B 鍵行為（取消、返回或清空）
     /// </summary>
     /// <param name="controller">目前控制器實例。</param>
@@ -1254,6 +1322,41 @@ public partial class MainForm
             // 撞到最右邊。
             AnnounceA11y(Strings.A11y_Nav_Bottom, interrupt: true);
         }
+    }
+
+    /// <summary>
+    /// 直接跳到文字開頭或結尾。
+    /// </summary>
+    /// <param name="moveToEnd">true = 跳到結尾；false = 跳到開頭。</param>
+    private void MoveCursorToBoundary(bool moveToEnd)
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        int target = moveToEnd ? TBInput.Text.Length : 0;
+
+        if (TBInput.SelectionLength == 0 &&
+            TBInput.SelectionStart == target)
+        {
+            FeedbackService.PlaySound(SystemSounds.Beep);
+            VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+            AnnounceA11y(moveToEnd ? Strings.A11y_Nav_Bottom : Strings.A11y_Nav_Top, interrupt: true);
+
+            return;
+        }
+
+        TBInput.SelectionStart = target;
+        TBInput.SelectionLength = 0;
+        TBInput.ScrollToCaret();
+
+        AnnounceA11y(AppSettings.Current.IsPrivacyMode ?
+            Strings.A11y_Cursor_Move_PrivacySafe :
+            string.Format(Strings.A11y_Cursor_Move, TBInput.SelectionStart + 1), true);
+
+        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
     }
 
     /// <summary>

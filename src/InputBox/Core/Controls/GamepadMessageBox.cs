@@ -366,10 +366,7 @@ internal sealed class GamepadMessageBox : Form
     {
         // 決定按鈕清單（由右至左順序，因為 FlowDirection = RightToLeft）。
         List<(string label, DialogResult result, bool isPrimary, bool isCancel)> specs = GetButtonSpecs(buttons);
-
-#pragma warning disable IDE0028 // 簡化集合初始化
-        List<Button> createdButtons = new(specs.Count);
-#pragma warning restore IDE0028 // 簡化集合初始化
+        List<Button> createdButtons = [];
 
         foreach ((string label, DialogResult result, bool isPrimary, bool isCancel) in specs)
         {

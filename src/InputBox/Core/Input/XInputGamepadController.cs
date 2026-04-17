@@ -411,6 +411,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? RightRepeat;
 
     /// <summary>
+    /// 左右肩鍵按壓事件
+    /// </summary>
+    public event Action? LeftShoulderPressed;
+    public event Action? RightShoulderPressed;
+
+    /// <summary>
     /// 右搖桿按壓事件
     /// </summary>
     public event Action? RSLeftPressed;
@@ -884,6 +890,24 @@ internal sealed partial class XInputGamepadController : IGamepadController
             }
 
             // 偵測一般按鈕事件觸發（Rising Edge：原本沒按 -> 現在按了）。
+            bool wasLbDownBefore = _hasPreviousState &&
+                _previousState.Has(XInput.GamepadButton.LeftShoulder);
+
+            if (IsLeftShoulderHeld &&
+                !wasLbDownBefore)
+            {
+                LeftShoulderPressed?.Invoke();
+            }
+
+            bool wasRbDownBefore = _hasPreviousState &&
+                _previousState.Has(XInput.GamepadButton.RightShoulder);
+
+            if (IsRightShoulderHeld &&
+                !wasRbDownBefore)
+            {
+                RightShoulderPressed?.Invoke();
+            }
+
             // 處理 LT。
             bool wasLtDownBefore = _hasPreviousState &&
                 _previousState.Gamepad.LeftTrigger > AppSettings.XInputTriggerThreshold;
@@ -2033,6 +2057,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         RSRightPressed = null;
         RSLeftRepeat = null;
         RSRightRepeat = null;
+        LeftShoulderPressed = null;
+        RightShoulderPressed = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
         LeftTriggerRepeat = null;

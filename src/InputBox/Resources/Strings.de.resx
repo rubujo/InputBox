@@ -182,7 +182,7 @@
     <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn eine neue Tastenkombination erfolgreich abgerufen wurde. {0} ist die festgelegte Tastenkombinationszeichenfolge.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
+    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Mit LT und RT springen Sie an den Anfang bzw. das Ende des Textes. Im Phrasen-Untermenü wechseln Sie mit LB und RB die Seiten und springen mit LT und RT zur ersten oder letzten Seite. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
     <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen. {0} ist Bestätigen, {1} ist Löschen, {2} ist Abbrechen und {3} ist die Löschtaste für den Beenden-Kurzbefehl.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -907,6 +907,9 @@ Back / View + X	Fensterdeckkraft zurücksetzen
 ↑ / ↓	Verlauf durchsuchen
 ← / →	Cursor nach links / rechts bewegen
 LB + ← / →	Cursor wortweise bewegen
+LT / RT	Zum Textanfang / Textende springen
+Phrasen-Untermenü: LB / RB	Schnell zur vorigen / nächsten Seite wechseln
+Phrasen-Untermenü: LT / RT	Zur ersten / letzten Seite springen
 RS ← / →	Auswahl erweitern oder verkleinern
 Back / View + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <comment>Die Controller-Tasten im Beschreibungsdialogfeld entsprechen den Datenspalten der Tabelle, und die Felder werden durch die Funktion Tab: Schaltfläche {Tab} getrennt, eine Spalte pro Zeile.</comment>
@@ -1066,6 +1069,10 @@ Back / View + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
   <data name="Phrase_A11y_Page_Info" xml:space="preserve">
     <value>Seite {0} von {1}</value>
     <comment>Der Barrierefreiheitsname des Paging-Informationselements im Phrasen-Untermenü. {0} = aktuelle Seitenzahl, {1} = Gesamtzahl der Seiten.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Shortcuts" xml:space="preserve">
+    <value>Mit LB und RB wechseln Sie schnell die Seite, mit LT und RT springen Sie zur ersten oder letzten Seite.</value>
+    <comment>Hinweis auf die Schnellnavigation, der beim Öffnen des Phrasen-Untermenüs vorgelesen wird.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
     <value>Fügen Sie einen neuen Satz hinzu. Gamepad: Y-Taste.</value>

@@ -182,7 +182,7 @@
     <comment>Accessibility message played when a new hotkey is successfully captured. {0} is the resulting hotkey string.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
+    <value>Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Use LT and RT to jump to the text start or end. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to clear, Up/Down for history, Alt + B to return.</value>
     <comment>Detailed accessibility description for the main window, explaining various controller and keyboard operations. {0} is confirm, {1} is delete, {2} is cancel, and {3} is delete for the exit shortcut.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -907,6 +907,9 @@ Back / View + X	Reset window opacity
 ↑ / ↓	Navigate history
 ← / →	Move cursor left / right
 LB + ← / →	Jump cursor by word
+LT / RT	Jump to text start / end
+Phrases submenu: LB / RB	Switch to previous / next page
+Phrases submenu: LT / RT	Jump to first / last page
 RS ← / →	Expand or shrink selection
 Back / View + ↑ / ↓	Adjust window opacity (±5%)</value>
     <comment>Tab-separated rows for the gamepad controls table in the Help dialog. Format: Button{tab}Action. One row per line.</comment>
@@ -1066,6 +1069,10 @@ Back / View + ↑ / ↓	Adjust window opacity (±5%)</value>
   <data name="Phrase_A11y_Page_Info" xml:space="preserve">
     <value>Page {0} of {1}</value>
     <comment>Accessibility name for phrase submenu pagination info item. {0} = current page, {1} = total pages.</comment>
+  </data>
+  <data name="Phrase_A11y_Page_Shortcuts" xml:space="preserve">
+    <value>Use LB and RB to switch pages quickly, and LT and RT to jump to the first or last page.</value>
+    <comment>Shortcut hint announced when the phrases submenu opens with multiple pages.</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
     <value>Add a new phrase. Gamepad: Y button.</value>
