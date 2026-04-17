@@ -2367,7 +2367,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return Task.CompletedTask;
         }
 
-        ushort requestedStrength = profile.GetPeakMotorStrength();
+        ushort requestedStrength = profile.Strength;
         int milliseconds = profile.Duration;
 
         if (requestedStrength == 0)
