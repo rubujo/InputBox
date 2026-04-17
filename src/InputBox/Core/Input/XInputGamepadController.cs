@@ -395,45 +395,93 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public bool IsConnected => _isConnected;
 
     /// <summary>
-    /// 控制器 A, B, X, Y 按鈕事件
+    /// 控制器 A 鍵按下事件。
     /// </summary>
     public event Action? APressed;
+
+    /// <summary>
+    /// 控制器 B 鍵按下事件。
+    /// </summary>
     public event Action? BPressed;
+
+    /// <summary>
+    /// 控制器 X 鍵按下事件。
+    /// </summary>
     public event Action? XPressed;
+
+    /// <summary>
+    /// 控制器 Y 鍵按下事件。
+    /// </summary>
     public event Action? YPressed;
 
     /// <summary>
-    /// 控制器鍵重複事件
+    /// 控制器上鍵重複事件。
     /// </summary>
     public event Action? UpRepeat;
+
+    /// <summary>
+    /// 控制器下鍵重複事件。
+    /// </summary>
     public event Action? DownRepeat;
+
+    /// <summary>
+    /// 控制器左鍵重複事件。
+    /// </summary>
     public event Action? LeftRepeat;
+
+    /// <summary>
+    /// 控制器右鍵重複事件。
+    /// </summary>
     public event Action? RightRepeat;
 
     /// <summary>
-    /// 左右肩鍵按壓事件
+    /// 當左肩鍵（LB 鍵）被按下時觸發。
     /// </summary>
     public event Action? LeftShoulderPressed;
+
+    /// <summary>
+    /// 當右肩鍵（RB 鍵）被按下時觸發。
+    /// </summary>
     public event Action? RightShoulderPressed;
 
     /// <summary>
-    /// 右搖桿按壓事件
+    /// 右搖桿左推按下事件。
     /// </summary>
     public event Action? RSLeftPressed;
+
+    /// <summary>
+    /// 右搖桿右推按下事件。
+    /// </summary>
     public event Action? RSRightPressed;
 
     /// <summary>
-    /// 右搖桿重複事件
+    /// 右搖桿左推重複事件。
     /// </summary>
     public event Action? RSLeftRepeat;
+
+    /// <summary>
+    /// 右搖桿右推重複事件。
+    /// </summary>
     public event Action? RSRightRepeat;
 
     /// <summary>
-    /// 左右觸發鍵按壓事件
+    /// 當左觸發鍵（LT 鍵）被按下時觸發。
     /// </summary>
     public event Action? LeftTriggerPressed;
+
+    /// <summary>
+    /// 當右觸發鍵（RT 鍵）被按下時觸發。
+    /// </summary>
     public event Action? RightTriggerPressed;
+
+    /// <summary>
+    /// LT 持續按住時的連發事件。
+    /// </summary>
     public event Action? LeftTriggerRepeat;
+
+    /// <summary>
+    /// RT 持續按住時的連發事件。
+    /// </summary>
     public event Action? RightTriggerRepeat;
 
     /// <summary>
