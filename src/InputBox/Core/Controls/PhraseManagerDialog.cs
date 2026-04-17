@@ -1,4 +1,4 @@
-﻿using InputBox.Core.Configuration;
+using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
@@ -426,8 +426,9 @@ internal sealed class PhraseManagerDialog : Form
 
         _lblPhraseCount = new Label()
         {
-            AutoSize = true,
+            AutoSize = false,
             Anchor = AnchorStyles.Left,
+            TextAlign = ContentAlignment.MiddleLeft,
             Margin = new Padding(0, 12, 0, 0),
             AccessibleRole = AccessibleRole.StaticText
         };
@@ -443,6 +444,7 @@ internal sealed class PhraseManagerDialog : Form
         Controls.Add(_tlpMain);
 
         UpdatePhraseCountHint();
+        UpdatePhraseCountLabelMinimumWidth();
 
         // 應用程式焦點切換：暫停／恢復控制器。
         Activated += (s, e) =>
@@ -753,6 +755,8 @@ internal sealed class PhraseManagerDialog : Form
             return;
         }
 
+        UpdatePhraseCountLabelMinimumWidth();
+
         string countText = $"{Strings.Phrase_A11y_List_Name}：{_phraseService.Count}/{AppSettings.MaxPhraseCount}";
 
         _lblPhraseCount.Text = countText;
@@ -772,6 +776,32 @@ internal sealed class PhraseManagerDialog : Form
         _lblPhraseCount.ForeColor = isNearLimit ?
             Color.DarkOrange :
             Color.Empty;
+    }
+
+    /// <summary>
+    /// 預先鎖定片語數量提示標籤的寬度，避免數字變化時擠壓旁邊元件。
+    /// </summary>
+    private void UpdatePhraseCountLabelMinimumWidth()
+    {
+        if (_lblPhraseCount == null ||
+            _lblPhraseCount.IsDisposed)
+        {
+            return;
+        }
+
+        string widestText = $"{Strings.Phrase_A11y_List_Name}：{AppSettings.MaxPhraseCount}/{AppSettings.MaxPhraseCount}";
+        Size measured = TextRenderer.MeasureText(
+            widestText,
+            _lblPhraseCount.Font,
+            Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+
+        int width = Math.Max(_lblPhraseCount.MinimumSize.Width, measured.Width + 6);
+        int height = Math.Max(_lblPhraseCount.MinimumSize.Height, measured.Height);
+
+        _lblPhraseCount.AutoSize = false;
+        _lblPhraseCount.MinimumSize = new Size(width, height);
+        _lblPhraseCount.Size = new Size(width, height);
     }
 
     /// <summary>
@@ -1673,6 +1703,8 @@ internal sealed class PhraseManagerDialog : Form
         }
 
         float scale = currentDpi / AppSettings.BaseDpi;
+
+        UpdatePhraseCountLabelMinimumWidth();
 
         // 加上非客戶區（標題列＋邊框）高度，MinimumSize 是外框尺寸。
         // OnHandleCreated 時 Height == ClientSize.Height（非客戶區尚未就緒），

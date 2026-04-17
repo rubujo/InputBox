@@ -1,4 +1,4 @@
-﻿using InputBox.Core.Configuration;
+using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
@@ -303,12 +303,13 @@ internal sealed class PhraseEditDialog : Form
         // 名稱字數提示標籤（顯示名稱已輸入字元數 / 上限）。
         _lblNameCount = new Label
         {
-            AutoSize = true,
+            AutoSize = false,
             Anchor = AnchorStyles.Left,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
             TabStop = false,
             AccessibleRole = AccessibleRole.StaticText,
+            TextAlign = ContentAlignment.MiddleLeft,
             Margin = new Padding(0, 0, 0, 4)
         };
         HandleNameTextChanged();
@@ -355,12 +356,13 @@ internal sealed class PhraseEditDialog : Form
         // 字元數提示標籤（顯示內容已輸入字元數 / 上限）。
         _lblContentCount = new Label
         {
-            AutoSize = true,
+            AutoSize = false,
             Anchor = AnchorStyles.Left,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
             TabStop = false,
             AccessibleRole = AccessibleRole.StaticText,
+            TextAlign = ContentAlignment.MiddleLeft,
             Margin = new Padding(0, 0, 0, 4)
         };
         _txtContent.TextChanged += (_, _) => HandleContentTextChanged();
@@ -438,6 +440,8 @@ internal sealed class PhraseEditDialog : Form
         CancelButton = _btnCancel;
 
         Controls.Add(tlp);
+
+        UpdateCountLabelMinimumWidths();
 
         // 啟用／停用時控制器暫停／恢復。
         Activated += (s, e) =>
@@ -1786,6 +1790,8 @@ internal sealed class PhraseEditDialog : Form
             VibrationPatterns.GetSelectionSequence(direction, wordGranularity, burstLevel, controller.VibrationMotorSupport),
             _cts?.Token ?? CancellationToken.None)
             .SafeFireAndForget();
+
+        FeedbackService.PlaySelectionCue(wordGranularity, burstLevel);
     }
 
     /// <summary>
@@ -1940,6 +1946,47 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
+    /// 預先鎖定動態字數標籤的最小寬度，避免數值變化時造成版面抖動。
+    /// </summary>
+    private void UpdateCountLabelMinimumWidths()
+    {
+        UpdateSingleCountLabelMinimumWidth(
+            _lblNameCount,
+            GetPhraseTextOrFallback("Phrase_Edit_Name_Count", "Name length: "),
+            AppSettings.MaxPhraseNameLength);
+        UpdateSingleCountLabelMinimumWidth(
+            _lblContentCount,
+            GetPhraseTextOrFallback("Phrase_Edit_Content_Count", "Content length: "),
+            AppSettings.MaxInputLength);
+    }
+
+    /// <summary>
+    /// 鎖定單一動態標籤的寬度，讓最長狀態文字也不會改變物理尺寸。
+    /// </summary>
+    private static void UpdateSingleCountLabelMinimumWidth(Label? label, string labelPrefix, int maxValue)
+    {
+        if (label == null ||
+            label.IsDisposed)
+        {
+            return;
+        }
+
+        string widestText = $"{labelPrefix}{maxValue}/{maxValue}";
+        Size measured = TextRenderer.MeasureText(
+            widestText,
+            label.Font,
+            Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+
+        int width = Math.Max(label.MinimumSize.Width, measured.Width + 6);
+        int height = Math.Max(label.MinimumSize.Height, measured.Height);
+
+        label.AutoSize = false;
+        label.MinimumSize = new Size(width, height);
+        label.Size = new Size(width, height);
+    }
+
+    /// <summary>
     /// 更新單一按鈕的最小尺寸，避免焦點加粗造成版面抖動
     /// </summary>
     /// <param name="btn">目標按鈕。</param>
@@ -2032,6 +2079,8 @@ internal sealed class PhraseEditDialog : Form
         }
 
         float scale = currentDpi / AppSettings.BaseDpi;
+
+        UpdateCountLabelMinimumWidths();
 
         int desiredMinWidth = (int)(BaseDialogMinWidth * scale);
 

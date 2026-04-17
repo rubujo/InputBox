@@ -829,6 +829,8 @@ internal sealed class NumericInputDialog : Form
             VibrationPatterns.GetSelectionSequence(direction, wordGranularity, _selectionFeedbackBurstLevel, controller.VibrationMotorSupport),
             _cts?.Token ?? CancellationToken.None)
             .SafeFireAndForget();
+
+        FeedbackService.PlaySelectionCue(wordGranularity, _selectionFeedbackBurstLevel);
     }
 
     /// <summary>

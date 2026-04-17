@@ -1173,6 +1173,7 @@ public partial class MainForm
             .SafeFireAndForget();
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
+        FlashAlertAsync().SafeFireAndForget();
 
         PlayShowInputReadyFeedbackAsync().SafeFireAndForget();
     }

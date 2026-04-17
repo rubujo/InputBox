@@ -1401,6 +1401,8 @@ public partial class MainForm
 
         VibrateSequenceAsync(
             VibrationPatterns.GetSelectionSequence(direction, wordGranularity, burstLevel, controller.VibrationMotorSupport)).SafeFireAndForget();
+
+        FeedbackService.PlaySelectionCue(wordGranularity, burstLevel);
     }
 
     /// <summary>
