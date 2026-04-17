@@ -199,6 +199,17 @@ internal sealed class NumericInputDialog : Form
     private int? _rsSelectionAnchor = null;
 
     /// <summary>
+    /// 右搖桿快速選取時，用來形成拉鏈感的 burst 視窗。
+    /// </summary>
+    private const int SelectionBurstWindowMs = 110;
+
+    /// <summary>
+    /// 記錄最近一次右搖桿選取回饋的時間與 burst 等級。
+    /// </summary>
+    private DateTime _lastSelectionFeedbackUtc = DateTime.MinValue;
+    private int _selectionFeedbackBurstLevel;
+
+    /// <summary>
     /// A11y 廣播防抖用的序號
     /// </summary>
     private long _a11yDebounceId = 0;
@@ -659,8 +670,9 @@ internal sealed class NumericInputDialog : Form
 
                     textBox.SelectionLength = 0;
                 }
-                // 組合鍵：LB + 方向鍵 執行單字跳轉。
-                else if (_gamepadController?.IsLeftShoulderHeld == true)
+                // 組合鍵：任一肩鍵 + 方向鍵 執行單字跳轉。
+                else if (_gamepadController?.IsLeftShoulderHeld == true ||
+                         _gamepadController?.IsRightShoulderHeld == true)
                 {
                     textBox.WordJump(forward);
                 }
@@ -754,8 +766,12 @@ internal sealed class NumericInputDialog : Form
                 textBox.SelectionStart;
 
             int direction = forward ? 1 : -1;
+            bool wordGranularity = _gamepadController?.IsLeftShoulderHeld == true ||
+                                   _gamepadController?.IsRightShoulderHeld == true;
 
-            int newCaret = Math.Clamp(caret + direction, 0, textBox.TextLength);
+            int newCaret = wordGranularity ?
+                GetWordSelectionCaretTarget(textBox, caret, direction) :
+                Math.Clamp(caret + direction, 0, textBox.TextLength);
 
             if (newCaret == caret)
             {
@@ -770,6 +786,7 @@ internal sealed class NumericInputDialog : Form
 
             // 使用 Win32 EM_SETSEL 設定選取範圍。
             User32.SendMessage(textBox.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
+            textBox.ScrollToCaret();
 
             if (textBox.SelectionLength > 0)
             {
@@ -778,17 +795,64 @@ internal sealed class NumericInputDialog : Form
                     string.Format(Strings.A11y_Selected_Text, textBox.SelectedText), true);
             }
 
-            FeedbackService.VibrateAsync(
-                    _gamepadController,
-                    VibrationPatterns.CursorMove,
-                    _cts?.Token ?? CancellationToken.None)
-                .SafeFireAndForget();
+            PlaySelectionFeedback(direction, wordGranularity);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[NumericInputDialog] ExpandSelection 失敗：{ex.Message}");
         }
     });
+
+    /// <summary>
+    /// 根據選取粒度與速度播放不同的右搖桿文字選取回饋。
+    /// </summary>
+    private void PlaySelectionFeedback(int direction, bool wordGranularity)
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            return;
+        }
+
+        DateTime now = DateTime.UtcNow;
+        _selectionFeedbackBurstLevel = wordGranularity ?
+            0 :
+            (now - _lastSelectionFeedbackUtc).TotalMilliseconds <= SelectionBurstWindowMs ?
+                Math.Min(_selectionFeedbackBurstLevel + 1, 3) :
+                0;
+        _lastSelectionFeedbackUtc = now;
+
+        FeedbackService.VibrateSequenceAsync(
+            controller,
+            VibrationPatterns.GetSelectionSequence(direction, wordGranularity, _selectionFeedbackBurstLevel, controller.VibrationMotorSupport),
+            _cts?.Token ?? CancellationToken.None)
+            .SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
+    /// </summary>
+    private static int GetWordSelectionCaretTarget(TextBox textBox, int caret, int direction)
+    {
+        int originalStart = textBox.SelectionStart;
+        int originalLength = textBox.SelectionLength;
+
+        try
+        {
+            textBox.SelectionStart = Math.Clamp(caret, 0, textBox.TextLength);
+            textBox.SelectionLength = 0;
+            textBox.WordJump(direction > 0);
+
+            return textBox.SelectionStart;
+        }
+        finally
+        {
+            textBox.SelectionStart = originalStart;
+            textBox.SelectionLength = originalLength;
+        }
+    }
 
     /// <summary>
     /// 處理選取左向擴張

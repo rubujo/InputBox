@@ -182,7 +182,7 @@
     <comment>新しいホットキーが正常にキャプチャされたときに再生されるアクセシビリティメッセージ。{0} は設定されたホットキーの文字列です。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>{0} でテキストをコピーして前のウィンドウに戻るか、未入力時にキーボードを開きます。Start／Menu でいつでもキーボードを開けます。{1} で削除し、十字キーでカーソル移動や履歴操作を行います。LT／RT でテキストの先頭または末尾へすばやく移動できます。フレーズサブメニューでは、LB／RB でページ切り替え、LT／RT で先頭ページ／末尾ページへ移動できます。Back／View を離すと戻ります。LB + RB + {2} でクイック戻る。LB + RB + {3} でアプリを終了。キーボード：Enter でコピー／起動、Esc でクリア、上下で履歴、Alt + B で戻る。</value>
+    <value>{0} でテキストをコピーして前のウィンドウに戻るか、未入力時にキーボードを開きます。Start／Menu でいつでもキーボードを開けます。{1} で削除し、十字キーでカーソル移動や履歴操作を行います。LB／RB を単押しまたは長押しすると履歴を 5 件ずつ送れ、長押し中は連続でページ送りできます。LB／RB を押しながら左右で単語単位のジャンプができます。LT／RT でテキストの先頭または末尾へすばやく移動でき、ページ切り替え可能な画面では長押しで連続送りできます。LT + RT の同時押しでプライバシーモードを切り替えます。フレーズサブメニューでは、LB／RB でページ切り替え、LT／RT で先頭ページ／末尾ページへ移動できます。Back／View を離すと戻ります。LB + RB + {2} でクイック戻る。LB + RB + {3} を 0.8 秒長押しするとアプリを終了します。キーボード：Enter でコピー／起動、Esc でクリア、上下で履歴、Alt + B で戻る。</value>
     <comment>メインウィンドウの詳細なアクセシビリティ記述です。各種コントローラーやキーボードの操作方法を説明します。{0} は決定、{1} は削除、{2} はキャンセル、{3} は終了ショートカットで使う削除ボタンです。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -507,6 +507,14 @@
     <value>現在の実行中に学習したゲームパッドのニュートラル補正を消去します。保存済みのデッドゾーンやリピート設定は変更しません。</value>
     <comment>「現在の補正状態をリセット」メニュー項目のアクセシビリティ記述です。</comment>
   </data>
+  <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
+    <value>コントローラーを識別</value>
+    <comment>アクティブなコントローラーに識別用振動を再生するメニュー項目。</comment>
+  </data>
+  <data name="Menu_Gamepad_IdentifyController_Desc" xml:space="preserve">
+    <value>アクティブなコントローラーで特別な振動を再生し、すばやく見分けられるようにします。</value>
+    <comment>コントローラー識別メニュー項目の説明。</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>この変更を有効にするには再起動が必要です。今すぐ再起動しますか？</value>
     <comment>提示メッセージ。一部の設定変更を反映させるためにアプリケーションの再起動が必要であることをユーザーに知らせます。</comment>
@@ -662,6 +670,18 @@
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>現在のゲームパッド補正状態をリセットしました。</value>
     <comment>実行中の補正状態をリセットした後に読み上げるアクセシビリティメッセージです。</comment>
+  </data>
+  <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
+    <value>LB + RB + X を 0.8 秒長押しするとアプリを終了します。</value>
+    <comment>保護付き終了ショートカットを開始したときの読み上げ案内。</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
+    <value>現在のコントローラーを識別中: {0}。</value>
+    <comment>アクティブなコントローラーで識別用振動を再生する前の案内。{0} はコントローラー名。</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyUnavailable" xml:space="preserve">
+    <value>識別できるアクティブなコントローラーがありません。</value>
+    <comment>識別要求時に有効なコントローラーが存在しない場合の案内。</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>コントローラーのすべての振動エフェクトのオン/オフを切り替えます。</value>
@@ -902,14 +922,16 @@ LB + RB + B	前のウィンドウに素早く戻る
 Back／View（離す）	前のウィンドウに戻る
 Y	機能メニューを開く
 X	バックスペース（文字／選択範囲を削除）
-LB + RB + X	アプリを終了
+LB + RB + X を長押し	アプリを終了
 Back／View + X	ウィンドウの透明度をリセット
 ↑／↓	履歴を移動
 ←／→	カーソルを移動
-LB + ←／→	単語単位でジャンプ
-LT／RT	テキストの先頭／末尾へ移動
-フレーズサブメニュー：LB／RB	前のページ／次のページへすばやく切り替え
-フレーズサブメニュー：LT／RT	先頭ページ／末尾ページへ移動
+LB／RB（単押し / 長押し）	履歴を上下に 5 件送る（長押しで連続送り）
+LB／RB + ←／→	単語単位でジャンプ
+LT／RT	テキストの先頭／末尾へ移動；ページ画面では長押しで連続送り
+LT + RT	プライバシーモードを切り替え
+フレーズサブメニュー：LB／RB	前のページ／次のページへすばやく切り替え（長押しで連続送り）
+フレーズサブメニュー：LT／RT	先頭ページ／末尾ページへ移動（長押しで連続送り）
 RS ←／→	選択範囲を拡大または縮小
 Back／View + ↑／↓	透明度を調整（±5%）</value>
     <comment>ヘルプダイアログ内のゲームパッド操作表のデータ行。タブ区切り形式：ボタン{tab}操作、1行1項目。</comment>

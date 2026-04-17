@@ -28,6 +28,21 @@ internal sealed class PhraseEditDialog : Form
     private const int BaseDialogMinWidth = 760;
 
     /// <summary>
+    /// 右搖桿快速選取時，用來形成拉鏈感的 burst 視窗。
+    /// </summary>
+    private const int SelectionBurstWindowMs = 110;
+
+    /// <summary>
+    /// 文字接近輸入上限時開始提供物理預警的剩餘字元門檻。
+    /// </summary>
+    private const int TextLimitWarningThreshold = 10;
+
+    /// <summary>
+    /// 文字已碰到上限後，重複撞牆回饋的最小節流時間。
+    /// </summary>
+    private const int RepeatedBoundaryFeedbackThrottleMs = 180;
+
+    /// <summary>
     /// 片語名稱輸入框
     /// </summary>
     private readonly TextBox _txtName;
@@ -101,6 +116,22 @@ internal sealed class PhraseEditDialog : Form
     /// 右搖桿選取錨點
     /// </summary>
     private int? _rsSelectionAnchor;
+
+    /// <summary>
+    /// 記錄最近一次右搖桿選取回饋的時間與 burst 等級。
+    /// </summary>
+    private DateTime _lastSelectionFeedbackUtc = DateTime.MinValue;
+    private int _selectionFeedbackBurstLevel;
+
+    /// <summary>
+    /// 追蹤片語名稱與內容目前長度，用於偵測接近字數上限時的物理預警。
+    /// </summary>
+    private int _lastObservedNameLength;
+    private int _lastObservedContentLength;
+    private int _lastNameLimitWarningBucket = -1;
+    private int _lastContentLimitWarningBucket = -1;
+    private DateTime _lastNameLimitWallUtc = DateTime.MinValue;
+    private DateTime _lastContentLimitWallUtc = DateTime.MinValue;
 
     /// <summary>
     /// 動畫警示執行緒安全旗標
@@ -265,7 +296,8 @@ internal sealed class PhraseEditDialog : Form
         };
         _txtName.Enter += HandleTextBoxEnter;
         _txtName.Leave += HandleTextBoxLeave;
-        _txtName.TextChanged += (_, _) => UpdateNameCharCount();
+        _txtName.TextChanged += (_, _) => HandleNameTextChanged();
+        _txtName.KeyPress += HandleNameKeyPress;
         tlp.Controls.Add(_txtName, 1, 0);
 
         // 名稱字數提示標籤（顯示名稱已輸入字元數 / 上限）。
@@ -279,7 +311,7 @@ internal sealed class PhraseEditDialog : Form
             AccessibleRole = AccessibleRole.StaticText,
             Margin = new Padding(0, 0, 0, 4)
         };
-        UpdateNameCharCount();
+        HandleNameTextChanged();
         tlp.Controls.Add(_lblNameCount, 1, 1);
 
         // 內容標籤。
@@ -317,6 +349,7 @@ internal sealed class PhraseEditDialog : Form
         };
         _txtContent.Enter += HandleTextBoxEnter;
         _txtContent.Leave += HandleTextBoxLeave;
+        _txtContent.KeyPress += HandleContentKeyPress;
         tlp.Controls.Add(_txtContent, 1, 2);
 
         // 字元數提示標籤（顯示內容已輸入字元數 / 上限）。
@@ -330,8 +363,8 @@ internal sealed class PhraseEditDialog : Form
             AccessibleRole = AccessibleRole.StaticText,
             Margin = new Padding(0, 0, 0, 4)
         };
-        _txtContent.TextChanged += (s, e) => UpdateContentCharCount();
-        UpdateContentCharCount();
+        _txtContent.TextChanged += (_, _) => HandleContentTextChanged();
+        HandleContentTextChanged();
 
         // 按鈕區（Grouping）：與其他對話框一致，提供可導覽的群組語意。
         FlowLayoutPanel flpBtns = new()
@@ -895,6 +928,44 @@ internal sealed class PhraseEditDialog : Form
         },
         _cts?.Token ?? CancellationToken.None).SafeFireAndForget();
     }
+
+    /// <summary>
+    /// 片語名稱欄文字變更時，更新字數顯示並提供接近上限的回饋。
+    /// </summary>
+    private void HandleNameTextChanged()
+    {
+        UpdateNameCharCount();
+        HandleTextLimitFeedbackFromLengthChange(
+            _txtName,
+            AppSettings.MaxPhraseNameLength,
+            ref _lastObservedNameLength,
+            ref _lastNameLimitWarningBucket);
+    }
+
+    /// <summary>
+    /// 片語內容欄文字變更時，更新字數顯示並提供接近上限的回饋。
+    /// </summary>
+    private void HandleContentTextChanged()
+    {
+        UpdateContentCharCount();
+        HandleTextLimitFeedbackFromLengthChange(
+            _txtContent,
+            AppSettings.MaxInputLength,
+            ref _lastObservedContentLength,
+            ref _lastContentLimitWarningBucket);
+    }
+
+    /// <summary>
+    /// 片語名稱欄在已達上限時仍嘗試輸入一般字元，播放硬牆回饋。
+    /// </summary>
+    private void HandleNameKeyPress(object? sender, KeyPressEventArgs e)
+        => HandleTextLimitKeyPress(_txtName, AppSettings.MaxPhraseNameLength, ref _lastNameLimitWallUtc, e);
+
+    /// <summary>
+    /// 片語內容欄在已達上限時仍嘗試輸入一般字元，播放硬牆回饋。
+    /// </summary>
+    private void HandleContentKeyPress(object? sender, KeyPressEventArgs e)
+        => HandleTextLimitKeyPress(_txtContent, AppSettings.MaxInputLength, ref _lastContentLimitWallUtc, e);
 
     /// <summary>
     /// 取得目前焦點所在的 TextBox（名稱或內容）
@@ -1553,8 +1624,13 @@ internal sealed class PhraseEditDialog : Form
                 (anchor + tb.SelectionLength) :
                 tb.SelectionStart;
 
-        int safeDirection = Math.Sign(direction),
-            newCaret = Math.Clamp(caret + safeDirection, 0, tb.TextLength);
+        int safeDirection = Math.Sign(direction);
+        bool wordGranularity = _gamepadController?.IsLeftShoulderHeld == true ||
+                               _gamepadController?.IsRightShoulderHeld == true;
+
+        int newCaret = wordGranularity ?
+            GetWordSelectionCaretTarget(tb, caret, safeDirection) :
+            Math.Clamp(caret + safeDirection, 0, tb.TextLength);
 
         if (newCaret == caret)
         {
@@ -1569,12 +1645,170 @@ internal sealed class PhraseEditDialog : Form
 
         // 使用 Win32 EM_SETSEL 正確設定選取範圍（含反向選取）。
         User32.SendMessage(tb.Handle, 0x00B1, anchor, newCaret);
+        tb.ScrollToCaret();
 
-        FeedbackService.VibrateAsync(
+        PlaySelectionFeedback(safeDirection, wordGranularity);
+    }
+
+    /// <summary>
+    /// 推進某類觸覺回饋的 burst 等級，用於快速連發時做輕量阻尼。
+    /// </summary>
+    private static int AdvanceFeedbackBurst(ref DateTime lastUtc, ref int burstLevel, int fastWindowMs)
+    {
+        DateTime now = DateTime.UtcNow;
+        burstLevel = (now - lastUtc).TotalMilliseconds <= fastWindowMs ?
+            Math.Min(burstLevel + 1, 3) :
+            0;
+        lastUtc = now;
+
+        return burstLevel;
+    }
+
+    /// <summary>
+    /// 依剩餘字元數分級，目前只在接近上限時回傳有效 bucket。
+    /// </summary>
+    private static int GetTextLimitWarningBucket(int remainingCharacters)
+    {
+        return remainingCharacters switch
+        {
+            <= 0 => 3,
+            <= 2 => 2,
+            <= 5 => 1,
+            <= TextLimitWarningThreshold => 0,
+            _ => -1
+        };
+    }
+
+    /// <summary>
+    /// 當片語欄位長度變動時，提供接近字數上限的物理預警與硬牆回饋。
+    /// </summary>
+    private void HandleTextLimitFeedbackFromLengthChange(
+        TextBox textBox,
+        int maxLength,
+        ref int lastObservedLength,
+        ref int lastWarningBucket)
+    {
+        if (textBox.IsDisposed)
+        {
+            return;
+        }
+
+        int currentLength = textBox.TextLength;
+
+        if (currentLength < lastObservedLength)
+        {
+            lastObservedLength = currentLength;
+            lastWarningBucket = currentLength >= maxLength - TextLimitWarningThreshold ?
+                GetTextLimitWarningBucket(maxLength - currentLength) :
+                -1;
+            return;
+        }
+
+        int remainingCharacters = maxLength - currentLength;
+
+        if (remainingCharacters > TextLimitWarningThreshold)
+        {
+            lastObservedLength = currentLength;
+            lastWarningBucket = -1;
+            return;
+        }
+
+        int currentBucket = GetTextLimitWarningBucket(remainingCharacters);
+
+        if (currentLength > lastObservedLength &&
+            (currentBucket != lastWarningBucket || remainingCharacters <= 2))
+        {
+            if (remainingCharacters <= 0)
+            {
+                FeedbackService.PlaySound(SystemSounds.Beep);
+            }
+
+            FeedbackService.VibrateSequenceAsync(
+                _gamepadController,
+                VibrationPatterns.GetTextLimitSequence(
+                    remainingCharacters,
+                    _gamepadController?.VibrationMotorSupport ?? VibrationMotorSupport.None),
+                _cts?.Token ?? CancellationToken.None)
+                .SafeFireAndForget();
+        }
+
+        lastObservedLength = currentLength;
+        lastWarningBucket = currentBucket;
+    }
+
+    /// <summary>
+    /// 使用者在字數已滿時仍嘗試輸入一般字元，播放硬牆回饋。
+    /// </summary>
+    private void HandleTextLimitKeyPress(TextBox textBox, int maxLength, ref DateTime lastWallUtc, KeyPressEventArgs e)
+    {
+        if (textBox.IsDisposed ||
+            char.IsControl(e.KeyChar) ||
+            textBox.TextLength < maxLength)
+        {
+            return;
+        }
+
+        if ((DateTime.UtcNow - lastWallUtc).TotalMilliseconds < RepeatedBoundaryFeedbackThrottleMs)
+        {
+            return;
+        }
+
+        lastWallUtc = DateTime.UtcNow;
+        FeedbackService.PlaySound(SystemSounds.Beep);
+        FeedbackService.VibrateSequenceAsync(
             _gamepadController,
-            VibrationPatterns.CursorMove,
+            VibrationPatterns.GetTextLimitSequence(
+                0,
+                _gamepadController?.VibrationMotorSupport ?? VibrationMotorSupport.None),
             _cts?.Token ?? CancellationToken.None)
             .SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 根據選取粒度與速度播放不同的右搖桿文字選取回饋。
+    /// </summary>
+    private void PlaySelectionFeedback(int direction, bool wordGranularity)
+    {
+        IGamepadController? controller = _gamepadController;
+
+        if (controller == null ||
+            !controller.IsConnected)
+        {
+            return;
+        }
+
+        int burstLevel = wordGranularity ?
+            0 :
+            AdvanceFeedbackBurst(ref _lastSelectionFeedbackUtc, ref _selectionFeedbackBurstLevel, SelectionBurstWindowMs);
+
+        FeedbackService.VibrateSequenceAsync(
+            controller,
+            VibrationPatterns.GetSelectionSequence(direction, wordGranularity, burstLevel, controller.VibrationMotorSupport),
+            _cts?.Token ?? CancellationToken.None)
+            .SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
+    /// </summary>
+    private static int GetWordSelectionCaretTarget(TextBox textBox, int caret, int direction)
+    {
+        int originalStart = textBox.SelectionStart;
+        int originalLength = textBox.SelectionLength;
+
+        try
+        {
+            textBox.SelectionStart = Math.Clamp(caret, 0, textBox.TextLength);
+            textBox.SelectionLength = 0;
+            textBox.WordJump(direction > 0);
+
+            return textBox.SelectionStart;
+        }
+        finally
+        {
+            textBox.SelectionStart = originalStart;
+            textBox.SelectionLength = originalLength;
+        }
     }
 
     /// <summary>

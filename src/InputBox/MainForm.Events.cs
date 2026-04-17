@@ -934,10 +934,45 @@ public partial class MainForm
         if (navigationResult.IsCleared)
         {
             HandleClearedHistoryResult(navigationResult);
+            PlayHistoryScrollFeedback(direction);
+            return;
+        }
+
+        if (!navigationResult.Success)
+        {
             return;
         }
 
         HandleSuccessHistoryResult(navigationResult);
+        PlayHistoryScrollFeedback(direction);
+    }
+
+    /// <summary>
+    /// 以固定步數快速翻頁導覽歷程，用於控制器肩鍵的大步跳轉。
+    /// </summary>
+    /// <param name="direction">導航方向，-1 表示向較舊歷程，1 表示向較新歷程。</param>
+    /// <param name="pageSize">單次要嘗試跳過的筆數。</param>
+    private void NavigateHistoryPage(int direction, int pageSize)
+    {
+        InputHistoryService.NavigationResult navigationResult = _historyService.NavigatePage(direction, pageSize);
+
+        HandleHistoryBoundaryFeedback(navigationResult, direction);
+
+        if (navigationResult.IsCleared)
+        {
+            HandleClearedHistoryResult(navigationResult);
+            VibrateNavigationAsync(VibrationSemantic.PageSwitch, direction, VibrationContext.History).SafeFireAndForget();
+
+            return;
+        }
+
+        if (!navigationResult.Success)
+        {
+            return;
+        }
+
+        HandleSuccessHistoryResult(navigationResult);
+        VibrateNavigationAsync(VibrationSemantic.PageSwitch, direction, VibrationContext.History).SafeFireAndForget();
     }
 
     /// <summary>
@@ -953,9 +988,16 @@ public partial class MainForm
             return;
         }
 
+        string boundaryKey = direction < 0 ? "HistoryOldest" : "HistoryNewest";
+
+        if (ShouldThrottleRepeatedBoundaryFeedback(boundaryKey))
+        {
+            return;
+        }
+
         FeedbackService.PlaySound(SystemSounds.Beep);
 
-        VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+        VibrateNavigationAsync(VibrationSemantic.Boundary, direction, VibrationContext.History).SafeFireAndForget();
 
         // 視覺回饋（提示已經到底了）。
         FlashAlertAsync().SafeFireAndForget();
@@ -994,6 +1036,7 @@ public partial class MainForm
             return;
         }
 
+        SuppressNextTextLimitFeedback();
         TBInput.Text = navigationResult.Text;
         // 游標移到最後。
         TBInput.SelectionStart = TBInput.Text.Length;
@@ -1131,7 +1174,7 @@ public partial class MainForm
 
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
-        VibrateAsync(VibrationPatterns.ShowInput).SafeFireAndForget();
+        PlayShowInputReadyFeedbackAsync().SafeFireAndForget();
     }
 
     /// <summary>

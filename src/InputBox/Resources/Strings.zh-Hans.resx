@@ -182,7 +182,7 @@
     <comment>无障碍消息，当新的快捷键捕获成功时播放。{0} 是设置后的快捷键字符串。</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>按 {0} 可在有文字时复制并返回，或在文本为空时打开键盘。按 Start／Menu 可随时打开键盘。按 {1} 删除，方向键移动光标或浏览历史记录。LT／RT 可快速跳到文字开头或结尾。在短语子菜单中，可用 LB／RB 切换页面，LT／RT 跳至首页或末页。放开 Back／View 可返回。按 LB + RB + {2} 快速返回。按 LB + RB + {3} 退出程序。键盘：Enter 复制／开启，Esc 清除，上下键切换历史记录，Alt + B 返回。</value>
+    <value>按 {0} 可在有文字时复制并返回，或在文本为空时打开键盘。按 Start／Menu 可随时打开键盘。按 {1} 删除，方向键移动光标或浏览历史记录。单按或按住 LB／RB 可一次翻动 5 条历史记录，持续按住可连续翻页，按住 LB／RB 再配合左右方向可进行单词跳转。LT／RT 可快速跳到文字开头或结尾，在可翻页的界面中按住也可连续翻页，同时按 LT + RT 可切换隐私模式。在短语子菜单中，可用 LB／RB 切换页面，LT／RT 跳至首页或末页。放开 Back／View 可返回。按 LB + RB + {2} 快速返回。按住 LB + RB + {3} 0.8 秒可退出程序。键盘：Enter 复制／开启，Esc 清除，上下键切换历史记录，Alt + B 返回。</value>
     <comment>主窗口的无障碍详细描述，解释各种控制器与键盘的操作方式。{0} 为确认键，{1} 为删除键，{2} 为取消键，{3} 为退出快捷键中的删除键。</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -507,6 +507,14 @@
     <value>清除当前运行期间学习到的游戏控制器中立偏移，不会更改已保存的死区或重复输入设置。</value>
     <comment>“重置当前校准状态”菜单项的无障碍描述。</comment>
   </data>
+  <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
+    <value>识别当前游戏控制器</value>
+    <comment>在当前活动游戏控制器播放识别震动的菜单项文字。</comment>
+  </data>
+  <data name="Menu_Gamepad_IdentifyController_Desc" xml:space="preserve">
+    <value>在当前活动的游戏控制器上播放特殊震动，方便快速识别。</value>
+    <comment>识别当前游戏控制器菜单项的无障碍描述。</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>此更改需要重启程序才能生效。是否立即重启？</value>
     <comment>提示信息，告知用户某些设置变更需要重启程序才能生效。</comment>
@@ -662,6 +670,18 @@
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>已重置当前游戏控制器校准状态。</value>
     <comment>重置运行期校准状态后播报的无障碍消息。</comment>
+  </data>
+  <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
+    <value>按住 LB + RB + X 0.8 秒即可退出程序。</value>
+    <comment>开始执行保护式退出快捷键时播报的无障碍提示。</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
+    <value>正在识别当前游戏控制器：{0}。</value>
+    <comment>在当前活动游戏控制器上播放识别震动前的播报。{0} 为控制器名称。</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyUnavailable" xml:space="preserve">
+    <value>当前没有可识别的活动游戏控制器。</value>
+    <comment>当没有已连接的活动游戏控制器可供识别时播报。</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>切换所有控制器震动效果的开启或关闭。</value>
@@ -902,14 +922,16 @@ LB + RB + B	快速返回前一个窗口
 Back／View（松开）	返回前一个窗口
 Y	打开功能菜单
 X	退格（删除字符 / 选中内容）
-LB + RB + X	退出程序
+按住 LB + RB + X	退出程序
 Back／View + X	重置窗口透明度
 ↑ / ↓	浏览历史记录
 ← / →	光标左移 / 右移
-LB + ← / →	单词跳转
-LT／RT	光标跳至文字开头／结尾
-短语子菜单：LB／RB	快速切换上一页／下一页
-短语子菜单：LT／RT	跳至首页／末页
+LB／RB（单按 / 按住）	历史记录上／下翻 5 条（按住可连发）
+LB／RB + ← / →	单词跳转
+LT／RT	光标跳至文字开头／结尾；在翻页界面按住可连发
+LT + RT	切换隐私模式
+短语子菜单：LB／RB	快速切换上一页／下一页（按住可连发）
+短语子菜单：LT／RT	跳至首页／末页（按住可连发）
 RS ← / →	扩大或缩小选中范围
 Back／View + ↑ / ↓	调整窗口透明度（±5%）</value>
     <comment>帮助对话框中控制器按键对照表格的数据行，以 Tab 分隔列：按钮{tab}功能，每行一条。</comment>

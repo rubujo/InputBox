@@ -340,11 +340,38 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Hold LB + RB + X for 0.8 seconds to exit. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Gamepad_ExitHoldStart {
+            get {
+                return ResourceManager.GetString("A11y_Gamepad_ExitHoldStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 GameInput initialization failed. Switched to XInput compatibility mode. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Gamepad_Fallback {
             get {
                 return ResourceManager.GetString("A11y_Gamepad_Fallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Identifying current controller: {0}. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Gamepad_IdentifyStarted {
+            get {
+                return ResourceManager.GetString("A11y_Gamepad_IdentifyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 No active controller is available to identify. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Gamepad_IdentifyUnavailable {
+            get {
+                return ResourceManager.GetString("A11y_Gamepad_IdentifyUnavailable", resourceCulture);
             }
         }
         
@@ -421,7 +448,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Use LT and RT to jump to the text start or end. In the Phrases submenu, use LB and RB to switch pages and LT and RT to jump to the first or last page. Release Back or View to return. Press LB + RB + {2} for quick return. Press LB + RB + {3} to exit. Keyboard: Enter to copy or open the keyboard, Esc to c [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
+        ///   查詢類似 Press {0} to copy text and return, or open the keyboard when the input is empty. Press Start or Menu to open the keyboard at any time. Use {1} to backspace and the D-pad to move the cursor or browse history. Tap or hold LB or RB to page through history in steps of five; keep holding to continue paging, or hold either shoulder with Left/Right to jump by word. Use LT and RT to jump to the text start or end, and in page-aware views you can hold them to repeat the paging action; press LT + RT together to toggle [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string A11y_MainFormDesc {
             get {
@@ -1293,14 +1320,13 @@ namespace InputBox.Resources {
         ///Back / View (release)	Return to previous window
         ///Y	Open feature menu
         ///X	Backspace (Delete character/selection)
-        ///LB + RB + X	Exit application
+        ///Hold LB + RB + X	Exit application
         ///Back / View + X	Reset window opacity
         ///↑ / ↓	Navigate history
         ///← / →	Move cursor left / right
-        ///LB + ← / →	Jump cursor by word
-        ///LT / RT	Jump to text start / end
-        ///Phrases submenu: LB / RB	Switch to previous / next page
-        ///Phrases submenu: LT / RT	Jump to f [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
+        ///LB / RB (tap / hold)	Page history up / down by 5 entries; hold to repeat
+        ///LB / RB + ← / →	Jump cursor by word
+        ///LT / RT	Jump to text start / end; hold in [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string Help_Gamepad_Rows {
             get {
@@ -1471,6 +1497,24 @@ namespace InputBox.Resources {
         internal static string Menu_ExportPhrases {
             get {
                 return ResourceManager.GetString("Menu_ExportPhrases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Identify Controller 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Gamepad_IdentifyController {
+            get {
+                return ResourceManager.GetString("Menu_Gamepad_IdentifyController", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Play a distinct vibration on the active controller so you can find it quickly. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Gamepad_IdentifyController_Desc {
+            get {
+                return ResourceManager.GetString("Menu_Gamepad_IdentifyController_Desc", resourceCulture);
             }
         }
         

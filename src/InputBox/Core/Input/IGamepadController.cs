@@ -1,4 +1,6 @@
-﻿namespace InputBox.Core.Input;
+﻿using InputBox.Core.Feedback;
+
+namespace InputBox.Core.Input;
 
 /// <summary>
 /// Gamepad 控制介面
@@ -51,9 +53,19 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     event Action? LeftShoulderPressed;
 
     /// <summary>
+    /// 左肩鍵（LB）持續按住時的連發事件
+    /// </summary>
+    event Action? LeftShoulderRepeat;
+
+    /// <summary>
     /// 當右肩鍵（RB 鍵）被按下時觸發
     /// </summary>
     event Action? RightShoulderPressed;
+
+    /// <summary>
+    /// 右肩鍵（RB）持續按住時的連發事件
+    /// </summary>
+    event Action? RightShoulderRepeat;
 
     /// <summary>
     /// 控制器開始鍵按下事件
@@ -181,6 +193,16 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     bool IsBHeld { get; }
 
     /// <summary>
+    /// 控制器 X 鍵是否按住
+    /// </summary>
+    bool IsXHeld { get; }
+
+    /// <summary>
+    /// 目前控制器支援的震動馬達能力。
+    /// </summary>
+    VibrationMotorSupport VibrationMotorSupport { get; }
+
+    /// <summary>
     /// 讓控制器震動
     /// </summary>
     /// <param name="strength">強度</param>
@@ -191,6 +213,18 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     Task VibrateAsync(
         ushort strength,
         int milliseconds = 60,
+        VibrationPriority priority = VibrationPriority.Normal,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 依指定的多馬達震動設定讓控制器震動。
+    /// </summary>
+    /// <param name="profile">包含基礎強度、持續時間與各馬達比例的震動設定。</param>
+    /// <param name="priority">震動優先級。</param>
+    /// <param name="ct">取消權杖。</param>
+    /// <returns>Task。</returns>
+    Task VibrateAsync(
+        VibrationProfile profile,
         VibrationPriority priority = VibrationPriority.Normal,
         CancellationToken ct = default);
 

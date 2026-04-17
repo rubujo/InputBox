@@ -96,6 +96,50 @@ public class InputHistoryServiceTests
         Assert.Equal(3, last.TotalCount);
     }
 
+    /// <summary>
+    /// 一次翻頁時，應最多跳過指定筆數並停在對應的較舊歷程上。
+    /// </summary>
+    [Fact]
+    public void NavigatePage_Up_JumpsSpecifiedCount()
+    {
+        var svc = new InputHistoryService();
+
+        for (int i = 1; i <= 8; i++)
+        {
+            svc.Add($"item-{i}");
+        }
+
+        var result = svc.NavigatePage(-1, 5);
+
+        Assert.True(result.Success);
+        Assert.Equal("item-4", result.Text);
+        Assert.Equal(4, result.CurrentIndex);
+        Assert.Equal(8, result.TotalCount);
+    }
+
+    /// <summary>
+    /// 從較舊歷程向下翻頁時，若超過最新邊界，應回到空白輸入狀態而不是停在中途。
+    /// </summary>
+    [Fact]
+    public void NavigatePage_Down_PastNewest_ClearsInput()
+    {
+        var svc = new InputHistoryService();
+
+        for (int i = 1; i <= 6; i++)
+        {
+            svc.Add($"entry-{i}");
+        }
+
+        _ = svc.NavigatePage(-1, 5);
+
+        var result = svc.NavigatePage(1, 5);
+
+        Assert.True(result.Success);
+        Assert.True(result.IsCleared);
+        Assert.Equal(string.Empty, result.Text);
+        Assert.Equal(-1, result.CurrentIndex);
+    }
+
     // ── Navigate：空歷程 ────────────────────────────────────────────────────
 
     /// <summary>

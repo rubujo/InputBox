@@ -182,7 +182,7 @@
     <comment>Message d&apos;accessibilité, diffusé lorsqu&apos;une nouvelle touche de raccourci est récupérée avec succès. {0} est la chaîne de touches de raccourci définie.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Appuyez sur {0} pour copier le texte et revenir à la fenêtre précédente, ou pour ouvrir le clavier lorsque la saisie est vide. Appuyez sur Start ou Menu pour ouvrir le clavier à tout moment. Utilisez {1} pour effacer vers l'arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. LT et RT permettent d'aller rapidement au début ou à la fin du texte. Dans le sous-menu des phrases, LB et RB changent de page, tandis que LT et RT vont à la première ou à la dernière page. Relâchez Back ou View pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
+    <value>Appuyez sur {0} pour copier le texte et revenir à la fenêtre précédente, ou pour ouvrir le clavier lorsque la saisie est vide. Appuyez sur Start ou Menu pour ouvrir le clavier à tout moment. Utilisez {1} pour effacer vers l'arrière, et le pavé directionnel pour déplacer le curseur ou parcourir l'historique. Appuyez brièvement ou maintenez LB ou RB pour faire défiler l'historique par blocs de 5 ; en le maintenant, le défilement continue. Maintenez une touche d'épaule avec Gauche/Droite pour sauter mot par mot. LT et RT permettent d'aller au début ou à la fin du texte et, dans les vues paginées, un appui maintenu répète le changement de page. LT + RT ensemble basculent le mode Confidentialité. Dans le sous-menu des phrases, LB et RB changent de page, tandis que LT et RT vont à la première ou à la dernière page. Relâchez Back ou View pour revenir. Appuyez sur LB + RB + {2} pour un retour rapide. Appuyez sur LB + RB + {3} pour quitter. Clavier : Entrée pour copier ou ouvrir le clavier, Échap pour effacer, Haut/Bas pour l'historique, Alt + B pour revenir.</value>
     <comment>Description détaillée de l&apos;accessibilité de la fenêtre principale, expliquant le fonctionnement des différents contrôleurs et claviers. {0} est le bouton de confirmation, {1} celui de suppression, {2} celui d&apos;annulation et {3} celui utilisé pour le raccourci de fermeture.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -507,6 +507,14 @@ Vérifiez que plusieurs instances de cette application ne s'exécutent pas en m�
     <value>Efface le décalage neutre appris pendant la session en cours sans modifier les paramètres enregistrés de zone morte ni de répétition.</value>
     <comment>Description d&apos;accessibilité pour l&apos;élément de menu « Réinitialiser l’état de calibration actuel ».</comment>
   </data>
+  <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
+    <value>Identifier la manette</value>
+    <comment>Élément de menu permettant de jouer une vibration d’identification sur la manette active.</comment>
+  </data>
+  <data name="Menu_Gamepad_IdentifyController_Desc" xml:space="preserve">
+    <value>Joue une vibration distincte sur la manette active pour la repérer rapidement.</value>
+    <comment>Description d’accessibilité pour l’élément de menu d’identification de la manette.</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>Cette modification nécessite un redémarrage pour prendre effet. Redémarrer maintenant ?</value>
     <comment>Message d&apos;invite informant l&apos;utilisateur que certaines modifications de paramètres nécessitent le redémarrage du programme pour prendre effet.</comment>
@@ -662,6 +670,18 @@ Vérifiez que plusieurs instances de cette application ne s'exécutent pas en m�
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>L’état de calibration actuel de la manette a été réinitialisé.</value>
     <comment>Annonce diffusée après la réinitialisation de l’état de calibration en cours d’exécution.</comment>
+  </data>
+  <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
+    <value>Maintenez LB + RB + X pendant 0,8 seconde pour quitter.</value>
+    <comment>Annonce lue lorsque le raccourci de fermeture sécurisé commence.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
+    <value>Identification de la manette active : {0}.</value>
+    <comment>Annonce avant la vibration d’identification sur la manette active. {0} est le nom de la manette.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyUnavailable" xml:space="preserve">
+    <value>Aucune manette active n’est disponible pour l’identification.</value>
+    <comment>Annonce lue lorsqu’aucune manette active n’est disponible pour l’identification.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Activez ou désactivez tous les effets de vibration du contrôleur.</value>
@@ -902,14 +922,16 @@ LB + RB + B	Retour rapide à la fenêtre précédente
 Back / View (relâcher)	Revenir à la fenêtre précédente
 Y	Ouvrir le menu des fonctionnalités
 X	Retour arrière (supprimer caractère/sélection)
-LB + RB + X	Quitter l'application
+Maintenir LB + RB + X	Quitter l'application
 Back / View + X	Réinitialiser l'opacité de la fenêtre
 ↑ / ↓	Parcourir l'historique
 ← / →	Déplacer le curseur vers la gauche / droite
-LB + ← / →	Déplacer le curseur mot par mot
-LT / RT	Aller au début / à la fin du texte
-Sous-menu des phrases : LB / RB	Passer rapidement à la page précédente / suivante
-Sous-menu des phrases : LT / RT	Aller à la première / dernière page
+LB / RB (appui court / maintenu)	Faire défiler l'historique de 5 entrées ; maintenir pour répéter
+LB / RB + ← / →	Déplacer le curseur mot par mot
+LT / RT	Aller au début / à la fin du texte ; maintenir dans les vues paginées pour répéter
+LT + RT	Basculer le mode Confidentialité
+Sous-menu des phrases : LB / RB	Passer rapidement à la page précédente / suivante (maintenir pour répéter)
+Sous-menu des phrases : LT / RT	Aller à la première / dernière page (maintenir pour répéter)
 RS ← / →	Étendre ou réduire la sélection
 Back / View + ↑ / ↓	Ajuster l'opacité de la fenêtre (±5 %)</value>
     <comment>Les touches du contrôleur dans la boîte de dialogue de description correspondent aux colonnes de données de la table, et les champs sont séparés par Tab : bouton {tab} fonction, une colonne par ligne.</comment>

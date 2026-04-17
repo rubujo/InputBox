@@ -292,8 +292,9 @@ internal sealed class PhraseService
         string tempPath = Path.Combine(
             Path.GetDirectoryName(filePath) ?? AppSettings.ConfigDirectory,
             $"{Path.GetFileName(filePath)}.{Guid.NewGuid():N}.tmp");
+        string registeredTempPath = tempPath;
 
-        RegisterActivePhraseTempFile(tempPath);
+        RegisterActivePhraseTempFile(registeredTempPath);
 
         try
         {
@@ -348,7 +349,9 @@ internal sealed class PhraseService
         }
         finally
         {
-            UnregisterActivePhraseTempFile(tempPath);
+            // 無論成功或失敗，都要解除註冊最初建立的暫存檔；
+            // 成功路徑中 tempPath 可能已清成空字串，不能拿來當作解除註冊依據。
+            UnregisterActivePhraseTempFile(registeredTempPath);
             TryDeletePhraseTempFile(tempPath);
             CleanupPhraseTempFiles(filePath);
         }

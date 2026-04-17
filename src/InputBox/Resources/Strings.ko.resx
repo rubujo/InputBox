@@ -182,7 +182,7 @@
     <comment>새로운 핫키가 성공적으로 캡처될 때 재생되는 메시지입니다. {0}은 결과 핫키 문자열입니다.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>{0}을 눌러 텍스트를 복사하고 이전 창으로 돌아가거나, 입력이 비어 있을 때 키보드를 엽니다. Start 또는 Menu를 누르면 언제든 키보드를 열 수 있습니다. {1}로 백스페이스하고, 방향 패드로 커서를 이동하거나 기록을 탐색합니다. LT/RT로 텍스트의 시작이나 끝으로 빠르게 이동할 수 있습니다. 문구 하위 메뉴에서는 LB/RB로 페이지를 넘기고 LT/RT로 처음 또는 마지막 페이지로 이동할 수 있습니다. Back 또는 View에서 손을 떼면 이전 창으로 돌아갑니다. LB + RB + {2}로 빠르게 반환합니다. LB + RB + {3}를 눌러 종료합니다. 키보드: Enter로 복사/열기, Esc로 지우기, 위/아래로 기록 확인, Alt + B로 반환합니다.</value>
+    <value>{0}을 눌러 텍스트를 복사하고 이전 창으로 돌아가거나, 입력이 비어 있을 때 키보드를 엽니다. Start 또는 Menu를 누르면 언제든 키보드를 열 수 있습니다. {1}로 백스페이스하고, 방향 패드로 커서를 이동하거나 기록을 탐색합니다. LB/RB를 짧게 누르거나 길게 누르면 기록을 5개씩 넘길 수 있고, 계속 누르고 있으면 연속으로 페이지가 넘어갑니다. LB/RB를 누른 채 좌우를 누르면 단어 단위로 이동합니다. LT/RT로 텍스트의 시작이나 끝으로 빠르게 이동할 수 있으며, 페이지 전환이 가능한 화면에서는 길게 눌러 연속 이동할 수 있습니다. LT + RT를 함께 누르면 개인 정보 모드가 전환됩니다. 문구 하위 메뉴에서는 LB/RB로 페이지를 넘기고 LT/RT로 처음 또는 마지막 페이지로 이동할 수 있습니다. Back 또는 View에서 손을 떼면 이전 창으로 돌아갑니다. LB + RB + {2}로 빠르게 반환합니다. LB + RB + {3}를 0.8초 동안 길게 눌러 종료합니다. 키보드: Enter로 복사/열기, Esc로 지우기, 위/아래로 기록 확인, Alt + B로 반환합니다.</value>
     <comment>다양한 컨트롤러 및 키보드 작업을 설명하는 메인 창의 자세한 설명입니다. {0}은 확인 버튼, {1}은 삭제 버튼, {2}는 취소 버튼, {3}은 종료 단축키에 쓰이는 삭제 버튼입니다.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -507,6 +507,14 @@
     <value>저장된 데드존 또는 반복 입력 설정은 유지한 채, 현재 실행 중 학습된 게임패드 중립 오프셋을 지웁니다.</value>
     <comment>현재 보정 상태 재설정 메뉴 항목의 접근성 설명입니다.</comment>
   </data>
+  <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
+    <value>컨트롤러 식별</value>
+    <comment>활성 컨트롤러에 식별 진동을 재생하는 메뉴 항목입니다.</comment>
+  </data>
+  <data name="Menu_Gamepad_IdentifyController_Desc" xml:space="preserve">
+    <value>현재 활성 컨트롤러에 고유 진동을 재생해 빠르게 찾을 수 있습니다.</value>
+    <comment>컨트롤러 식별 메뉴 항목의 접근성 설명입니다.</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>이 변경 사항을 적용하려면 다시 시작해야 합니다. 지금 다시 시작하시겠습니까?</value>
     <comment>설정이 적용되려면 다시 시작이 필요함을 사용자에게 알리는 프롬프트 메시지입니다.</comment>
@@ -662,6 +670,18 @@
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>현재 게임패드 보정 상태를 재설정했습니다.</value>
     <comment>실행 중 보정 상태를 재설정한 뒤 재생되는 접근성 알림입니다.</comment>
+  </data>
+  <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
+    <value>LB + RB + X를 0.8초 동안 길게 눌러 종료합니다.</value>
+    <comment>보호된 종료 단축키가 시작될 때 읽어 주는 안내입니다.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
+    <value>현재 컨트롤러를 식별하는 중: {0}.</value>
+    <comment>활성 컨트롤러에서 식별 진동을 재생하기 전에 안내합니다. {0}은 컨트롤러 이름입니다.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyUnavailable" xml:space="preserve">
+    <value>식별할 수 있는 활성 컨트롤러가 없습니다.</value>
+    <comment>식별 요청 시 사용할 수 있는 활성 컨트롤러가 없을 때 안내합니다.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>모든 컨트롤러 진동 효과를 켜거나 끕니다.</value>
@@ -902,14 +922,16 @@ LB + RB + B	이전 창으로 빠르게 반환
 Back / View (해제)	이전 창으로 반환
 Y	기능 메뉴 열기
 X	백스페이스 (문자/선택 항목 삭제)
-LB + RB + X	응용 프로그램 종료
+LB + RB + X 길게 누르기	응용 프로그램 종료
 Back / View + X	창 불투명도 재설정
 ↑ / ↓	기록 탐색
 ← / →	커서 왼쪽/오른쪽으로 이동
-LB + ← / →	단어별로 커서 이동
-LT / RT	텍스트의 시작 / 끝으로 이동
-문구 하위 메뉴: LB / RB	이전 / 다음 페이지로 빠르게 전환
-문구 하위 메뉴: LT / RT	첫 페이지 / 마지막 페이지로 이동
+LB / RB(짧게 / 길게 누름)	기록을 위/아래로 5개씩 넘기기(길게 누르면 연속 전환)
+LB / RB + ← / →	단어별로 커서 이동
+LT / RT	텍스트의 시작 / 끝으로 이동; 페이지 화면에서는 길게 눌러 연속 전환
+LT + RT	개인 정보 모드 전환
+문구 하위 메뉴: LB / RB	이전 / 다음 페이지로 빠르게 전환(길게 누르면 연속 전환)
+문구 하위 메뉴: LT / RT	첫 페이지 / 마지막 페이지로 이동(길게 누르면 연속 전환)
 RS ← / →	선택 확장 또는 축소
 Back / View + ↑ / ↓	창 불투명도 조정 (±5%)</value>
     <comment>도움말 대화 상자의 게임패드 컨트롤 테이블의 탭 구분 행입니다. 형식: 단추{tab}작업. 행당 한 줄씩입니다.</comment>

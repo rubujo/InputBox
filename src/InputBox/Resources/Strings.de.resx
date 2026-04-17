@@ -182,7 +182,7 @@
     <comment>Meldung zur Barrierefreiheit, die abgespielt wird, wenn eine neue Tastenkombination erfolgreich abgerufen wurde. {0} ist die festgelegte Tastenkombinationszeichenfolge.</comment>
   </data>
   <data name="A11y_MainFormDesc" xml:space="preserve">
-    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Mit LT und RT springen Sie an den Anfang bzw. das Ende des Textes. Im Phrasen-Untermenü wechseln Sie mit LB und RB die Seiten und springen mit LT und RT zur ersten oder letzten Seite. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
+    <value>Drücken Sie {0}, um Text zu kopieren und zum vorherigen Fenster zurückzukehren, oder bei leerem Eingabefeld die Bildschirmtastatur zu öffnen. Mit Start oder Menu können Sie die Tastatur jederzeit öffnen. Mit {1} löschen Sie rückwärts, mit dem Steuerkreuz bewegen Sie den Cursor oder durchlaufen den Verlauf. Tippen oder halten Sie LB bzw. RB, um den Verlauf in 5er-Schritten zu blättern; halten Sie weiter gedrückt, um fortlaufend zu blättern, oder halten Sie eine Schultertaste zusammen mit Links/Rechts gedrückt, um wortweise zu springen. Mit LT und RT springen Sie an den Anfang bzw. das Ende des Textes; in Ansichten mit Seitenwechsel können Sie durch Gedrückthalten weiterblättern. LT + RT zusammen schaltet den Privatmodus um. Im Phrasen-Untermenü wechseln Sie mit LB und RB die Seiten und springen mit LT und RT zur ersten oder letzten Seite. Lassen Sie Back oder View los, um zurückzukehren. Drücken Sie LB + RB + {2} für eine schnelle Rückkehr. Drücken Sie LB + RB + {3}, um die Anwendung zu beenden. Tastatur: Enter zum Kopieren oder Öffnen der Tastatur, Esc zum Leeren, Pfeil hoch/runter für den Verlauf, Alt + B zum Zurückkehren.</value>
     <comment>Detaillierte Beschreibung der Barrierefreiheit des Hauptfensters mit Erläuterung der Funktionsweise verschiedener Controller und Tastaturen. {0} ist Bestätigen, {1} ist Löschen, {2} ist Abbrechen und {3} ist die Löschtaste für den Beenden-Kurzbefehl.</comment>
   </data>
   <data name="A11y_Returning" xml:space="preserve">
@@ -507,6 +507,14 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
     <value>Löscht den während der aktuellen Sitzung erlernten Neutraloffset des Gamepads, ohne gespeicherte Totzonen- oder Wiederholungseinstellungen zu ändern.</value>
     <comment>Barrierefreiheitsbeschreibung für den Menüpunkt „Aktuellen Kalibrierungszustand zurücksetzen“.</comment>
   </data>
+  <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
+    <value>Controller identifizieren</value>
+    <comment>Menüeintrag zum Abspielen eines Identifikationsmusters auf dem aktiven Controller.</comment>
+  </data>
+  <data name="Menu_Gamepad_IdentifyController_Desc" xml:space="preserve">
+    <value>Spielt ein eindeutiges Vibrationsmuster auf dem aktiven Controller ab, damit Sie ihn schnell finden.</value>
+    <comment>Barrierefreiheitsbeschreibung für den Menüpunkt zum Identifizieren des Controllers.</comment>
+  </data>
   <data name="Msg_RestartRequired" xml:space="preserve">
     <value>Diese Änderung erfordert einen Neustart, um wirksam zu werden. Jetzt neu starten?</value>
     <comment>Aufforderungsmeldung, die den Benutzer darüber informiert, dass bestimmte Einstellungsänderungen einen Neustart des Programms erfordern, damit sie wirksam werden.</comment>
@@ -662,6 +670,18 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>Der aktuelle Kalibrierungszustand des Gamepads wurde zurückgesetzt.</value>
     <comment>Ansage nach dem Zurücksetzen des Laufzeit-Kalibrierungszustands.</comment>
+  </data>
+  <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
+    <value>Halten Sie LB + RB + X 0,8 Sekunden lang gedrückt, um die Anwendung zu beenden.</value>
+    <comment>Ansage, wenn der geschützte Beenden-Kurzbefehl gestartet wird.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
+    <value>Aktiver Controller wird identifiziert: {0}.</value>
+    <comment>Ansage vor dem Identifikations-Vibrationsmuster auf dem aktiven Controller. {0} ist der Controllername.</comment>
+  </data>
+  <data name="A11y_Gamepad_IdentifyUnavailable" xml:space="preserve">
+    <value>Kein aktiver Controller zum Identifizieren verfügbar.</value>
+    <comment>Ansage, wenn keine aktive Verbindung für die Controller-Identifikation vorhanden ist.</comment>
   </data>
   <data name="A11y_Menu_VibEnable_Desc" xml:space="preserve">
     <value>Schalten Sie alle Vibrations-Effekte des Controllers ein oder aus.</value>
@@ -902,14 +922,16 @@ LB + RB + B	Schnell zum vorherigen Fenster zurückkehren
 Back / View (loslassen)	Zum vorherigen Fenster zurückkehren
 Y	Funktionsmenü öffnen
 X	Rücktaste (Zeichen/Auswahl löschen)
-LB + RB + X	Anwendung beenden
+LB + RB + X halten	Anwendung beenden
 Back / View + X	Fensterdeckkraft zurücksetzen
 ↑ / ↓	Verlauf durchsuchen
 ← / →	Cursor nach links / rechts bewegen
-LB + ← / →	Cursor wortweise bewegen
-LT / RT	Zum Textanfang / Textende springen
-Phrasen-Untermenü: LB / RB	Schnell zur vorigen / nächsten Seite wechseln
-Phrasen-Untermenü: LT / RT	Zur ersten / letzten Seite springen
+LB / RB (tippen / halten)	Verlauf um 5 Einträge hoch / runter blättern; halten zum Wiederholen
+LB / RB + ← / →	Cursor wortweise bewegen
+LT / RT	Zum Textanfang / Textende springen; in Seitenansichten halten zum Wiederholen
+LT + RT	Privatmodus umschalten
+Phrasen-Untermenü: LB / RB	Schnell zur vorigen / nächsten Seite wechseln (halten zum Wiederholen)
+Phrasen-Untermenü: LT / RT	Zur ersten / letzten Seite springen (halten zum Wiederholen)
 RS ← / →	Auswahl erweitern oder verkleinern
 Back / View + ↑ / ↓	Fensterdeckkraft anpassen (±5 %)</value>
     <comment>Die Controller-Tasten im Beschreibungsdialogfeld entsprechen den Datenspalten der Tabelle, und die Felder werden durch die Funktion Tab: Schaltfläche {Tab} getrennt, eine Spalte pro Zeile.</comment>
