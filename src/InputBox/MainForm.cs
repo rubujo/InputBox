@@ -505,6 +505,13 @@ public partial class MainForm : Form
                 return;
             }
 
+            // ContextMenuStrip / DropDown 在 WinForms 中可能讓 ActiveForm 暫時為 null；
+            // 只要本程式自己的右鍵選單仍開著，就應保留控制器輪詢，讓使用者可持續用控制器操作選單。
+            if (_cmsInput?.Visible == true)
+            {
+                return;
+            }
+
             // 當整個應用程式完全退到背景時，停止震動並暫停控制器輪詢。
             FeedbackService.StopAllVibrationsAsync(_gamepadController).SafeFireAndForget();
 
@@ -644,6 +651,11 @@ public partial class MainForm : Form
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
         if (HandleCaptureModeCmdKey(keyData))
+        {
+            return true;
+        }
+
+        if (HandleContextMenuCmdKey(keyData))
         {
             return true;
         }
@@ -798,6 +810,25 @@ public partial class MainForm : Form
         VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
 
         return true;
+    }
+
+    /// <summary>
+    /// 當右鍵選單顯示時，優先以統一的選單導覽路徑處理鍵盤輸入，避免焦點殘留在輸入框而吞掉方向鍵與確認鍵。
+    /// </summary>
+    /// <param name="keyData">目前命令鍵組合。</param>
+    /// <returns>若命令鍵已被右鍵選單處理則回傳 true。</returns>
+    private bool HandleContextMenuCmdKey(Keys keyData)
+    {
+        if (!CmdKeyDispatcher.TryGetContextMenuAction(
+            keyData,
+            _cmsInput?.Visible == true,
+            out string? action) ||
+            string.IsNullOrWhiteSpace(action))
+        {
+            return false;
+        }
+
+        return HandleContextMenuGamepadInput(action);
     }
 
     /// <summary>

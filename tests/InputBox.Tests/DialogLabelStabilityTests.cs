@@ -1,7 +1,7 @@
-﻿using InputBox.Core.Controls;
+﻿using InputBox.Core.Configuration;
+using InputBox.Core.Controls;
 using InputBox.Core.Services;
 using System.Reflection;
-using System.Windows.Forms;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -35,6 +35,32 @@ public sealed class DialogLabelStabilityTests
 
         Assert.False(phraseCount.AutoSize);
         Assert.True(phraseCount.MinimumSize.Width > 0);
+    }
+
+    /// <summary>
+    /// 片語管理對話框完成字型與版面配置後，片語數量標籤仍應保留足夠寬度顯示完整數字，避免只剩下前綴文字。
+    /// </summary>
+    [Fact]
+    public void PhraseManagerDialog_CountLabel_AfterHandleCreated_FitsFullText()
+    {
+        var phraseService = new PhraseService();
+        Assert.True(phraseService.Add("測試片語", "內容"));
+
+        using var dialog = new PhraseManagerDialog(phraseService);
+        IntPtr handle = dialog.Handle;
+        dialog.PerformLayout();
+
+        Label phraseCount = GetRequiredPrivateField<Label>(dialog, "_lblPhraseCount");
+        Size measured = TextRenderer.MeasureText(
+            phraseCount.Text,
+            phraseCount.Font,
+            Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+
+        Assert.Contains($"{phraseService.Count}/{AppSettings.MaxPhraseCount}", phraseCount.Text);
+        Assert.True(
+            phraseCount.Width >= measured.Width,
+            $"片語數量標籤寬度不足，Width={phraseCount.Width}, Measured={measured.Width}, Text={phraseCount.Text}");
     }
 
     private static T GetRequiredPrivateField<T>(object instance, string fieldName) where T : class

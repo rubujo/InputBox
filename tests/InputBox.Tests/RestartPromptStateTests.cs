@@ -1,5 +1,4 @@
-﻿using InputBox;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Services;
 using InputBox.Resources;
 using System.Reflection;

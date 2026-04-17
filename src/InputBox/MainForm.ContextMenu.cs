@@ -57,6 +57,21 @@ public partial class MainForm
     private bool _keepPhrasePageOnNextOpen;
 
     /// <summary>
+    /// 片語分頁按鈕觸發時，暫時阻止選單因換頁動作而自動收合。
+    /// </summary>
+    private bool _suppressPhraseSubMenuCloseOnce;
+
+    /// <summary>
+    /// 換頁後要優先恢復的片語子選單焦點位置。
+    /// </summary>
+    private enum PhraseMenuSelectionTarget
+    {
+        FirstPhrase,
+        PreviousPageButton,
+        NextPageButton
+    }
+
+    /// <summary>
     /// 片語插入流程處理器（含最近使用片語管理）。
     /// </summary>
     private PhraseInsertionHandler? _phraseInsertionHandler;
@@ -1368,6 +1383,24 @@ public partial class MainForm
 
         // 使用共享快取取得選單字型。
         _cmsInput.Font = GetSharedA11yFont(DeviceDpi);
+        _cmsInput.Opened += (s, e) => EnsureContextMenuReadyForKeyboard(_cmsInput);
+        _cmsInput.PreviewKeyDown += ContextMenu_PreviewKeyDown;
+        _cmsInput.KeyDown += ContextMenu_KeyDown;
+        _cmsInput.Closed += (s, e) => RestorePhraseSubMenuAutoClose();
+        _cmsInput.Closing += (s, e) =>
+        {
+            try
+            {
+                if (ShouldSuppressPhraseMenuClose(e.CloseReason))
+                {
+                    e.Cancel = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _cmsInput.Closing 失敗：{ex.Message}");
+            }
+        };
 
         // 片語子選單。
         _tsmiPhrases = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_Phrases, 'F'))
@@ -1410,11 +1443,30 @@ public partial class MainForm
         {
             try
             {
+                EnsurePhraseSubMenuReadyForKeyboard();
                 AnnouncePhraseSubMenuOpened();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[選單] _tsmiPhrases.DropDownOpened 失敗：{ex.Message}");
+            }
+        };
+
+        _tsmiPhrases.DropDown.PreviewKeyDown += PhraseMenuDropDown_PreviewKeyDown;
+        _tsmiPhrases.DropDown.KeyDown += PhraseMenuDropDown_KeyDown;
+        _tsmiPhrases.DropDown.Closed += (s, e) => RestorePhraseSubMenuAutoClose();
+        _tsmiPhrases.DropDown.Closing += (s, e) =>
+        {
+            try
+            {
+                if (ShouldSuppressPhraseMenuClose(e.CloseReason))
+                {
+                    e.Cancel = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _tsmiPhrases.DropDown.Closing 失敗：{ex.Message}");
             }
         };
 
@@ -1767,8 +1819,10 @@ public partial class MainForm
                     Enabled = _phraseMenuPage > 0,
                     AccessibleName = Strings.Phrase_A11y_Page_Previous
                 };
+                prevPage.MouseDown += (s, e) => PreservePhraseSubMenuDuringPaging();
                 prevPage.Click += (s, e) =>
                 {
+                    PreservePhraseSubMenuDuringPaging();
                     _ = TryNavigatePhraseMenuPage(-1);
                 };
 
@@ -1786,8 +1840,10 @@ public partial class MainForm
                     Enabled = _phraseMenuPage < totalPages - 1,
                     AccessibleName = Strings.Phrase_A11y_Page_Next
                 };
+                nextPage.MouseDown += (s, e) => PreservePhraseSubMenuDuringPaging();
                 nextPage.Click += (s, e) =>
                 {
+                    PreservePhraseSubMenuDuringPaging();
                     _ = TryNavigatePhraseMenuPage(1);
                 };
 
@@ -2197,7 +2253,11 @@ public partial class MainForm
             return false;
         }
 
-        return TrySetPhraseMenuPage(_phraseMenuPage + delta);
+        PhraseMenuSelectionTarget selectionTarget = delta < 0 ?
+            PhraseMenuSelectionTarget.PreviousPageButton :
+            PhraseMenuSelectionTarget.NextPageButton;
+
+        return TrySetPhraseMenuPage(_phraseMenuPage + delta, selectionTarget);
     }
 
     /// <summary>
@@ -2217,15 +2277,20 @@ public partial class MainForm
             totalPages - 1 :
             0;
 
-        return TrySetPhraseMenuPage(targetPage);
+        PhraseMenuSelectionTarget selectionTarget = lastPage ?
+            PhraseMenuSelectionTarget.NextPageButton :
+            PhraseMenuSelectionTarget.PreviousPageButton;
+
+        return TrySetPhraseMenuPage(targetPage, selectionTarget);
     }
 
     /// <summary>
     /// 依指定目標頁碼更新片語子選單，並提供震動與無障礙回饋。
     /// </summary>
     /// <param name="targetPage">目標頁碼索引（0-based）。</param>
+    /// <param name="selectionTarget">換頁後要優先恢復的焦點目標。</param>
     /// <returns>若片語子選單已接收此操作則回傳 true。</returns>
-    private bool TrySetPhraseMenuPage(int targetPage)
+    private bool TrySetPhraseMenuPage(int targetPage, PhraseMenuSelectionTarget selectionTarget)
     {
         int totalPages = GetPhraseMenuTotalPages();
 
@@ -2233,6 +2298,7 @@ public partial class MainForm
         {
             if (ShouldThrottleRepeatedBoundaryFeedback("PhraseSinglePage"))
             {
+                RestorePhraseSubMenuAutoClose();
                 return true;
             }
 
@@ -2244,6 +2310,7 @@ public partial class MainForm
                 AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, 1, 1), interrupt: true);
             }
 
+            RestorePhraseSubMenuAutoClose();
             return true;
         }
 
@@ -2256,12 +2323,14 @@ public partial class MainForm
 
             if (ShouldThrottleRepeatedBoundaryFeedback(boundaryKey))
             {
+                RestorePhraseSubMenuAutoClose();
                 return true;
             }
 
             FeedbackService.PlaySound(SystemSounds.Beep);
             VibrateNavigationAsync(VibrationSemantic.Boundary, boundaryDirection, VibrationContext.PhraseMenu).SafeFireAndForget();
             AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages), interrupt: true);
+            RestorePhraseSubMenuAutoClose();
 
             return true;
         }
@@ -2269,17 +2338,234 @@ public partial class MainForm
         int direction = clampedPage < _phraseMenuPage ? -1 : 1;
 
         _phraseMenuPage = clampedPage;
-        _keepPhrasePageOnNextOpen = true;
 
         AnnounceA11y(string.Format(Strings.Phrase_A11y_Page_Info, _phraseMenuPage + 1, totalPages), interrupt: true);
         VibrateNavigationAsync(VibrationSemantic.PageSwitch, direction, VibrationContext.PhraseMenu).SafeFireAndForget();
-        ReopenPhraseSubMenuAndSelectFirst();
+        RefreshPhraseSubMenuAndSelectFirst(selectionTarget);
 
         return true;
     }
 
     /// <summary>
-    /// 選取片語子選單中第一個片語項目（有整數 Tag 的項目）
+    /// 判斷本次關閉是否屬於片語分頁的預期內重繪流程，若是則應暫時阻止選單收合。
+    /// </summary>
+    /// <param name="closeReason">WinForms 提供的關閉原因。</param>
+    /// <returns>若應暫時抑制關閉則回傳 true。</returns>
+    private bool ShouldSuppressPhraseMenuClose(ToolStripDropDownCloseReason closeReason)
+    {
+        return _suppressPhraseSubMenuCloseOnce &&
+            closeReason is ToolStripDropDownCloseReason.ItemClicked or ToolStripDropDownCloseReason.CloseCalled;
+    }
+
+    /// <summary>
+    /// 讓片語子選單在換頁過程中維持展開，但不影響一般項目的自然關閉邏輯。
+    /// </summary>
+    private void PreservePhraseSubMenuDuringPaging()
+    {
+        _suppressPhraseSubMenuCloseOnce = true;
+    }
+
+    /// <summary>
+    /// 還原片語子選單的暫時保留旗標。
+    /// </summary>
+    private void RestorePhraseSubMenuAutoClose()
+    {
+        _suppressPhraseSubMenuCloseOnce = false;
+    }
+
+    /// <summary>
+    /// 確保根層右鍵選單在用滑鼠開啟後，也能立刻接手鍵盤輸入。
+    /// </summary>
+    /// <param name="menu">目前顯示中的右鍵選單。</param>
+    private void EnsureContextMenuReadyForKeyboard(ContextMenuStrip menu)
+    {
+        if (GetSelectedToolStripItem(menu) == null)
+        {
+            foreach (ToolStripItem item in menu.Items)
+            {
+                if (item.Enabled &&
+                    item.Visible &&
+                    item is not ToolStripSeparator)
+                {
+                    item.Select();
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 確保片語子選單展開後立即具備鍵盤焦點與預設選取項，支援與滑鼠、控制器交替操作。
+    /// </summary>
+    private void EnsurePhraseSubMenuReadyForKeyboard()
+    {
+        SelectPreferredPhraseMenuItem(PhraseMenuSelectionTarget.FirstPhrase);
+    }
+
+    /// <summary>
+    /// 在右鍵選單與片語子選單內標記應由選單接手的輸入鍵，避免方向鍵與 Enter 被原焦點控制項吞掉。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">預覽按鍵事件。</param>
+    private static void ContextMenu_PreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
+    {
+        if (e.KeyCode is Keys.Up or Keys.Down or Keys.Left or Keys.Right or Keys.Home or Keys.End or Keys.PageUp or Keys.PageDown or Keys.Enter or Keys.Escape)
+        {
+            e.IsInputKey = true;
+        }
+    }
+
+    /// <summary>
+    /// 處理根層右鍵選單的鍵盤導覽與確認，確保滑鼠開啟後仍可由鍵盤或控制器無縫接手。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">按鍵事件。</param>
+    private void ContextMenu_KeyDown(object? sender, KeyEventArgs e)
+    {
+        _ = TryHandleVisibleContextMenuKeyDown(e);
+    }
+
+    /// <summary>
+    /// 在片語子選單內攔截鍵盤換頁操作，讓滑鼠開啟後也能以方向鍵、Home、End、PageUp、PageDown 與 Enter 正常操作。
+    /// </summary>
+    /// <param name="e">預覽按鍵事件。</param>
+    private static void PhraseMenuDropDown_PreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
+    {
+        ContextMenu_PreviewKeyDown(sender, e);
+    }
+
+    /// <summary>
+    /// 處理片語子選單中的鍵盤分頁指令。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">按鍵事件。</param>
+    private void PhraseMenuDropDown_KeyDown(object? sender, KeyEventArgs e)
+    {
+        _ = TryHandleVisibleContextMenuKeyDown(e) || TryHandlePhraseMenuKeyDown(e);
+    }
+
+    /// <summary>
+    /// 嘗試處理目前可見右鍵選單的鍵盤命令。
+    /// </summary>
+    /// <param name="e">按鍵事件。</param>
+    /// <returns>若已處理則回傳 true。</returns>
+    private bool TryHandleVisibleContextMenuKeyDown(KeyEventArgs e)
+    {
+        if (!CmdKeyDispatcher.TryGetContextMenuAction(
+            e.KeyData,
+            _cmsInput?.Visible == true,
+            out string? action) ||
+            string.IsNullOrWhiteSpace(action))
+        {
+            return false;
+        }
+
+        if (!HandleContextMenuGamepadInput(action))
+        {
+            return false;
+        }
+
+        e.Handled = true;
+        e.SuppressKeyPress = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// 嘗試處理片語子選單中的方向鍵與確認鍵換頁。
+    /// </summary>
+    /// <param name="e">按鍵事件。</param>
+    /// <returns>若已處理則回傳 true。</returns>
+    private bool TryHandlePhraseMenuKeyDown(KeyEventArgs e)
+    {
+        if (_tsmiPhrases?.DropDown.Visible != true)
+        {
+            return false;
+        }
+
+        bool handled = e.KeyCode switch
+        {
+            Keys.Left => HandlePhraseMenuPagingCommand(() => TryNavigatePhraseMenuPage(-1)),
+            Keys.Right => HandlePhraseMenuPagingCommand(() => TryNavigatePhraseMenuPage(1)),
+            Keys.Home => HandlePhraseMenuPagingCommand(() => TryJumpPhraseMenuToBoundary(lastPage: false)),
+            Keys.End => HandlePhraseMenuPagingCommand(() => TryJumpPhraseMenuToBoundary(lastPage: true)),
+            Keys.Enter => TryHandlePhraseMenuPagingItem(GetSelectedPhraseDropDownItem()),
+            _ => false
+        };
+
+        if (!handled)
+        {
+            return false;
+        }
+
+        e.Handled = true;
+        e.SuppressKeyPress = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// 包裝片語子選單的換頁命令，確保本次點擊或按鍵不會把子選單提前關閉。
+    /// </summary>
+    /// <param name="action">實際換頁動作。</param>
+    /// <returns>動作結果。</returns>
+    private bool HandlePhraseMenuPagingCommand(Func<bool> action)
+    {
+        PreservePhraseSubMenuDuringPaging();
+
+        return action();
+    }
+
+    /// <summary>
+    /// 嘗試從目前片語子選單中取得被選取的項目。
+    /// </summary>
+    /// <returns>目前被選取的片語子選單項目；若無則回傳 null。</returns>
+    private ToolStripItem? GetSelectedPhraseDropDownItem()
+    {
+        if (_tsmiPhrases?.DropDown is not ToolStripDropDown dropDown)
+        {
+            return null;
+        }
+
+        foreach (ToolStripItem item in dropDown.Items)
+        {
+            if (item.Selected)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 若目前命中的是片語分頁控制項，則改以原地換頁並保留適合的焦點位置。
+    /// </summary>
+    /// <param name="selectedItem">目前作用中的片語子選單項目。</param>
+    /// <returns>若已處理片語分頁行為則回傳 true。</returns>
+    private bool TryHandlePhraseMenuPagingItem(ToolStripItem? selectedItem)
+    {
+        if (selectedItem == null ||
+            !ReferenceEquals(selectedItem.Owner, _tsmiPhrases?.DropDown))
+        {
+            return false;
+        }
+
+        if (string.Equals(selectedItem.AccessibleName, Strings.Phrase_A11y_Page_Previous, StringComparison.Ordinal))
+        {
+            return HandlePhraseMenuPagingCommand(() => TryNavigatePhraseMenuPage(-1));
+        }
+
+        if (string.Equals(selectedItem.AccessibleName, Strings.Phrase_A11y_Page_Next, StringComparison.Ordinal))
+        {
+            return HandlePhraseMenuPagingCommand(() => TryNavigatePhraseMenuPage(1));
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 選取片語子選單中第一個片語項目（有整數 Tag 的項目）。
     /// </summary>
     private void SelectFirstPhraseInDropDown()
     {
@@ -2302,29 +2588,88 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 重新開啟片語子選單並自動選取第一個片語，用於分頁換頁後保持導覽焦點
+    /// 依目標類型恢復片語子選單焦點；
+    /// 初次進入片語區時落在第一個實際片語，換頁後則優先維持在分頁控制項，方便鍵盤與控制器連續確認。
+    /// 若對應控制項不可用，再退回第一個片語項目。
     /// </summary>
-    private void ReopenPhraseSubMenuAndSelectFirst()
+    /// <param name="selectionTarget">要優先恢復的焦點目標。</param>
+    private void SelectPreferredPhraseMenuItem(PhraseMenuSelectionTarget selectionTarget)
+    {
+        if (_tsmiPhrases?.DropDown is not ToolStripDropDown dropDown)
+        {
+            return;
+        }
+
+        string? accessibleName = selectionTarget switch
+        {
+            PhraseMenuSelectionTarget.PreviousPageButton => Strings.Phrase_A11y_Page_Previous,
+            PhraseMenuSelectionTarget.NextPageButton => Strings.Phrase_A11y_Page_Next,
+            _ => null
+        };
+
+        if (!string.IsNullOrEmpty(accessibleName))
+        {
+            foreach (ToolStripItem item in dropDown.Items)
+            {
+                if (item.Enabled &&
+                    item.Visible &&
+                    string.Equals(item.AccessibleName, accessibleName, StringComparison.Ordinal))
+                {
+                    item.Select();
+
+                    return;
+                }
+            }
+        }
+
+        SelectFirstPhraseInDropDown();
+    }
+
+    /// <summary>
+    /// 刷新片語子選單內容並恢復適合的導覽焦點，用於分頁換頁後維持開啟狀態與操作連續性。
+    /// </summary>
+    /// <param name="selectionTarget">換頁後要優先恢復的焦點目標。</param>
+    private void RefreshPhraseSubMenuAndSelectFirst(PhraseMenuSelectionTarget selectionTarget)
     {
         this.SafeBeginInvoke(() =>
         {
             try
             {
                 if (IsDisposed ||
-                !IsHandleCreated)
+                    !IsHandleCreated ||
+                    _tsmiPhrases == null ||
+                    _cmsInput?.Visible != true)
                 {
                     return;
                 }
 
-                ShowContextMenuAtInput();
-                _tsmiPhrases?.ShowDropDown();
-                SelectFirstPhraseInDropDown();
+                if (_tsmiPhrases.DropDown.Visible)
+                {
+                    RebuildPhraseMenuItems();
+
+                    if (_tsmiPhrases.DropDown is ToolStripDropDown visibleDropDown)
+                    {
+                        visibleDropDown.PerformLayout();
+                        visibleDropDown.Refresh();
+                    }
+                }
+                else
+                {
+                    _keepPhrasePageOnNextOpen = true;
+                    _tsmiPhrases.ShowDropDown();
+                }
+
+                SelectPreferredPhraseMenuItem(selectionTarget);
             }
             catch (Exception ex)
             {
-                LoggerService.LogException(ex, "ReopenPhraseSubMenuAndSelectFirst 失敗");
+                LoggerService.LogException(ex, "RefreshPhraseSubMenuAndSelectFirst 失敗");
 
-                Debug.WriteLine($"[選單] ReopenPhraseSubMenuAndSelectFirst 失敗：{ex.Message}");
+                Debug.WriteLine($"[選單] RefreshPhraseSubMenuAndSelectFirst 失敗：{ex.Message}");
+            }
+            finally
+            {
+                RestorePhraseSubMenuAutoClose();
             }
         });
     }

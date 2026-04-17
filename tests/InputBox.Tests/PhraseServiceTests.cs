@@ -13,6 +13,7 @@ namespace InputBox.Tests;
 /// 使用者的原始片語不受測試影響。
 /// </para>
 /// </summary>
+[Collection(PhraseDataTestRequirements.CollectionName)]
 public sealed class PhraseServiceTests : IDisposable
 {
     /// <summary>
