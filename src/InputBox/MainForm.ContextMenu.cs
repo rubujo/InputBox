@@ -832,8 +832,8 @@ public partial class MainForm
                         CancellationToken.None)
                     .SafeFireAndForget();
 
-                // 告知回饋設定已重置。
-                AnnounceA11y(Strings.Msg_InputCleared);
+                // 告知回饋設定已重置並回到預設震動強度。
+                AnnounceA11y($"{Strings.Settings_VibrationIntensity}: {AppSettings.Current.VibrationIntensity:F2}");
             }
             catch (Exception ex)
             {
