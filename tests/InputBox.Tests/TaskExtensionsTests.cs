@@ -140,10 +140,7 @@ public class TaskExtensionsTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // 以測試框架的存活權杖啟動工作，再於委派內部拋出既有的取消要求，避免不必要的分析器抑制。
-        Task cancelledTask = Task.Run(
-            () => cts.Token.ThrowIfCancellationRequested(),
-            TestContext.Current.CancellationToken);
+        Task cancelledTask = Task.FromCanceled(cts.Token);
 
         cancelledTask.SafeFireAndForget(
             onException: _ => exceptionInvoked = true);
