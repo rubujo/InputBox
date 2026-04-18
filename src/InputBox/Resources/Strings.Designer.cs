@@ -322,6 +322,15 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Controller calibration visualizer opened. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Gamepad_CalibrationVisualizer_Open {
+            get {
+                return ResourceManager.GetString("A11y_Gamepad_CalibrationVisualizer_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Controller {0} connected. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Gamepad_Connected {
@@ -1123,6 +1132,62 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Live plot for both controller sticks. The hollow diamond shows raw input, the solid dot shows the corrected position, the solid ring shows the deadzone entry threshold, and the dashed ring shows the exit threshold, so the meaning does not rely on color alone. 的當地語系化字串。
+        /// </summary>
+        internal static string Dialog_GamepadCalibrationVisualizer_Canvas_Desc {
+            get {
+                return ResourceManager.GetString("Dialog_GamepadCalibrationVisualizer_Canvas_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Left and right stick calibration plots 的當地語系化字串。
+        /// </summary>
+        internal static string Dialog_GamepadCalibrationVisualizer_CanvasName {
+            get {
+                return ResourceManager.GetString("Dialog_GamepadCalibrationVisualizer_CanvasName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Left plot = LS, right plot = RS. Hollow diamond = raw input, blue dot = corrected position, solid ring = deadzone entry threshold, dashed ring = exit threshold. 的當地語系化字串。
+        /// </summary>
+        internal static string Dialog_GamepadCalibrationVisualizer_Desc {
+            get {
+                return ResourceManager.GetString("Dialog_GamepadCalibrationVisualizer_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 LS Raw {0}, {1} • Corrected {2}, {3}
+        ///RS Raw {4}, {5} • Corrected {6}, {7}
+        ///Deadzone {8}/{9} 的當地語系化字串。
+        /// </summary>
+        internal static string Dialog_GamepadCalibrationVisualizer_StatusConnected {
+            get {
+                return ResourceManager.GetString("Dialog_GamepadCalibrationVisualizer_StatusConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 No controller connected. Reconnect and move either stick to inspect drift, centering, and correction. 的當地語系化字串。
+        /// </summary>
+        internal static string Dialog_GamepadCalibrationVisualizer_StatusDisconnected {
+            get {
+                return ResourceManager.GetString("Dialog_GamepadCalibrationVisualizer_StatusDisconnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Controller Calibration Visualizer 的當地語系化字串。
+        /// </summary>
+        internal static string Dialog_GamepadCalibrationVisualizer_Title {
+            get {
+                return ResourceManager.GetString("Dialog_GamepadCalibrationVisualizer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 The configuration file format is invalid. The application will start with default settings. 的當地語系化字串。
         /// </summary>
         internal static string Err_ConfigInvalid {
@@ -1498,6 +1563,24 @@ namespace InputBox.Resources {
         internal static string Menu_ExportPhrases {
             get {
                 return ResourceManager.GetString("Menu_ExportPhrases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Calibration Visualizer... 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Gamepad_CalibrationVisualizer {
+            get {
+                return ResourceManager.GetString("Menu_Gamepad_CalibrationVisualizer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Open a live diagnostics window that shows the raw point, corrected point, and current deadzone for the controller stick. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_Gamepad_CalibrationVisualizer_Desc {
+            get {
+                return ResourceManager.GetString("Menu_Gamepad_CalibrationVisualizer_Desc", resourceCulture);
             }
         }
         

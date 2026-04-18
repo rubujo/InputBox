@@ -507,6 +507,40 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
     <value>Löscht den während der aktuellen Sitzung erlernten Neutraloffset des Gamepads, ohne gespeicherte Totzonen- oder Wiederholungseinstellungen zu ändern.</value>
     <comment>Barrierefreiheitsbeschreibung für den Menüpunkt „Aktuellen Kalibrierungszustand zurücksetzen“.</comment>
   </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer" xml:space="preserve">
+    <value>Kalibrierungsanzeige...</value>
+    <comment>Menüeintrag zum Öffnen des Live-Diagnosedialogs für die Controller-Kalibrierung.</comment>
+  </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
+    <value>Öffnet ein Live-Diagnosefenster mit Rohpunkt, korrigiertem Punkt und aktueller Deadzone des Sticks.</value>
+    <comment>Barrierefreiheitsbeschreibung für den Menüeintrag „Kalibrierungsanzeige“.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
+    <value>Controller-Kalibrierungsanzeige</value>
+    <comment>Titel des Diagnosedialogs für die Controller-Kalibrierung.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
+    <value>Links = LS, rechts = RS. Hohle Raute = Roh-Eingabe, blauer Punkt = korrigierte Position, durchgezogener Ring = Eintrittsschwelle, gestrichelter Ring = Austrittsschwelle.</value>
+    <comment>Beschreibungstext oben im Diagnosedialog für die Controller-Kalibrierung.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
+    <value>Kalibrierungsdiagramme für linken und rechten Stick</value>
+    <comment>Barrierefreier Name für den Zeichenbereich der Stick-Kalibrierung.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
+    <value>Live-Diagramm für beide Controller-Sticks. Die hohle Raute zeigt die Roh-Eingabe, der Punkt die korrigierte Position, der durchgezogene Ring die Eintrittsschwelle und der gestrichelte Ring die Austrittsschwelle, sodass die Bedeutung nicht nur über Farbe vermittelt wird.</value>
+    <comment>Barrierefreiheitsbeschreibung für den Zeichenbereich der Stick-Kalibrierung.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
+    <value>LS Rohwert {0}, {1} • Korrigiert {2}, {3}
+RS Rohwert {4}, {5} • Korrigiert {6}, {7}
+Deadzone {8}/{9}</value>
+    <comment>Statusanzeige bei verbundenem Controller. {0} bis {7} sind normalisierte Achswerte für LS und RS, {8} und {9} die Deadzone-Schwellen.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
+    <value>Kein Controller verbunden. Bewegen Sie nach dem erneuten Verbinden einen der beiden Sticks, um Drift, Zentrierung und Korrektur zu prüfen.</value>
+    <comment>Statusanzeige in der Kalibrierungsanzeige, wenn kein Controller verbunden ist.</comment>
+  </data>
   <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
     <value>Controller identifizieren</value>
     <comment>Menüeintrag zum Abspielen eines Identifikationsmusters auf dem aktiven Controller.</comment>
@@ -670,6 +704,10 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>Der aktuelle Kalibrierungszustand des Gamepads wurde zurückgesetzt.</value>
     <comment>Ansage nach dem Zurücksetzen des Laufzeit-Kalibrierungszustands.</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationVisualizer_Open" xml:space="preserve">
+    <value>Kalibrierungsanzeige des Controllers geöffnet.</value>
+    <comment>Barrierefreiheitsansage beim Öffnen des Dialogs zur Controller-Kalibrierungsanzeige.</comment>
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>Halten Sie LB + RB + X 0,8 Sekunden lang gedrückt, um die Anwendung zu beenden.</value>

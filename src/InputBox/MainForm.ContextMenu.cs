@@ -1145,6 +1145,25 @@ public partial class MainForm
 
         tsmiGamepad.DropDownItems.Add(new ToolStripSeparator());
 
+        ToolStripMenuItem tsmiCalibrationVisualizer = new(ControlExtensions.GetMnemonicText(Strings.Menu_Gamepad_CalibrationVisualizer, 'L'))
+        {
+            AccessibleName = Strings.Menu_Gamepad_CalibrationVisualizer,
+            AccessibleDescription = Strings.Menu_Gamepad_CalibrationVisualizer_Desc
+        };
+        tsmiCalibrationVisualizer.Click += (s, e) =>
+        {
+            try
+            {
+                ShowGamepadCalibrationDialog();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "開啟遊戲控制器校準視覺化失敗");
+                Debug.WriteLine($"[選單] tsmiCalibrationVisualizer.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiGamepad.DropDownItems.Add(tsmiCalibrationVisualizer);
+
         // 重設執行期校正狀態，不影響已儲存的遊戲控制器設定。
         ToolStripMenuItem tsmiResetCalibration = new(ControlExtensions.GetMnemonicText(Strings.Menu_Gamepad_ResetCalibration, 'C'))
         {

@@ -507,6 +507,40 @@ Make sure that multiple instances of this application are not running at the sam
     <value>Clear the runtime-learned neutral offset for the current game controller without changing the saved deadzone or repeat settings.</value>
     <comment>Accessible description for the Reset Current Calibration State menu item.</comment>
   </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer" xml:space="preserve">
+    <value>Calibration Visualizer...</value>
+    <comment>Menu item label for opening the live controller calibration diagnostics dialog.</comment>
+  </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
+    <value>Open a live diagnostics window that shows the raw point, corrected point, and current deadzone for the controller stick.</value>
+    <comment>Accessible description for the Calibration Visualizer menu item.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
+    <value>Controller Calibration Visualizer</value>
+    <comment>Title of the controller calibration diagnostics dialog.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
+    <value>Left plot = LS, right plot = RS. Hollow diamond = raw input, blue dot = corrected position, solid ring = deadzone entry threshold, dashed ring = exit threshold.</value>
+    <comment>Description text shown at the top of the controller calibration diagnostics dialog.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
+    <value>Left and right stick calibration plots</value>
+    <comment>Accessible name for the controller stick calibration drawing area.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
+    <value>Live plot for both controller sticks. The hollow diamond shows raw input, the solid dot shows the corrected position, the solid ring shows the deadzone entry threshold, and the dashed ring shows the exit threshold, so the meaning does not rely on color alone.</value>
+    <comment>Accessible description for the controller stick calibration drawing area.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
+    <value>LS Raw {0}, {1} • Corrected {2}, {3}
+RS Raw {4}, {5} • Corrected {6}, {7}
+Deadzone {8}/{9}</value>
+    <comment>Status text shown when a controller is connected. {0}-{7} are normalized axis values for LS and RS, and {8}-{9} are deadzone thresholds.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
+    <value>No controller connected. Reconnect and move either stick to inspect drift, centering, and correction.</value>
+    <comment>Status text shown in the calibration visualizer when no controller is connected.</comment>
+  </data>
   <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
     <value>Identify Controller</value>
     <comment>Menu item label for playing a distinct vibration on the active controller.</comment>
@@ -670,6 +704,10 @@ Make sure that multiple instances of this application are not running at the sam
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>Current game controller calibration state reset.</value>
     <comment>Announcement played after resetting the runtime calibration state.</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationVisualizer_Open" xml:space="preserve">
+    <value>Controller calibration visualizer opened.</value>
+    <comment>Accessibility announcement played when the controller calibration visualizer dialog opens.</comment>
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>Hold LB + RB + X for 0.8 seconds to exit.</value>

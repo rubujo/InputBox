@@ -244,6 +244,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private float _rightStickBiasY;
 
+    /// <summary>
+    /// 提供校準視覺化使用的目前診斷快照。
+    /// </summary>
+    private GamepadCalibrationSnapshot _currentCalibrationSnapshot = GamepadCalibrationSnapshot.Empty;
+
 #if DEBUG
     /// <summary>
     /// D-Pad Right 連發診斷計數
@@ -479,6 +484,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 取得目前是否已連線
     /// </summary>
     public bool IsConnected => _isConnected;
+
+    /// <summary>
+    /// 取得目前校準視覺化所需的唯讀診斷快照。
+    /// </summary>
+    public GamepadCalibrationSnapshot CurrentCalibrationSnapshot => _currentCalibrationSnapshot;
 
     /// <summary>
     /// 控制器 B 鍵按下事件。
@@ -741,6 +751,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         bool wasConnected = _isConnected || _hasPreviousState;
 
         _isConnected = false;
+        UpdateCalibrationSnapshot(null, AppSettings.Current.GamepadSettings, false);
 
         if (wasConnected)
         {
@@ -1046,6 +1057,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             _reconnectCounter = 0;
 
+            // 先同步最新校準快照，確保事件消費端在處理方向輸入時可以分辨這是 D-Pad 還是 LS 動作。
+            UpdateCalibrationSnapshot(state, config, true);
+
             // 必須處理每一個狀態以偵測「按下」與「放開」的邊緣（Edge），防止漏鍵。
             ProcessEdgeTransitions(state, config);
 
@@ -1063,6 +1077,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _previousState = latestSnapshot;
             _hasPreviousState = true;
 
+            UpdateCalibrationSnapshot(latestSnapshot, config, true);
+
             // 對齊 Timer Tick 執行連發邏輯。
             HandleRepeat(_previousProcessedButtons, config);
 
@@ -1073,6 +1089,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         else if (_hasPreviousState &&
             _previousState != null)
         {
+            UpdateCalibrationSnapshot(_previousState, config, true);
+
             short correctedThumbLX = GetCorrectedLeftThumbShort(_previousState.LeftThumbstickX, _leftStickBiasX),
                 correctedThumbLY = GetCorrectedLeftThumbShort(_previousState.LeftThumbstickY, _leftStickBiasY);
 
@@ -2560,6 +2578,40 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 更新供校準視覺化使用的診斷快照。
+    /// </summary>
+    private void UpdateCalibrationSnapshot(
+        GamepadStateSnapshot? state,
+        AppSettings.GamepadConfigSnapshot config,
+        bool isConnected)
+    {
+        float rawLeftX = state?.LeftThumbstickX ?? 0f,
+            rawLeftY = state?.LeftThumbstickY ?? 0f,
+            rawRightX = state?.RightThumbstickX ?? 0f,
+            rawRightY = state?.RightThumbstickY ?? 0f;
+
+        _currentCalibrationSnapshot = new GamepadCalibrationSnapshot
+        {
+            IsConnected = isConnected,
+            RawLeftX = Math.Clamp(rawLeftX, -1.0f, 1.0f),
+            RawLeftY = Math.Clamp(rawLeftY, -1.0f, 1.0f),
+            RawRightX = Math.Clamp(rawRightX, -1.0f, 1.0f),
+            RawRightY = Math.Clamp(rawRightY, -1.0f, 1.0f),
+            CorrectedLeftX = Math.Clamp(rawLeftX - _leftStickBiasX, -1.0f, 1.0f),
+            CorrectedLeftY = Math.Clamp(rawLeftY - _leftStickBiasY, -1.0f, 1.0f),
+            CorrectedRightX = Math.Clamp(rawRightX - _rightStickBiasX, -1.0f, 1.0f),
+            CorrectedRightY = Math.Clamp(rawRightY - _rightStickBiasY, -1.0f, 1.0f),
+            BiasLeftX = Math.Clamp(_leftStickBiasX, -1.0f, 1.0f),
+            BiasLeftY = Math.Clamp(_leftStickBiasY, -1.0f, 1.0f),
+            BiasRightX = Math.Clamp(_rightStickBiasX, -1.0f, 1.0f),
+            BiasRightY = Math.Clamp(_rightStickBiasY, -1.0f, 1.0f),
+            ThumbDeadzoneEnter = config.ThumbDeadzoneEnter,
+            ThumbDeadzoneExit = config.ThumbDeadzoneExit,
+            TimestampUtc = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
     /// 恢復 GameInput 輪詢與輸入處理。
     /// <para>恢復時只重設執行期狀態並重新啟動背景 MTA 輪詢執行緒；實際的當前快照預同步必須在該輪詢執行緒內完成，避免從 UI 執行緒直接碰觸 GameInput COM 物件導致 InvalidCastException，並確保中立閘門能正確放行第一個有效按壓。</para>
     /// </summary>
@@ -2590,6 +2642,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _leftStickBiasY = 0;
         _rightStickBiasX = 0;
         _rightStickBiasY = 0;
+
+        UpdateCalibrationSnapshot(_previousState, AppSettings.Current.GamepadSettings, _isConnected);
 
         ResetTransientInputState();
     }

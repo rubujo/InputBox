@@ -507,6 +507,40 @@
     <value>現在の実行中に学習したゲームパッドのニュートラル補正を消去します。保存済みのデッドゾーンやリピート設定は変更しません。</value>
     <comment>「現在の補正状態をリセット」メニュー項目のアクセシビリティ記述です。</comment>
   </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer" xml:space="preserve">
+    <value>補正状態の可視化...</value>
+    <comment>ライブのゲームパッド補正診断ダイアログを開くメニュー項目です。</comment>
+  </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
+    <value>スティックの生の点、補正後の点、現在のデッドゾーンを表示するライブ診断ウィンドウを開きます。</value>
+    <comment>補正状態の可視化メニュー項目のアクセシビリティ記述です。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
+    <value>コントローラー補正状態の可視化</value>
+    <comment>コントローラー補正診断ダイアログのタイトルです。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
+    <value>左図 = LS、右図 = RS。中空のひし形は生入力、青い点は補正後の位置、実線の円は進入閘値、破線の円は退出閘値です。</value>
+    <comment>コントローラー補正診断ダイアログの上部に表示される説明文です。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
+    <value>左右スティック補正座標図</value>
+    <comment>コントローラー左右スティック補正描画領域のアクセシブル名です。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
+    <value>左右スティックのリアルタイム診断図です。中空のひし形は生入力、実点は補正後の位置、実線の円はデッドゾーン進入閘値、破線の円は退出閘値を示し、意味は色だけに依存しません。</value>
+    <comment>コントローラー左右スティック補正描画領域のアクセシビリティ記述です。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
+    <value>LS 生値 {0}, {1} • 補正 {2}, {3}
+RS 生値 {4}, {5} • 補正 {6}, {7}
+デッドゾーン入/出 {8}/{9}</value>
+    <comment>コントローラー接続時に表示される状態文字列です。{0} から {7} は LS と RS の正規化軸値、{8} と {9} はデッドゾーン閾値です。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
+    <value>コントローラーが接続されていません。再接続後にいずれかのスティックを動かすと、ドリフト、センタリング、補正を確認できます。</value>
+    <comment>コントローラー未接続時に補正状態の可視化で表示される状態文字列です。</comment>
+  </data>
   <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
     <value>コントローラーを識別</value>
     <comment>アクティブなコントローラーに識別用振動を再生するメニュー項目。</comment>
@@ -670,6 +704,10 @@
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>現在のゲームパッド補正状態をリセットしました。</value>
     <comment>実行中の補正状態をリセットした後に読み上げるアクセシビリティメッセージです。</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationVisualizer_Open" xml:space="preserve">
+    <value>コントローラー補正状態の可視化を開きました。</value>
+    <comment>コントローラー補正状態の可視化ダイアログを開いたときに読み上げるアクセシビリティ案内です。</comment>
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>LB + RB + X を 0.8 秒長押しするとアプリを終了します。</value>
