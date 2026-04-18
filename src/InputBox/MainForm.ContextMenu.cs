@@ -188,6 +188,10 @@ public partial class MainForm
                 AppSettings.Current.A11yInterruptEnabled = _tsmiA11yInterrupt.Checked;
                 AppSettings.Save();
 
+                VibrateAsync(AppSettings.Current.A11yInterruptEnabled ?
+                    VibrationPatterns.SettingToggleOn :
+                    VibrationPatterns.SettingToggleOff).SafeFireAndForget();
+
                 AnnounceA11y(AppSettings.Current.A11yInterruptEnabled ?
                     Strings.A11y_A11yInterrupt_On :
                     Strings.A11y_A11yInterrupt_Off);
@@ -215,6 +219,10 @@ public partial class MainForm
             {
                 AppSettings.Current.EnableAnimatedVisualAlerts = _tsmiAnimatedVisualAlerts.Checked;
                 AppSettings.Save();
+
+                VibrateAsync(AppSettings.Current.EnableAnimatedVisualAlerts ?
+                    VibrationPatterns.SettingToggleOn :
+                    VibrationPatterns.SettingToggleOff).SafeFireAndForget();
 
                 AnnounceA11y(AppSettings.Current.EnableAnimatedVisualAlerts ?
                     Strings.A11y_AnimatedVisualAlerts_On :
@@ -265,6 +273,10 @@ public partial class MainForm
                 AppSettings.Current.MinimizeOnReturn = _tsmiMinimizeOnReturn.Checked;
                 AppSettings.Save();
 
+                VibrateAsync(AppSettings.Current.MinimizeOnReturn ?
+                    VibrationPatterns.SettingToggleOn :
+                    VibrationPatterns.SettingToggleOff).SafeFireAndForget();
+
                 AnnounceA11y(AppSettings.Current.MinimizeOnReturn ?
                     Strings.A11y_MinimizeOnReturn_On :
                     Strings.A11y_MinimizeOnReturn_Off);
@@ -299,11 +311,9 @@ public partial class MainForm
             }
         };
 
-        /// <summary>
-        /// 新增快速鍵修飾鍵切換項目。
-        /// </summary>
-        /// <param name="label">顯示於選單中的修飾鍵名稱。</param>
-        /// <param name="modValue">對應的修飾鍵旗標值。</param>
+        // 新增快速鍵修飾鍵切換項目。
+        // label: 顯示於選單中的修飾鍵名稱。
+        // modValue: 對應的修飾鍵旗標值。
         void AddModifierItem(string label, User32.KeyModifiers modValue)
         {
             ToolStripMenuItem item = new(label)
@@ -592,18 +602,10 @@ public partial class MainForm
 
         tsmiWinOps.DropDownItems.Add(new ToolStripSeparator());
 
-        /// <summary>
-        /// 新增數值設定選單項目
-        /// </summary>
-        /// <param name="parent">父選單項目</param>
-        /// <param name="label">標籤文字</param>
-        /// <param name="mnemonic">助記鍵字母</param>
-        /// <param name="getter">取得目前值的函式</param>
-        /// <param name="setter">設定新值的函式</param>
-        /// <param name="defValue">預設值</param>
-        /// <param name="min">最小值</param>
-        /// <param name="max">最大值</param>
-        /// <param name="a11yHint">選填的用途說明，供無障礙播報補充。</param>
+        // 新增數值設定選單項目。
+        // parent: 父選單項目。label: 標籤文字。mnemonic: 助記鍵字母。
+        // getter: 取得目前值。setter: 設定新值。defValue: 預設值。min/max: 值域。
+        // a11yHint: 選填的無障礙播報補充說明。
         void AddNumericItem(
             ToolStripMenuItem parent,
             string label,
@@ -902,10 +904,8 @@ public partial class MainForm
             }
         };
 
-        /// <summary>
-        /// 新增遊戲控制器輸入 API 的選項項目。
-        /// </summary>
-        /// <param name="provider">要建立的輸入 API 類型。</param>
+        // 新增遊戲控制器輸入 API 的選項項目。
+        // provider: 要建立的輸入 API 類型。
         void AddProviderItem(AppSettings.GamepadProvider provider)
         {
             char mnemonic = provider == AppSettings.GamepadProvider.GameInput ? 'G' : 'I';
@@ -2447,6 +2447,7 @@ public partial class MainForm
     /// <summary>
     /// 在片語子選單內攔截鍵盤換頁操作，讓滑鼠開啟後也能以方向鍵、Home、End、PageUp、PageDown 與 Enter 正常操作。
     /// </summary>
+    /// <param name="sender">事件來源。</param>
     /// <param name="e">預覽按鍵事件。</param>
     private static void PhraseMenuDropDown_PreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
     {

@@ -79,7 +79,7 @@ internal sealed class GamepadCalibrationDialog : Form
     {
         SuspendLayout();
 
-        float scale = DeviceDpi / 96.0f;
+        float scale = DeviceDpi / AppSettings.BaseDpi;
 
         Text = Strings.Dialog_GamepadCalibrationVisualizer_Title;
         AccessibleName = Strings.Dialog_GamepadCalibrationVisualizer_Title;

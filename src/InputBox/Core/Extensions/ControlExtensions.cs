@@ -594,12 +594,12 @@ public static class ControlExtensions
     /// <summary>
     /// 執行通用的眼動儀注視填滿動畫
     /// </summary>
-    /// <param name="control">要執行動畫的控制項</param>
-    /// <param name="animationIdField">用於追蹤目前動畫序號的欄位引用（需使用 Interlocked 操作）</param>
-    /// <param name="id">本次動畫的目標序號</param>
-    /// <param name="progressSetter">設定進度值（0.0 ~ 1.0）的回呼委派</param>
-    /// <param name="durationMs">動畫總時長（毫秒），預設 1000ms</param>
-    /// <param name="ct">取消權杖</param>
+    /// <param name="control">要執行動畫的控制項。</param>
+    /// <param name="id">本次動畫的目標序號；與 <paramref name="animationIdGetter"/> 回傳值比對，序號失效時立即停止。</param>
+    /// <param name="animationIdGetter">讀取目前最新動畫序號的委派（通常讀取以 Interlocked 維護的欄位）。</param>
+    /// <param name="progressSetter">設定進度值（0.0 ~ 1.0）的回呼委派。</param>
+    /// <param name="durationMs">動畫總時長（毫秒），預設 1000ms。</param>
+    /// <param name="ct">取消權杖。</param>
     /// <returns>Task</returns>
     public static async Task RunDwellAnimationAsync(
         this Control control,

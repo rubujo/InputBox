@@ -32,6 +32,7 @@ internal static class ContextMenuBuilder
     /// <param name="pendingPrefix">待套用前綴文字。</param>
     /// <param name="restartLabel">重啟項目標籤。</param>
     /// <param name="onRestart">點擊重啟項目時執行的動作。</param>
+    /// <param name="restartAccessibleDescription">重啟項目的無障礙描述文字（選用）；為 null 時不設定 <see cref="ToolStripItem.AccessibleDescription"/>。</param>
     public static void EnsureRestartItem(
         ContextMenuStrip menu,
         bool isRestartPending,

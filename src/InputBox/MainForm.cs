@@ -383,6 +383,10 @@ public partial class MainForm : Form
         }, _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 處理 Windows 訊息；指派 <see cref="User32.WindowMessage.Activate"/> 和全域熱鍵通知給內部處理器。
+    /// </summary>
+    /// <param name="m">要處理的訊息。</param>
     protected override void WndProc(ref Message m)
     {
         if (m.Msg == (int)User32.WindowMessage.Activate)
@@ -420,6 +424,10 @@ public partial class MainForm : Form
         base.WndProc(ref m);
     }
 
+    /// <summary>
+    /// 視窗取得輸入焦點時的處理；啟動控制器輪詢並設定返回抑制窗。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnActivated(EventArgs e)
     {
         base.OnActivated(e);
@@ -455,6 +463,10 @@ public partial class MainForm : Form
         return untilTicks > DateTime.UtcNow.Ticks;
     }
 
+    /// <summary>
+    /// 視窗失去輸入焦點時的處理；備援捕捉前景視窗以便後續返回。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnDeactivate(EventArgs e)
     {
         base.OnDeactivate(e);
@@ -546,6 +558,10 @@ public partial class MainForm : Form
         }, _formCts?.Token ?? CancellationToken.None).SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 控制代碼銷毀時的處理；解除全域熱鍵註冊並取消 SystemEvents 訂閱。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnHandleDestroyed(EventArgs e)
     {
         try
@@ -561,6 +577,10 @@ public partial class MainForm : Form
         }
     }
 
+    /// <summary>
+    /// 視窗關閉前的處理；發出取消訊號並停止全部非同步作業。
+    /// </summary>
+    /// <param name="e">關閉事件引數。</param>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         base.OnFormClosing(e);
@@ -872,6 +892,10 @@ public partial class MainForm : Form
             onVibrateCursorMove: () => VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget());
     }
 
+    /// <summary>
+    /// 視窗移動後的通知；保留供後續由呼叫端視需要觸發 <see cref="InputBoxLayoutManager.ApplySmartPosition"/>。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnMove(EventArgs e)
     {
         base.OnMove(e);
@@ -880,6 +904,10 @@ public partial class MainForm : Form
         // 但可在特定時機呼叫 ApplySmartPosition。
     }
 
+    /// <summary>
+    /// 拖曳調整大小結束時的處理；執行智慧定位修正。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnResizeEnd(EventArgs e)
     {
         base.OnResizeEnd(e);
@@ -888,6 +916,10 @@ public partial class MainForm : Form
         ApplySmartPosition();
     }
 
+    /// <summary>
+    /// 控制代碼建立後的初始化；執行最小尺寸、在地化、透明度、智慧定位與熱鍵註冊。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
@@ -914,6 +946,10 @@ public partial class MainForm : Form
         SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
     }
 
+    /// <summary>
+    /// DPI 變更時的處理；更新最小尺寸、重新定位、字型縮放與游標寬度。
+    /// </summary>
+    /// <param name="e">DPI 變更事件引數，包含舊新 DPI 資訊。</param>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
         base.OnDpiChanged(e);

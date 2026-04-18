@@ -402,7 +402,8 @@ internal sealed class PhraseService
     /// <summary>
     /// 判斷指定片語暫存檔是否符合本服務建立的唯一暫存檔命名格式。
     /// </summary>
-    /// <param name="tempPath">暫存檔路徑。</param>
+    /// <param name="baseFilePath">原始片語 JSON 檔路徑，用於產生暫存檔名前綴。</param>
+    /// <param name="tempPath">待驗證的暫存檔路徑。</param>
     /// <returns>若為本服務建立的 GUID 暫存檔則為 true。</returns>
     private static bool IsManagedPhraseTempFile(string baseFilePath, string tempPath)
     {

@@ -30,8 +30,9 @@ internal sealed class WindowNavigationService(WindowFocusService windowFocusMana
     /// <summary>
     /// 執行返回前一個視窗的流程
     /// </summary>
-    /// <param name="controller">目前的控制器實例（用於檢查按鍵狀態）</param>
-    /// <param name="announceErrorAction">若切換失敗時的廣播委派（選用）</param>
+    /// <param name="controller">目前的控制器實例（用於檢查按鍵狀態）。</param>
+    /// <param name="announceErrorAction">若切換失敗時的廣播委派（選用）。</param>
+    /// <param name="cancellationToken">取消權杖，視窗關閉時應一併傳入以中止等待。</param>
     /// <returns>Task</returns>
     public async Task NavigateBackAsync(
         IGamepadController? controller,

@@ -13,6 +13,10 @@ namespace InputBox;
 // 阻擋設計工具。
 partial class DesignerBlocker { };
 
+/// <summary>
+/// 主輸入框視窗（無障礙輔助功能分部）。
+/// <para>本分部檔案包含 A11y 廣播、眼動儀回饋字型及無障礙狀態管理的相關成員。</para>
+/// </summary>
 public partial class MainForm
 {
     /// <summary>
