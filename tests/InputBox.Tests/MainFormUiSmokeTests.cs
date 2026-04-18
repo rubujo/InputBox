@@ -183,6 +183,80 @@ public sealed class MainFormUiSmokeTests : IDisposable
     }
 
     /// <summary>
+    /// 設定中的控制器子選單應可展開並顯示 Provider、Face 鍵配置與校準視覺化命令，表示控制器設定入口正常。
+    /// </summary>
+    [Fact(
+        Skip = "Requires Windows interactive desktop and INPUTBOX_RUN_UI_TESTS=1.",
+        Timeout = 30000,
+        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled),
+        SkipType = typeof(UiSmokeTestRequirements))]
+    [Trait("Category", "UI")]
+    public void SettingsGamepadSubMenu_Open_ShowsCoreCommands()
+    {
+        RunWithFailureArtifacts(nameof(SettingsGamepadSubMenu_Open_ShowsCoreCommands), () =>
+        {
+            AutomationElement contextMenu = OpenContextMenu();
+            AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
+
+            settingsMenuItem.Click();
+
+            AutomationElement gamepadMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Settings_Gamepad);
+            gamepadMenuItem.Click();
+
+            AutomationElement providerMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Settings_Provider);
+            AutomationElement faceLayoutMenuItem = FindAnyOpenMenuItemByLabel(Strings.Settings_GamepadFaceButtonLayout);
+            AutomationElement calibrationVisualizerMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Gamepad_CalibrationVisualizer);
+
+            Assert.True(gamepadMenuItem.IsEnabled);
+            Assert.True(providerMenuItem.IsEnabled);
+            Assert.True(faceLayoutMenuItem.IsEnabled);
+            Assert.True(calibrationVisualizerMenuItem.IsEnabled);
+        });
+    }
+
+    /// <summary>
+    /// 控制器校準視覺化對話框應可從設定選單開啟並正常關閉，表示診斷視窗入口與基本生命週期正常。
+    /// </summary>
+    [Fact(
+        Skip = "Requires Windows interactive desktop and INPUTBOX_RUN_UI_TESTS=1.",
+        Timeout = 30000,
+        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled),
+        SkipType = typeof(UiSmokeTestRequirements))]
+    [Trait("Category", "UI")]
+    public void GamepadCalibrationDialog_Open_And_CloseSuccessfully()
+    {
+        RunWithFailureArtifacts(nameof(GamepadCalibrationDialog_Open_And_CloseSuccessfully), () =>
+        {
+            AutomationElement contextMenu = OpenContextMenu();
+            AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
+
+            settingsMenuItem.Click();
+
+            AutomationElement gamepadMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Settings_Gamepad);
+            gamepadMenuItem.Click();
+
+            AutomationElement calibrationVisualizerMenuItem = FindAnyOpenMenuItemByLabel(Strings.Menu_Gamepad_CalibrationVisualizer);
+            calibrationVisualizerMenuItem.Click();
+
+            Window calibrationDialog = FindDialogWindowByTitle(Strings.Dialog_GamepadCalibrationVisualizer_Title, "找不到控制器校準視覺化對話框視窗。");
+            FlaUiButton resetButton = FindDescendantByLabel(calibrationDialog, ControlType.Button, Strings.Menu_Gamepad_ResetCalibration, "找不到校準視覺化對話框中的重設按鈕。").AsButton();
+            FlaUiButton cancelButton = FindDescendantByLabel(calibrationDialog, ControlType.Button, Strings.Btn_Cancel, "找不到校準視覺化對話框中的取消按鈕。").AsButton();
+
+            Assert.True(calibrationDialog.IsEnabled);
+            Assert.True(resetButton.IsEnabled);
+            Assert.True(cancelButton.IsEnabled);
+
+            cancelButton.Invoke();
+
+            WaitUntil(
+                () => TryFindDialogWindowByTitle(Strings.Dialog_GamepadCalibrationVisualizer_Title) == null,
+                TimeSpan.FromSeconds(10),
+                "控制器校準視覺化對話框未在預期時間內關閉。"
+            );
+        });
+    }
+
+    /// <summary>
     /// 片語子選單應可展開並顯示管理、匯入與匯出命令，表示動態重建的片語選單可正常互動。
     /// </summary>
     [Fact(
@@ -798,6 +872,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
 
         return string.Equals(normalizedElementName, normalizedLabelText, StringComparison.CurrentCultureIgnoreCase) ||
             normalizedElementName.StartsWith(normalizedLabelText + " (", StringComparison.CurrentCultureIgnoreCase) ||
+            normalizedElementName.StartsWith(normalizedLabelText + " [", StringComparison.CurrentCultureIgnoreCase) ||
             normalizedElementName.StartsWith(normalizedLabelText + "...", StringComparison.CurrentCultureIgnoreCase);
     }
 
