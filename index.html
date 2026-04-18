@@ -2916,37 +2916,44 @@
               <p>
                 <span class="lang-zh"
                   >標題列會即時顯示控制器輸入
-                  API、裝置名稱，以及目前生效的控制器主按鍵配置。重複啟動時會自動喚醒既有視窗，避免多開造成焦點混亂。</span
+                  API、裝置名稱，以及目前生效的控制器主按鍵配置。介面也會自動跟隨系統語系與主題；若部分變更需重新啟動套用，會明確提示。重複啟動時會自動喚醒既有視窗，避免多開造成焦點混亂。</span
                 >
                 <span class="lang-de" lang="de"
                   >Die Titelleiste zeigt in Echtzeit die aktive Controller-Eingabe-API, den
-                  Gerätenamen und das aktuell wirksame Controller-Haupttasten-Layout an. Ein
-                  erneutes Starten aktiviert das vorhandene Fenster, um Fokuskonflikte bei mehreren
-                  Instanzen zu vermeiden.</span
+                  Gerätenamen und das aktuell wirksame Controller-Haupttasten-Layout an. Die App
+                  folgt außerdem automatisch der Systemsprache und dem Design; falls bestimmte
+                  Änderungen einen Neustart erfordern, wird dies klar angezeigt. Ein erneutes
+                  Starten aktiviert das vorhandene Fenster, um Fokuskonflikte bei mehreren Instanzen
+                  zu vermeiden.</span
                 >
                 <span class="lang-en" lang="en"
                   >The title bar shows the active controller input API, device name, and current
-                  controller primary-button layout in real time. Re-launching wakes the existing
-                  window to avoid multi-instance focus conflicts.</span
+                  controller primary-button layout in real time. The app also follows the system
+                  language and theme automatically; if some changes require a restart, it clearly
+                  lets you know. Re-launching wakes the existing window to avoid multi-instance
+                  focus conflicts.</span
                 >
                 <span class="lang-fr" lang="fr"
                   >La barre de titre affiche en temps réel l'API de saisie du contrôleur, le nom du
-                  périphérique et la disposition active des boutons principaux de la manette. Un
+                  périphérique et la disposition active des boutons principaux de la manette.
+                  L'application suit aussi automatiquement la langue et le thème du système ; si
+                  certains changements exigent un redémarrage, cela est indiqué clairement. Un
                   second lancement réactive la fenêtre existante afin d'éviter les conflits de focus
-                  multi-instances.</span
+                  entre plusieurs instances.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >タイトルバーに使用中の入力
-                  API、デバイス名、現在有効なコントローラー主ボタン配置をリアルタイム表示します。重複起動時は既存ウィンドウを自動的に呼び出し、多重起動によるフォーカス競合を防ぎます。</span
+                  >タイトルバーには、使用中のコントローラー入力
+                  API、デバイス名、現在有効な主ボタン配置がリアルタイムで表示されます。アプリはシステムの言語とテーマにも自動追従し、一部の変更で再起動が必要な場合は分かりやすく案内します。再度起動した場合は既存のウィンドウを呼び出し、複数起動によるフォーカスの混乱を防ぎます。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >제목 표시줄은 활성 컨트롤러 입력 API, 장치 이름, 현재 적용 중인 컨트롤러 주 버튼
-                  배치를 실시간으로 표시합니다. 다시 시작하면 기존 창을 활성화하여 다중 인스턴스
-                  포커스 충돌을 방지합니다.</span
+                  >제목 표시줄에는 현재 사용 중인 컨트롤러 입력 API, 장치 이름, 적용 중인 주 버튼
+                  배치가 실시간으로 표시됩니다. 앱은 시스템 언어와 테마도 자동으로 따르며, 일부
+                  변경에 재시작이 필요하면 이를 명확히 안내합니다. 다시 실행하면 기존 창을 자동으로
+                  불러와 다중 인스턴스로 인한 포커스 혼란을 방지합니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >标题栏会实时显示当前控制器输入
-                  API、设备名称，以及目前生效的控制器主按键布局。重复启动时会自动唤醒既有窗口，避免多开造成焦点混乱。</span
+                  >标题栏会即时显示控制器输入
+                  API、设备名称，以及当前生效的控制器主按键布局。界面也会自动跟随系统语言与主题；若部分变更需要重启套用，会明确提示。重复启动时会自动唤醒现有窗口，避免多开造成焦点混乱。</span
                 >
               </p>
             </div>
@@ -6993,36 +7000,50 @@
               </h3>
               <p>
                 <span class="lang-zh"
-                  >右鍵選單可切換「動畫式視覺警示」（預設關閉）。若系統主題／高對比或部分設定變更需重新啟動，標題列與右鍵選單會顯示提示，並提供立即重新啟動程式的快捷項目。</span
+                  >警示與驗證回饋預設採用單次靜態脈衝，對光敏感使用者更安全；若明確需要，也可於右鍵選單切換為
+                  1Hz
+                  的「動畫式視覺警示」。若系統主題／高對比或部分設定變更需重新啟動，標題列與右鍵選單會顯示提示，並提供立即重新啟動程式的快捷項目。</span
                 >
                 <span class="lang-de" lang="de"
-                  >Sie können „Animierte visuelle Warnungen“ im Kontextmenü umschalten
-                  (standardmäßig deaktiviert). Wenn Systemdesign, hoher Kontrast oder bestimmte
-                  Einstellungen einen Neustart erfordern, zeigen Titelleiste und Kontextmenü einen
-                  Hinweis mit Schnellneustart an.</span
+                  >Warn- und Bestätigungsrückmeldungen verwenden standardmäßig einen einzelnen
+                  statischen Impuls, der für lichtempfindliche Nutzer sicherer ist; bei Bedarf
+                  können Sie im Kontextmenü auf 1-Hz-„animierte visuelle Warnungen“ umschalten. Wenn
+                  Systemdesign, hoher Kontrast oder bestimmte Einstellungen einen Neustart
+                  erfordern, zeigen Titelleiste und Kontextmenü einen Hinweis mit Schnellneustart
+                  an.</span
                 >
                 <span class="lang-en" lang="en"
-                  >You can toggle "Animated Visual Alerts" from the context menu (off by default).
-                  When the system theme, high-contrast mode, or certain settings require a restart,
-                  the title bar and context menu will show a prompt with a quick restart
-                  action.</span
+                  >Warning and validation feedback use a single static pulse by default for better
+                  photosensitive safety; if needed, you can switch to 1Hz "Animated Visual Alerts"
+                  from the context menu. When the system theme, high-contrast mode, or certain
+                  settings require a restart, the title bar and context menu will show a prompt with
+                  a quick restart action.</span
                 >
                 <span class="lang-fr" lang="fr"
-                  >Vous pouvez activer ou désactiver les « alertes visuelles animées » dans le menu
-                  contextuel (désactivées par défaut). Lorsque le thème système, le contraste élevé
-                  ou certains réglages nécessitent un redémarrage, la barre de titre et le menu
-                  contextuel affichent un rappel avec une action de redémarrage rapide.</span
+                  >Les alertes et validations utilisent par défaut une impulsion statique unique,
+                  plus sûre pour les personnes photosensibles ; si nécessaire, vous pouvez basculer
+                  vers des « alertes visuelles animées » à 1 Hz depuis le menu contextuel. Lorsque
+                  le thème système, le contraste élevé ou certains réglages nécessitent un
+                  redémarrage, la barre de titre et le menu contextuel affichent un rappel avec une
+                  action de redémarrage rapide.</span
                 >
                 <span class="lang-ja" lang="ja"
-                  >右クリックメニューで「アニメーション視覚警告」を切り替えできます（既定はオフ）。システムテーマやハイコントラスト、または一部設定の変更で再起動が必要な場合、タイトルバーと右クリックメニューに案内が表示され、すぐに再起動できます。</span
+                  >警告や検証の視覚フィードバックは既定で 1
+                  回だけの静的パルスとなっており、光過敏の方にもより安全です。必要な場合のみ、右クリックメニューから
+                  1Hz
+                  の「アニメーション視覚警告」に切り替えられます。システムテーマやハイコントラスト、または一部設定の変更で再起動が必要な場合、タイトルバーと右クリックメニューに案内が表示され、すぐに再起動できます。</span
                 >
                 <span class="lang-ko" lang="ko"
-                  >컨텍스트 메뉴에서 「애니메이션 시각적 경고」를 전환할 수 있습니다(기본값: 꺼짐).
-                  시스템 테마, 고대비 모드 또는 일부 설정 변경으로 재시작이 필요한 경우 제목
-                  표시줄과 컨텍스트 메뉴에 안내와 빠른 재시작 항목이 표시됩니다.</span
+                  >경고 및 확인 피드백은 기본적으로 단일 정적 펄스를 사용하여 광과민 사용자에게 더
+                  안전합니다. 필요할 경우에만 컨텍스트 메뉴에서 1Hz 「애니메이션 시각적 경고」로
+                  전환할 수 있습니다. 시스템 테마, 고대비 모드 또는 일부 설정 변경으로 재시작이
+                  필요한 경우 제목 표시줄과 컨텍스트 메뉴에 안내와 빠른 재시작 항목이
+                  표시됩니다.</span
                 >
                 <span class="lang-sc" lang="zh-Hans"
-                  >右键菜单可切换「动画式视觉警示」（默认关闭）。若系统主题／高对比或部分设置变更需要重新启动，标题列与右键菜单会显示提示，并提供立即重启程序的快捷项。</span
+                  >警示与验证反馈默认采用单次静态脉冲，对光敏感用户更安全；若明确需要，也可在右键菜单切换为
+                  1Hz
+                  的「动画式视觉警示」。若系统主题／高对比或部分设置变更需要重新启动，标题列与右键菜单会显示提示，并提供立即重启程序的快捷项。</span
                 >
               </p>
             </div>
