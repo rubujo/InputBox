@@ -650,7 +650,10 @@ internal sealed class GamepadCalibrationDialog : Form
 
         float normalizedDeadzone = GamepadCalibrationVisualizerMapper.CalculateDeadzoneRadius(
             Math.Max(snapshot.ThumbDeadzoneEnter, snapshot.ThumbDeadzoneExit));
-        float navigationThreshold = Math.Clamp(MathF.Max(normalizedDeadzone, 0.16f) + 0.02f, 0.12f, 0.35f);
+
+        // 門檻必須低於 normalizedDeadzone，確保 LS 剛跨越 ThumbDeadzoneEnter
+        // 觸發搖桿→D-Pad 映射的瞬間，保護邏輯已阻止方向焦點移動。
+        float navigationThreshold = Math.Clamp(normalizedDeadzone * 0.75f, 0.06f, 0.18f);
 
         return MathF.Abs(snapshot.RawLeftX) <= navigationThreshold &&
                MathF.Abs(snapshot.RawLeftY) <= navigationThreshold &&
@@ -757,14 +760,15 @@ internal sealed class GamepadCalibrationDialog : Form
         Color rawColor = SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(90, 90, 90);
         Color correctedColor = SystemInformation.HighContrast ? SystemColors.Highlight : Color.DodgerBlue;
 
-        using Pen outerPen = new(axisColor, 2f);
-        using Pen crossPen = new(axisColor, 1f) { DashStyle = DashStyle.Dash };
-        using Pen deadzonePen = new(deadzoneColor, 2f);
-        using Pen deadzoneExitPen = new(deadzoneColor, 1.5f) { DashStyle = DashStyle.Dash };
-        using Pen rawPen = new(rawColor, 2f);
-        using Pen correctedOutlinePen = new(axisColor, 1.5f);
-        using SolidBrush deadzoneFillBrush = new(Color.FromArgb(SystemInformation.HighContrast ? 36 : 22, deadzoneColor));
-        using SolidBrush rawBrush = new(Color.FromArgb(SystemInformation.HighContrast ? 80 : 40, rawColor));
+        float s = DeviceDpi / AppSettings.BaseDpi;
+        using Pen outerPen = new(axisColor, 2f * s);
+        using Pen crossPen = new(axisColor, 1.5f * s) { DashStyle = DashStyle.Dash };
+        using Pen deadzonePen = new(deadzoneColor, 2.5f * s);
+        using Pen deadzoneExitPen = new(deadzoneColor, 2f * s) { DashStyle = DashStyle.Dash };
+        using Pen rawPen = new(rawColor, 2.5f * s);
+        using Pen correctedOutlinePen = new(axisColor, 2f * s);
+        using SolidBrush deadzoneFillBrush = new(Color.FromArgb(SystemInformation.HighContrast ? 60 : 48, deadzoneColor));
+        using SolidBrush rawBrush = new(Color.FromArgb(SystemInformation.HighContrast ? 100 : 64, rawColor));
         using SolidBrush correctedBrush = new(correctedColor);
         using SolidBrush centerBrush = new(axisColor);
 
@@ -819,24 +823,27 @@ internal sealed class GamepadCalibrationDialog : Form
         float exitDeadzoneRadius = GamepadCalibrationVisualizerMapper.CalculateDeadzoneRadius(_snapshot.ThumbDeadzoneExit) * (plotBounds.Width / 2f);
         graphics.DrawEllipse(deadzoneExitPen, centerX - exitDeadzoneRadius, centerY - exitDeadzoneRadius, exitDeadzoneRadius * 2f, exitDeadzoneRadius * 2f);
 
-        graphics.FillEllipse(centerBrush, centerX - 3f, centerY - 3f, 6f, 6f);
+        float dpiScale = DeviceDpi / AppSettings.BaseDpi;
+        graphics.FillEllipse(centerBrush, centerX - 3f * dpiScale, centerY - 3f * dpiScale, 6f * dpiScale, 6f * dpiScale);
 
         PointF rawPoint = GamepadCalibrationVisualizerMapper.MapToCanvas(plotBounds, rawX, rawY),
             correctedPoint = GamepadCalibrationVisualizerMapper.MapToCanvas(plotBounds, correctedX, correctedY);
 
         graphics.DrawLine(rawPen, centerX, centerY, rawPoint.X, rawPoint.Y);
 
+        float dm = 8f * dpiScale;
         PointF[] diamond =
         [
-            new PointF(rawPoint.X, rawPoint.Y - 8f),
-            new PointF(rawPoint.X + 8f, rawPoint.Y),
-            new PointF(rawPoint.X, rawPoint.Y + 8f),
-            new PointF(rawPoint.X - 8f, rawPoint.Y)
+            new PointF(rawPoint.X, rawPoint.Y - dm),
+            new PointF(rawPoint.X + dm, rawPoint.Y),
+            new PointF(rawPoint.X, rawPoint.Y + dm),
+            new PointF(rawPoint.X - dm, rawPoint.Y)
         ];
         graphics.FillPolygon(rawBrush, diamond);
         graphics.DrawPolygon(rawPen, diamond);
-        graphics.FillEllipse(correctedBrush, correctedPoint.X - 6f, correctedPoint.Y - 6f, 12f, 12f);
-        graphics.DrawEllipse(correctedOutlinePen, correctedPoint.X - 6f, correctedPoint.Y - 6f, 12f, 12f);
+        float cr = 6f * dpiScale;
+        graphics.FillEllipse(correctedBrush, correctedPoint.X - cr, correctedPoint.Y - cr, cr * 2f, cr * 2f);
+        graphics.DrawEllipse(correctedOutlinePen, correctedPoint.X - cr, correctedPoint.Y - cr, cr * 2f, cr * 2f);
 
         Rectangle labelBounds = Rectangle.Round(new RectangleF(plotBounds.Left + 12f, plotBounds.Top - 44f, plotBounds.Width - 24f, 30f));
         graphics.FillRectangle(SystemBrushes.Window, labelBounds);
