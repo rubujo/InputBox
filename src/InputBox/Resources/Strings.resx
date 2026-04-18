@@ -512,7 +512,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Menu item label for opening the live controller calibration diagnostics dialog.</comment>
   </data>
   <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
-    <value>Open a live diagnostics window that shows the raw point, corrected point, and current deadzone for the controller stick.</value>
+    <value>Open a live diagnostics window that shows the raw point, corrected point, and current deadzone for the controller sticks.</value>
     <comment>Accessible description for the Calibration Visualizer menu item.</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
