@@ -1077,8 +1077,6 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _previousState = latestSnapshot;
             _hasPreviousState = true;
 
-            UpdateCalibrationSnapshot(latestSnapshot, config, true);
-
             // 對齊 Timer Tick 執行連發邏輯。
             HandleRepeat(_previousProcessedButtons, config);
 
