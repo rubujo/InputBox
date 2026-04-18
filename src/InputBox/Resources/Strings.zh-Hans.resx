@@ -534,7 +534,7 @@
   <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
     <value>LS 原始 {0}, {1} • 校正 {2}, {3}
 RS 原始 {4}, {5} • 校正 {6}, {7}
-死区进入/离开 {8}/{9}</value>
+死区进入／离开 {8}／{9}</value>
     <comment>游戏控制器已连接时显示的状态文字。{0} 到 {7} 为 LS 与 RS 的归一化轴值，{8} 和 {9} 为死区阈值。</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
