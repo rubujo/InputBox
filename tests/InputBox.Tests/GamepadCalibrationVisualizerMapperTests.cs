@@ -120,4 +120,25 @@ public sealed class GamepadCalibrationVisualizerMapperTests
 
         Assert.False(actual);
     }
+
+    [Fact]
+    public void ShouldHandleDirectionalFocusNavigation_WhenStickJustCrossesEnterDeadzone_ReturnsFalse()
+    {
+        // ThumbDeadzoneEnter = 7849 → normalizedDeadzone ≈ 0.2395
+        // navigationThreshold = 0.2395 * 0.75 ≈ 0.1796
+        // LS at -0.24 just crossed the enter threshold → stick→D-Pad mapping has fired.
+        // Guard must block focus navigation in this case.
+        bool actual = GamepadCalibrationDialog.ShouldHandleDirectionalFocusNavigation(new GamepadCalibrationSnapshot
+        {
+            IsConnected = true,
+            ThumbDeadzoneEnter = 7849,
+            ThumbDeadzoneExit = 2500,
+            RawLeftX = -0.24f,
+            RawLeftY = 0.00f,
+            CorrectedLeftX = -0.24f,
+            CorrectedLeftY = 0.00f
+        });
+
+        Assert.False(actual);
+    }
 }
