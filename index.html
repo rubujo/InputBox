@@ -1089,6 +1089,11 @@
         border: 2px dashed var(--border-color);
       }
 
+      /* footer 直屬段落置中：補上 margin-inline: auto，使 max-width: 75ch 在寬螢幕下維持區塊置中 */
+      footer > .container > p {
+        margin-inline: auto;
+      }
+
       /*
      * ========== 9. 返回頂端 (Back-to-Top) ==========
      * 強化 A11y AAA：確保鍵盤操作、高對比度、與足夠的點擊面積 (56px)
@@ -7191,7 +7196,7 @@
         <span class="lang-sc" lang="zh-Hans">页尾</span>
       </span>
       <div class="container">
-        <p class="footer-text">
+        <p>
           <span class="lang-zh"
             >本專案使用 AI 服務輔助開發、翻譯、圖示生成、文件撰寫以及網頁製作。</span
           >
@@ -7219,7 +7224,7 @@
             >本项目使用 AI 服务辅助开发、翻译、图标生成、文档撰写以及网页制作。</span
           >
         </p>
-        <p class="footer-text">
+        <p>
           <span class="lang-zh"
             >本應用程式為非官方第三方應用程式，與任何遊戲或服務之開發商、發行商、代理商或營運單位皆無關聯，且無法保證在任何特定遊戲或服務環境中皆能符合使用者的操作需求或使用情境。使用本應用程式所產生的任何後果，皆由使用者自行承擔。</span
           >
@@ -7257,7 +7262,7 @@
             사용자의 책임입니다.</span
           >
         </p>
-        <p class="footer-text">
+        <p>
           <span class="lang-zh"
             >本專案的本體採用
             <a
@@ -7337,7 +7342,7 @@
             자유롭게 복사, 수정, 배포 또는 실행할 수 있습니다. 🕊️</span
           >
         </p>
-        <div class="footer-text footer-notice">
+        <div class="footer-notice">
           <p>
             <strong>
               <span class="lang-zh">第三方函式庫授權聲明 ⚖️</span>
@@ -7410,7 +7415,7 @@
               授权范围，并依其各自授权条款提供。</span
             >
           </p>
-          <p class="footer-license-links">
+          <p>
             <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener noreferrer"
               >.NET Runtime（MIT）</a
             >
