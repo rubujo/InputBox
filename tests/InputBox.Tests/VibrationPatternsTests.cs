@@ -515,6 +515,59 @@ public class VibrationPatternsTests
         Assert.NotEqual(firstProfile, secondProfile);
     }
 
+    // ── 設定切換語意 ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// SettingToggleOn 強度應高於游標移動以提供明確狀態確認感，
+    /// 且低於 ClearInput 以避免破壞性語意混淆。
+    /// </summary>
+    [Fact]
+    public void SettingToggleOn_Strength_BetweenCursorMoveAndClearInput()
+    {
+        Assert.True(VibrationPatterns.SettingToggleOn.Strength > VibrationPatterns.CursorMove.Strength);
+        Assert.True(VibrationPatterns.SettingToggleOn.Strength < VibrationPatterns.ClearInput.Strength);
+    }
+
+    /// <summary>
+    /// SettingToggleOff 強度應輕於 SettingToggleOn，以反映「移除狀態」的語意。
+    /// </summary>
+    [Fact]
+    public void SettingToggleOff_Strength_LighterThanSettingToggleOn()
+    {
+        Assert.True(VibrationPatterns.SettingToggleOff.Strength < VibrationPatterns.SettingToggleOn.Strength);
+        Assert.True(VibrationPatterns.SettingToggleOff.Duration < VibrationPatterns.SettingToggleOn.Duration);
+    }
+
+    /// <summary>
+    /// SettingToggle 兩個樣式均使用對稱馬達配置，以傳達「中性設定確認」而非方向性語意。
+    /// </summary>
+    [Fact]
+    public void SettingToggle_MotorScales_AreSymmetric()
+    {
+        Assert.Equal(
+            VibrationPatterns.SettingToggleOn.LowFrequencyMotorScale,
+            VibrationPatterns.SettingToggleOn.HighFrequencyMotorScale);
+        Assert.Equal(
+            VibrationPatterns.SettingToggleOn.LeftTriggerMotorScale,
+            VibrationPatterns.SettingToggleOn.RightTriggerMotorScale);
+        Assert.Equal(
+            VibrationPatterns.SettingToggleOff.LowFrequencyMotorScale,
+            VibrationPatterns.SettingToggleOff.HighFrequencyMotorScale);
+        Assert.Equal(
+            VibrationPatterns.SettingToggleOff.LeftTriggerMotorScale,
+            VibrationPatterns.SettingToggleOff.RightTriggerMotorScale);
+    }
+
+    /// <summary>
+    /// SettingToggleOn 強度應低於 PrivacyModeToggle，確保隱私模式的特殊語意仍更顯著。
+    /// </summary>
+    [Fact]
+    public void SettingToggleOn_Strength_LighterThanPrivacyModeToggle()
+    {
+        Assert.True(VibrationPatterns.SettingToggleOn.Strength < VibrationPatterns.PrivacyModeToggle.Strength);
+        Assert.True(VibrationPatterns.SettingToggleOn.Duration < VibrationPatterns.PrivacyModeToggle.Duration);
+    }
+
     /// <summary>
     /// 用來驗證回饋服務是否正確把方向性震動設定轉送給控制器。
     /// </summary>

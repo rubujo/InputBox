@@ -1,4 +1,4 @@
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
@@ -78,7 +78,7 @@ internal sealed class PhraseEditDialog : Form
     private long _a11yDebounceId;
 
     /// <summary>
-    /// 遅戲控制器（由外部導入，生命週期由外部管理）
+    /// 遊戲控制器（由外部導入，生命週期由外部管理）
     /// </summary>
     private IGamepadController? _gamepadController;
 
@@ -97,10 +97,6 @@ internal sealed class PhraseEditDialog : Form
     /// <para>在 <see cref="OnShown"/> 時替換為共享快取字型並釋放此實例。</para>
     /// </summary>
     private Font? _txtInputFont;
-
-    /// <summary>
-    /// 按鈕視覺狀態追蹤
-    /// </summary>
 
     /// <summary>
     /// 使用者輸入的片語名稱
@@ -570,14 +566,57 @@ internal sealed class PhraseEditDialog : Form
     /// <param name="e">DPI 變更事件參數。</param>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
-        base.OnDpiChanged(e);
-
-        this.SafeInvoke(() =>
+        try
         {
-            UpdateButtonMinimumSizes();
-            UpdateMinimumSize();
-            ApplySmartPosition();
-        });
+            base.OnDpiChanged(e);
+
+            this.SafeInvoke(() =>
+            {
+                try
+                {
+                    // DPI 變更後刷新字型快取引用（共享快取依 DPI 分開儲存，必須重新取得）。
+                    _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Regular);
+                    _boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold);
+                    Font = _a11yFont;
+
+                    // 輸入框使用 2.0× 倍率字型（已明確設定，不繼承 Form.Font，需手動更新）。
+                    Font sharedInputFont = MainForm.GetSharedA11yFont(
+                        DeviceDpi,
+                        FontStyle.Regular,
+                        _a11yFont?.FontFamily,
+                        2.0f);
+                    _txtName.Font = sharedInputFont;
+                    _txtContent.Font = sharedInputFont;
+
+                    // 重新掛載眼動儀回饋，刷新 ButtonVisualState 中儲存的字型引用。
+                    _btnOk.AttachEyeTrackerFeedback(
+                        baseDescription: Strings.Phrase_A11y_Btn_Confirm_Desc,
+                        regularFont: _a11yFont,
+                        boldFont: _boldFont,
+                        formCt: _cts?.Token ?? CancellationToken.None);
+
+                    _btnCancel.AttachEyeTrackerFeedback(
+                        baseDescription: Strings.Phrase_A11y_Btn_Cancel_Desc,
+                        regularFont: _a11yFont,
+                        boldFont: _boldFont,
+                        formCt: _cts?.Token ?? CancellationToken.None);
+
+                    UpdateButtonMinimumSizes();
+                    UpdateMinimumSize();
+                    ApplySmartPosition();
+                    _btnOk.Invalidate();
+                    _btnCancel.Invalidate();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[片語編輯] OnDpiChanged 延遲邏輯失敗：{ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[片語編輯] OnDpiChanged 失敗：{ex.Message}");
+        }
     }
 
     /// <summary>

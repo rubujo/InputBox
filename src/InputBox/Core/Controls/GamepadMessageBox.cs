@@ -356,7 +356,6 @@ internal sealed class GamepadMessageBox : Form
     /// <param name="buttons">要建立的按鈕類型。</param>
     /// <param name="defaultButton">預設按鈕。</param>
     /// <param name="flow">按鈕容器。</param>
-    /// <param name="lblHint">提示標籤。</param>
     /// <param name="scale">縮放比例。</param>
     private void BuildButtons(
         MessageBoxButtons buttons,

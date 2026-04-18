@@ -1862,6 +1862,7 @@ public partial class MainForm
     /// <param name="maximum">最大值</param>
     /// <param name="step">增減步進值</param>
     /// <param name="decimalPlaces">顯示的小數位數</param>
+    /// <param name="confirmBeforeClose">關閉前的確認委派；回傳 false 時阻止對話框關閉（選用）。</param>
     /// <returns>使用者輸入的值，如果取消則為 null</returns>
     private float? AskForFloat(
         string title,

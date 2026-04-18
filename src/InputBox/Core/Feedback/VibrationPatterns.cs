@@ -96,6 +96,10 @@ public static class VibrationPatterns
     /// </remarks>
     private static volatile float _globalIntensityMultiplier = 0.7f;
 
+    /// <summary>
+    /// 取得或設定全域震動強度倍率。
+    /// <para>0.7 = 預設；0.5 = 弱；0.0 = 關閉。更改後，後續所有震動呼叫均會套用新值。</para>
+    /// </summary>
     public static float GlobalIntensityMultiplier
     {
         get => _globalIntensityMultiplier;
@@ -361,6 +365,17 @@ public static class VibrationPatterns
     /// 調整震動強度後的即時預覽脈衝，維持中等強度與短時間以避免突兀。
     /// </summary>
     public static readonly VibrationProfile IntensityPreview = new(26000, 75, 0.72f, 0.72f, 0.30f, 0.30f);
+
+    /// <summary>
+    /// 一般設定切換為「啟用」時的確認脈衝（對稱馬達，不含方向語意）。
+    /// <para>強度介於游標移動與清除輸入之間，代表一個明確但非破壞性的狀態確認。</para>
+    /// </summary>
+    public static readonly VibrationProfile SettingToggleOn = new(22000, 55, 0.62f, 0.62f, 0.50f, 0.50f);
+
+    /// <summary>
+    /// 一般設定切換為「停用」時的確認脈衝（對稱馬達，強度比 On 輕以反映移除語意）。
+    /// </summary>
+    public static readonly VibrationProfile SettingToggleOff = new(15000, 38, 0.48f, 0.48f, 0.22f, 0.22f);
 
     /// <summary>
     /// 識別目前控制器時的第一拍定位脈衝。
