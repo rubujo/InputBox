@@ -798,6 +798,18 @@
           background-color 0.2s;
       }
 
+      span[class^="lang-"],
+      span[class*=" lang-"],
+      nav.main-nav a,
+      footer p,
+      .footer-notice,
+      .footer-notice strong {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+      }
+
       .lang-switcher label:hover {
         background-color: rgba(128, 128, 128, 0.08);
         border-bottom-color: var(--border-color);
@@ -1064,13 +1076,15 @@
       footer a {
         color: var(--link-color);
         font-weight: 800;
-        padding: 0.5rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 44px;
+        padding: 0.25rem 0.35rem;
+        display: inline-block;
+        max-width: 100%;
+        min-width: 0;
         min-height: 44px;
         border-radius: 0.5rem;
+        text-align: center;
+        vertical-align: middle;
+        white-space: normal;
         text-underline-offset: 3px;
       }
 
@@ -5255,37 +5269,41 @@
                     <span class="lang-zh"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 鍵</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 鍵（長按約0.8秒）</span
                     >
                     <span class="lang-en" lang="en"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span> Button</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> Button (hold for ~0.8
+                      s)</span
                     >
                     <span class="lang-ja" lang="ja"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span> ボタン</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span>
+                      ボタン（約0.8秒長押し）</span
                     >
                     <span class="lang-sc" lang="zh-Hans"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 键</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 键（长按约0.8秒）</span
                     >
                     <span class="lang-de" lang="de"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span>-Taste</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span>-Taste (ca. 0,8 s
+                      halten)</span
                     >
                     <span class="lang-fr" lang="fr"
                       >Bouton <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span></span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> (maintenir env. 0,8 s)</span
                     >
                     <span class="lang-ko" lang="ko"
                       ><span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 버튼</span
+                      <span class="xbox-btn xbox-round xbox-x">⌫</span> 버튼(약 0.8초 길게
+                      누름)</span
                     >
                   </td>
                   <td>

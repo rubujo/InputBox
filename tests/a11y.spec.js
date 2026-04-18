@@ -122,6 +122,33 @@ test.describe("InputBox gh-pages A11y", () => {
     expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth);
   });
 
+  test("500% 縮放等效寬度下各語系內容不應水平跑版", async ({ page }) => {
+    await page.setViewportSize({ width: 256, height: 1600 });
+    await page.goto(pageUrl);
+
+    await page.locator("#theme-light").evaluate((element) => {
+      element.checked = true;
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    for (const langId of languageIds) {
+      await page.locator(`#${langId}`).evaluate((element) => {
+        element.checked = true;
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+
+      const pageWidth = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+
+      expect(
+        pageWidth.scrollWidth,
+        `${langId} should reflow cleanly at 500% zoom equivalent width`,
+      ).toBeLessThanOrEqual(pageWidth.clientWidth);
+    }
+  });
+
   test("iPhone SE 寬度下若語言項目為奇數，最後一項應獨占一列", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(pageUrl);
