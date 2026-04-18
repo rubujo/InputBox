@@ -197,7 +197,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 提供校準視覺化使用的目前診斷快照。
     /// </summary>
-    private GamepadCalibrationSnapshot _currentCalibrationSnapshot = GamepadCalibrationSnapshot.Empty;
+    private volatile GamepadCalibrationSnapshot _currentCalibrationSnapshot = GamepadCalibrationSnapshot.Empty;
 
 #if DEBUG
     /// <summary>
