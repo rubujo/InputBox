@@ -23,7 +23,10 @@
 - 提交訊息必須包含 **Subject** 與 **Body**。
 - 訊息預設使用 **正體中文**。
 - **所有 Git 提交預設必須使用 GPG 簽章**，並在提交後以 `git log --show-signature -1` 或 `git verify-commit HEAD` 驗證為有效簽章。
-- **不得** 為了繞過本機 pinentry、gpg-agent 或終端互動問題，而使用 `--no-gpg-sign`、`git -c commit.gpgsign=false` 等方式提交；除非維護者明確授權，否則應先修復簽章環境再提交。
+- **簽章流程僅可使用使用者既有的 Git、GPG、pinentry 與 gpg-agent 設定**；Agent 不得假設、重建或覆寫使用者的本機簽章環境。
+- **嚴禁 Agent 自行建立、修改或覆寫 GPG / gpg-agent 設定檔**（例如 `~/.gnupg/gpg.conf`、`gpg-agent.conf`、`common.conf`），也不得為了排除簽章問題而擅自匯入、切換或重設金鑰與相關設定。
+- **若簽章失敗**，Agent 應回報錯誤並提醒使用者自行檢查或授權其簽章環境；**不得** 自動修改設定檔案作為修復手段。
+- **不得** 為了繞過本機 pinentry、gpg-agent 或終端互動問題，而使用 `--no-gpg-sign`、`git -c commit.gpgsign=false` 等方式提交；除非維護者明確授權，否則應先由使用者調整其簽章環境後再提交。
 
 ## 4. 分支策略與合併守門
 - **採用 main-first 工作流**：`main` 必須隨時保持為可發布版本；每次新功能、修補或熱修開始前，`dev` 必須先同步或重設到目前 `main` 的最新提交，確保兩者起點一致。
