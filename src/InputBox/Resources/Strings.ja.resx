@@ -534,7 +534,7 @@
   <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
     <value>LS 生値 {0}, {1} • 補正 {2}, {3}
 RS 生値 {4}, {5} • 補正 {6}, {7}
-デッドゾーン入/出 {8}/{9}</value>
+デッドゾーン入／出 {8}／{9}</value>
     <comment>コントローラー接続時に表示される状態文字列です。{0} から {7} は LS と RS の正規化軸値、{8} と {9} はデッドゾーン閾値です。</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
