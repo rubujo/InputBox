@@ -507,6 +507,40 @@
     <value>清除当前运行期间学习到的游戏控制器中立偏移，不会更改已保存的死区或重复输入设置。</value>
     <comment>“重置当前校准状态”菜单项的无障碍描述。</comment>
   </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer" xml:space="preserve">
+    <value>校准状态可视化...</value>
+    <comment>用于打开实时游戏控制器校准诊断对话框的菜单项文字。</comment>
+  </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
+    <value>打开实时诊断窗口，显示摇杆原始点、校正点和当前死区范围。</value>
+    <comment>校准状态可视化菜单项的无障碍描述。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
+    <value>游戏控制器校准状态可视化</value>
+    <comment>游戏控制器校准诊断对话框的标题。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
+    <value>左图 = LS，右图 = RS。空心菱形为原始输入，蓝点为校正后位置，实线圆环为死区进入阈値，虚线圆环为死区离开阈値。</value>
+    <comment>显示在游戏控制器校准诊断对话框顶部的说明文字。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
+    <value>左右摇杆校准坐标图</value>
+    <comment>游戏控制器左右摇杆校准绘图区的无障碍名称。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
+    <value>左右摇杆的实时诊断图。空心菱形是原始输入，实心点是校正后位置，实线圆环为死区进入阈値，虚线圆环为死区离开阈値，因此不会只靠颜色表达信息。</value>
+    <comment>游戏控制器左右摇杆校准绘图区的无障碍描述。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
+    <value>LS 原始 {0}, {1} • 校正 {2}, {3}
+RS 原始 {4}, {5} • 校正 {6}, {7}
+死区进入/离开 {8}/{9}</value>
+    <comment>游戏控制器已连接时显示的状态文字。{0} 到 {7} 为 LS 与 RS 的归一化轴值，{8} 和 {9} 为死区阈值。</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
+    <value>当前没有连接的控制器。重新连接后移动任一摇杆，即可检查漂移、回中与校正效果。</value>
+    <comment>控制器未连接时在校准状态可视化中显示的状态文字。</comment>
+  </data>
   <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
     <value>识别当前游戏控制器</value>
     <comment>在当前活动游戏控制器播放识别震动的菜单项文字。</comment>
@@ -670,6 +704,10 @@
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>已重置当前游戏控制器校准状态。</value>
     <comment>重置运行期校准状态后播报的无障碍消息。</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationVisualizer_Open" xml:space="preserve">
+    <value>已打开控制器校准可视化。</value>
+    <comment>打开控制器校准可视化对话框时播报的无障碍消息。</comment>
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>按住 LB + RB + X 0.8 秒即可退出程序。</value>

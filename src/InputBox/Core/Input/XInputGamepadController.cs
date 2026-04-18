@@ -194,6 +194,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// </summary>
     private float _rightStickBiasY;
 
+    /// <summary>
+    /// 提供校準視覺化使用的目前診斷快照。
+    /// </summary>
+    private GamepadCalibrationSnapshot _currentCalibrationSnapshot = GamepadCalibrationSnapshot.Empty;
+
 #if DEBUG
     /// <summary>
     /// D-Pad Right 連發診斷計數
@@ -429,6 +434,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// 取得目前是否已連線
     /// </summary>
     public bool IsConnected => _isConnected;
+
+    /// <summary>
+    /// 取得目前校準視覺化所需的唯讀診斷快照。
+    /// </summary>
+    public GamepadCalibrationSnapshot CurrentCalibrationSnapshot => _currentCalibrationSnapshot;
 
     /// <summary>
     /// 控制器 A 鍵按下事件。
@@ -746,6 +756,18 @@ internal sealed partial class XInputGamepadController : IGamepadController
             correctedLeftThumbY = (int)MathF.Round(currentState.Gamepad.ThumbLeftY - _leftStickBiasY),
             correctedRightThumbX = (int)MathF.Round(currentState.Gamepad.ThumbRightX - _rightStickBiasX),
             correctedRightThumbY = (int)MathF.Round(currentState.Gamepad.ThumbRightY - _rightStickBiasY);
+
+        UpdateCalibrationSnapshot(
+            NormalizeAxis(currentState.Gamepad.ThumbLeftX),
+            NormalizeAxis(currentState.Gamepad.ThumbLeftY),
+            NormalizeAxis(currentState.Gamepad.ThumbRightX),
+            NormalizeAxis(currentState.Gamepad.ThumbRightY),
+            result == 0 ? NormalizeAxis(correctedLeftThumbX) : 0f,
+            result == 0 ? NormalizeAxis(correctedLeftThumbY) : 0f,
+            result == 0 ? NormalizeAxis(correctedRightThumbX) : 0f,
+            result == 0 ? NormalizeAxis(correctedRightThumbY) : 0f,
+            config,
+            result == 0);
 
         if (result != 0)
         {
@@ -2007,6 +2029,50 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 將 XInput 軸值正規化到 -1.0 ~ 1.0。
+    /// </summary>
+    private static float NormalizeAxis(float value)
+    {
+        return Math.Clamp(value / 32768f, -1.0f, 1.0f);
+    }
+
+    /// <summary>
+    /// 更新供校準視覺化使用的診斷快照。
+    /// </summary>
+    private void UpdateCalibrationSnapshot(
+        float rawLeftX,
+        float rawLeftY,
+        float rawRightX,
+        float rawRightY,
+        float correctedLeftX,
+        float correctedLeftY,
+        float correctedRightX,
+        float correctedRightY,
+        AppSettings.GamepadConfigSnapshot config,
+        bool isConnected)
+    {
+        _currentCalibrationSnapshot = new GamepadCalibrationSnapshot
+        {
+            IsConnected = isConnected,
+            RawLeftX = Math.Clamp(rawLeftX, -1.0f, 1.0f),
+            RawLeftY = Math.Clamp(rawLeftY, -1.0f, 1.0f),
+            RawRightX = Math.Clamp(rawRightX, -1.0f, 1.0f),
+            RawRightY = Math.Clamp(rawRightY, -1.0f, 1.0f),
+            CorrectedLeftX = Math.Clamp(correctedLeftX, -1.0f, 1.0f),
+            CorrectedLeftY = Math.Clamp(correctedLeftY, -1.0f, 1.0f),
+            CorrectedRightX = Math.Clamp(correctedRightX, -1.0f, 1.0f),
+            CorrectedRightY = Math.Clamp(correctedRightY, -1.0f, 1.0f),
+            BiasLeftX = NormalizeAxis(_leftStickBiasX),
+            BiasLeftY = NormalizeAxis(_leftStickBiasY),
+            BiasRightX = NormalizeAxis(_rightStickBiasX),
+            BiasRightY = NormalizeAxis(_rightStickBiasY),
+            ThumbDeadzoneEnter = config.ThumbDeadzoneEnter,
+            ThumbDeadzoneExit = config.ThumbDeadzoneExit,
+            TimestampUtc = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
     /// 暫停
     /// </summary>
     public void Pause()
@@ -2046,6 +2112,18 @@ internal sealed partial class XInputGamepadController : IGamepadController
         _leftStickBiasY = 0;
         _rightStickBiasX = 0;
         _rightStickBiasY = 0;
+
+        UpdateCalibrationSnapshot(
+            _currentCalibrationSnapshot.RawLeftX,
+            _currentCalibrationSnapshot.RawLeftY,
+            _currentCalibrationSnapshot.RawRightX,
+            _currentCalibrationSnapshot.RawRightY,
+            _currentCalibrationSnapshot.RawLeftX,
+            _currentCalibrationSnapshot.RawLeftY,
+            _currentCalibrationSnapshot.RawRightX,
+            _currentCalibrationSnapshot.RawRightY,
+            AppSettings.Current.GamepadSettings,
+            _isConnected);
 
         ResetTransientInputState();
     }

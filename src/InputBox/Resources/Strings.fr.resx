@@ -507,6 +507,40 @@ Vérifiez que plusieurs instances de cette application ne s'exécutent pas en m�
     <value>Efface le décalage neutre appris pendant la session en cours sans modifier les paramètres enregistrés de zone morte ni de répétition.</value>
     <comment>Description d&apos;accessibilité pour l&apos;élément de menu « Réinitialiser l’état de calibration actuel ».</comment>
   </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer" xml:space="preserve">
+    <value>Visualisation de la calibration...</value>
+    <comment>Élément de menu qui ouvre la boîte de dialogue de diagnostic en direct de la calibration de la manette.</comment>
+  </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
+    <value>Ouvre une fenêtre de diagnostic en direct affichant le point brut, le point corrigé et la zone morte actuelle du stick.</value>
+    <comment>Description d’accessibilité pour l’élément de menu « Visualisation de la calibration ».</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
+    <value>Visualisation de la calibration de la manette</value>
+    <comment>Titre de la boîte de dialogue de diagnostic de calibration de la manette.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
+    <value>À gauche = LS, à droite = RS. Losange creux = entrée brute, point bleu = position corrigée, anneau plein = seuil d’entrée de zone morte, anneau pointillé = seuil de sortie.</value>
+    <comment>Texte descriptif affiché en haut de la boîte de dialogue de diagnostic de calibration de la manette.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
+    <value>Graphiques de calibration des sticks gauche et droit</value>
+    <comment>Nom accessible de la zone de dessin de calibration du stick.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
+    <value>Graphique en direct pour les deux sticks de la manette. Le losange creux = entrée brute, le point plein = position corrigée, l’anneau plein = seuil d’entrée de la zone morte et l’anneau pointillé = seuil de sortie ; le sens ne repose donc pas seulement sur la couleur.</value>
+    <comment>Description d’accessibilité de la zone de dessin de calibration du stick.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
+    <value>LS brut {0}, {1} • Corrigé {2}, {3}
+RS brut {4}, {5} • Corrigé {6}, {7}
+Zone morte {8}/{9}</value>
+    <comment>Texte d’état affiché lorsque la manette est connectée. {0} à {7} sont des valeurs d’axe normalisées pour LS et RS, et {8} et {9} les seuils de zone morte.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
+    <value>Aucune manette connectée. Déplacez l’un des deux sticks après reconnexion pour vérifier la dérive, le recentrage et la correction.</value>
+    <comment>Texte d’état affiché dans la visualisation de la calibration lorsqu’aucune manette n’est connectée.</comment>
+  </data>
   <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
     <value>Identifier la manette</value>
     <comment>Élément de menu permettant de jouer une vibration d’identification sur la manette active.</comment>
@@ -670,6 +704,10 @@ Vérifiez que plusieurs instances de cette application ne s'exécutent pas en m�
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>L’état de calibration actuel de la manette a été réinitialisé.</value>
     <comment>Annonce diffusée après la réinitialisation de l’état de calibration en cours d’exécution.</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationVisualizer_Open" xml:space="preserve">
+    <value>Visualisation de la calibration de la manette ouverte.</value>
+    <comment>Annonce d’accessibilité lors de l’ouverture de la boîte de dialogue de visualisation de la calibration de la manette.</comment>
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>Maintenez LB + RB + X pendant 0,8 seconde pour quitter.</value>

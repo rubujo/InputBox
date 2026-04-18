@@ -1922,4 +1922,31 @@ public partial class MainForm
             Debug.WriteLine($"[說明] ShowHelpDialog 失敗：{ex.Message}");
         }
     }
+
+    /// <summary>
+    /// 顯示遊戲控制器校準視覺化對話框。
+    /// </summary>
+    private void ShowGamepadCalibrationDialog()
+    {
+        try
+        {
+            using GamepadCalibrationDialog dialog = new()
+            {
+                GamepadController = _gamepadController
+            };
+
+            dialog.StartPosition = FormStartPosition.Manual;
+            dialog.Location = new Point(
+                Left + Width + 8,
+                Top);
+
+            dialog.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "[控制器] ShowGamepadCalibrationDialog 失敗");
+
+            Debug.WriteLine($"[控制器] ShowGamepadCalibrationDialog 失敗：{ex.Message}");
+        }
+    }
 }

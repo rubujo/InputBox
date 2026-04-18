@@ -152,6 +152,7 @@ public sealed class PhraseManagerDialogGamepadTests : IDisposable
         public string DeviceName => "Test Controller";
         public string DeviceIdentity => "test-controller";
         public bool IsConnected => true;
+        public GamepadCalibrationSnapshot CurrentCalibrationSnapshot => GamepadCalibrationSnapshot.Empty;
         public bool IsLeftShoulderHeld { get; private set; }
         public bool IsRightShoulderHeld { get; private set; }
         public bool IsLeftTriggerHeld { get; private set; }

@@ -28,6 +28,11 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     bool IsConnected { get; }
 
     /// <summary>
+    /// 取得目前校準視覺化所需的唯讀診斷快照。
+    /// </summary>
+    GamepadCalibrationSnapshot CurrentCalibrationSnapshot { get; }
+
+    /// <summary>
     /// 控制器上鍵按下事件
     /// </summary>
     event Action? UpPressed;

@@ -523,6 +523,7 @@ public class VibrationPatternsTests
         public string DeviceName => "Test Controller";
         public string DeviceIdentity => DeviceName;
         public bool IsConnected => true;
+        public GamepadCalibrationSnapshot CurrentCalibrationSnapshot => GamepadCalibrationSnapshot.Empty;
         public bool IsLeftShoulderHeld => false;
         public bool IsRightShoulderHeld => false;
         public bool IsLeftTriggerHeld => false;

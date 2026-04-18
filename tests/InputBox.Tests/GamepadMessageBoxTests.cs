@@ -30,6 +30,7 @@ public sealed class GamepadMessageBoxTests
         public string DeviceIdentity => DeviceName;
 
         public bool IsConnected { get; set; }
+        public GamepadCalibrationSnapshot CurrentCalibrationSnapshot => GamepadCalibrationSnapshot.Empty;
         public bool IsLeftShoulderHeld => false;
         public bool IsRightShoulderHeld => false;
         public bool IsLeftTriggerHeld => false;

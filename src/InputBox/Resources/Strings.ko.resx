@@ -507,6 +507,40 @@
     <value>저장된 데드존 또는 반복 입력 설정은 유지한 채, 현재 실행 중 학습된 게임패드 중립 오프셋을 지웁니다.</value>
     <comment>현재 보정 상태 재설정 메뉴 항목의 접근성 설명입니다.</comment>
   </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer" xml:space="preserve">
+    <value>보정 상태 시각화...</value>
+    <comment>실시간 게임 컨트롤러 보정 진단 대화 상자를 여는 메뉴 항목 텍스트입니다.</comment>
+  </data>
+  <data name="Menu_Gamepad_CalibrationVisualizer_Desc" xml:space="preserve">
+    <value>스틱의 원시 점, 보정 점, 현재 데드존 범위를 보여 주는 실시간 진단 창을 엽니다.</value>
+    <comment>보정 상태 시각화 메뉴 항목의 접근성 설명입니다.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Title" xml:space="preserve">
+    <value>게임 컨트롤러 보정 상태 시각화</value>
+    <comment>게임 컨트롤러 보정 진단 대화 상자의 제목입니다.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
+    <value>왼쪽 그림 = LS, 오른쪽 그림 = RS입니다. 빈 마름모는 원시 입력, 파란 점은 보정 후 위치, 실선 원은 데드존 진입 임계값, 점선 원은 퇴출 임계값입니다.</value>
+    <comment>게임 컨트롤러 보정 진단 대화 상자 상단에 표시되는 설명 텍스트입니다.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
+    <value>좌우 스틱 보정 좌표 그림</value>
+    <comment>게임 컨트롤러 좌우 스틱 보정 그리기 영역의 접근성 이름입니다.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
+    <value>좌우 스틱의 실시간 진단 그림입니다. 속이 빈 마름모는 원시 입력, 실점은 보정 후 위치, 실선 원은 데드존 진입 임계값, 점선 원은 퇴출 임계값을 뜻하므로 의미가 색상에만 의존하지 않습니다.</value>
+    <comment>게임 컨트롤러 좌우 스틱 보정 그리기 영역의 접근성 설명입니다.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
+    <value>LS 원시값 {0}, {1} • 보정 {2}, {3}
+RS 원시값 {4}, {5} • 보정 {6}, {7}
+데드존 진입/해제 {8}/{9}</value>
+    <comment>게임 컨트롤러가 연결되었을 때 표시되는 상태 텍스트입니다. {0}부터 {7}은 LS와 RS의 정규화 축 값이고 {8}와 {9}는 데드존 임계값입니다.</comment>
+  </data>
+  <data name="Dialog_GamepadCalibrationVisualizer_StatusDisconnected" xml:space="preserve">
+    <value>연결된 컨트롤러가 없습니다. 다시 연결한 뒤 어느 쪽 스틱이든 움직이면 드리프트, 중앙 복귀, 보정 효과를 확인할 수 있습니다.</value>
+    <comment>컨트롤러가 연결되지 않았을 때 보정 시각화에 표시되는 상태 텍스트입니다.</comment>
+  </data>
   <data name="Menu_Gamepad_IdentifyController" xml:space="preserve">
     <value>컨트롤러 식별</value>
     <comment>활성 컨트롤러에 식별 진동을 재생하는 메뉴 항목입니다.</comment>
@@ -670,6 +704,10 @@
   <data name="A11y_Gamepad_CalibrationReset" xml:space="preserve">
     <value>현재 게임패드 보정 상태를 재설정했습니다.</value>
     <comment>실행 중 보정 상태를 재설정한 뒤 재생되는 접근성 알림입니다.</comment>
+  </data>
+  <data name="A11y_Gamepad_CalibrationVisualizer_Open" xml:space="preserve">
+    <value>게임 컨트롤러 보정 시각화를 열었습니다.</value>
+    <comment>게임 컨트롤러 보정 시각화 대화 상자를 열 때 재생되는 A11y 안내 메시지입니다.</comment>
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>LB + RB + X를 0.8초 동안 길게 눌러 종료합니다.</value>
