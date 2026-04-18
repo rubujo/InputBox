@@ -11,7 +11,7 @@
 ## 1. 核心紅線
 
 - **零 JS／零圖片／零 Inline CSS**：嚴禁違背此政策。
-- **Git 提交必須使用 GPG 簽章**；若簽章失敗，應先修復本機簽章環境，不得以停用簽章方式繞過。
+- **Git 提交必須使用使用者既有的 GPG 簽章設定**；Agent 嚴禁自行修改 `gpg.conf`、`gpg-agent.conf` 或其他相關設定檔。若簽章失敗，應提醒使用者自行處理其本機簽章環境，不得以停用簽章或自動改寫設定方式繞過。
 - **`@supports selector()` 強制要求**：所有使用 `body:has()` 的 CSS 規則，必須以 `@supports selector(body:has())` 包裹，並提供 `@supports not selector()` 退化方案（展開四語內容、隱藏切換器）。
 - **多語系同步**：修改文字時必須同時更新 ZH、EN、JA、SC 四種語系。
 - **編碼與換行**：文字檔一律使用 UTF-8 編碼與 CRLF 換行，並遵循 `.editorconfig`、`.gitattributes`。

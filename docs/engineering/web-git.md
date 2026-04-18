@@ -7,7 +7,10 @@
 - **GPG 簽章要求**：
   - 所有 Git 提交預設必須使用有效的 GPG 簽章。
   - 提交後必須以 Git 簽章檢查指令驗證為有效簽章。
-  - 不得為了繞過 pinentry、gpg-agent 或終端互動問題而停用簽章。
+  - **簽章流程僅可使用使用者既有的 Git、GPG、pinentry 與 gpg-agent 設定**；Agent 不得假設、重建或覆寫使用者的本機簽章環境。
+  - **嚴禁 Agent 自行建立、修改或覆寫 GPG / gpg-agent 設定檔**（例如 `~/.gnupg/gpg.conf`、`gpg-agent.conf`），也不得為了排除簽章問題而擅自匯入、切換或重設金鑰與相關設定。
+  - **若簽章失敗**，Agent 應回報錯誤並提醒使用者自行檢查或授權其簽章環境；不得自動修改設定檔案作為修復手段。
+  - 不得為了繞過 pinentry、gpg-agent 或終端互動問題，而使用 `--no-gpg-sign`、`git -c commit.gpgsign=false` 等方式提交；除非維護者明確授權，否則應先由使用者調整其簽章環境後再提交。
 - **文字檔編碼與換行**：
   - 網頁與規範相關文字檔一律使用 **UTF-8** 編碼。
   - 工作目錄中的文字檔換行一律使用 **CRLF**，並與 `.editorconfig`、`.gitattributes` 保持一致。
