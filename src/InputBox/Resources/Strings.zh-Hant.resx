@@ -520,7 +520,7 @@
     <comment>遊戲控制器校正診斷對話框的標題。</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_Desc" xml:space="preserve">
-    <value>左圖 = LS，右圖 = RS。空心菱形為原始輸入，藍點為校正後位置，實線圓環為死區進入閾値，虛線圓環為死區離開閾値。</value>
+    <value>左圖 = LS，右圖 = RS。空心菱形為原始輸入，藍點為校正後位置，實線圓環為死區進入閾值，虛線圓環為死區離開閾值。</value>
     <comment>顯示於遊戲控制器校正診斷對話框頂端的說明文字。</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_CanvasName" xml:space="preserve">
@@ -528,7 +528,7 @@
     <comment>遊戲控制器左右搖桿校正繪圖區的無障礙名稱。</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_Canvas_Desc" xml:space="preserve">
-    <value>左右搖桿的即時診斷圖。空心菱形是原始輸入，實心點是校正後位置，實線圓環為死區進入閾値，虛線圓環為死區離開閾値，因此不會只靠顏色表達資訊。</value>
+    <value>左右搖桿的即時診斷圖。空心菱形是原始輸入，實心點是校正後位置，實線圓環為死區進入閾值，虛線圓環為死區離開閾值，因此不會只靠顏色表達資訊。</value>
     <comment>遊戲控制器左右搖桿校正繪圖區的無障礙描述。</comment>
   </data>
   <data name="Dialog_GamepadCalibrationVisualizer_StatusConnected" xml:space="preserve">
