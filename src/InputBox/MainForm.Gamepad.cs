@@ -92,6 +92,12 @@ public partial class MainForm
     private const int TextLimitWarningThreshold = 10;
 
     /// <summary>
+    /// 輸入法（IME）單次詞語確認所允許的最大字元數；
+    /// 超出此範圍視為批次貼上，不觸發打字觸感回饋。
+    /// </summary>
+    private const int ImeWordCommitThreshold = 6;
+
+    /// <summary>
     /// 仲裁肩鍵在單按翻頁、長按連發、單字跳轉與雙肩鍵組合之間的優先序。
     /// </summary>
     private readonly GamepadShoulderShortcutArbiter _shoulderShortcutArbiter = new();
@@ -1538,8 +1544,12 @@ public partial class MainForm
 
         int remainingCharacters = AppSettings.MaxInputLength - currentLength;
 
-        // 打字觸感回饋：單一字元插入（length +1）且距離上限預警區間尚遠時，觸發輕柔脈衝。
-        if (currentLength == _lastObservedTextLength + 1 &&
+        // 打字觸感回饋：字元插入量在 IME 詞語確認範圍內（1～ImeWordCommitThreshold），
+        // 且距離上限預警區間尚遠時，觸發輕柔脈衝。
+        // 片語插入已由 SuppressNextTextLimitFeedback 提前抑制，故此處無需額外過濾。
+        int insertedCount = currentLength - _lastObservedTextLength;
+
+        if (insertedCount is >= 1 and <= ImeWordCommitThreshold &&
             remainingCharacters > TextLimitWarningThreshold)
         {
             VibrateAsync(VibrationPatterns.TypingPulse).SafeFireAndForget();
