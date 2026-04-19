@@ -1574,24 +1574,22 @@ internal sealed class NumericInputDialog : Form
             // 計算邊框與標題列所需的額外空間（比照 HelpDialog.cs）。
             int frameW = SystemInformation.FrameBorderSize.Width * 2,
                 frameH = SystemInformation.FrameBorderSize.Height * 2,
-                captionH = SystemInformation.CaptionHeight,
-                // 視窗寬度：內容寬度 + 表單 Padding + 框架。
-                formW = contentPref.Width + Padding.Horizontal + frameW + 8,
-                desiredMinWidth = (int)(450 * scale),
-                maxFitW = DialogLayoutHelper.GetMaxFitSize(workArea).MaxFitWidth;
+                captionH = SystemInformation.CaptionHeight;
 
-            formW = Math.Clamp(formW, desiredMinWidth, maxFitW);
+            (int maxFitW, int maxFitH) = DialogLayoutHelper.GetMaxFitSize(workArea);
 
-            // 視窗高度：內容高度 + 表單 Padding + 標題列 + 框架。
-            // 上限設為可用高度的 45%，確保在手持裝置（如 ROG Ally）開啟 OSK 時仍能完整顯示。
-            int naturalH = contentPref.Height + Padding.Vertical + captionH + frameH + 8,
-                maxH = Math.Max(320, (int)(workArea.Height * 0.45f)),
-                desiredMinHeight = (int)(300 * scale),
-                // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
-                finalMaxH = Math.Max(desiredMinHeight, maxH),
-                formH = Math.Clamp(naturalH, desiredMinHeight, finalMaxH);
+            // 視窗寬度：內容寬度 + 表單 Padding + 框架，以工作區上限為準。
+            int formW = Math.Clamp(
+                contentPref.Width + Padding.Horizontal + frameW + 8,
+                (int)(450 * scale),
+                maxFitW);
 
-            MinimumSize = new Size(Math.Min(desiredMinWidth, maxFitW), desiredMinHeight);
+            // 視窗高度：依實際內容偏好尺寸計算，上限為工作區可用高度（保留 40px 邊界）。
+            int desiredMinHeight = (int)(300 * scale),
+                naturalH = contentPref.Height + Padding.Vertical + captionH + frameH + 8,
+                formH = Math.Clamp(naturalH, desiredMinHeight, Math.Max(desiredMinHeight, maxFitH));
+
+            MinimumSize = new Size(Math.Min((int)(450 * scale), maxFitW), desiredMinHeight);
 
             Size = new Size(formW, formH);
 
