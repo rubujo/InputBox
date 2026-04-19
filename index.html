@@ -176,32 +176,38 @@
         margin: -1px !important;
         overflow: hidden !important;
         clip: rect(0, 0, 0, 0) !important;
+        clip-path: inset(50%) !important;
         white-space: nowrap !important;
         border: 0 !important;
       }
 
       .skip-link {
-        position: absolute;
-        top: -200px;
+        position: fixed;
+        top: 0;
         left: 50%;
-        transform: translateX(-50%);
+        /*
+         * translateY(-100%)：以元素自身高度為偏移，完全隱藏於 viewport 上方。
+         * 避免固定像素（如 top: -200px）在 500% 縮放時 viewport 收窄、文字換行
+         * 導致元素高度超出偏移量而外露。
+         */
+        transform: translateX(-50%) translateY(-100%);
         background: var(--focus-ring);
         color: #000;
         padding: 1rem 2rem;
         z-index: 9999;
         font-weight: 900;
         border-radius: 0 0 1rem 1rem;
-        transition: top 0.2s;
+        transition: transform 0.2s;
         overflow: hidden;
       }
 
       .skip-link:focus {
-        top: 0;
+        transform: translateX(-50%) translateY(0);
       }
 
       /* 現代瀏覽器：滑鼠點擊時收回，避免視覺干擾；舊版瀏覽器略過此規則，保持前項退化行為 */
       .skip-link:focus:not(:focus-visible) {
-        top: -200px;
+        transform: translateX(-50%) translateY(-100%);
       }
 
       /*
@@ -4684,7 +4690,7 @@
                         >LB</span
                       >
                       + <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">✕</span> ボタン</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span></span
                     >
                     <span class="lang-sc" lang="zh-Hans"
                       ><span class="xbox-btn xbox-pill xbox-back">View</span> 键／<span
@@ -4703,14 +4709,14 @@
                     <span class="lang-fr" lang="fr"
                       >Bouton <span class="xbox-btn xbox-pill xbox-back">View</span> /
                       <span class="xbox-btn xbox-bumper">LB</span> +
-                      <span class="xbox-btn xbox-bumper">RB</span> + Bouton
+                      <span class="xbox-btn xbox-bumper">RB</span> +
                       <span class="xbox-btn xbox-round xbox-b">✕</span></span
                     >
                     <span class="lang-ko" lang="ko"
                       ><span class="xbox-btn xbox-pill xbox-back">View</span> 버튼 /
                       <span class="xbox-btn xbox-bumper">LB</span> +
                       <span class="xbox-btn xbox-bumper">RB</span> +
-                      <span class="xbox-btn xbox-round xbox-b">✕</span> 버튼</span
+                      <span class="xbox-btn xbox-round xbox-b">✕</span></span
                     >
                   </td>
                   <td>
@@ -5082,6 +5088,234 @@
                     <span class="lang-de" lang="de"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                     <span class="lang-fr" lang="fr"><kbd>Alt</kbd> + <kbd>0</kbd></span>
                     <span class="lang-ko" lang="ko"><kbd>Alt</kbd> + <kbd>0</kbd></span>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">功能項目</span>
+                      <span class="lang-de" lang="de">Funktion</span>
+                      <span class="lang-en" lang="en">Action</span>
+                      <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                      <span class="lang-ja" lang="ja">項目</span>
+                      <span class="lang-ko" lang="ko">기능</span>
+                      <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                    </span>
+                    <span class="lang-zh">復原（Undo）</span>
+                    <span class="lang-de" lang="de">Rückgängig (Undo)</span>
+                    <span class="lang-en" lang="en">Undo</span>
+                    <span class="lang-fr" lang="fr">Annuler (Undo)</span>
+                    <span class="lang-ja" lang="ja">元に戻す（Undo）</span>
+                    <span class="lang-ko" lang="ko">실행 취소 (Undo)</span>
+                    <span class="lang-sc" lang="zh-Hans">撤销（Undo）</span>
+                  </th>
+                  <td>
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">遊戲控制器 🎮</span>
+                      <span class="lang-de" lang="de">Controller 🎮</span>
+                      <span class="lang-en" lang="en">Controller 🎮</span>
+                      <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                      <span class="lang-ja" lang="ja">コントローラー 🎮</span>
+                      <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
+                      <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    </span>
+                    <span class="lang-zh"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 鍵 +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> 鍵</span
+                    >
+                    <span class="lang-en" lang="en"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> Button +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span></span
+                    >
+                    <span class="lang-ja" lang="ja"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> ボタン +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span></span
+                    >
+                    <span class="lang-sc" lang="zh-Hans"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 键 +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span> 键</span
+                    >
+                    <span class="lang-de" lang="de"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span>-Taste +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span
+                      >-Taste</span
+                    >
+                    <span class="lang-fr" lang="fr"
+                      >Bouton <span class="xbox-btn xbox-pill xbox-back">View</span> +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span></span
+                    >
+                    <span class="lang-ko" lang="ko"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 버튼 +
+                      <span class="xbox-btn xbox-round xbox-a" aria-hidden="true">✓</span></span
+                    >
+                  </td>
+                  <td>
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
+                      <span class="lang-en" lang="en">Keyboard ⌨️</span>
+                      <span class="lang-ja" lang="ja">キーボード ⌨️</span>
+                      <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                    </span>
+                    <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                    <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                    <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
+                    <span class="lang-zh">—</span>
+                    <span class="lang-en" lang="en">—</span>
+                    <span class="lang-ja" lang="ja">—</span>
+                    <span class="lang-sc" lang="zh-Hans">—</span>
+                    <span class="lang-de" lang="de">—</span>
+                    <span class="lang-fr" lang="fr">—</span>
+                    <span class="lang-ko" lang="ko">—</span>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">功能項目</span>
+                      <span class="lang-de" lang="de">Funktion</span>
+                      <span class="lang-en" lang="en">Action</span>
+                      <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                      <span class="lang-ja" lang="ja">項目</span>
+                      <span class="lang-ko" lang="ko">기능</span>
+                      <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                    </span>
+                    <span class="lang-zh">全選</span>
+                    <span class="lang-de" lang="de">Alles auswählen</span>
+                    <span class="lang-en" lang="en">Select All</span>
+                    <span class="lang-fr" lang="fr">Tout sélectionner</span>
+                    <span class="lang-ja" lang="ja">すべて選択</span>
+                    <span class="lang-ko" lang="ko">전체 선택</span>
+                    <span class="lang-sc" lang="zh-Hans">全选</span>
+                  </th>
+                  <td>
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">遊戲控制器 🎮</span>
+                      <span class="lang-de" lang="de">Controller 🎮</span>
+                      <span class="lang-en" lang="en">Controller 🎮</span>
+                      <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                      <span class="lang-ja" lang="ja">コントローラー 🎮</span>
+                      <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
+                      <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    </span>
+                    <span class="lang-zh"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 鍵 +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span> 鍵</span
+                    >
+                    <span class="lang-en" lang="en"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> Button +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span></span
+                    >
+                    <span class="lang-ja" lang="ja"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> ボタン +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span></span
+                    >
+                    <span class="lang-sc" lang="zh-Hans"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 键 +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span> 键</span
+                    >
+                    <span class="lang-de" lang="de"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span>-Taste +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span
+                      >-Taste</span
+                    >
+                    <span class="lang-fr" lang="fr"
+                      >Bouton <span class="xbox-btn xbox-pill xbox-back">View</span> +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span></span
+                    >
+                    <span class="lang-ko" lang="ko"
+                      ><span class="xbox-btn xbox-pill xbox-back">View</span> 버튼 +
+                      <span class="xbox-btn xbox-round xbox-y" aria-hidden="true">△</span></span
+                    >
+                  </td>
+                  <td>
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
+                      <span class="lang-en" lang="en">Keyboard ⌨️</span>
+                      <span class="lang-ja" lang="ja">キーボード ⌨️</span>
+                      <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                    </span>
+                    <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                    <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                    <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
+                    <span class="lang-zh">—</span>
+                    <span class="lang-en" lang="en">—</span>
+                    <span class="lang-ja" lang="ja">—</span>
+                    <span class="lang-sc" lang="zh-Hans">—</span>
+                    <span class="lang-de" lang="de">—</span>
+                    <span class="lang-fr" lang="fr">—</span>
+                    <span class="lang-ko" lang="ko">—</span>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">功能項目</span>
+                      <span class="lang-de" lang="de">Funktion</span>
+                      <span class="lang-en" lang="en">Action</span>
+                      <span class="lang-fr" lang="fr">Fonctionnalité</span>
+                      <span class="lang-ja" lang="ja">項目</span>
+                      <span class="lang-ko" lang="ko">기능</span>
+                      <span class="lang-sc" lang="zh-Hans">功能项目</span>
+                    </span>
+                    <span class="lang-zh">重讀文字（無障礙）</span>
+                    <span class="lang-de" lang="de">Text erneut lesen (A11y)</span>
+                    <span class="lang-en" lang="en">Re-read Text (A11y)</span>
+                    <span class="lang-fr" lang="fr">Relire le texte (A11y)</span>
+                    <span class="lang-ja" lang="ja">テキスト再読み上げ（A11y）</span>
+                    <span class="lang-ko" lang="ko">텍스트 다시 읽기 (A11y)</span>
+                    <span class="lang-sc" lang="zh-Hans">重读文字（无障碍）</span>
+                  </th>
+                  <td>
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">遊戲控制器 🎮</span>
+                      <span class="lang-de" lang="de">Controller 🎮</span>
+                      <span class="lang-en" lang="en">Controller 🎮</span>
+                      <span class="lang-fr" lang="fr">Contrôleur 🎮</span>
+                      <span class="lang-ja" lang="ja">コントローラー 🎮</span>
+                      <span class="lang-ko" lang="ko">컨트롤러 🎮</span>
+                      <span class="lang-sc" lang="zh-Hans">游戏控制器 🎮</span>
+                    </span>
+                    <span class="lang-zh"
+                      >右搖桿按壓（<span class="xbox-btn xbox-stick">RS</span>）</span
+                    >
+                    <span class="lang-en" lang="en"
+                      >Right Stick Press (<span class="xbox-btn xbox-stick">RS</span> / R3)</span
+                    >
+                    <span class="lang-ja" lang="ja"
+                      >右スティック押し込み（<span class="xbox-btn xbox-stick">RS</span>）</span
+                    >
+                    <span class="lang-sc" lang="zh-Hans"
+                      >右摇杆按压（<span class="xbox-btn xbox-stick">RS</span>）</span
+                    >
+                    <span class="lang-de" lang="de"
+                      >Rechten Analog-Stick drücken (<span class="xbox-btn xbox-stick">RS</span> /
+                      R3)</span
+                    >
+                    <span class="lang-fr" lang="fr"
+                      >Appuyer sur le stick droit (<span class="xbox-btn xbox-stick">RS</span> /
+                      R3)</span
+                    >
+                    <span class="lang-ko" lang="ko"
+                      >오른쪽 스틱 누르기（<span class="xbox-btn xbox-stick">RS</span> / R3）</span
+                    >
+                  </td>
+                  <td>
+                    <span class="mobile-label" aria-hidden="true">
+                      <span class="lang-zh">鍵盤快速鍵 ⌨️</span>
+                      <span class="lang-en" lang="en">Keyboard ⌨️</span>
+                      <span class="lang-ja" lang="ja">キーボード ⌨️</span>
+                      <span class="lang-sc" lang="zh-Hans">键盘快捷键 ⌨️</span>
+                    </span>
+                    <span class="lang-de" lang="de">Tastaturkürzel ⌨️</span>
+                    <span class="lang-fr" lang="fr">Raccourci clavier ⌨️</span>
+                    <span class="lang-ko" lang="ko">키보드 단축키 ⌨️</span>
+                    <span class="lang-zh">—</span>
+                    <span class="lang-en" lang="en">—</span>
+                    <span class="lang-ja" lang="ja">—</span>
+                    <span class="lang-sc" lang="zh-Hans">—</span>
+                    <span class="lang-de" lang="de">—</span>
+                    <span class="lang-fr" lang="fr">—</span>
+                    <span class="lang-ko" lang="ko">—</span>
                   </td>
                 </tr>
                 <tr>
@@ -6735,6 +6969,52 @@
                 >
                 <span class="lang-sc" lang="zh-Hans"
                   >移动游标、导航历史或在菜单中切换项目时触发。</span
+                >
+              </p>
+            </div>
+            <div class="feature-card">
+              <h3>
+                <span class="lang-zh">打字觸感回饋 ⌨️</span>
+                <span class="lang-de" lang="de">Tipp-Haptikpuls ⌨️</span>
+                <span class="lang-en" lang="en">Typing Haptic Pulse ⌨️</span>
+                <span class="lang-fr" lang="fr">Impulsion haptique de frappe ⌨️</span>
+                <span class="lang-ja" lang="ja">打鍵ハプティックパルス ⌨️</span>
+                <span class="lang-ko" lang="ko">입력 햅틱 피드백 ⌨️</span>
+                <span class="lang-sc" lang="zh-Hans">打字触感反馈 ⌨️</span>
+              </h3>
+              <p>
+                <span class="lang-zh"
+                  >字元插入時會觸發輕柔脈衝，使打字節奏具有可感知的觸覺確認。批次貼上、片語插入、接近字數上限，或透過觸控式鍵盤搭配注音等輸入法（IME）輸入時不觸發此回饋。</span
+                >
+                <span class="lang-de" lang="de"
+                  >Beim Einfügen eines Zeichens wird ein sanfter Puls ausgelöst, der einen
+                  wahrnehmbaren haptischen Schreibrhythmus erzeugt. Nicht ausgelöst bei
+                  Mehrfacheinfügung, Phrasen-Einfügung, nahender Zeichenbegrenzung oder
+                  Touch-Tastatur mit einem IME (z. B. Bopomofo).</span
+                >
+                <span class="lang-en" lang="en"
+                  >A gentle pulse is triggered on each character insertion, providing a perceivable
+                  tactile beat while typing. Not triggered on batch paste, phrase insertion, near
+                  the character limit, or when using a touch keyboard with an IME such as
+                  Bopomofo.</span
+                >
+                <span class="lang-fr" lang="fr"
+                  >Une légère impulsion est déclenchée à chaque insertion de caractère, offrant un
+                  rythme haptique perceptible à la frappe. Non déclenchée lors d'un collage groupé,
+                  d'une insertion de phrase, d'un approche de la limite de caractères, ou lors d'une
+                  saisie via le clavier tactile avec un IME tel que Bopomofo.</span
+                >
+                <span class="lang-ja" lang="ja"
+                  >文字を挿入するたびに軽いパルスが発生し、打鍵リズムを触覚で感知できます。一括貼り付け、フレーズ挿入、文字数上限付近、またはタッチキーボードと
+                  IME（注音など）による入力では発生しません。</span
+                >
+                <span class="lang-ko" lang="ko"
+                  >문자를 삽입할 때마다 부드러운 진동이 울려 타이핑 리듬을 촉각으로 확인할 수
+                  있습니다. 일괄 붙여넣기, 구문 삽입, 글자 수 한도 근접 시, 또는 터치 키보드와
+                  IME（주음 등）를 사용한 입력 시에는 발생하지 않습니다.</span
+                >
+                <span class="lang-sc" lang="zh-Hans"
+                  >插入字符时触发轻柔脉冲，使打字节奏具有可感知的触觉确认。批量粘贴、短语插入、接近字数上限，或通过触摸键盘搭配注音等输入法（IME）输入时不触发此反馈。</span
                 >
               </p>
             </div>
