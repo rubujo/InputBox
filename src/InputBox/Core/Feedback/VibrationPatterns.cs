@@ -428,8 +428,8 @@ public static class VibrationPatterns
     public static readonly VibrationProfile TextLimitWallSettle = new(31000, 30, 0.65f, 0.65f, 0.14f, 0.14f);
 
     /// <summary>
-    /// 單一字元插入時的輕柔打字觸感脈衝。
-    /// <para>強度遠低於選取拉鏈感，僅作為節奏感知確認；批次貼上或接近字數上限時不觸發。</para>
+    /// 字元插入時的輕柔打字觸感脈衝。
+    /// <para>強度遠低於選取拉鏈感，僅作為節奏感知確認；片語插入、批次貼上、觸控式鍵盤搭配輸入法（IME）輸入或接近字數上限時不觸發。</para>
     /// </summary>
     public static readonly VibrationProfile TypingPulse = new(30000, 16, 0.58f, 0.18f, 0.32f, 0.07f);
 

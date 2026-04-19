@@ -100,7 +100,8 @@ public partial class MainForm
             TBInput,
             _phraseService,
             AnnounceA11y,
-            RecentPhraseLimitLarge);
+            RecentPhraseLimitLarge,
+            SuppressNextTextLimitFeedback);
 
         _cmsInput = ContextMenuBuilder.EnsureRoot(
             _cmsInput,
@@ -2184,7 +2185,8 @@ public partial class MainForm
                 TBInput,
                 _phraseService,
                 AnnounceA11y,
-                RecentPhraseLimitLarge);
+                RecentPhraseLimitLarge,
+                SuppressNextTextLimitFeedback);
 
             if (_phraseInsertionHandler == null)
             {

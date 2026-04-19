@@ -13,11 +13,13 @@ namespace InputBox.Core.Services;
 /// <param name="phraseService">片語服務。</param>
 /// <param name="announce">A11y 廣播委派。</param>
 /// <param name="maxRecent">最近使用片語上限。</param>
+/// <param name="suppressFeedback">插入前抑制下一次震動回饋的委派（可為 null）。</param>
 internal sealed class PhraseInsertionHandler(
     TextBox inputBox,
     PhraseService phraseService,
     Action<string, bool> announce,
-    int maxRecent)
+    int maxRecent,
+    Action? suppressFeedback = null)
 {
     /// <summary>
     /// 目標輸入框
@@ -33,6 +35,11 @@ internal sealed class PhraseInsertionHandler(
     /// A11y 廣播委派
     /// </summary>
     private readonly Action<string, bool> _announce = announce;
+
+    /// <summary>
+    /// 插入前抑制下一次震動回饋的委派
+    /// </summary>
+    private readonly Action? _suppressFeedback = suppressFeedback;
 
     /// <summary>
     /// 最近使用片語上限
@@ -68,6 +75,9 @@ internal sealed class PhraseInsertionHandler(
         {
             return;
         }
+
+        // 片語插入通常會一次寫入多個字元，預先抑制下一次震動回饋，避免被 TypingPulse 誤觸發。
+        _suppressFeedback?.Invoke();
 
         int selectionStart = _inputBox.SelectionStart;
 
