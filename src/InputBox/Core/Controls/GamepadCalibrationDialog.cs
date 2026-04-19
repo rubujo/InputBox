@@ -787,8 +787,9 @@ internal sealed class GamepadCalibrationDialog : Form
 
         float labelHeight = 54f * s;
         float plotGap = 16f * s;
+        float plotVerticalPadding = 6f * s;
         float plotWidth = (contentBounds.Width - plotGap) / 2f;
-        float plotSize = Math.Min(plotWidth, contentBounds.Height - labelHeight - 6f);
+        float plotSize = Math.Min(plotWidth, contentBounds.Height - labelHeight - plotVerticalPadding);
         float verticalOffset = (contentBounds.Height - labelHeight - plotSize) / 2f;
 
         RectangleF leftPlot = new(
