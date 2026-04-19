@@ -781,19 +781,22 @@ internal sealed class HelpDialog : Form
 
         int desiredMinWidth = (int)(BaseDialogMinWidth * scale);
 
-        (int maxFitWidth, _) = DialogLayoutHelper.GetMaxFitSize(workArea);
+        (int maxFitWidth, int maxFitHeight) = DialogLayoutHelper.GetMaxFitSize(workArea);
 
-        formW = Math.Max(formW, desiredMinWidth);
-        formW = Math.Min(formW, maxFitWidth);
+        formW = Math.Clamp(formW, desiredMinWidth, maxFitWidth);
 
-        // 視窗高度：內容高度 + 底部按鈕列 + 表單 Padding + 標題列 + 框架。
-        // 上限設為可用高度的 45%，確保在 ROG Ally X 等小螢幕裝置（約 760px 高）開啟 OSK 時仍能完整顯示。
-        int naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameH + 8,
-            maxH = Math.Max(320, (int)(workArea.Height * 0.45f)),
-            desiredMinHeight = (int)(300 * scale),
-            // 邊界檢查：確保最小值不超過最大值，防止 Math.Clamp 拋出異常。
-            finalMaxH = Math.Max(desiredMinHeight, maxH),
-            formH = Math.Clamp(naturalH, desiredMinHeight, finalMaxH);
+        // 視窗高度：依實際內容偏好尺寸計算。
+        // 上限取「工作區 65%」與「工作區可用高度」的較小值：
+        //   - 65% 上限：確保在 ROG Ally X 等手持裝置開啟 OSK 時 dialog 仍可見（OSK 約佔 50%）；
+        //     同時避免在大螢幕（2K/4K）上 dialog 幾乎填滿整個畫面。
+        //     Screen.GetWorkingArea 不感知 OSK 存在，因此需以百分比手工補償。
+        //   - maxFitHeight：確保 dialog 永遠不超出螢幕工作區邊界（保留 40px 邊界）。
+        // 說明文字以捲動面板呈現，任何超出上限的內容均可捲動瀏覽。
+        int desiredMinHeight = (int)(300 * scale),
+            naturalH = contentPref.Height + footerH + Padding.Vertical + captionH + frameH + 8,
+            oskAwareMaxH = Math.Max(320, (int)(workArea.Height * 0.65f)),
+            cappedMaxH = Math.Min(oskAwareMaxH, maxFitHeight),
+            formH = Math.Clamp(naturalH, desiredMinHeight, Math.Max(desiredMinHeight, cappedMaxH));
 
         Size = new Size(formW, formH);
     }
