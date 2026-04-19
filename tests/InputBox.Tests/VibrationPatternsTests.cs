@@ -47,10 +47,10 @@ public class VibrationPatternsTests
     // ── 靜態欄位設計值 ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// CursorMove 強度應為 28000（足以克服馬達啟動閾値的輕微點擊感）。
+    /// CursorMove 強度應為 28000（足以克服馬達啟動閾值的輕微點擊感）。
     /// </summary>
     [Fact]
-    public void CursorMove_Strength_Is18000()
+    public void CursorMove_Strength_Is28000()
     {
         Assert.Equal(28000, VibrationPatterns.CursorMove.Strength);
     }
@@ -68,7 +68,7 @@ public class VibrationPatternsTests
     /// CopySuccess 強度應為 60000（約 91% 強度的確認感）。
     /// </summary>
     [Fact]
-    public void CopySuccess_Strength_Is40000()
+    public void CopySuccess_Strength_Is60000()
     {
         Assert.Equal(60000, VibrationPatterns.CopySuccess.Strength);
     }
@@ -86,7 +86,7 @@ public class VibrationPatternsTests
     /// ActionFail 強度應為 65535（最強，確保錯誤不被忽視）。
     /// </summary>
     [Fact]
-    public void ActionFail_Strength_Is45000()
+    public void ActionFail_Strength_Is65535()
     {
         Assert.Equal(65535, VibrationPatterns.ActionFail.Strength);
     }
@@ -104,7 +104,7 @@ public class VibrationPatternsTests
     /// ControllerConnected 強度應為 60000（觸覺握手的高強度）。
     /// </summary>
     [Fact]
-    public void ControllerConnected_Strength_Is30000()
+    public void ControllerConnected_Strength_Is60000()
     {
         Assert.Equal(60000, VibrationPatterns.ControllerConnected.Strength);
     }
