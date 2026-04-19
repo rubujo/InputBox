@@ -225,6 +225,34 @@
     <value>Cursor moved.</value>
     <comment>Privacy-safe version of cursor movement accessibility message.</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>Current text: {0}</value>
+    <comment>Accessibility re-read announcement for the full content of the input box. Triggered by RS Click. {0} is the full text.</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>Text box contains {0} character(s).</value>
+    <comment>Privacy-safe re-read announcement showing only the character count. {0} is the character count.</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>Text box is empty.</value>
+    <comment>Accessibility message announced when RS Click re-read is triggered but the input box is empty.</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>Undone.</value>
+    <comment>Accessibility confirmation message played after a successful Undo operation via Back + A.</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>Nothing to undo.</value>
+    <comment>Accessibility message played when Undo is triggered but the undo buffer is empty.</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>All text selected: {0}</value>
+    <comment>Accessibility confirmation message played after Select All via Back + Y. {0} is the selected text.</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>All {0} character(s) selected.</value>
+    <comment>Privacy-safe Select All confirmation showing only the character count. {0} is the character count.</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>No text to copy.</value>
     <comment>Accessibility message played when attempting to copy empty text.</comment>
@@ -962,6 +990,8 @@ Y	Open feature menu
 X	Backspace (Delete character/selection)
 Hold LB + RB + X	Exit application
 Back / View + X	Reset window opacity
+Back / View + A	Undo last input operation
+Back / View + Y	Select all text
 ↑ / ↓	Navigate history
 ← / →	Move cursor left / right
 LB / RB (tap / hold)	Page history up / down by 5 entries; hold to repeat

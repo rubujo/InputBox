@@ -54,6 +54,8 @@ public sealed class GamepadEventBinderTests
                 OnRSLeftRepeat: () => { },
                 OnRSRightPressed: () => { },
                 OnRSRightRepeat: () => { },
+                OnLSClickPressed: () => { },
+                OnRSClickPressed: () => { },
                 OnXPressed: () => { }));
 
         controller.RaiseLeftShoulderPressed();
@@ -120,6 +122,8 @@ public sealed class GamepadEventBinderTests
         public event Action? RSRightPressed;
         public event Action? RSLeftRepeat;
         public event Action? RSRightRepeat;
+        public event Action? LSClickPressed;
+        public event Action? RSClickPressed;
         public event Action? LeftTriggerPressed;
         public event Action? RightTriggerPressed;
         public event Action? LeftTriggerRepeat;
@@ -169,6 +173,8 @@ public sealed class GamepadEventBinderTests
             _ = RSRightPressed;
             _ = RSLeftRepeat;
             _ = RSRightRepeat;
+            _ = LSClickPressed;
+            _ = RSClickPressed;
             _ = LeftTriggerPressed;
             _ = RightTriggerPressed;
             _ = LeftTriggerRepeat;

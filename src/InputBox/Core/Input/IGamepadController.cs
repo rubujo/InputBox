@@ -158,6 +158,16 @@ internal interface IGamepadController : IDisposable, IAsyncDisposable
     event Action? RSRightRepeat;
 
     /// <summary>
+    /// 左搖桿按壓（L3）按下事件
+    /// </summary>
+    event Action? LSClickPressed;
+
+    /// <summary>
+    /// 右搖桿按壓（R3）按下事件
+    /// </summary>
+    event Action? RSClickPressed;
+
+    /// <summary>
     /// 當左觸發鍵（LT 鍵）被按下時觸發
     /// </summary>
     event Action? LeftTriggerPressed;

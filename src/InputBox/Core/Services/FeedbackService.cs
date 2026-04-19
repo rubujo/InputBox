@@ -274,7 +274,9 @@ internal static class FeedbackService
         }
 
         if (profile == VibrationPatterns.ActionFail ||
-            profile == VibrationPatterns.ControllerConnected)
+            profile == VibrationPatterns.ControllerConnected ||
+            profile == VibrationPatterns.ControllerIdentifyLead ||
+            profile == VibrationPatterns.ControllerIdentifyTail)
         {
             return VibrationPriority.Critical;
         }

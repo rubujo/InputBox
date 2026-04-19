@@ -47,12 +47,12 @@ public class VibrationPatternsTests
     // ── 靜態欄位設計值 ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// CursorMove 強度應為 18000（足以克服馬達啟動閾值的輕微點擊感）。
+    /// CursorMove 強度應為 28000（足以克服馬達啟動閾値的輕微點擊感）。
     /// </summary>
     [Fact]
     public void CursorMove_Strength_Is18000()
     {
-        Assert.Equal(18000, VibrationPatterns.CursorMove.Strength);
+        Assert.Equal(28000, VibrationPatterns.CursorMove.Strength);
     }
 
     /// <summary>
@@ -65,12 +65,12 @@ public class VibrationPatternsTests
     }
 
     /// <summary>
-    /// CopySuccess 強度應為 40000（約 60% 強度的確認感）。
+    /// CopySuccess 強度應為 60000（約 91% 強度的確認感）。
     /// </summary>
     [Fact]
     public void CopySuccess_Strength_Is40000()
     {
-        Assert.Equal(40000, VibrationPatterns.CopySuccess.Strength);
+        Assert.Equal(60000, VibrationPatterns.CopySuccess.Strength);
     }
 
     /// <summary>
@@ -83,12 +83,12 @@ public class VibrationPatternsTests
     }
 
     /// <summary>
-    /// ActionFail 強度應為 45000（最強，確保錯誤不被忽視）。
+    /// ActionFail 強度應為 65535（最強，確保錯誤不被忽視）。
     /// </summary>
     [Fact]
     public void ActionFail_Strength_Is45000()
     {
-        Assert.Equal(45000, VibrationPatterns.ActionFail.Strength);
+        Assert.Equal(65535, VibrationPatterns.ActionFail.Strength);
     }
 
     /// <summary>
@@ -101,12 +101,12 @@ public class VibrationPatternsTests
     }
 
     /// <summary>
-    /// ControllerConnected 強度應為 30000（觸覺握手的中等強度）。
+    /// ControllerConnected 強度應為 60000（觸覺握手的高強度）。
     /// </summary>
     [Fact]
     public void ControllerConnected_Strength_Is30000()
     {
-        Assert.Equal(30000, VibrationPatterns.ControllerConnected.Strength);
+        Assert.Equal(60000, VibrationPatterns.ControllerConnected.Strength);
     }
 
     /// <summary>
@@ -124,8 +124,8 @@ public class VibrationPatternsTests
     [Fact]
     public void IntensityPreview_UsesModerateShortPulse()
     {
-        Assert.Equal(26000, VibrationPatterns.IntensityPreview.Strength);
-        Assert.Equal(75, VibrationPatterns.IntensityPreview.Duration);
+        Assert.Equal(44000, VibrationPatterns.IntensityPreview.Strength);
+        Assert.Equal(78, VibrationPatterns.IntensityPreview.Duration);
     }
 
     // ── VibrationProfile 值語義 ────────────────────────────────────────────
@@ -186,7 +186,7 @@ public class VibrationPatternsTests
             await FeedbackService.VibrateAsync(controller, profile, TestContext.Current.CancellationToken);
 
             Assert.NotNull(controller.LastProfile);
-            Assert.Equal((ushort)10000, controller.LastProfile!.Value.Strength);
+            Assert.Equal(profile.ApplyIntensityMultiplier(0.5f).Strength, controller.LastProfile!.Value.Strength);
             Assert.Equal(1.0f, controller.LastProfile.Value.LowFrequencyMotorScale);
             Assert.Equal(0.3f, controller.LastProfile.Value.HighFrequencyMotorScale);
             Assert.Equal(VibrationPriority.Normal, controller.LastPriority);
@@ -272,7 +272,7 @@ public class VibrationPatternsTests
 
             Assert.True(controller.PlayedProfiles.Count >= 2);
             Assert.All(controller.PlayedProfiles, profile => Assert.True(profile.Strength > 0));
-            Assert.Equal((ushort)(sequence[0].Profile.Strength * 0.5f), controller.PlayedProfiles[0].Strength);
+            Assert.Equal(sequence[0].Profile.ApplyIntensityMultiplier(0.5f).Strength, controller.PlayedProfiles[0].Strength);
         }
         finally
         {
@@ -618,6 +618,8 @@ public class VibrationPatternsTests
         public event Action? RSRightPressed;
         public event Action? RSLeftRepeat;
         public event Action? RSRightRepeat;
+        public event Action? LSClickPressed;
+        public event Action? RSClickPressed;
         public event Action? LeftTriggerPressed;
         public event Action? RightTriggerPressed;
         public event Action? LeftTriggerRepeat;
@@ -654,6 +656,8 @@ public class VibrationPatternsTests
             _ = RSRightPressed;
             _ = RSLeftRepeat;
             _ = RSRightRepeat;
+            _ = LSClickPressed;
+            _ = RSClickPressed;
             _ = LeftTriggerPressed;
             _ = RightTriggerPressed;
             _ = LeftTriggerRepeat;

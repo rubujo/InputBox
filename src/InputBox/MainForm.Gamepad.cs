@@ -138,7 +138,19 @@ public partial class MainForm
     private DateTime _suppressShoulderPagingUntilUtc = DateTime.MinValue;
 
     /// <summary>
-    /// 追蹤最近一次邊界回饋的 key 與時間，用於長按時節流。
+    /// 記錄 Back 鍵最近一次按下的時間，用於組合鍵的輪詢時序寬容視窗判斷。
+    /// </summary>
+    private DateTime _backPressedUtc = DateTime.MinValue;
+
+    /// <summary>
+    /// 快照式 Undo 堆疊：在文字被程式清空或取代前儲存狀態，最多保留 <see cref="UndoStackMaxDepth"/> 層。
+    /// </summary>
+    private readonly List<string> _undoStack = [];
+
+    private const int UndoStackMaxDepth = 30;
+
+    /// <summary>
+    /// 追蹤最近一次邊界回饋的 key 與時間，用於長押時節流。
     /// </summary>
     private string _lastBoundaryFeedbackKey = string.Empty;
     private DateTime _lastBoundaryFeedbackUtc = DateTime.MinValue;
@@ -299,6 +311,40 @@ public partial class MainForm
     /// <param name="physicalButton">被按下的實體按鍵方位。</param>
     private void HandleFaceButtonAction(IGamepadController controller, GamepadFacePhysicalButton physicalButton)
     {
+        // Back 修飾鍵寬容視窗：IsBackHeld 為 true，或 Back 在 GamepadModifierGraceDelayMs 內曾被按下
+        // （處理 A/Y 比 Back 早一個輪詢 frame 被偵測到的時序偏差）。
+        bool isBackActiveOrRecent =
+            controller.IsBackHeld ||
+            (DateTime.UtcNow - _backPressedUtc).TotalMilliseconds <= GamepadModifierGraceDelayMs;
+
+        // Back + A (South) → 復原（Undo）。
+        // 擷取模式（ReadOnly）下略過：避免意外觸發修飾鍵提示音與震動。
+        if (physicalButton == GamepadFacePhysicalButton.South &&
+            isBackActiveOrRecent &&
+            !TBInput.ReadOnly)
+        {
+            _isBackUsedAsModifier = true;
+            TryPlayBackModifierCue();
+
+            HandleUndoAction();
+
+            return;
+        }
+
+        // Back + Y (North) → 全選（SelectAll）。
+        // 擷取模式（ReadOnly）下略過：避免意外觸發修飾鍵提示音與震動。
+        if (physicalButton == GamepadFacePhysicalButton.North &&
+            isBackActiveOrRecent &&
+            !TBInput.ReadOnly)
+        {
+            _isBackUsedAsModifier = true;
+            TryPlayBackModifierCue();
+
+            HandleSelectAllAction();
+
+            return;
+        }
+
         GamepadFaceButtonProfile profile = ResolveGamepadFaceButtonProfile(controller);
 
         switch (physicalButton)
@@ -349,6 +395,9 @@ public partial class MainForm
             {
                 // 記錄一次合法的 Back 按下，供 BackReleased 配對使用。
                 Interlocked.Exchange(ref _backReleaseArmed, 1);
+
+                // 記錄時間戳，供組合鍵的輪詢時序寬容視窗使用。
+                _backPressedUtc = DateTime.UtcNow;
 
                 // 按下時重置旗標。
                 _isBackUsedAsModifier = false;
@@ -407,6 +456,10 @@ public partial class MainForm
             OnRSLeftRepeat: CreateRightStickSelectionHandler(-1, "RSLeftRepeat"),
             OnRSRightPressed: CreateRightStickSelectionHandler(1, "RSRightPressed"),
             OnRSRightRepeat: CreateRightStickSelectionHandler(1, "RSRightRepeat"),
+            OnLSClickPressed: CreateSafeGamepadActionHandler(
+                HandleLSClickAction, "LSClickPressed"),
+            OnRSClickPressed: CreateSafeGamepadActionHandler(
+                HandleRSClickAction, "RSClickPressed"),
             OnXPressed: CreateSafeGamepadActionHandler(
                 () => HandleFaceButtonAction(controller, GamepadFacePhysicalButton.West)));
     }
@@ -1485,6 +1538,18 @@ public partial class MainForm
 
         int remainingCharacters = AppSettings.MaxInputLength - currentLength;
 
+        // 打字觸感回饋：單一字元插入（length +1）且距離上限預警區間尚遠時，觸發輕柔脈衝。
+        if (currentLength == _lastObservedTextLength + 1 &&
+            remainingCharacters > TextLimitWarningThreshold)
+        {
+            VibrateAsync(VibrationPatterns.TypingPulse).SafeFireAndForget();
+
+            _lastObservedTextLength = currentLength;
+            _lastTextLimitWarningBucket = -1;
+
+            return;
+        }
+
         if (remainingCharacters > TextLimitWarningThreshold)
         {
             _lastObservedTextLength = currentLength;
@@ -2028,6 +2093,147 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// 處理左搖桿按壓（L3）事件。目前保留為空，供未來功能擴充使用。
+    /// </summary>
+    private void HandleLSClickAction()
+    {
+        // 保留：未來可映射至特定功能。
+    }
+
+    /// <summary>
+    /// 處理右搖桿按壓（R3）事件：重新朗讀輸入框目前的全部文字內容。
+    /// </summary>
+    private void HandleRSClickAction()
+    {
+        if (ShouldSkipGamepadAction("RSClick") ||
+            TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        if (TBInput.TextLength == 0)
+        {
+            AnnounceA11y(Strings.A11y_Reread_Empty, interrupt: true);
+
+            return;
+        }
+
+        AnnounceA11y(
+            AppSettings.Current.IsPrivacyMode
+                ? string.Format(Strings.A11y_Reread_PrivacySafe, TBInput.TextLength)
+                : string.Format(Strings.A11y_Reread_Text, TBInput.Text),
+            interrupt: true);
+    }
+
+    /// <summary>
+    /// 處理復原（Undo）操作：恢復輸入框上一步的文字狀態。
+    /// </summary>
+    /// <summary>
+    /// 在即將以程式清空或取代輸入框文字前，將目前文字推入快照堆疊。
+    /// 若與最後一份快照相同，則略過以避免重複。
+    /// </summary>
+    private void PushUndoSnapshot()
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed ||
+            TBInput.ReadOnly)
+        {
+            return;
+        }
+
+        string current = TBInput.Text;
+
+        // 與上一份快照相同，不重複儲存。
+        if (_undoStack.Count > 0 &&
+            _undoStack[_undoStack.Count - 1] == current)
+        {
+            return;
+        }
+
+        if (_undoStack.Count >= UndoStackMaxDepth)
+        {
+            _undoStack.RemoveAt(0);
+        }
+
+        _undoStack.Add(current);
+    }
+
+    private void HandleUndoAction()
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed ||
+            TBInput.ReadOnly)
+        {
+            return;
+        }
+
+        // 優先使用快照堆疊（覆蓋 B 清空、歷程導覽等程式賦值後的還原）。
+        if (_undoStack.Count > 0)
+        {
+            string previous = _undoStack[_undoStack.Count - 1];
+
+            _undoStack.RemoveAt(_undoStack.Count - 1);
+
+            TBInput.Text = previous;
+            TBInput.SelectionStart = TBInput.TextLength;
+
+            AnnounceA11y(Strings.A11y_Undo, interrupt: true);
+
+            VibrateAsync(VibrationPatterns.SettingToggleOff).SafeFireAndForget();
+
+            return;
+        }
+
+        // 回退至 WinForms 原生 Undo（僅鍵盤直接輸入後有效）。
+        if (TBInput.CanUndo)
+        {
+            TBInput.Undo();
+
+            AnnounceA11y(Strings.A11y_Undo, interrupt: true);
+
+            VibrateAsync(VibrationPatterns.SettingToggleOff).SafeFireAndForget();
+
+            return;
+        }
+
+        AnnounceA11y(Strings.A11y_Undo_Unavailable, interrupt: true);
+
+        FeedbackService.PlaySound(SystemSounds.Beep);
+
+        VibrateAsync(VibrationPatterns.ActionFail).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 處理全選（SelectAll）操作：選取輸入框中的全部文字。
+    /// </summary>
+    private void HandleSelectAllAction()
+    {
+        if (TBInput == null ||
+            TBInput.IsDisposed)
+        {
+            return;
+        }
+
+        if (TBInput.TextLength == 0)
+        {
+            AnnounceA11y(Strings.A11y_Reread_Empty, interrupt: true);
+
+            return;
+        }
+
+        TBInput.SelectAll();
+
+        AnnounceA11y(
+            AppSettings.Current.IsPrivacyMode
+                ? string.Format(Strings.A11y_SelectAll_PrivacySafe, TBInput.TextLength)
+                : string.Format(Strings.A11y_SelectAll, TBInput.SelectedText),
+            interrupt: true);
+
+        VibrateAsync(VibrationPatterns.SettingToggleOn).SafeFireAndForget();
+    }
+
+    /// <summary>
     /// 建立右搖桿選取事件處理委派。
     /// </summary>
     /// <param name="direction">選取方向（-1 左、1 右）。</param>
@@ -2347,6 +2553,10 @@ public partial class MainForm
         // 使用 Win32 EM_SETSEL 設定選取範圍。
         // wParam 為錨點，lParam 為活動邊緣。這能確保視覺上的游標（Caret）正確跟隨活動邊緣，並支援反向縮減。
         User32.SendMessage(TBInput.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
+
+        // 確保活動邊緣（Caret）保持在可視範圍內，避免選取延伸到畫面外時
+        // Windows TextBox 在可視邊界處繪製藍色底線 artifact。
+        TBInput.ScrollToCaret();
 
         // A11y：報讀目前選取的文字內容。
         if (TBInput.SelectionLength > 0)

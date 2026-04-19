@@ -225,6 +225,34 @@
     <value>Cursor bewegt.</value>
     <comment>Datenschutzsichere Version der Cursorbewegung für zugängliche Broadcast-Nachrichten.</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>Aktueller Text: {0}</value>
+    <comment>Barrierefreiheit-Wiedergabe des gesamten Eingabefeldinhalts. Wird durch RS-Klick ausgelöst. {0} ist der vollständige Text.</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>Das Textfeld enthält {0} Zeichen.</value>
+    <comment>Datenschutzsichere Wiedergabe mit nur der Zeichenanzahl. {0} ist die Zeichenanzahl.</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>Das Textfeld ist leer.</value>
+    <comment>Barrierefreiheitsmeldung, wenn RS-Klick-Wiedergabe ausgelöst wird, aber das Eingabefeld leer ist.</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>Rückgängig gemacht.</value>
+    <comment>Barrierefreiheits-Bestätigung nach erfolgreichem Rückgängigmachen über Back + A.</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>Nichts rückgängig zu machen.</value>
+    <comment>Barrierefreiheitsmeldung, wenn Rückgängig ausgelöst wird, aber der Puffer leer ist.</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>Gesamter Text ausgewählt: {0}</value>
+    <comment>Barrierefreiheits-Bestätigung nach Alles auswählen über Back + Y. {0} ist der ausgewählte Text.</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>Alle {0} Zeichen ausgewählt.</value>
+    <comment>Datenschutzsichere Bestätigung mit nur der Zeichenanzahl. {0} ist die Zeichenanzahl.</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>Kein Text zum Kopieren.</value>
     <comment>Meldung zur Barrierefreiheit, die beim Versuch, leeren Text zu kopieren, abgespielt wird.</comment>
@@ -962,6 +990,8 @@ Y	Funktionsmenü öffnen
 X	Rücktaste (Zeichen/Auswahl löschen)
 LB + RB + X halten	Anwendung beenden
 Back / View + X	Fensterdeckkraft zurücksetzen
+Back / View + A	Letzte Eingabe rückgängig machen
+Back / View + Y	Gesamten Text auswählen
 ↑ / ↓	Verlauf durchsuchen
 ← / →	Cursor nach links / rechts bewegen
 LB / RB (tippen / halten)	Verlauf um 5 Einträge hoch / runter blättern; halten zum Wiederholen

@@ -225,6 +225,34 @@
     <value>Le curseur a bougé.</value>
     <comment>Version sécurisée du mouvement du curseur pour les messages diffusés accessibles.</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>Texte actuel : {0}</value>
+    <comment>Annonce de relecture du contenu complet de la zone de saisie. Déclenché par le clic RS. {0} est le texte complet.</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>La zone de texte contient {0} caractère(s).</value>
+    <comment>Annonce de relecture sécurisée affichant uniquement le nombre de caractères. {0} est le nombre de caractères.</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>La zone de texte est vide.</value>
+    <comment>Message d'accessibilité affiché lorsque le clic RS est déclenché mais que la zone de saisie est vide.</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>Annulé.</value>
+    <comment>Confirmation d'accessibilité après une opération d'annulation réussie via Back + A.</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>Rien à annuler.</value>
+    <comment>Message d'accessibilité affiché lorsque l'annulation est déclenchée mais que le tampon est vide.</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>Tout le texte sélectionné : {0}</value>
+    <comment>Confirmation d'accessibilité après Tout sélectionner via Back + Y. {0} est le texte sélectionné.</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>Tous les {0} caractère(s) sélectionné(s).</value>
+    <comment>Confirmation sécurisée affichant uniquement le nombre de caractères. {0} est le nombre de caractères.</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>Aucun texte à copier.</value>
     <comment>Message d&apos;accessibilité, diffusé lors de la tentative de copie d&apos;un texte vide.</comment>
@@ -962,6 +990,8 @@ Y	Ouvrir le menu des fonctionnalités
 X	Retour arrière (supprimer caractère/sélection)
 Maintenir LB + RB + X	Quitter l'application
 Back / View + X	Réinitialiser l'opacité de la fenêtre
+Back / View + A	Annuler la dernière saisie
+Back / View + Y	Sélectionner tout le texte
 ↑ / ↓	Parcourir l'historique
 ← / →	Déplacer le curseur vers la gauche / droite
 LB / RB (appui court / maintenu)	Faire défiler l'historique de 5 entrées ; maintenir pour répéter

@@ -521,6 +521,16 @@ internal sealed partial class XInputGamepadController : IGamepadController
     public event Action? RSRightRepeat;
 
     /// <summary>
+    /// 左搖桿按壓（L3）按下事件。
+    /// </summary>
+    public event Action? LSClickPressed;
+
+    /// <summary>
+    /// 右搖桿按壓（R3）按下事件。
+    /// </summary>
+    public event Action? RSClickPressed;
+
+    /// <summary>
     /// 當左觸發鍵（LT 鍵）被按下時觸發。
     /// </summary>
     public event Action? LeftTriggerPressed;
@@ -992,6 +1002,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
             Detect(currentState, _previousState, XInput.GamepadButton.B, BPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.X, XPressed);
             Detect(currentState, _previousState, XInput.GamepadButton.Y, YPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.LeftThumb, LSClickPressed);
+            Detect(currentState, _previousState, XInput.GamepadButton.RightThumb, RSClickPressed);
 
             // 處理右搖桿虛擬按键偵測（使用 Hysteresis 邏輯以對抗漂移）。
             int currentRsDir = GamepadDeadzoneHysteresis.ResolveDirection(
@@ -2262,6 +2274,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
         RSRightPressed = null;
         RSLeftRepeat = null;
         RSRightRepeat = null;
+        LSClickPressed = null;
+        RSClickPressed = null;
         LeftShoulderPressed = null;
         LeftShoulderRepeat = null;
         RightShoulderPressed = null;

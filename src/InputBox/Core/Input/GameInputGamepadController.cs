@@ -576,6 +576,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     public event Action? RSRightRepeat;
 
     /// <summary>
+    /// 左搖桿按壓（L3）按下事件。
+    /// </summary>
+    public event Action? LSClickPressed;
+
+    /// <summary>
+    /// 右搖桿按壓（R3）按下事件。
+    /// </summary>
+    public event Action? RSClickPressed;
+
+    /// <summary>
     /// 當左觸發鍵（LT 鍵）被按下時觸發。
     /// </summary>
     public event Action? LeftTriggerPressed;
@@ -2148,6 +2158,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.B, BPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.X, XPressed);
         DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Y, YPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.LeftThumbstick, LSClickPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.RightThumbstick, RSClickPressed);
 
         // 處理右搖桿（RS）虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
         float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
@@ -2886,6 +2898,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         RSRightPressed = null;
         RSLeftRepeat = null;
         RSRightRepeat = null;
+        LSClickPressed = null;
+        RSClickPressed = null;
         LeftShoulderPressed = null;
         LeftShoulderRepeat = null;
         RightShoulderPressed = null;

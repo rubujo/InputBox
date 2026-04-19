@@ -225,6 +225,34 @@
     <value>커서가 이동되었습니다.</value>
     <comment>개인정보 보호 버전의 커서 이동 메시지입니다.</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>현재 텍스트: {0}</value>
+    <comment>입력 상자 전체 내용의 접근성 재읽기 알림입니다. RS 클릭으로 트리거됩니다. {0}은 전체 텍스트입니다.</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>텍스트 상자에 {0}자가 있습니다.</value>
+    <comment>글자 수만 표시하는 개인정보 보호 재읽기 알림입니다. {0}은 글자 수입니다.</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>텍스트 상자가 비어 있습니다.</value>
+    <comment>RS 클릭 재읽기가 트리거되었지만 입력 상자가 비어 있을 때의 접근성 메시지입니다.</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>실행 취소되었습니다.</value>
+    <comment>Back + A를 통한 실행 취소 성공 후 접근성 확인 메시지입니다.</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>실행 취소할 내용이 없습니다.</value>
+    <comment>실행 취소가 트리거되었지만 버퍼가 비어 있을 때의 접근성 메시지입니다.</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>모든 텍스트가 선택되었습니다: {0}</value>
+    <comment>Back + Y를 통한 모두 선택 후 접근성 확인 메시지입니다. {0}은 선택된 텍스트입니다.</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>전체 {0}자가 선택되었습니다.</value>
+    <comment>글자 수만 표시하는 개인정보 보호 모두 선택 확인입니다. {0}은 글자 수입니다.</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>복사할 텍스트가 없습니다.</value>
     <comment>빈 텍스트를 복사하려고 할 때 재생되는 메시지입니다.</comment>
@@ -962,6 +990,8 @@ Y	기능 메뉴 열기
 X	백스페이스 (문자/선택 항목 삭제)
 LB + RB + X 길게 누르기	응용 프로그램 종료
 Back / View + X	창 불투명도 재설정
+Back / View + A	마지막 입력 작업 실행 취소
+Back / View + Y	모든 텍스트 선택
 ↑ / ↓	기록 탐색
 ← / →	커서 왼쪽/오른쪽으로 이동
 LB / RB(짧게 / 길게 누름)	기록을 위/아래로 5개씩 넘기기(길게 누르면 연속 전환)
