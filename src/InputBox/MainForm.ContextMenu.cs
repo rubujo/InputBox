@@ -151,6 +151,9 @@ public partial class MainForm
                 {
                     _historyService.Clear();
 
+                    // 推入快照，使 Back+A Undo 可還原至切換前的文字。
+                    PushUndoSnapshot();
+
                     // 清空目前的輸入框。
                     TBInput.Clear();
                 }
@@ -411,6 +414,9 @@ public partial class MainForm
                 AnnounceA11y($"{Strings.Msg_PressAnyKey} {Strings.A11y_Capture_Esc_Cancel}");
 
                 // 輸入框視覺強化。
+                // 推入快照，使 Back+A Undo 可還原至進入擷取模式前的文字。
+                PushUndoSnapshot();
+
                 TBInput.Text = string.Empty;
                 TBInput.PlaceholderText = Strings.Msg_PressAnyKey;
                 // 暫時唯讀，防止輸入字元。

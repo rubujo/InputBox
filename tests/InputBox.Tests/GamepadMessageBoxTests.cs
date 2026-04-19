@@ -69,6 +69,8 @@ public sealed class GamepadMessageBoxTests
         public event Action? RSRightPressed;
         public event Action? RSLeftRepeat;
         public event Action? RSRightRepeat;
+        public event Action? LSClickPressed;
+        public event Action? RSClickPressed;
         public event Action? LeftTriggerPressed;
         public event Action? RightTriggerPressed;
         public event Action? LeftTriggerRepeat;
@@ -118,6 +120,8 @@ public sealed class GamepadMessageBoxTests
             _ = RSRightPressed;
             _ = RSLeftRepeat;
             _ = RSRightRepeat;
+            _ = LSClickPressed;
+            _ = RSClickPressed;
             _ = LeftTriggerPressed;
             _ = RightTriggerPressed;
             _ = LeftTriggerRepeat;

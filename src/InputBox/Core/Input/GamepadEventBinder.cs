@@ -37,6 +37,8 @@ internal sealed class GamepadEventBinder
     /// <param name="OnRSLeftRepeat">右搖桿左推連發時執行的處理常式。</param>
     /// <param name="OnRSRightPressed">右搖桿右推按下時執行的處理常式。</param>
     /// <param name="OnRSRightRepeat">右搖桿右推連發時執行的處理常式。</param>
+    /// <param name="OnLSClickPressed">左搖桿按壓（L3）按下時執行的處理常式。</param>
+    /// <param name="OnRSClickPressed">右搖桿按壓（R3）按下時執行的處理常式。</param>
     /// <param name="OnXPressed">X 鍵按下時執行的處理常式。</param>
     internal sealed record BindingMap(
         Action<bool> OnConnectionChanged,
@@ -68,6 +70,8 @@ internal sealed class GamepadEventBinder
         Action OnRSLeftRepeat,
         Action OnRSRightPressed,
         Action OnRSRightRepeat,
+        Action OnLSClickPressed,
+        Action OnRSClickPressed,
         Action OnXPressed);
 
     /// <summary>
@@ -112,6 +116,9 @@ internal sealed class GamepadEventBinder
         controller.RSLeftRepeat += map.OnRSLeftRepeat;
         controller.RSRightPressed += map.OnRSRightPressed;
         controller.RSRightRepeat += map.OnRSRightRepeat;
+
+        controller.LSClickPressed += map.OnLSClickPressed;
+        controller.RSClickPressed += map.OnRSClickPressed;
 
         controller.XPressed += map.OnXPressed;
     }

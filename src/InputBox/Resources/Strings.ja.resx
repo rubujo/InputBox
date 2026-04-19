@@ -225,6 +225,34 @@
     <value>カーソルを移動しました。</value>
     <comment>カーソル移動のプライバシーセーフ版アクセシビリティメッセージです。</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>現在のテキスト：{0}</value>
+    <comment>入力ボックスの全テキストの再読み上げアナウンス。RSクリックで起動。{0}は全テキストです。</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>テキストボックスには{0}文字あります。</value>
+    <comment>文字数のみを表示するプライバシーセーフな再読み上げ。{0}は文字数です。</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>テキストボックスは空です。</value>
+    <comment>RSクリック再読み上げが起動されたが入力ボックスが空のときのアクセシビリティメッセージ。</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>元に戻しました。</value>
+    <comment>Back + Aによる元に戻す操作成功後のアクセシビリティ確認メッセージ。</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>元に戻す操作はありません。</value>
+    <comment>元に戻すが起動されたがバッファが空のときのアクセシビリティメッセージ。</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>すべてのテキストを選択しました：{0}</value>
+    <comment>Back + Yによるすべて選択後のアクセシビリティ確認メッセージ。{0}は選択されたテキストです。</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>全{0}文字を選択しました。</value>
+    <comment>文字数のみを表示するプライバシーセーフな全選択確認。{0}は文字数です。</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>コピーするテキストがありません。</value>
     <comment>アクセシビリティメッセージ。テキストが空の状態でコピーしようとしたときに再生されます。</comment>
@@ -962,6 +990,8 @@ Y	機能メニューを開く
 X	バックスペース（文字／選択範囲を削除）
 LB + RB + X を長押し	アプリを終了
 Back／View + X	ウィンドウの透明度をリセット
+Back／View + A	直前の操作を元に戻す
+Back／View + Y	テキストをすべて選択
 ↑／↓	履歴を移動
 ←／→	カーソルを移動
 LB／RB（単押し / 長押し）	履歴を上下に 5 件送る（長押しで連続送り）

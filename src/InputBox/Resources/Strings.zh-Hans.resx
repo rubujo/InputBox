@@ -225,6 +225,34 @@
     <value>光标已移动。</value>
     <comment>光标移动的隐私安全版本无障碍广播消息。</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>当前文本：{0}</value>
+    <comment>输入框全文内容的无障碍重读播报。由 RS 按压触发。{0} 为完整文本。</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>文本框共有 {0} 个字符。</value>
+    <comment>仅显示字符数量的隐私安全重读播报。{0} 为字符数。</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>文本框为空。</value>
+    <comment>RS 按压重读触发但输入框为空时的无障碍播报消息。</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>已撤销。</value>
+    <comment>通过 Back + A 执行撤销操作成功后的无障碍确认消息。</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>没有可撤销的操作。</value>
+    <comment>触发撤销但撤销缓冲区为空时的无障碍播报消息。</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>已全选：{0}</value>
+    <comment>通过 Back + Y 执行全选后的无障碍确认消息。{0} 为选取的文本。</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>已选取全部 {0} 个字符。</value>
+    <comment>仅显示字符数量的隐私安全全选确认消息。{0} 为字符数。</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>没有可复制的文字。</value>
     <comment>无障碍消息，当尝试复制空文本时播放。</comment>
@@ -962,6 +990,8 @@ Y	打开功能菜单
 X	退格（删除字符 / 选中内容）
 按住 LB + RB + X	退出程序
 Back／View + X	重置窗口透明度
+Back／View + A	撤销上一步输入操作
+Back／View + Y	全选所有文字
 ↑ / ↓	浏览历史记录
 ← / →	光标左移 / 右移
 LB／RB（单按 / 按住）	历史记录上／下翻 5 条（按住可连发）

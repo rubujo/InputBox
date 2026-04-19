@@ -109,368 +109,374 @@ public static class VibrationPatterns
     /// <summary>
     /// 游標移動（輕微短促的點擊感）。
     /// </summary>
-    public static readonly VibrationProfile CursorMove = new(18000, 50);
+    public static readonly VibrationProfile CursorMove = new(28000, 50);
 
     /// <summary>
     /// 向左移動游標時的細緻微震動。
     /// </summary>
-    public static readonly VibrationProfile CursorMoveLeft = new(14000, 24, 0.30f, 0.08f, 0.92f, 0.03f);
+    public static readonly VibrationProfile CursorMoveLeft = new(31000, 24, 0.30f, 0.08f, 0.92f, 0.03f);
 
     /// <summary>
     /// 向右移動游標時的細緻微震動。
     /// </summary>
-    public static readonly VibrationProfile CursorMoveRight = new(14000, 24, 0.08f, 0.30f, 0.03f, 0.92f);
+    public static readonly VibrationProfile CursorMoveRight = new(31000, 24, 0.08f, 0.30f, 0.03f, 0.92f);
 
     /// <summary>
     /// 左向游標微震後的細小收尾。
     /// </summary>
-    public static readonly VibrationProfile CursorMoveLeftEcho = new(7000, 12, 0.40f, 0.10f, 0.22f, 0.03f);
+    public static readonly VibrationProfile CursorMoveLeftEcho = new(25000, 14, 0.70f, 0.18f, 0.35f, 0.04f);
 
     /// <summary>
     /// 右向游標微震後的細小收尾。
     /// </summary>
-    public static readonly VibrationProfile CursorMoveRightEcho = new(7000, 12, 0.10f, 0.40f, 0.03f, 0.22f);
+    public static readonly VibrationProfile CursorMoveRightEcho = new(25000, 14, 0.18f, 0.70f, 0.04f, 0.35f);
 
     /// <summary>
     /// 分頁切換（比游標移動更明確的翻頁感）。
     /// </summary>
-    public static readonly VibrationProfile PageSwitch = new(26000, 80);
+    public static readonly VibrationProfile PageSwitch = new(38000, 80);
 
     /// <summary>
     /// 向左／向前的方向性翻頁震動。
     /// </summary>
-    public static readonly VibrationProfile PageSwitchLeft = new(25000, 74, 1.0f, 0.32f, 0.68f, 0.12f);
+    public static readonly VibrationProfile PageSwitchLeft = new(51000, 76, 1.0f, 0.32f, 0.68f, 0.12f);
 
     /// <summary>
     /// 向右／向後的方向性翻頁震動。
     /// </summary>
-    public static readonly VibrationProfile PageSwitchRight = new(25000, 74, 0.32f, 1.0f, 0.12f, 0.68f);
+    public static readonly VibrationProfile PageSwitchRight = new(51000, 76, 0.32f, 1.0f, 0.12f, 0.68f);
 
     /// <summary>
     /// 主輸入區歷程向前翻頁時的觸覺樣式。
     /// </summary>
-    public static readonly VibrationProfile HistoryPageBackward = new(22000, 64, 1.0f, 0.38f, 0.46f, 0.06f);
+    public static readonly VibrationProfile HistoryPageBackward = new(43000, 66, 1.0f, 0.38f, 0.46f, 0.06f);
 
     /// <summary>
     /// 主輸入區歷程向後翻頁時的觸覺樣式。
     /// </summary>
-    public static readonly VibrationProfile HistoryPageForward = new(22000, 64, 0.38f, 1.0f, 0.06f, 0.46f);
+    public static readonly VibrationProfile HistoryPageForward = new(43000, 66, 0.38f, 1.0f, 0.06f, 0.46f);
 
     /// <summary>
     /// 歷程向前翻頁時的第二段機械收尾。
     /// </summary>
-    public static readonly VibrationProfile HistoryPageBackwardSettle = new(9500, 18, 0.68f, 0.14f, 0.16f, 0.02f);
+    public static readonly VibrationProfile HistoryPageBackwardSettle = new(25000, 20, 0.68f, 0.14f, 0.16f, 0.02f);
 
     /// <summary>
     /// 歷程向後翻頁時的第二段機械收尾。
     /// </summary>
-    public static readonly VibrationProfile HistoryPageForwardSettle = new(9500, 18, 0.14f, 0.68f, 0.02f, 0.16f);
+    public static readonly VibrationProfile HistoryPageForwardSettle = new(25000, 20, 0.14f, 0.68f, 0.02f, 0.16f);
 
     /// <summary>
     /// 單筆歷程導覽的精緻滾輪刻度感（向前／較舊）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelBackward = new(18500, 26, 1.0f, 0.34f, 0.30f, 0.04f);
+    public static readonly VibrationProfile HistoryWheelBackward = new(29000, 28, 1.0f, 0.34f, 0.30f, 0.04f);
 
     /// <summary>
     /// 單筆歷程導覽的精緻滾輪刻度感（向後／較新）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelForward = new(18500, 26, 0.34f, 1.0f, 0.04f, 0.30f);
+    public static readonly VibrationProfile HistoryWheelForward = new(29000, 28, 0.34f, 1.0f, 0.04f, 0.30f);
 
     /// <summary>
     /// 快速翻閱歷程時較輕的阻尼刻度感（向前／較舊）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelBackwardFast = new(13500, 18, 0.92f, 0.26f, 0.18f, 0.03f);
+    public static readonly VibrationProfile HistoryWheelBackwardFast = new(25000, 20, 0.92f, 0.26f, 0.18f, 0.03f);
 
     /// <summary>
     /// 快速翻閱歷程時較輕的阻尼刻度感（向後／較新）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelForwardFast = new(13500, 18, 0.26f, 0.92f, 0.03f, 0.18f);
+    public static readonly VibrationProfile HistoryWheelForwardFast = new(25000, 20, 0.26f, 0.92f, 0.03f, 0.18f);
 
     /// <summary>
     /// 極高速掃描歷程時的滑順餘韻（向前／較舊）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelBackwardGlide = new(9000, 12, 0.74f, 0.18f, 0.12f, 0.02f);
+    public static readonly VibrationProfile HistoryWheelBackwardGlide = new(19000, 14, 0.74f, 0.18f, 0.12f, 0.02f);
 
     /// <summary>
     /// 極高速掃描歷程時的滑順餘韻（向後／較新）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelForwardGlide = new(9000, 12, 0.18f, 0.74f, 0.02f, 0.12f);
+    public static readonly VibrationProfile HistoryWheelForwardGlide = new(19000, 14, 0.18f, 0.74f, 0.02f, 0.12f);
 
     /// <summary>
     /// 片語子選單翻頁時的較強觸覺樣式。
     /// </summary>
-    public static readonly VibrationProfile PhrasePageBackward = new(27000, 82, 1.0f, 0.20f, 0.72f, 0.06f);
+    public static readonly VibrationProfile PhrasePageBackward = new(50000, 84, 1.0f, 0.20f, 0.72f, 0.06f);
 
     /// <summary>
     /// 片語子選單向後翻頁時的較強觸覺樣式。
     /// </summary>
-    public static readonly VibrationProfile PhrasePageForward = new(27000, 82, 0.20f, 1.0f, 0.06f, 0.72f);
+    public static readonly VibrationProfile PhrasePageForward = new(50000, 84, 0.20f, 1.0f, 0.06f, 0.72f);
 
     /// <summary>
-    /// 片語子選單向前翻頁時的較清脆收尾。
+    /// 片語子選單向前翻頁時的較清脈收尾。
     /// </summary>
-    public static readonly VibrationProfile PhrasePageBackwardSettle = new(12500, 20, 0.74f, 0.12f, 0.24f, 0.03f);
+    public static readonly VibrationProfile PhrasePageBackwardSettle = new(23000, 22, 0.74f, 0.12f, 0.24f, 0.03f);
 
     /// <summary>
-    /// 片語子選單向後翻頁時的較清脆收尾。
+    /// 片語子選單向後翻頁時的較清脈收尾。
     /// </summary>
-    public static readonly VibrationProfile PhrasePageForwardSettle = new(12500, 20, 0.12f, 0.74f, 0.03f, 0.24f);
+    public static readonly VibrationProfile PhrasePageForwardSettle = new(23000, 22, 0.12f, 0.74f, 0.03f, 0.24f);
 
     /// <summary>
     /// 單字跳轉的左向首脈衝。
     /// </summary>
-    public static readonly VibrationProfile WordJumpLeftPrimary = new(21000, 24, 0.42f, 0.10f, 1.0f, 0.04f);
+    public static readonly VibrationProfile WordJumpLeftPrimary = new(40000, 26, 0.42f, 0.10f, 1.0f, 0.04f);
 
     /// <summary>
     /// 單字跳轉的左向第二脈衝。
     /// </summary>
-    public static readonly VibrationProfile WordJumpLeftSecondary = new(11500, 14, 0.56f, 0.12f, 0.15f, 0.02f);
+    public static readonly VibrationProfile WordJumpLeftSecondary = new(31000, 18, 0.56f, 0.12f, 0.15f, 0.02f);
 
     /// <summary>
     /// 單字跳轉的右向首脈衝。
     /// </summary>
-    public static readonly VibrationProfile WordJumpRightPrimary = new(21000, 24, 0.10f, 0.42f, 0.04f, 1.0f);
+    public static readonly VibrationProfile WordJumpRightPrimary = new(40000, 26, 0.10f, 0.42f, 0.04f, 1.0f);
 
     /// <summary>
     /// 單字跳轉的右向第二脈衝。
     /// </summary>
-    public static readonly VibrationProfile WordJumpRightSecondary = new(11500, 14, 0.12f, 0.56f, 0.02f, 0.15f);
+    public static readonly VibrationProfile WordJumpRightSecondary = new(31000, 18, 0.12f, 0.56f, 0.02f, 0.15f);
 
     /// <summary>
     /// 複製成功（強烈且明確的確認感）。
     /// </summary>
-    public static readonly VibrationProfile CopySuccess = new(40000, 150);
+    public static readonly VibrationProfile CopySuccess = new(60000, 150);
 
     /// <summary>
     /// 清除文字方塊（中等強度的提示）。
     /// </summary>
-    public static readonly VibrationProfile ClearInput = new(25000, 100);
+    public static readonly VibrationProfile ClearInput = new(44000, 100);
 
     /// <summary>
     /// 邊界撞擊、錯誤操作（強烈且較長的警告）。
     /// </summary>
-    public static readonly VibrationProfile ActionFail = new(45000, 200);
+    public static readonly VibrationProfile ActionFail = new(65535, 200);
 
     /// <summary>
     /// 向左撞到邊界時的方向性警示震動。
     /// </summary>
-    public static readonly VibrationProfile BoundaryLeft = new(37000, 104, 1.0f, 0.28f, 0.80f, 0.08f);
+    public static readonly VibrationProfile BoundaryLeft = new(57000, 108, 1.0f, 0.28f, 0.80f, 0.08f);
 
     /// <summary>
     /// 向右撞到邊界時的方向性警示震動。
     /// </summary>
-    public static readonly VibrationProfile BoundaryRight = new(37000, 104, 0.28f, 1.0f, 0.08f, 0.80f);
+    public static readonly VibrationProfile BoundaryRight = new(57000, 108, 0.28f, 1.0f, 0.08f, 0.80f);
 
     /// <summary>
     /// 長按撞牆時的左向柔和重複回饋，用於降低疲勞感。
     /// </summary>
-    public static readonly VibrationProfile BoundaryLeftRepeat = new(22000, 42, 0.74f, 0.22f, 0.24f, 0.04f);
+    public static readonly VibrationProfile BoundaryLeftRepeat = new(50000, 44, 0.74f, 0.22f, 0.24f, 0.04f);
 
     /// <summary>
     /// 長按撞牆時的右向柔和重複回饋，用於降低疲勞感。
     /// </summary>
-    public static readonly VibrationProfile BoundaryRightRepeat = new(22000, 42, 0.22f, 0.74f, 0.04f, 0.24f);
+    public static readonly VibrationProfile BoundaryRightRepeat = new(50000, 44, 0.22f, 0.74f, 0.04f, 0.24f);
 
     /// <summary>
     /// 左向邊界碰撞後的短餘震。
     /// </summary>
-    public static readonly VibrationProfile BoundaryLeftAftershock = new(12000, 16, 0.62f, 0.14f, 0.10f, 0.02f);
+    public static readonly VibrationProfile BoundaryLeftAftershock = new(28000, 20, 0.62f, 0.14f, 0.10f, 0.02f);
 
     /// <summary>
     /// 右向邊界碰撞後的短餘震。
     /// </summary>
-    public static readonly VibrationProfile BoundaryRightAftershock = new(12000, 16, 0.14f, 0.62f, 0.02f, 0.10f);
+    public static readonly VibrationProfile BoundaryRightAftershock = new(28000, 20, 0.14f, 0.62f, 0.02f, 0.10f);
 
     /// <summary>
     /// 文字邊界跳轉成功時的起點方向提示。
     /// </summary>
-    public static readonly VibrationProfile CursorJumpStart = new(20000, 55, 1.0f, 0.40f, 0.30f, 0.10f);
+    public static readonly VibrationProfile CursorJumpStart = new(40000, 58, 1.0f, 0.40f, 0.30f, 0.10f);
 
     /// <summary>
     /// 文字邊界跳轉成功時的終點方向提示。
     /// </summary>
-    public static readonly VibrationProfile CursorJumpEnd = new(20000, 55, 0.40f, 1.0f, 0.10f, 0.30f);
+    public static readonly VibrationProfile CursorJumpEnd = new(40000, 58, 0.40f, 1.0f, 0.10f, 0.30f);
 
     /// <summary>
     /// 隱私模式切換時的獨立語意震動。
     /// </summary>
-    public static readonly VibrationProfile PrivacyModeToggle = new(28000, 140, 0.65f, 0.65f, 1.0f, 1.0f);
+    public static readonly VibrationProfile PrivacyModeToggle = new(46000, 140, 0.65f, 0.65f, 1.0f, 1.0f);
 
     /// <summary>
     /// 隱私模式切換時的鎖定脈衝。
     /// </summary>
-    public static readonly VibrationProfile PrivacyModeToggleLatch = new(25000, 42, 0.44f, 0.44f, 1.0f, 1.0f);
+    public static readonly VibrationProfile PrivacyModeToggleLatch = new(40000, 44, 0.44f, 0.44f, 1.0f, 1.0f);
 
     /// <summary>
     /// 隱私模式切換時的回穩收尾。
     /// </summary>
-    public static readonly VibrationProfile PrivacyModeToggleSettle = new(12500, 48, 0.20f, 0.20f, 0.46f, 0.46f);
+    public static readonly VibrationProfile PrivacyModeToggleSettle = new(27000, 50, 0.28f, 0.28f, 0.65f, 0.65f);
 
     /// <summary>
     /// 隱私模式關閉時的解鎖脈衝。
     /// </summary>
-    public static readonly VibrationProfile PrivacyModeReleaseLatch = new(16500, 30, 0.62f, 0.62f, 0.28f, 0.28f);
+    public static readonly VibrationProfile PrivacyModeReleaseLatch = new(38000, 32, 0.75f, 0.75f, 0.35f, 0.35f);
 
     /// <summary>
     /// 隱私模式關閉時的鬆開收尾。
     /// </summary>
-    public static readonly VibrationProfile PrivacyModeReleaseSettle = new(8500, 32, 0.16f, 0.16f, 0.18f, 0.18f);
+    public static readonly VibrationProfile PrivacyModeReleaseSettle = new(36000, 34, 0.55f, 0.55f, 0.38f, 0.38f);
 
     /// <summary>
     /// 雙肩鍵保留成功時的短促預備脈衝。
     /// </summary>
-    public static readonly VibrationProfile ShoulderComboArm = new(16000, 26, 0.74f, 0.74f, 0.30f, 0.30f);
+    public static readonly VibrationProfile ShoulderComboArm = new(35000, 28, 0.74f, 0.74f, 0.30f, 0.30f);
 
     /// <summary>
     /// 雙肩鍵保留後的穩定收尾，提示後續可接 B／X 動作。
     /// </summary>
-    public static readonly VibrationProfile ShoulderComboSettle = new(9000, 16, 0.28f, 0.28f, 0.10f, 0.10f);
+    public static readonly VibrationProfile ShoulderComboSettle = new(30000, 18, 0.58f, 0.58f, 0.18f, 0.18f);
 
     /// <summary>
     /// 雙板機組合進入模式切換前的扳機導向提示。
     /// </summary>
-    public static readonly VibrationProfile TriggerComboArm = new(17500, 24, 0.16f, 0.16f, 1.0f, 1.0f);
+    public static readonly VibrationProfile TriggerComboArm = new(37000, 26, 0.16f, 0.16f, 1.0f, 1.0f);
 
     /// <summary>
     /// 雙板機組合的短收尾，降低與正式模式切換主震動之間的黏連感。
     /// </summary>
-    public static readonly VibrationProfile TriggerComboSettle = new(8500, 14, 0.12f, 0.12f, 0.34f, 0.34f);
+    public static readonly VibrationProfile TriggerComboSettle = new(26000, 18, 0.20f, 0.20f, 0.65f, 0.65f);
 
     /// <summary>
     /// Back 修飾鍵進入系統控制語意時的輕量提示。
     /// </summary>
-    public static readonly VibrationProfile SystemModifierArm = new(12000, 18, 0.44f, 0.44f, 0.12f, 0.12f);
+    public static readonly VibrationProfile SystemModifierArm = new(37000, 20, 0.70f, 0.70f, 0.18f, 0.18f);
 
     /// <summary>
     /// 顯示輸入視窗（明確的喚醒感）。
     /// </summary>
-    public static readonly VibrationProfile ShowInput = new(35000, 120);
+    public static readonly VibrationProfile ShowInput = new(50000, 120);
 
     /// <summary>
     /// 準備切換視窗（開始動作）。
     /// </summary>
-    public static readonly VibrationProfile ReturnStart = new(20000, 80);
+    public static readonly VibrationProfile ReturnStart = new(36000, 80);
 
     /// <summary>
     /// 視窗切換完成（結束動作）。
     /// </summary>
-    public static readonly VibrationProfile ReturnSuccess = new(30000, 120);
+    public static readonly VibrationProfile ReturnSuccess = new(48000, 120);
 
     /// <summary>
     /// 控制器已連線（觸覺握手）。
     /// </summary>
-    public static readonly VibrationProfile ControllerConnected = new(30000, 200);
+    public static readonly VibrationProfile ControllerConnected = new(60000, 200);
 
     /// <summary>
     /// 調整震動強度後的即時預覽脈衝，維持中等強度與短時間以避免突兀。
     /// </summary>
-    public static readonly VibrationProfile IntensityPreview = new(26000, 75, 0.72f, 0.72f, 0.30f, 0.30f);
+    public static readonly VibrationProfile IntensityPreview = new(44000, 78, 0.72f, 0.72f, 0.30f, 0.30f);
 
     /// <summary>
     /// 一般設定切換為「啟用」時的確認脈衝（對稱馬達，不含方向語意）。
     /// <para>強度介於游標移動與清除輸入之間，代表一個明確但非破壞性的狀態確認。</para>
     /// </summary>
-    public static readonly VibrationProfile SettingToggleOn = new(22000, 55, 0.62f, 0.62f, 0.50f, 0.50f);
+    public static readonly VibrationProfile SettingToggleOn = new(42000, 58, 0.75f, 0.75f, 0.55f, 0.55f);
 
     /// <summary>
     /// 一般設定切換為「停用」時的確認脈衝（對稱馬達，強度比 On 輕以反映移除語意）。
     /// </summary>
-    public static readonly VibrationProfile SettingToggleOff = new(15000, 38, 0.48f, 0.48f, 0.22f, 0.22f);
+    public static readonly VibrationProfile SettingToggleOff = new(40000, 42, 0.65f, 0.65f, 0.28f, 0.28f);
 
     /// <summary>
     /// 識別目前控制器時的第一拍定位脈衝。
     /// </summary>
-    public static readonly VibrationProfile ControllerIdentifyLead = new(24000, 44, 1.0f, 0.34f, 0.26f, 0.08f);
+    public static readonly VibrationProfile ControllerIdentifyLead = new(43000, 110, 1.0f, 0.34f, 0.26f, 0.08f);
 
     /// <summary>
     /// 識別目前控制器時的第二拍回應脈衝。
     /// </summary>
-    public static readonly VibrationProfile ControllerIdentifyTail = new(32000, 78, 0.34f, 1.0f, 0.08f, 0.26f);
+    public static readonly VibrationProfile ControllerIdentifyTail = new(55000, 130, 0.34f, 1.0f, 0.08f, 0.26f);
 
     /// <summary>
     /// 長按結束程式時的預備提示。
     /// </summary>
-    public static readonly VibrationProfile ExitHoldArm = new(18000, 34, 0.56f, 0.56f, 0.18f, 0.18f);
+    public static readonly VibrationProfile ExitHoldArm = new(40000, 36, 0.72f, 0.72f, 0.22f, 0.22f);
 
     /// <summary>
     /// 長按結束程式仍在持續時的進度提示。
     /// </summary>
-    public static readonly VibrationProfile ExitHoldProgress = new(23000, 26, 0.42f, 0.42f, 0.10f, 0.10f);
+    public static readonly VibrationProfile ExitHoldProgress = new(42000, 28, 0.68f, 0.68f, 0.18f, 0.18f);
 
     /// <summary>
     /// 長按結束程式完成時的明確確認震動。
     /// </summary>
-    public static readonly VibrationProfile ExitHoldConfirm = new(36000, 92, 0.82f, 0.82f, 0.36f, 0.36f);
+    public static readonly VibrationProfile ExitHoldConfirm = new(65535, 95, 0.85f, 0.85f, 0.42f, 0.42f);
 
     /// <summary>
     /// 接近文字上限時的第一段預警。
     /// </summary>
-    public static readonly VibrationProfile TextLimitApproach = new(17000, 22, 0.55f, 0.55f, 0.18f, 0.18f);
+    public static readonly VibrationProfile TextLimitApproach = new(40000, 24, 0.72f, 0.72f, 0.24f, 0.24f);
 
     /// <summary>
     /// 接近文字上限時的急促預警。
     /// </summary>
-    public static readonly VibrationProfile TextLimitApproachUrgent = new(22000, 18, 0.66f, 0.66f, 0.36f, 0.36f);
+    public static readonly VibrationProfile TextLimitApproachUrgent = new(54000, 22, 0.75f, 0.75f, 0.44f, 0.44f);
 
     /// <summary>
     /// 幾乎撞到文字上限時的高密度臨界預警。
     /// </summary>
-    public static readonly VibrationProfile TextLimitApproachCritical = new(26000, 16, 0.78f, 0.78f, 0.58f, 0.58f);
+    public static readonly VibrationProfile TextLimitApproachCritical = new(58000, 24, 0.82f, 0.82f, 0.62f, 0.62f);
 
     /// <summary>
     /// 已達文字上限時的沉重硬牆震動。
     /// </summary>
-    public static readonly VibrationProfile TextLimitWall = new(41000, 110, 0.92f, 0.92f, 0.30f, 0.30f);
+    public static readonly VibrationProfile TextLimitWall = new(65535, 112, 0.92f, 0.92f, 0.38f, 0.38f);
 
     /// <summary>
     /// 文字硬牆後的短暫死板回震。
     /// </summary>
-    public static readonly VibrationProfile TextLimitWallSettle = new(16000, 28, 0.34f, 0.34f, 0.08f, 0.08f);
+    public static readonly VibrationProfile TextLimitWallSettle = new(31000, 30, 0.65f, 0.65f, 0.14f, 0.14f);
+
+    /// <summary>
+    /// 單一字元插入時的輕柔打字觸感脈衝。
+    /// <para>強度遠低於選取拉鏈感，僅作為節奏感知確認；批次貼上或接近字數上限時不觸發。</para>
+    /// </summary>
+    public static readonly VibrationProfile TypingPulse = new(30000, 16, 0.58f, 0.18f, 0.32f, 0.07f);
 
     /// <summary>
     /// 逐字選取時的細緻拉鏈感（向左）。
     /// </summary>
-    public static readonly VibrationProfile SelectionZipLeft = new(10000, 10, 0.20f, 0.08f, 1.0f, 0.02f);
+    public static readonly VibrationProfile SelectionZipLeft = new(26000, 14, 0.20f, 0.08f, 1.0f, 0.02f);
 
     /// <summary>
     /// 逐字選取時的細緻拉鏈感（向右）。
     /// </summary>
-    public static readonly VibrationProfile SelectionZipRight = new(10000, 10, 0.08f, 0.20f, 0.02f, 1.0f);
+    public static readonly VibrationProfile SelectionZipRight = new(26000, 14, 0.08f, 0.20f, 0.02f, 1.0f);
 
     /// <summary>
     /// 快速逐字選取時更緊實的拉鏈感（向左）。
     /// </summary>
-    public static readonly VibrationProfile SelectionZipLeftFast = new(8000, 8, 0.18f, 0.06f, 0.80f, 0.02f);
+    public static readonly VibrationProfile SelectionZipLeftFast = new(25000, 12, 0.18f, 0.06f, 0.80f, 0.02f);
 
     /// <summary>
     /// 快速逐字選取時更緊實的拉鏈感（向右）。
     /// </summary>
-    public static readonly VibrationProfile SelectionZipRightFast = new(8000, 8, 0.06f, 0.18f, 0.02f, 0.80f);
+    public static readonly VibrationProfile SelectionZipRightFast = new(25000, 12, 0.06f, 0.18f, 0.02f, 0.80f);
 
     /// <summary>
     /// 單字粒度選取時的方向性確認脈衝（向左）。
     /// </summary>
-    public static readonly VibrationProfile SelectionWordLeft = new(19000, 22, 0.48f, 0.12f, 0.80f, 0.08f);
+    public static readonly VibrationProfile SelectionWordLeft = new(43000, 24, 0.48f, 0.12f, 0.80f, 0.08f);
 
     /// <summary>
     /// 單字粒度選取時的方向性確認脈衝（向右）。
     /// </summary>
-    public static readonly VibrationProfile SelectionWordRight = new(19000, 22, 0.12f, 0.48f, 0.08f, 0.80f);
+    public static readonly VibrationProfile SelectionWordRight = new(43000, 24, 0.12f, 0.48f, 0.08f, 0.80f);
 
     /// <summary>
     /// 喚起主輸入框時的科技感握手第一拍。
     /// </summary>
-    public static readonly VibrationProfile FocusHandshakeLead = new(18000, 20, 0.60f, 0.60f, 0.20f, 0.20f);
+    public static readonly VibrationProfile FocusHandshakeLead = new(42000, 22, 0.75f, 0.75f, 0.28f, 0.28f);
 
     /// <summary>
     /// 喚起主輸入框時的科技感握手第二拍。
     /// </summary>
-    public static readonly VibrationProfile FocusHandshakeMid = new(22000, 24, 0.30f, 0.30f, 0.72f, 0.72f);
+    public static readonly VibrationProfile FocusHandshakeMid = new(46000, 26, 0.34f, 0.34f, 0.80f, 0.80f);
 
     /// <summary>
     /// 喚起主輸入框時的科技感握手第三拍。
     /// </summary>
-    public static readonly VibrationProfile FocusHandshakeTail = new(14000, 18, 0.70f, 0.70f, 0.12f, 0.12f);
+    public static readonly VibrationProfile FocusHandshakeTail = new(30000, 20, 0.75f, 0.75f, 0.15f, 0.15f);
 
     /// <summary>
     /// 取得柔和版的文字邊界重複回饋。

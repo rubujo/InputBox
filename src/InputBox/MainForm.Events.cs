@@ -272,9 +272,12 @@ public partial class MainForm
             // Tab 鍵進入時，中止正在進行的警示動畫。
             Interlocked.Exchange(ref _alertCts, null)?.CancelAndDispose();
 
-            // 如果正在擷取快速鍵，則不執行一般的進入變色邏輯，保留擷取模式的視覺狀態。
+            // 如果正在擷取快速鍵，則不執行一般的進入變色邏輯。
+            // 補回因 OnDeactivate 清除的擷取模式視覺狀態（反轉底色 + 情境感知邊框色）。
             if (_inputState.IsHotkeyCaptureActive)
             {
+                RestoreInputVisualsAfterFlash();
+
                 return;
             }
 
@@ -881,6 +884,9 @@ public partial class MainForm
         // 如果文字框不為空，執行清除並重置歷程索引。
         if (!string.IsNullOrEmpty(TBInput.Text))
         {
+            // 推入快照，使 Back+A Undo 可還原本次清空。
+            PushUndoSnapshot();
+
             TBInput.Clear();
 
             // 重置 InputHistoryManager 索引值。
@@ -1015,6 +1021,9 @@ public partial class MainForm
     /// <param name="navigationResult">導覽結果。</param>
     private void HandleClearedHistoryResult(InputHistoryService.NavigationResult navigationResult)
     {
+        // 推入快照，使 Back+A Undo 可還原至歷程清空前的文字。
+        PushUndoSnapshot();
+
         TBInput.Clear();
 
         // 如果不是因為撞牆才清空，才獨立報讀（避免雙重語音）。
@@ -1037,6 +1046,10 @@ public partial class MainForm
         }
 
         SuppressNextTextLimitFeedback();
+
+        // 推入快照，使 Back+A Undo 可還原至導覽前的文字。
+        PushUndoSnapshot();
+
         TBInput.Text = navigationResult.Text;
         // 游標移到最後。
         TBInput.SelectionStart = TBInput.Text.Length;

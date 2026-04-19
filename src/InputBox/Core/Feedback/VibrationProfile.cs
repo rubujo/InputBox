@@ -21,13 +21,23 @@ public readonly record struct VibrationProfile(
     /// <summary>
     /// 套用全域震動倍率後，回傳新的設定檔副本。
     /// </summary>
-    /// <param name="multiplier">全域倍率。</param>
-    /// <returns>已套用倍率的新設定。</returns>
+    /// <remarks>
+    /// <para>
+    /// 內部以 gamma = 0.55 做冪次曲線修正，使感知強度在低倍率區間（0.1–0.4）仍維持可感知，
+    /// 避免線性映射在小數值時因馬達物理閾值而完全無感。
+    /// 0.0 → 0（靜音），1.0 → 1（維持上限），中間值均往上提。
+    /// </para>
+    /// </remarks>
+    /// <param name="multiplier">全域倍率（0.0 ~ 1.0）。</param>
+    /// <returns>已套用曲線倍率的新設定。</returns>
     public VibrationProfile ApplyIntensityMultiplier(float multiplier)
     {
         float clampedMultiplier = Math.Max(0f, multiplier);
+        float effectiveMultiplier = clampedMultiplier > 0f
+            ? MathF.Pow(clampedMultiplier, 0.55f)
+            : 0f;
         ushort scaledStrength = (ushort)Math.Clamp(
-            Strength * clampedMultiplier,
+            Strength * effectiveMultiplier,
             ushort.MinValue,
             ushort.MaxValue);
 

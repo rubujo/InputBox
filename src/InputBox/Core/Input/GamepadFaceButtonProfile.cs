@@ -480,7 +480,7 @@ internal readonly record struct GamepadFaceButtonProfile
             ["\r\n", "\n"],
             StringSplitOptions.None);
 
-        if (rows.Length < 8)
+        if (rows.Length < 10)
         {
             return Strings.Help_Gamepad_Rows;
         }
@@ -494,6 +494,8 @@ internal readonly record struct GamepadFaceButtonProfile
         rows[5] = ReplaceButtonColumn(rows[5], profile.DeleteLabel);
         rows[6] = ReplaceButtonColumn(rows[6], $"LB + RB + {profile.DeleteLabel}");
         rows[7] = ReplaceButtonColumn(rows[7], $"Back / View + {profile.DeleteLabel}");
+        rows[8] = ReplaceButtonColumn(rows[8], $"Back / View + {profile.ConfirmLabel}");
+        rows[9] = ReplaceButtonColumn(rows[9], $"Back / View + {profile.MenuLabel}");
 
         return string.Join(Environment.NewLine, rows);
     }

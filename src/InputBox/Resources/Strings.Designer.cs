@@ -799,6 +799,33 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Text box is empty. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Reread_Empty {
+            get {
+                return ResourceManager.GetString("A11y_Reread_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Text box contains {0} character(s). 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Reread_PrivacySafe {
+            get {
+                return ResourceManager.GetString("A11y_Reread_PrivacySafe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Current text: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Reread_Text {
+            get {
+                return ResourceManager.GetString("A11y_Reread_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 There are pending app and system changes. Restart the application now to fully apply everything. 的當地語系化字串。
         /// </summary>
         internal static string A11y_Restart_AllChanges_Desc {
@@ -813,6 +840,24 @@ namespace InputBox.Resources {
         internal static string A11y_Returning {
             get {
                 return ResourceManager.GetString("A11y_Returning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 All text selected: {0} 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_SelectAll {
+            get {
+                return ResourceManager.GetString("A11y_SelectAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 All {0} character(s) selected. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_SelectAll_PrivacySafe {
+            get {
+                return ResourceManager.GetString("A11y_SelectAll_PrivacySafe", resourceCulture);
             }
         }
         
@@ -939,6 +984,24 @@ namespace InputBox.Resources {
         internal static string A11y_Unchecked {
             get {
                 return ResourceManager.GetString("A11y_Unchecked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Undone. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Undo {
+            get {
+                return ResourceManager.GetString("A11y_Undo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Nothing to undo. 的當地語系化字串。
+        /// </summary>
+        internal static string A11y_Undo_Unavailable {
+            get {
+                return ResourceManager.GetString("A11y_Undo_Unavailable", resourceCulture);
             }
         }
         
@@ -1387,12 +1450,12 @@ namespace InputBox.Resources {
         ///X	Backspace (Delete character/selection)
         ///Hold LB + RB + X	Exit application
         ///Back / View + X	Reset window opacity
+        ///Back / View + A	Undo last input operation
+        ///Back / View + Y	Select all text
         ///↑ / ↓	Navigate history
         ///← / →	Move cursor left / right
         ///LB / RB (tap / hold)	Page history up / down by 5 entries; hold to repeat
-        ///LB / RB + ← / →	Jump cursor by word
-        ///LT / RT	Jump to text start / end
-        ///LT + RT [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
+        ///LB [字串的其餘部分已遭截斷]&quot;; 的當地語系化字串。
         /// </summary>
         internal static string Help_Gamepad_Rows {
             get {
@@ -1576,7 +1639,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Open a live diagnostics window that shows the raw point, corrected point, and current deadzone for the controller stick. 的當地語系化字串。
+        ///   查詢類似 Open a live diagnostics window that shows the raw point, corrected point, and current deadzone for the controller sticks. 的當地語系化字串。
         /// </summary>
         internal static string Menu_Gamepad_CalibrationVisualizer_Desc {
             get {

@@ -225,6 +225,34 @@
     <value>游標已移動。</value>
     <comment>游標移動的隱私安全版本無障礙廣播訊息。</comment>
   </data>
+  <data name="A11y_Reread_Text" xml:space="preserve">
+    <value>目前文字：{0}</value>
+    <comment>輸入框全文內容的無障礙重讀廣播。由 RS 按壓觸發。{0} 為完整文字。</comment>
+  </data>
+  <data name="A11y_Reread_PrivacySafe" xml:space="preserve">
+    <value>輸入框共有 {0} 個字元。</value>
+    <comment>僅顯示字元數量的隱私安全重讀廣播。{0} 為字元數。</comment>
+  </data>
+  <data name="A11y_Reread_Empty" xml:space="preserve">
+    <value>輸入框是空的。</value>
+    <comment>RS Click 重讀觸發但輸入框為空時的無障礙廣播訊息。</comment>
+  </data>
+  <data name="A11y_Undo" xml:space="preserve">
+    <value>已復原。</value>
+    <comment>透過 Back + A 執行復原操作成功後的無障礙確認訊息。</comment>
+  </data>
+  <data name="A11y_Undo_Unavailable" xml:space="preserve">
+    <value>沒有可復原的操作。</value>
+    <comment>觸發復原但復原緩衝區為空時的無障礙廣播訊息。</comment>
+  </data>
+  <data name="A11y_SelectAll" xml:space="preserve">
+    <value>已全選：{0}</value>
+    <comment>透過 Back + Y 執行全選後的無障礙確認訊息。{0} 為選取的文字。</comment>
+  </data>
+  <data name="A11y_SelectAll_PrivacySafe" xml:space="preserve">
+    <value>已選取全部 {0} 個字元。</value>
+    <comment>僅顯示字元數量的隱私安全全選確認訊息。{0} 為字元數。</comment>
+  </data>
   <data name="A11y_No_Text_To_Copy" xml:space="preserve">
     <value>沒有文字可供複製。</value>
     <comment>無障礙訊息，當嘗試複製空文字時播放。</comment>
@@ -962,6 +990,8 @@ Y	開啟功能選單
 X	退格（刪除字元／選取內容）
 按住 LB + RB + X	結束程式
 Back／View + X	重設視窗透明度
+Back／View + A	復原上一步輸入操作
+Back／View + Y	全選所有文字
 ↑／↓	導覽歷程記錄
 ←／→	游標左移／右移
 LB／RB（單按 / 按住）	歷程記錄上／下翻 5 筆（按住可連發）
