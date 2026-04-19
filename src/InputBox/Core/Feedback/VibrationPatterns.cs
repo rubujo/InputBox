@@ -124,12 +124,12 @@ public static class VibrationPatterns
     /// <summary>
     /// 左向游標微震後的細小收尾。
     /// </summary>
-    public static readonly VibrationProfile CursorMoveLeftEcho = new(25000, 14, 0.70f, 0.18f, 0.35f, 0.04f);
+    public static readonly VibrationProfile CursorMoveLeftEcho = new(28000, 18, 0.70f, 0.18f, 0.35f, 0.04f);
 
     /// <summary>
     /// 右向游標微震後的細小收尾。
     /// </summary>
-    public static readonly VibrationProfile CursorMoveRightEcho = new(25000, 14, 0.18f, 0.70f, 0.04f, 0.35f);
+    public static readonly VibrationProfile CursorMoveRightEcho = new(28000, 18, 0.18f, 0.70f, 0.04f, 0.35f);
 
     /// <summary>
     /// 分頁切換（比游標移動更明確的翻頁感）。
@@ -159,12 +159,12 @@ public static class VibrationPatterns
     /// <summary>
     /// 歷程向前翻頁時的第二段機械收尾。
     /// </summary>
-    public static readonly VibrationProfile HistoryPageBackwardSettle = new(25000, 20, 0.68f, 0.14f, 0.16f, 0.02f);
+    public static readonly VibrationProfile HistoryPageBackwardSettle = new(28000, 20, 0.68f, 0.14f, 0.16f, 0.02f);
 
     /// <summary>
     /// 歷程向後翻頁時的第二段機械收尾。
     /// </summary>
-    public static readonly VibrationProfile HistoryPageForwardSettle = new(25000, 20, 0.14f, 0.68f, 0.02f, 0.16f);
+    public static readonly VibrationProfile HistoryPageForwardSettle = new(28000, 20, 0.14f, 0.68f, 0.02f, 0.16f);
 
     /// <summary>
     /// 單筆歷程導覽的精緻滾輪刻度感（向前／較舊）。
@@ -189,12 +189,12 @@ public static class VibrationPatterns
     /// <summary>
     /// 極高速掃描歷程時的滑順餘韻（向前／較舊）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelBackwardGlide = new(19000, 14, 0.74f, 0.18f, 0.12f, 0.02f);
+    public static readonly VibrationProfile HistoryWheelBackwardGlide = new(26000, 20, 0.74f, 0.18f, 0.12f, 0.02f);
 
     /// <summary>
     /// 極高速掃描歷程時的滑順餘韻（向後／較新）。
     /// </summary>
-    public static readonly VibrationProfile HistoryWheelForwardGlide = new(19000, 14, 0.18f, 0.74f, 0.02f, 0.12f);
+    public static readonly VibrationProfile HistoryWheelForwardGlide = new(26000, 20, 0.18f, 0.74f, 0.02f, 0.12f);
 
     /// <summary>
     /// 片語子選單翻頁時的較強觸覺樣式。
@@ -209,12 +209,12 @@ public static class VibrationPatterns
     /// <summary>
     /// 片語子選單向前翻頁時的較清脈收尾。
     /// </summary>
-    public static readonly VibrationProfile PhrasePageBackwardSettle = new(23000, 22, 0.74f, 0.12f, 0.24f, 0.03f);
+    public static readonly VibrationProfile PhrasePageBackwardSettle = new(27000, 22, 0.74f, 0.12f, 0.24f, 0.03f);
 
     /// <summary>
     /// 片語子選單向後翻頁時的較清脈收尾。
     /// </summary>
-    public static readonly VibrationProfile PhrasePageForwardSettle = new(23000, 22, 0.12f, 0.74f, 0.03f, 0.24f);
+    public static readonly VibrationProfile PhrasePageForwardSettle = new(27000, 22, 0.12f, 0.74f, 0.03f, 0.24f);
 
     /// <summary>
     /// 單字跳轉的左向首脈衝。
@@ -224,7 +224,7 @@ public static class VibrationPatterns
     /// <summary>
     /// 單字跳轉的左向第二脈衝。
     /// </summary>
-    public static readonly VibrationProfile WordJumpLeftSecondary = new(31000, 18, 0.56f, 0.12f, 0.15f, 0.02f);
+    public static readonly VibrationProfile WordJumpLeftSecondary = new(35000, 20, 0.56f, 0.12f, 0.15f, 0.02f);
 
     /// <summary>
     /// 單字跳轉的右向首脈衝。
@@ -234,7 +234,7 @@ public static class VibrationPatterns
     /// <summary>
     /// 單字跳轉的右向第二脈衝。
     /// </summary>
-    public static readonly VibrationProfile WordJumpRightSecondary = new(31000, 18, 0.12f, 0.56f, 0.02f, 0.15f);
+    public static readonly VibrationProfile WordJumpRightSecondary = new(35000, 20, 0.12f, 0.56f, 0.02f, 0.15f);
 
     /// <summary>
     /// 複製成功（強烈且明確的確認感）。
@@ -274,12 +274,12 @@ public static class VibrationPatterns
     /// <summary>
     /// 左向邊界碰撞後的短餘震。
     /// </summary>
-    public static readonly VibrationProfile BoundaryLeftAftershock = new(28000, 20, 0.62f, 0.14f, 0.10f, 0.02f);
+    public static readonly VibrationProfile BoundaryLeftAftershock = new(32000, 20, 0.62f, 0.14f, 0.10f, 0.02f);
 
     /// <summary>
     /// 右向邊界碰撞後的短餘震。
     /// </summary>
-    public static readonly VibrationProfile BoundaryRightAftershock = new(28000, 20, 0.14f, 0.62f, 0.02f, 0.10f);
+    public static readonly VibrationProfile BoundaryRightAftershock = new(32000, 20, 0.14f, 0.62f, 0.02f, 0.10f);
 
     /// <summary>
     /// 文字邊界跳轉成功時的起點方向提示。
@@ -324,7 +324,7 @@ public static class VibrationPatterns
     /// <summary>
     /// 雙肩鍵保留後的穩定收尾，提示後續可接 B／X 動作。
     /// </summary>
-    public static readonly VibrationProfile ShoulderComboSettle = new(30000, 18, 0.58f, 0.58f, 0.18f, 0.18f);
+    public static readonly VibrationProfile ShoulderComboSettle = new(35000, 20, 0.58f, 0.58f, 0.18f, 0.18f);
 
     /// <summary>
     /// 雙板機組合進入模式切換前的扳機導向提示。
@@ -334,7 +334,7 @@ public static class VibrationPatterns
     /// <summary>
     /// 雙板機組合的短收尾，降低與正式模式切換主震動之間的黏連感。
     /// </summary>
-    public static readonly VibrationProfile TriggerComboSettle = new(26000, 18, 0.20f, 0.20f, 0.65f, 0.65f);
+    public static readonly VibrationProfile TriggerComboSettle = new(30000, 18, 0.20f, 0.20f, 0.65f, 0.65f);
 
     /// <summary>
     /// Back 修飾鍵進入系統控制語意時的輕量提示。
@@ -431,7 +431,7 @@ public static class VibrationPatterns
     /// 字元插入時的輕柔打字觸感脈衝。
     /// <para>強度遠低於選取拉鏈感，僅作為節奏感知確認；片語插入、批次貼上、觸控式鍵盤搭配輸入法（IME）輸入或接近字數上限時不觸發。</para>
     /// </summary>
-    public static readonly VibrationProfile TypingPulse = new(30000, 16, 0.58f, 0.18f, 0.32f, 0.07f);
+    public static readonly VibrationProfile TypingPulse = new(35000, 20, 0.58f, 0.18f, 0.32f, 0.07f);
 
     /// <summary>
     /// 逐字選取時的細緻拉鏈感（向左）。
@@ -446,12 +446,12 @@ public static class VibrationPatterns
     /// <summary>
     /// 快速逐字選取時更緊實的拉鏈感（向左）。
     /// </summary>
-    public static readonly VibrationProfile SelectionZipLeftFast = new(25000, 12, 0.18f, 0.06f, 0.80f, 0.02f);
+    public static readonly VibrationProfile SelectionZipLeftFast = new(28000, 16, 0.18f, 0.06f, 0.80f, 0.02f);
 
     /// <summary>
     /// 快速逐字選取時更緊實的拉鏈感（向右）。
     /// </summary>
-    public static readonly VibrationProfile SelectionZipRightFast = new(25000, 12, 0.06f, 0.18f, 0.02f, 0.80f);
+    public static readonly VibrationProfile SelectionZipRightFast = new(28000, 16, 0.06f, 0.18f, 0.02f, 0.80f);
 
     /// <summary>
     /// 單字粒度選取時的方向性確認脈衝（向左）。

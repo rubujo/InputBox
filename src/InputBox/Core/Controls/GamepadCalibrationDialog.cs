@@ -748,7 +748,8 @@ internal sealed class GamepadCalibrationDialog : Form
             return;
         }
 
-        int margin = 12;
+        float s = DeviceDpi / AppSettings.BaseDpi;
+        int margin = (int)(12 * s);
         RectangleF contentBounds = new(
             clientRect.Left + margin,
             clientRect.Top + margin,
@@ -760,7 +761,6 @@ internal sealed class GamepadCalibrationDialog : Form
         Color rawColor = SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(90, 90, 90);
         Color correctedColor = SystemInformation.HighContrast ? SystemColors.Highlight : Color.DodgerBlue;
 
-        float s = DeviceDpi / AppSettings.BaseDpi;
         using Pen outerPen = new(axisColor, 2f * s);
         using Pen crossPen = new(axisColor, 1.5f * s) { DashStyle = DashStyle.Dash };
         using Pen deadzonePen = new(deadzoneColor, 2.5f * s);
@@ -785,8 +785,8 @@ internal sealed class GamepadCalibrationDialog : Form
             return;
         }
 
-        float labelHeight = 54f;
-        float plotGap = 16f;
+        float labelHeight = 54f * s;
+        float plotGap = 16f * s;
         float plotWidth = (contentBounds.Width - plotGap) / 2f;
         float plotSize = Math.Min(plotWidth, contentBounds.Height - labelHeight - 6f);
         float verticalOffset = (contentBounds.Height - labelHeight - plotSize) / 2f;
@@ -845,7 +845,7 @@ internal sealed class GamepadCalibrationDialog : Form
         graphics.FillEllipse(correctedBrush, correctedPoint.X - cr, correctedPoint.Y - cr, cr * 2f, cr * 2f);
         graphics.DrawEllipse(correctedOutlinePen, correctedPoint.X - cr, correctedPoint.Y - cr, cr * 2f, cr * 2f);
 
-        Rectangle labelBounds = Rectangle.Round(new RectangleF(plotBounds.Left + 12f, plotBounds.Top - 44f, plotBounds.Width - 24f, 30f));
+        Rectangle labelBounds = Rectangle.Round(new RectangleF(plotBounds.Left + 12f * dpiScale, plotBounds.Top - 44f * dpiScale, plotBounds.Width - 24f * dpiScale, 30f * dpiScale));
         graphics.FillRectangle(SystemBrushes.Window, labelBounds);
         TextRenderer.DrawText(
             graphics,
