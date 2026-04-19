@@ -2137,12 +2137,11 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 處理復原（Undo）操作：恢復輸入框上一步的文字狀態。
+    /// 在即將以程式清空或取代輸入框文字前，將目前文字推入 Undo 快照堆疊，供後續復原使用。
     /// </summary>
-    /// <summary>
-    /// 在即將以程式清空或取代輸入框文字前，將目前文字推入快照堆疊。
+    /// <remarks>
     /// 若與最後一份快照相同，則略過以避免重複。
-    /// </summary>
+    /// </remarks>
     private void PushUndoSnapshot()
     {
         if (TBInput == null ||
@@ -2185,6 +2184,7 @@ public partial class MainForm
 
             _undoStack.RemoveAt(_undoStack.Count - 1);
 
+            SuppressNextTextLimitFeedback();
             TBInput.Text = previous;
             TBInput.SelectionStart = TBInput.TextLength;
 
@@ -2198,6 +2198,7 @@ public partial class MainForm
         // 回退至 WinForms 原生 Undo（僅鍵盤直接輸入後有效）。
         if (TBInput.CanUndo)
         {
+            SuppressNextTextLimitFeedback();
             TBInput.Undo();
 
             AnnounceA11y(Strings.A11y_Undo, interrupt: true);
