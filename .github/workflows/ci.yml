@@ -29,7 +29,7 @@ jobs:
 
     - name: 判斷是否涉及 UI 冒煙測試範圍
       id: filter
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@v4
       with:
         filters: |
           code:
