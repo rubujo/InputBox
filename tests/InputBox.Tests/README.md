@@ -42,7 +42,8 @@
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **350** |
+| `WineLocaleBootstrapperTests` | `WineLocaleBootstrapper` 的 POSIX locale 正規化（編碼後綴、@ 修飾詞去除、底線轉連字號）、zh 2 組件映射（TW/HK/MO → zh-Hant、CN/SG/MY → zh-Hans）、zh 3 組件 ICU 映射（zh-Hant-TW/HK/MO/MY、zh-Hans-CN/HK/MO/SG/MY）與無效輸入回傳 null 保護 | 34 |
+| **合計** | | **384** |
 
 ## 二、執行方式 🚀
 
