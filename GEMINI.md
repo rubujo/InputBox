@@ -1,25 +1,34 @@
-# InputBox Workspace Instructions (Gemini CLI)
+# InputBox - Gemini CLI 工作區指引
 
-本檔案為 Gemini CLI 專用的精簡版專案指令。執行任何開發任務時，**必須**優先啟動專屬技能以獲取詳細規範。
+本檔案供 Gemini CLI 使用，作為專案入口說明。專案的共同規範以 [AGENTS.md](AGENTS.md)、`.agents/skills/inputbox-dev/SKILL.md` 與 `docs/engineering/` 為準；本檔僅保留 Gemini CLI 所需的最小相容層。
 
-## 0. 技能與規範載入 (Skills & Guidelines)
-- **核心技能**：執行任務前，請務必執行 `activate_skill("inputbox-dev")`。
-- **主動研究**：在開始修改前，請依據技能指引，讀取 `docs/engineering/` 下相關的規範檔案。
+## 1. 載入順序
 
-## 1. 安全性與行為紅線 (Safety Boundaries)
-- 載入技能後，請嚴格遵守 `docs/engineering/git-commit-safety.md` 中的安全紅線。
-- **Git 提交必須使用使用者既有的 GPG 簽章設定**；Agent 嚴禁自行修改 `gpg.conf`、`gpg-agent.conf` 或其他相關設定檔。若簽章失敗，應提醒使用者自行處理其本機簽章環境，不得以停用簽章或自動改寫設定方式繞過。
-- **嚴禁**：輸入注入、記憶體修改、封包攔截、自動化遊戲行為。
-- **僅限**：剪貼簿操作。
+開始任何任務前，請依序執行：
 
-## 2. 執行環境
-- **編碼設定**：執行指令前，必須先確保環境編碼為 UTF-8：
-  ```powershell
-  [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
-  ```
-- **建置驗證**：完成修改後執行 `dotnet build src/InputBox/InputBox.csproj --configuration Debug`。
+1. 讀取根目錄 `AGENTS.md`
+2. 載入 `.agents/skills/inputbox-dev/SKILL.md`
+3. 依任務性質讀取 `docs/engineering/` 下的對應規範
 
-## 3. 參考索引
-- 原子化工程規範：`docs/engineering/`
-- GitHub Copilot 專用指令：`.github/copilot-instructions.md`
-- 專案說明：`README.md`
+若本檔與 `AGENTS.md` 有衝突，以 `AGENTS.md` 與更細部的工程規範為準。
+
+## 2. Gemini CLI 專屬要求
+
+- 使用 `GEMINI.md` 作為 Gemini CLI 的預設 context 入口。
+- 若 Gemini CLI 僅自動讀取 `GEMINI.md`，仍必須由本檔導向 `AGENTS.md` 與 `inputbox-dev`，不得把完整規範再複製一份到這裡。
+- 若有設定可讓 Gemini CLI 額外讀取 `AGENTS.md`，應優先啟用，但不可假設所有使用環境都已配置。
+
+## 3. 不可違反的共同紅線
+
+- 禁止記憶體注入、封包攔截、輸入模擬與自動化遊戲行為。
+- 行為邊界僅限於剪貼簿，不得主動輸入到其他視窗。
+- Git 提交必須使用使用者既有的 GPG 簽章設定；不得修改任何 GPG 或 gpg-agent 設定檔。
+- 若任務涉及輸入、輸出、剪貼簿、快速鍵或控制器邏輯，必須依 `docs/engineering/git-commit-safety.md` 完成 ToS 合規檢查。
+
+## 4. 常用驗證
+
+```powershell
+[Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+dotnet build src/InputBox/InputBox.csproj --configuration Debug
+dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+```

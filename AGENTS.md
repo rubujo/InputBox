@@ -1,6 +1,6 @@
 # InputBox - OpenAI Codex 工作區指引
 
-本檔案供 OpenAI Codex 於此專案中使用。開始任何修改前，應先讀取 `.agents/skills/inputbox-dev/SKILL.md`，再依任務需要載入 `docs/engineering/` 下的對應規範。
+本檔案供 OpenAI Codex、GitHub Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具使用。開始任何修改前，應先讀取 `.agents/skills/inputbox-dev/SKILL.md`，再依任務需要載入 `docs/engineering/` 下的對應規範。
 
 ## 0. 是否需要建立 Codex 專屬 Skill
 
@@ -17,6 +17,17 @@
 
 - 需要封裝 **Codex 專屬工作流程**，例如固定的審查腳本、專用驗證命令、或跨專案共用的 Codex 操作模板。
 - 需要把 `inputbox-dev` 拆分為可獨立安裝、可跨 repo 復用的技能模組。
+
+## 0.1 多工具檔案策略
+
+本專案採用下列入口分工：
+
+- `AGENTS.md`：共用的主要 agent 指引入口，供 Codex、Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具使用。
+- `CLAUDE.md`：Claude Code 相容入口，內容應導向本檔，不應維護第二套完整規範。
+- `GEMINI.md`：Gemini CLI 相容入口，內容應導向本檔，不應維護第二套完整規範。
+- `.github/copilot-instructions.md`：提供 Visual Studio GitHub Copilot Chat 與其他仍依賴 Copilot repository instructions 的客戶端使用。
+
+若多個入口檔同時存在，應避免互相矛盾；細節規範始終以 `.agents/skills/inputbox-dev/SKILL.md` 與 `docs/engineering/` 為準。
 
 ## 1. 必讀規範索引
 
