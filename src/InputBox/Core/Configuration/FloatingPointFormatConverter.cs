@@ -10,11 +10,10 @@ namespace InputBox.Core.Configuration;
 public class FloatingPointFormatConverter : JsonConverterFactory
 {
     /// <summary>
-    /// 可以轉換的型別
-    /// <para>告訴 JSON 序列化器，我們只攔截這三種浮點數型別</para>
+    /// 判斷是否可以轉換指定型別；僅攔截 float、double、decimal 三種浮點數型別。
     /// </summary>
-    /// <param name="typeToConvert">Type</param>
-    /// <returns>布林值</returns>
+    /// <param name="typeToConvert">JSON 序列化器查詢的目標型別。</param>
+    /// <returns>目標型別為 float、double 或 decimal 時回傳 <see langword="true"/>，否則回傳 <see langword="false"/>。</returns>
     public override bool CanConvert(Type typeToConvert)
     {
         return typeToConvert == typeof(float) ||
@@ -23,12 +22,12 @@ public class FloatingPointFormatConverter : JsonConverterFactory
     }
 
     /// <summary>
-    /// 動態產生對應的轉換器
+    /// 依目標型別動態產生對應的浮點數 JSON 轉換器執行個體。
     /// </summary>
-    /// <param name="typeToConvert">Type</param>
-    /// <param name="options">JsonSerializerOptions</param>
-    /// <returns>JsonConverter</returns>
-    /// <exception cref="NotSupportedException"></exception>
+    /// <param name="typeToConvert">要建立轉換器的目標浮點數型別。</param>
+    /// <param name="options">目前的 JSON 序列化設定。</param>
+    /// <returns>對應目標型別的 <see cref="JsonConverter"/> 執行個體。</returns>
+    /// <exception cref="NotSupportedException">目標型別不在支援清單內時擲出。</exception>
     public override JsonConverter CreateConverter(
         Type typeToConvert,
         JsonSerializerOptions options)
@@ -52,17 +51,17 @@ public class FloatingPointFormatConverter : JsonConverterFactory
     }
 
     /// <summary>
-    /// FloatConverter
+    /// 針對 float 型別強制保留小數點格式的 JSON 轉換器。
     /// </summary>
     private class FloatConverter : JsonConverter<float>
     {
         /// <summary>
-        /// 讀
+        /// 從 JSON 讀取並解析 float 值；支援數字 token 與字串形式，使用 InvariantCulture。
         /// </summary>
-        /// <param name="reader">Utf8JsonReader</param>
-        /// <param name="typeToConvert">Type</param>
-        /// <param name="options">JsonSerializerOptions</param>
-        /// <returns>float</returns>
+        /// <param name="reader">提供 JSON 資料的讀取器（以傳址方式傳入）。</param>
+        /// <param name="typeToConvert">目標型別，此轉換器固定為 float。</param>
+        /// <param name="options">目前的 JSON 序列化設定。</param>
+        /// <returns>解析結果的 float 值；解析失敗時回傳 <c>0f</c>。</returns>
         public override float Read(
             ref Utf8JsonReader reader,
             Type typeToConvert,
@@ -82,11 +81,11 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         }
 
         /// <summary>
-        /// 寫
+        /// 將 float 值寫入 JSON；整數值強制以 "0.0" 格式輸出以保留小數點。
         /// </summary>
-        /// <param name="writer">Utf8JsonWriter</param>
-        /// <param name="value">float</param>
-        /// <param name="options">JsonSerializerOptions</param>
+        /// <param name="writer">接收 JSON 輸出的寫入器。</param>
+        /// <param name="value">要寫入的 float 值。</param>
+        /// <param name="options">目前的 JSON 序列化設定。</param>
         public override void Write(
             Utf8JsonWriter writer,
             float value,
@@ -104,17 +103,17 @@ public class FloatingPointFormatConverter : JsonConverterFactory
     }
 
     /// <summary>
-    /// DoubleConverter
+    /// 針對 double 型別強制保留小數點格式的 JSON 轉換器。
     /// </summary>
     private class DoubleConverter : JsonConverter<double>
     {
         /// <summary>
-        /// 讀
+        /// 從 JSON 讀取並解析 double 值；支援數字 token 與字串形式，使用 InvariantCulture。
         /// </summary>
-        /// <param name="reader">Utf8JsonReader</param>
-        /// <param name="typeToConvert">Type</param>
-        /// <param name="options">JsonSerializerOptions</param>
-        /// <returns>double</returns>
+        /// <param name="reader">提供 JSON 資料的讀取器（以傳址方式傳入）。</param>
+        /// <param name="typeToConvert">目標型別，此轉換器固定為 double。</param>
+        /// <param name="options">目前的 JSON 序列化設定。</param>
+        /// <returns>解析結果的 double 值；解析失敗時回傳 <c>0.0</c>。</returns>
         public override double Read(
             ref Utf8JsonReader reader,
             Type typeToConvert,
@@ -133,11 +132,11 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         }
 
         /// <summary>
-        /// 寫
+        /// 將 double 值寫入 JSON；整數值強制以 "0.0" 格式輸出以保留小數點。
         /// </summary>
-        /// <param name="writer">Utf8JsonWriter</param>
-        /// <param name="value">double</param>
-        /// <param name="options">JsonSerializerOptions</param>
+        /// <param name="writer">接收 JSON 輸出的寫入器。</param>
+        /// <param name="value">要寫入的 double 值。</param>
+        /// <param name="options">目前的 JSON 序列化設定。</param>
         public override void Write(
             Utf8JsonWriter writer,
             double value,
@@ -155,17 +154,17 @@ public class FloatingPointFormatConverter : JsonConverterFactory
     }
 
     /// <summary>
-    /// DecimalConverter
+    /// 針對 decimal 型別強制保留小數點格式的 JSON 轉換器。
     /// </summary>
     private class DecimalConverter : JsonConverter<decimal>
     {
         /// <summary>
-        /// 讀
+        /// 從 JSON 讀取並解析 decimal 值；支援數字 token 與字串形式，使用 InvariantCulture。
         /// </summary>
-        /// <param name="reader">Utf8JsonReader</param>
-        /// <param name="typeToConvert">Type</param>
-        /// <param name="options">JsonSerializerOptions</param>
-        /// <returns>decimal</returns>
+        /// <param name="reader">提供 JSON 資料的讀取器（以傳址方式傳入）。</param>
+        /// <param name="typeToConvert">目標型別，此轉換器固定為 decimal。</param>
+        /// <param name="options">目前的 JSON 序列化設定。</param>
+        /// <returns>解析結果的 decimal 值；解析失敗時回傳 <c>0m</c>。</returns>
         public override decimal Read(
             ref Utf8JsonReader reader,
             Type typeToConvert,
@@ -184,11 +183,11 @@ public class FloatingPointFormatConverter : JsonConverterFactory
         }
 
         /// <summary>
-        /// 寫
+        /// 將 decimal 值寫入 JSON；整數值強制以 "0.0" 格式輸出以保留小數點。
         /// </summary>
-        /// <param name="writer">Utf8JsonWriter</param>
-        /// <param name="value">decimal</param>
-        /// <param name="options">JsonSerializerOptions</param>
+        /// <param name="writer">接收 JSON 輸出的寫入器。</param>
+        /// <param name="value">要寫入的 decimal 值。</param>
+        /// <param name="options">目前的 JSON 序列化設定。</param>
         public override void Write(
             Utf8JsonWriter writer,
             decimal value,

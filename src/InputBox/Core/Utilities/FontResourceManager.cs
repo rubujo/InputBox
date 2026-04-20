@@ -46,7 +46,7 @@ public static class FontResourceManager
     /// <summary>
     /// 將不再使用的私有字體加入回收桶，延遲處置
     /// </summary>
-    /// <param name="font">Font</param>
+    /// <param name="font">要延遲回收的字體實例。</param>
     public static void AddFontToTrashCan(Font font)
     {
         if (font == null)
@@ -137,7 +137,7 @@ public static class FontResourceManager
     /// <param name="style">字體樣式（預設為 Regular）</param>
     /// <param name="family">字體家族（選用）</param>
     /// <param name="sizeMultiplier">尺寸倍率（預設為 1.0）</param>
-    /// <returns>Font 實例</returns>
+    /// <returns>從快取取出或新建立的共享 A11y 字型執行個體。</returns>
     public static Font GetSharedA11yFont(
         int dpi,
         FontStyle style = FontStyle.Regular,

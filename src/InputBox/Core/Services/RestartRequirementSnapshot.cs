@@ -37,6 +37,11 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 依指定的執行期狀態建立重啟需求快照。
     /// </summary>
+    /// <param name="isDarkMode">是否為深色模式。</param>
+    /// <param name="isHighContrast">是否啟用高對比模式。</param>
+    /// <param name="provider">目前使用的遊戲控制器提供者。</param>
+    /// <param name="historyCapacity">目前的歷史記錄容量。</param>
+    /// <returns>封裝了指定狀態的重啟需求快照。</returns>
     public static RestartRequirementSnapshot Capture(
         bool isDarkMode,
         bool isHighContrast,
@@ -53,6 +58,9 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 依目前設定與環境狀態建立快照。
     /// </summary>
+    /// <param name="isDarkMode">是否為深色模式。</param>
+    /// <param name="isHighContrast">是否啟用高對比模式。</param>
+    /// <returns>以目前 <see cref="AppSettings.Current"/> 為基礎建立的重啟需求快照。</returns>
     public static RestartRequirementSnapshot CaptureCurrent(bool isDarkMode, bool isHighContrast)
     {
         return Capture(
@@ -65,6 +73,9 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 判斷目前系統環境是否與啟動時不同，表示仍有待重新啟動套用的系統變更。
     /// </summary>
+    /// <param name="isDarkMode">目前的深色模式狀態。</param>
+    /// <param name="isHighContrast">目前的高對比模式狀態。</param>
+    /// <returns>若深色模式或高對比狀態與快照不一致則為 true。</returns>
     public bool HasPendingSystemSettingChanges(bool isDarkMode, bool isHighContrast)
     {
         return IsDarkMode != isDarkMode ||
@@ -74,6 +85,8 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 判斷目前應用程式內設定是否與啟動時不同，表示仍有待重新啟動套用的設定變更。
     /// </summary>
+    /// <param name="settings">目前的應用程式設定實例。</param>
+    /// <returns>若控制器提供者或歷史記錄容量與快照不一致則為 true。</returns>
     public bool HasPendingAppSettingChanges(AppSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -85,6 +98,11 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 取得目前待重新啟動的原因旗標。
     /// </summary>
+    /// <param name="isDarkMode">目前的深色模式狀態。</param>
+    /// <param name="isHighContrast">目前的高對比模式狀態。</param>
+    /// <param name="provider">目前的遊戲控制器提供者。</param>
+    /// <param name="historyCapacity">目前的歷史記錄容量。</param>
+    /// <returns>描述待重啟原因的 <see cref="RestartPendingReason"/> 旗標組合。</returns>
     public RestartPendingReason GetPendingReason(
         bool isDarkMode,
         bool isHighContrast,
@@ -110,6 +128,11 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 判斷目前狀態是否與啟動時快照不同，表示仍有待重新啟動套用的變更。
     /// </summary>
+    /// <param name="isDarkMode">目前的深色模式狀態。</param>
+    /// <param name="isHighContrast">目前的高對比模式狀態。</param>
+    /// <param name="provider">目前的遊戲控制器提供者。</param>
+    /// <param name="historyCapacity">目前的歷史記錄容量。</param>
+    /// <returns>若存在任何待重啟原因則為 true。</returns>
     public bool HasPendingRestartChanges(
         bool isDarkMode,
         bool isHighContrast,
@@ -122,6 +145,10 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 取得目前設定與環境對應的待重啟原因旗標。
     /// </summary>
+    /// <param name="settings">目前的應用程式設定實例。</param>
+    /// <param name="isDarkMode">目前的深色模式狀態。</param>
+    /// <param name="isHighContrast">目前的高對比模式狀態。</param>
+    /// <returns>描述待重啟原因的 <see cref="RestartPendingReason"/> 旗標組合。</returns>
     public RestartPendingReason GetPendingReason(AppSettings settings, bool isDarkMode, bool isHighContrast)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -136,6 +163,10 @@ internal readonly record struct RestartRequirementSnapshot(
     /// <summary>
     /// 判斷目前設定與環境是否仍存在待重新啟動的差異。
     /// </summary>
+    /// <param name="settings">目前的應用程式設定實例。</param>
+    /// <param name="isDarkMode">目前的深色模式狀態。</param>
+    /// <param name="isHighContrast">目前的高對比模式狀態。</param>
+    /// <returns>若存在任何待重啟原因則為 true。</returns>
     public bool HasPendingRestartChanges(AppSettings settings, bool isDarkMode, bool isHighContrast)
     {
         return GetPendingReason(settings, isDarkMode, isHighContrast) != RestartPendingReason.None;

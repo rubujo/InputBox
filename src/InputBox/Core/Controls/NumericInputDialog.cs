@@ -29,10 +29,13 @@ internal sealed class NumericInputDialog : Form
     private sealed class AccessibleNumericUpDown(NumericInputDialog parent) : NumericUpDown
     {
         /// <summary>
-        /// NumericInputDialog
+        /// 父 NumericInputDialog 實例，用於回呼邊界撞牆通知。
         /// </summary>
         private readonly NumericInputDialog _parent = parent;
 
+        /// <summary>
+        /// 遞增數值，若已達上限則通知父對話框播放邊界回饋。
+        /// </summary>
         public override void UpButton()
         {
             try
@@ -52,6 +55,9 @@ internal sealed class NumericInputDialog : Form
             }
         }
 
+        /// <summary>
+        /// 遞減數值，若已達下限則通知父對話框播放邊界回饋。
+        /// </summary>
         public override void DownButton()
         {
             try
@@ -806,6 +812,8 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 根據選取粒度與速度播放不同的右搖桿文字選取回饋。
     /// </summary>
+    /// <param name="direction">選取方向；負值為向左，正值為向右。</param>
+    /// <param name="wordGranularity">是否為單字粒度選取。</param>
     private void PlaySelectionFeedback(int direction, bool wordGranularity)
     {
         IGamepadController? controller = _gamepadController;
@@ -836,6 +844,10 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
     /// </summary>
+    /// <param name="textBox">目標 TextBox。</param>
+    /// <param name="caret">目前游標位置（字元索引）。</param>
+    /// <param name="direction">方向；正值為向右，負值為向左。</param>
+    /// <returns>跳轉後的游標目標位置（字元索引）。</returns>
     private static int GetWordSelectionCaretTarget(TextBox textBox, int caret, int direction)
     {
         int originalStart = textBox.SelectionStart;
@@ -1107,8 +1119,9 @@ internal sealed class NumericInputDialog : Form
     });
 
     /// <summary>
-    /// 開啟觸控式鍵盤
+    /// 聚焦指定輸入框並非同步開啟觸控式鍵盤。
     /// </summary>
+    /// <param name="tb">要聚焦的輸入框。</param>
     private void ShowTouchKeyboard(TextBox tb)
     {
         if (tb.CanFocus &&
@@ -2305,8 +2318,8 @@ internal sealed class NumericInputDialog : Form
     /// <summary>
     /// 為按鈕附加「長按連發（Auto-Repeat）」功能，並完美避開原生 Click 的衝突
     /// </summary>
-    /// <param name="btn">Button</param>
-    /// <param name="action">Action</param>
+    /// <param name="btn">要附加連發功能的按鈕；為 null 時略過。</param>
+    /// <param name="action">長按連發時要執行的動作。</param>
     private void AttachAutoRepeat(Button? btn, Action action)
     {
         if (btn == null)

@@ -409,7 +409,7 @@ internal sealed class GamepadMessageBox : Form
     /// 並設定適當的 AccessibleName 和 AccessibleDescription 以利螢幕閱讀器播報
     /// </summary>
     /// <param name="label">按鈕標籤文字。</param>
-    /// <returns>Button</returns>
+    /// <returns>已設定樣式、無障礙屬性與眼球追蹤回饋的按鈕執行個體。</returns>
     private Button CreateEyeTrackerButton(string label)
     {
         Font font = MainForm.GetSharedA11yFont(DeviceDpi),
@@ -620,6 +620,10 @@ internal sealed class GamepadMessageBox : Form
         };
     }
 
+    /// <summary>
+    /// Handle 建立後套用字型、智慧定位，並訂閱系統使用者偏好設定變更事件。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnHandleCreated(EventArgs e)
     {
         try
@@ -652,6 +656,10 @@ internal sealed class GamepadMessageBox : Form
         }
     }
 
+    /// <summary>
+    /// 對話框顯示後激活視窗、修正定位，並確保預設按鈕取得焦點。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -670,6 +678,10 @@ internal sealed class GamepadMessageBox : Form
         }
     }
 
+    /// <summary>
+    /// DPI 變更時重新套用字型與智慧定位。
+    /// </summary>
+    /// <param name="e">包含新舊 DPI 值的事件引數。</param>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
         try
@@ -695,6 +707,10 @@ internal sealed class GamepadMessageBox : Form
         }
     }
 
+    /// <summary>
+    /// 對話框關閉前取消訂閱控制器事件並釋放資源。
+    /// </summary>
+    /// <param name="e">包含關閉原因的事件引數。</param>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         base.OnFormClosing(e);
@@ -722,6 +738,10 @@ internal sealed class GamepadMessageBox : Form
         _buttonFlow = null;
     }
 
+    /// <summary>
+    /// Handle 銷毀時確保靜態系統事件訂閱被絕對釋放。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnHandleDestroyed(EventArgs e)
     {
         try
@@ -827,6 +847,11 @@ internal sealed class GamepadMessageBox : Form
         }
     }
 
+    /// <summary>
+    /// 系統使用者偏好設定變更時重新套用字型並觸發重繪，以反映高對比等無障礙設定的變化。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">包含偏好設定類別的事件引數。</param>
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
         try
@@ -855,6 +880,10 @@ internal sealed class GamepadMessageBox : Form
         }
     }
 
+    /// <summary>
+    /// 對話框取得焦點後延遲恢復控制器輸入，避免與失焦暫停競爭。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnActivated(EventArgs e)
     {
         base.OnActivated(e);
@@ -896,6 +925,10 @@ internal sealed class GamepadMessageBox : Form
         .SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 對話框失去焦點時立即暫停控制器，防止輸入穿透到背景視窗。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnDeactivate(EventArgs e)
     {
         base.OnDeactivate(e);
@@ -1111,7 +1144,7 @@ internal sealed class GamepadMessageBox : Form
             };
         }
 
-        using GamepadMessageBox dlg = new GamepadMessageBox(text, caption, buttons, icon, defaultButton);
+        using GamepadMessageBox dlg = new(text, caption, buttons, icon, defaultButton);
 
         dlg.GamepadController = gamepad;
 

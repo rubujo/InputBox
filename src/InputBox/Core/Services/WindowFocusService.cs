@@ -10,6 +10,9 @@ namespace InputBox.Core.Services;
 /// </summary>
 internal sealed class WindowFocusService
 {
+    /// <summary>
+    /// 保護 _capturedHwnd 讀寫的鎖定物件。
+    /// </summary>
     private readonly Lock _lockObj = new();
 
     /// <summary>

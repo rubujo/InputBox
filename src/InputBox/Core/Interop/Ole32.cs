@@ -11,6 +11,12 @@ internal static partial class Ole32
     /// <summary>
     /// 建立一個指定的類別實體
     /// </summary>
+    /// <param name="rclsid">要建立的類別識別碼（CLSID）。</param>
+    /// <param name="pUnkOuter">外層聚合物件指標；不聚合時傳入 0。</param>
+    /// <param name="dwClsContext">伺服器執行上下文旗標（<see cref="ClsCtx"/>）。</param>
+    /// <param name="riid">要求的介面識別碼（IID）。</param>
+    /// <param name="ppv">接收介面指標的輸出變數。</param>
+    /// <returns>成功時為 S_OK（0）；失敗時為對應的 HRESULT 錯誤碼。</returns>
     [LibraryImport("ole32.dll")]
     internal static partial int CoCreateInstance(
         in Guid rclsid,

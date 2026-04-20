@@ -17,7 +17,7 @@ namespace InputBox.Core.Services;
 internal sealed class WindowNavigationService(WindowFocusService windowFocusManager)
 {
     /// <summary>
-    /// WindowFocusManager
+    /// 視窗焦點管理器，負責捕捉與還原前景視窗。
     /// </summary>
     private readonly WindowFocusService _windowFocusManager = windowFocusManager;
 
@@ -33,7 +33,7 @@ internal sealed class WindowNavigationService(WindowFocusService windowFocusMana
     /// <param name="controller">目前的控制器實例（用於檢查按鍵狀態）。</param>
     /// <param name="announceErrorAction">若切換失敗時的廣播委派（選用）。</param>
     /// <param name="cancellationToken">取消權杖，視窗關閉時應一併傳入以中止等待。</param>
-    /// <returns>Task</returns>
+    /// <returns>代表返回前景視窗整個流程（包含按鍵等待與延遲）的非同步工作。</returns>
     public async Task NavigateBackAsync(
         IGamepadController? controller,
         Action<string>? announceErrorAction = null,

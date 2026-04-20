@@ -22,7 +22,7 @@ internal sealed class AnnouncerLabel : Label
     private bool _toggleFlag = false;
 
     /// <summary>
-    /// AnnouncerLabel
+    /// 初始化 AnnouncerLabel，設定 StatusBar 角色與 Polite LiveSetting。
     /// </summary>
     public AnnouncerLabel()
     {
@@ -40,6 +40,9 @@ internal sealed class AnnouncerLabel : Label
         ForeColor = Color.Empty;
     }
 
+    /// <summary>
+    /// 取得控制項建立參數，確保有適當的樣式以利 UIA 識別。
+    /// </summary>
     protected override CreateParams CreateParams
     {
         get

@@ -668,6 +668,9 @@ public partial class MainForm : Form
     /// 這解決了 WinForms 在按下 Alt 鍵時會將焦點移向選單列（Menu Bar）導致 KeyDown 事件遺失的問題，
     /// 同時也能在全視窗範圍內提供穩定、且不干擾按鈕助記鍵（如 Alt + A）的操作體驗。
     /// </remarks>
+    /// <param name="msg">原始 Windows 訊息結構（以傳址方式傳入）。</param>
+    /// <param name="keyData">目前命令鍵組合。</param>
+    /// <returns>若命令鍵已被本方法處理則回傳 <see langword="true"/>，否則委由基底類別處理。</returns>
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
         if (HandleCaptureModeCmdKey(keyData))
@@ -867,7 +870,8 @@ public partial class MainForm : Form
             onShowContextMenu: () => this.SafeInvoke(ShowContextMenuAtInput),
             canFocusInput: () => TBInput.CanFocus,
             onFocusInput: () => TBInput.Focus(),
-            onAnnounceSkipNav: () => AnnounceA11y(Strings.A11y_SkipNav_JumpToInput)))
+            onAnnounceSkipNav: () => AnnounceA11y(Strings.A11y_SkipNav_JumpToInput),
+            restrictHighRiskShortcuts: SystemHelper.ShouldRestrictHighRiskShortcuts()))
         {
             return false;
         }
@@ -963,6 +967,13 @@ public partial class MainForm : Form
 
         // DPI 變更時，需重新計算並套用字型縮放。
         ApplyLocalization();
+
+        // Gamescope 會以 borderless fullscreen 接管視窗表面；
+        // DPI 變更後需重新套用螢幕邊界，避免 WinForms 佈局更新覆蓋 fullscreen Bounds。
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            ApplyGamescopeBorderlessFullscreen();
+        }
 
         // DPI 變更時強制失效游標快取，確保下次進入或目前焦點中的游標尺寸一定會被重新計算。
         _lastCaretWidth = -1;
@@ -1112,7 +1123,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 重設按鈕狀態
     /// </summary>
-    /// <returns>Task</returns>
+    /// <returns>代表按鈕狀態延遲重設的非同步工作任務。</returns>
     private async Task ResetButtonStateAsync()
     {
         try
@@ -1240,7 +1251,7 @@ public partial class MainForm : Form
     /// <summary>
     /// 將不再使用的私有字體加入回收桶，延遲處置
     /// </summary>
-    /// <param name="font">Font</param>
+    /// <param name="font">要延遲回收的字體實例。</param>
     public static void AddFontToTrashCan(Font font)
     {
         FontResourceManager.AddFontToTrashCan(font);
@@ -1286,7 +1297,7 @@ public partial class MainForm : Form
     /// <param name="style">字體樣式（預設為 Regular）</param>
     /// <param name="family">字體家族（選用）</param>
     /// <param name="sizeMultiplier">尺寸倍率（預設為 1.0）</param>
-    /// <returns>Font 實例</returns>
+    /// <returns>從快取取出或新建立的共享 A11y 字型執行個體。</returns>
     public static Font GetSharedA11yFont(
         int dpi,
         FontStyle style = FontStyle.Regular,

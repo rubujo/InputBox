@@ -613,12 +613,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
 #endif
 
     /// <summary>
-    /// XInputGamepadController
+    /// 建立 XInput 控制器實例，並立即啟動背景輪詢。
     /// </summary>
-    /// <param name="context">IInputContext</param>
+    /// <param name="context">提供 UI 狀態與環境資訊的輸入上下文。</param>
     /// <param name="userIndex">控制器的 UserIndex，預設值為 0，有效值為 0~3。</param>
-    /// <param name="repeatSettings">連發設定（可選）</param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <param name="repeatSettings">連發設定；傳入 null 時使用預設值。</param>
+    /// <exception cref="ArgumentOutOfRangeException">userIndex 超過有效範圍（0~3）時拋出。</exception>
     public XInputGamepadController(
         IInputContext context,
         uint userIndex = 0,
@@ -1859,8 +1859,13 @@ internal sealed partial class XInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 震動。
+    /// 以指定強度與持續時間讓控制器震動。
     /// </summary>
+    /// <param name="strength">震動強度（0～65535）。</param>
+    /// <param name="milliseconds">持續時間（毫秒），預設 60 ms。</param>
+    /// <param name="priority">震動優先級，影響安全限制器的縮放決策。</param>
+    /// <param name="ct">取消權杖；已取消時直接返回 <see cref="Task.CompletedTask"/>。</param>
+    /// <returns>震動任務。</returns>
     public Task VibrateAsync(
         ushort strength,
         int milliseconds = 60,
@@ -1873,6 +1878,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 依多馬達震動設定讓 XInput 控制器震動；扳機比例會退化為左右主馬達的方向差異。
     /// </summary>
+    /// <param name="profile">包含基礎強度、持續時間與各馬達比例的震動設定。</param>
+    /// <param name="priority">震動優先級，影響安全限制器的縮放決策。</param>
+    /// <param name="ct">取消權杖；已取消時直接返回 <see cref="Task.CompletedTask"/>。</param>
+    /// <returns>震動任務。</returns>
     public Task VibrateAsync(
         VibrationProfile profile,
         VibrationPriority priority = VibrationPriority.Normal,

@@ -924,8 +924,9 @@ internal sealed class PhraseEditDialog : Form
     });
 
     /// <summary>
-    /// 開啟觸控式鍵盤（比照 MainForm.ShowTouchKeyboard）
+    /// 聚焦指定輸入框並非同步開啟觸控式鍵盤。
     /// </summary>
+    /// <param name="tb">要聚焦的輸入框。</param>
     private void ShowTouchKeyboard(TextBox tb)
     {
         if (tb.CanFocus && !tb.Focused)
@@ -1001,18 +1002,23 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 片語名稱欄在已達上限時仍嘗試輸入一般字元，播放硬牆回饋。
     /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">按鍵事件引數。</param>
     private void HandleNameKeyPress(object? sender, KeyPressEventArgs e)
         => HandleTextLimitKeyPress(_txtName, AppSettings.MaxPhraseNameLength, ref _lastNameLimitWallUtc, e);
 
     /// <summary>
     /// 片語內容欄在已達上限時仍嘗試輸入一般字元，播放硬牆回饋。
     /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">按鍵事件引數。</param>
     private void HandleContentKeyPress(object? sender, KeyPressEventArgs e)
         => HandleTextLimitKeyPress(_txtContent, AppSettings.MaxInputLength, ref _lastContentLimitWallUtc, e);
 
     /// <summary>
-    /// 取得目前焦點所在的 TextBox（名稱或內容）
+    /// 取得目前焦點所在的 TextBox（名稱或內容）。
     /// </summary>
+    /// <returns>具有焦點的輸入框；兩者皆無焦點時回傳 null。</returns>
     private TextBox? GetActiveTextBox()
     {
         if (_txtName.Focused)
@@ -1071,6 +1077,7 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 套用與主輸入框一致的強視覺焦點樣式（高對比優先，其次主題感知反轉）。
     /// </summary>
+    /// <param name="textBox">要套用焦點樣式的輸入框。</param>
     private static void ApplyInputBoxStrongVisual(TextBox textBox)
     {
         if (textBox.IsDisposed)
@@ -1696,6 +1703,10 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 推進某類觸覺回饋的 burst 等級，用於快速連發時做輕量阻尼。
     /// </summary>
+    /// <param name="lastUtc">上次觸發的 UTC 時間戳（ref，會被更新）。</param>
+    /// <param name="burstLevel">目前 burst 等級（ref，會被累加或重設）。</param>
+    /// <param name="fastWindowMs">視為快速連發的時間視窗（毫秒）。</param>
+    /// <returns>更新後的 burst 等級（0 ~ 3）。</returns>
     private static int AdvanceFeedbackBurst(ref DateTime lastUtc, ref int burstLevel, int fastWindowMs)
     {
         DateTime now = DateTime.UtcNow;
@@ -1708,8 +1719,10 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 依剩餘字元數分級，目前只在接近上限時回傳有效 bucket。
+    /// 依剩餘字元數分級，僅在接近上限時回傳有效 bucket。
     /// </summary>
+    /// <param name="remainingCharacters">距離上限的剩餘字元數。</param>
+    /// <returns>警示等級（0 ~ 3）；超過警示閾值時回傳 -1。</returns>
     private static int GetTextLimitWarningBucket(int remainingCharacters)
     {
         return remainingCharacters switch
@@ -1725,6 +1738,10 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 當片語欄位長度變動時，提供接近字數上限的物理預警與硬牆回饋。
     /// </summary>
+    /// <param name="textBox">監控中的輸入框。</param>
+    /// <param name="maxLength">欄位的最大字元數限制。</param>
+    /// <param name="lastObservedLength">上次觀察到的長度（ref，會被更新）。</param>
+    /// <param name="lastWarningBucket">上次警示的 bucket 等級（ref，會被更新）。</param>
     private void HandleTextLimitFeedbackFromLengthChange(
         TextBox textBox,
         int maxLength,
@@ -1782,6 +1799,10 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 使用者在字數已滿時仍嘗試輸入一般字元，播放硬牆回饋。
     /// </summary>
+    /// <param name="textBox">目標輸入框。</param>
+    /// <param name="maxLength">欄位的最大字元數限制。</param>
+    /// <param name="lastWallUtc">上次觸發硬牆回饋的 UTC 時間戳（ref，用於節流）。</param>
+    /// <param name="e">按鍵事件引數。</param>
     private void HandleTextLimitKeyPress(TextBox textBox, int maxLength, ref DateTime lastWallUtc, KeyPressEventArgs e)
     {
         if (textBox.IsDisposed ||
@@ -1810,6 +1831,8 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 根據選取粒度與速度播放不同的右搖桿文字選取回饋。
     /// </summary>
+    /// <param name="direction">選取方向；負值為向左，正值為向右。</param>
+    /// <param name="wordGranularity">是否為單字粒度選取。</param>
     private void PlaySelectionFeedback(int direction, bool wordGranularity)
     {
         IGamepadController? controller = _gamepadController;
@@ -1836,6 +1859,10 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
     /// </summary>
+    /// <param name="textBox">目標 TextBox。</param>
+    /// <param name="caret">目前游標位置（字元索引）。</param>
+    /// <param name="direction">方向；正值為向右，負值為向左。</param>
+    /// <returns>跳轉後的游標目標位置（字元索引）。</returns>
     private static int GetWordSelectionCaretTarget(TextBox textBox, int caret, int direction)
     {
         int originalStart = textBox.SelectionStart;
@@ -2002,6 +2029,9 @@ internal sealed class PhraseEditDialog : Form
     /// <summary>
     /// 鎖定單一動態標籤的寬度，讓最長狀態文字也不會改變物理尺寸。
     /// </summary>
+    /// <param name="label">要鎖定寬度的標籤；為 null 時略過。</param>
+    /// <param name="labelPrefix">標籤前綴文字，用於計算最寬狀態。</param>
+    /// <param name="maxValue">欄位的最大值，用於計算最寬文字。</param>
     private static void UpdateSingleCountLabelMinimumWidth(Label? label, string labelPrefix, int maxValue)
     {
         if (label == null ||
@@ -2106,8 +2136,9 @@ internal sealed class PhraseEditDialog : Form
     }
 
     /// <summary>
-    /// 依 DPI 更新最小尺寸，讓片語名稱／內容輸入框有更充足的可視範圍
+    /// 依 DPI 更新最小尺寸，讓片語名稱／內容輸入框有更充足的可視範圍。
     /// </summary>
+    /// <param name="forceRecalculate">是否強制重新計算，忽略 DPI 未變更的快取防呆。</param>
     private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         float currentDpi = DeviceDpi;

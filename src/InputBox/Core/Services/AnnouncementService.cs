@@ -218,7 +218,7 @@ internal sealed class AnnouncementService : IDisposable
 
         Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
 
-        if (!System.Windows.Forms.Application.MessageLoop &&
+        if (!Application.MessageLoop &&
             processingTask != null &&
             !processingTask.IsCompleted &&
             Task.CurrentId != processingTask.Id)

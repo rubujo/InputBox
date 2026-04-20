@@ -37,7 +37,7 @@ public static class TaskExtensions
     /// <summary>
     /// 安全地啟動非同步任務，若失敗則透過指定的廣播委派發送訊息
     /// </summary>
-    /// <param name="task">Task</param>
+    /// <param name="task">要執行的非同步任務。</param>
     /// <param name="announceAction">廣播委派（例如 MainForm.AnnounceA11y）</param>
     /// <param name="errorMessageFormat">錯誤訊息格式（選用）</param>
     public static void SafeFireAndForget(
@@ -58,7 +58,7 @@ public static class TaskExtensions
     /// <summary>
     /// 安全地取消並處置 CancellationTokenSource
     /// </summary>
-    /// <param name="cts">CancellationTokenSource</param>
+    /// <param name="cts">要取消並釋放的 CancellationTokenSource；為 null 時直接略過。</param>
     public static void CancelAndDispose(this CancellationTokenSource? cts)
     {
         if (cts == null)
@@ -119,9 +119,9 @@ public static class TaskExtensions
     /// <summary>
     /// 執行非同步任務並安全地處理任何可能發生的例外
     /// </summary>
-    /// <param name="task">Task</param>
-    /// <param name="onException">Action&lt;Exception&gt;?</param>
-    /// <returns>Task</returns>
+    /// <param name="task">要等待的非同步任務。</param>
+    /// <param name="onException">例外發生時的自訂處理動作；為 null 時僅執行全域處理。</param>
+    /// <returns>代表安全執行流程的工作任務。</returns>
     private static async Task ExecuteSafeFireAndForgetInternalAsync(
         Task task,
         Action<Exception>? onException)

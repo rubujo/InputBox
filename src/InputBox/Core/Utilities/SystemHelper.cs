@@ -46,6 +46,19 @@ public static partial class SystemHelper
     }
 
     /// <summary>
+    /// 判斷目前平台是否應限制高風險快捷鍵與自動返回行為。
+    /// </summary>
+    /// <remarks>
+    /// Proton / Wine 與 Gamescope 環境下，A11y 廣播與視窗切換可靠度較低，
+    /// 因此需停用依賴明確播報或前景切換的高風險操作。
+    /// </remarks>
+    /// <returns>若應限制高風險快捷鍵則回傳 true。</returns>
+    public static bool ShouldRestrictHighRiskShortcuts()
+    {
+        return _isOnGamescope || _isOnWine;
+    }
+
+    /// <summary>
     /// 在程式啟動時執行一次 Wine 偵測，結果快取至 <see cref="_isOnWine"/>
     /// </summary>
     /// <returns>若偵測到 Wine (Proton) 環境則回傳 true，偵測失敗或非 Wine 環境則回傳 false。</returns>
