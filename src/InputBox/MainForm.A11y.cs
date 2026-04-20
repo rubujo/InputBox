@@ -141,8 +141,17 @@ public partial class MainForm
     /// <summary>
     /// 更新視窗佈局約束，包含 MinimumSize 與 ClientSize 的精確測量
     /// </summary>
+    /// <remarks>
+    /// Gamescope 環境下跳過全部尺寸約束計算：合成器自行接管視窗縮放，
+    /// WorkingArea 回傳值不可靠，且強制 Size 會干擾最大化狀態。
+    /// </remarks>
     private void UpdateLayoutConstraints()
     {
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            return;
+        }
+
         InputBoxLayoutManager.UpdateLayoutConstraints(
             this,
             TLPHost,

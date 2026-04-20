@@ -1086,6 +1086,31 @@ internal sealed class GamepadMessageBox : Form
         MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1,
         IGamepadController? gamepad = null)
     {
+        // Gamescope (遊戲模式) 防護：
+        // 攔截所有會建立新視窗表面的 ShowDialog 呼叫，改為 Log 紀錄並回傳預設值。
+        // 這能防止 Gamescope 合成器因視窗切換導致的主介面渲染鏈中斷與黑屏。
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            LoggerService.LogInfo($"[Gamescope Intercept] {caption}: {text} (Buttons: {buttons})");
+
+            if (gamepad != null)
+            {
+                FeedbackService.VibrateAsync(gamepad, VibrationPatterns.ActionFail, CancellationToken.None).SafeFireAndForget();
+            }
+
+            // 回傳安全預設值：單一按鈕回傳 OK，確認型按鈕回傳 No 或 Cancel。
+            return buttons switch
+            {
+                MessageBoxButtons.OK => DialogResult.OK,
+                MessageBoxButtons.OKCancel => DialogResult.Cancel,
+                MessageBoxButtons.YesNo => DialogResult.No,
+                MessageBoxButtons.YesNoCancel => DialogResult.Cancel,
+                MessageBoxButtons.RetryCancel => DialogResult.Cancel,
+                MessageBoxButtons.AbortRetryIgnore => DialogResult.Ignore,
+                _ => DialogResult.OK,
+            };
+        }
+
         using var dlg = new GamepadMessageBox(text, caption, buttons, icon, defaultButton);
 
         dlg.GamepadController = gamepad;
@@ -1113,13 +1138,13 @@ internal sealed class GamepadMessageBox : Form
     /// <summary>
     /// 顯示支援控制器操作的訊息對話框（無父視窗）
     /// </summary>
-    /// <param name="text"></param>
-    /// <param name="caption"></param>
-    /// <param name="buttons"></param>
-    /// <param name="icon"></param>
-    /// <param name="defaultButton"></param>
-    /// <param name="gamepad"></param>
-    /// <returns>DialogResult</returns>
+    /// <param name="text">對話框的訊息內文。</param>
+    /// <param name="caption">對話框標題列文字。</param>
+    /// <param name="buttons">對話框顯示的按鈕組合。</param>
+    /// <param name="icon">對話框顯示的圖示種類。</param>
+    /// <param name="defaultButton">對話框開啟時預設取得焦點的按鈕。</param>
+    /// <param name="gamepad">遊戲控制器（可為 null，此時僅支援鍵盤操作）。</param>
+    /// <returns>使用者按下的按鈕所對應的 <see cref="DialogResult"/>。</returns>
     public static DialogResult Show(
         string text,
         string caption,
