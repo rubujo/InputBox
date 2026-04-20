@@ -1,5 +1,6 @@
 ﻿using InputBox.Core.Services;
 using System.Diagnostics;
+using System.Windows.Forms.Automation;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -153,5 +154,19 @@ public class AnnouncementServiceTests : IDisposable
 
         Assert.True(finished.Task.IsCompleted, "Dispose 應等待背景廣播工作完成取消與退出。");
         Assert.True(stopwatch.ElapsedMilliseconds >= 100, "Dispose 不應在背景工作仍未退出時立即返回。");
+    }
+
+    /// <summary>
+    /// AnnouncerLabel 建構時應自帶規範要求的無障礙基線設定，避免呼叫端遺漏。
+    /// </summary>
+    [Fact]
+    public void AnnouncerLabel_Ctor_InitializesRequiredA11yDefaults()
+    {
+        var label = new InputBox.Core.Controls.AnnouncerLabel();
+
+        Assert.Equal(AccessibleRole.StatusBar, label.AccessibleRole);
+        Assert.Equal(AutomationLiveSetting.Polite, label.LiveSetting);
+        Assert.Equal("\u200B", label.AccessibleName);
+        Assert.False(label.TabStop);
     }
 }

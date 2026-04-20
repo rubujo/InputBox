@@ -1093,10 +1093,12 @@ public class AppSettings
                         continue;
                     }
 
-                    bool isManagedTempFile = IsManagedConfigTempFile(tempPath);
+                    if (!IsManagedConfigTempFile(tempPath))
+                    {
+                        continue;
+                    }
 
-                    if (!isManagedTempFile &&
-                        utcNow - File.GetLastWriteTimeUtc(tempPath) < ConfigTempCleanupGracePeriod)
+                    if (utcNow - File.GetLastWriteTimeUtc(tempPath) < ConfigTempCleanupGracePeriod)
                     {
                         continue;
                     }

@@ -485,12 +485,12 @@ public sealed class AppSettingsTests : IDisposable
     }
 
     /// <summary>
-    /// 既有的殘留暫存檔應在下次成功儲存後被清理，避免設定目錄長期累積垃圾檔案。
+    /// 符合本服務 GUID 命名格式的殘留暫存檔應在下次成功儲存後被清理，避免設定目錄長期累積垃圾檔案。
     /// </summary>
     [Fact]
-    public void Save_WithStaleTempFile_CleansUpOrphanedTempFiles()
+    public void Save_WithStaleManagedTempFile_CleansUpOrphanedTempFiles()
     {
-        string staleTempPath = Path.Combine(AppSettings.ConfigDirectory, "appsettings.json.stale-test.tmp");
+        string staleTempPath = Path.Combine(AppSettings.ConfigDirectory, $"appsettings.json.{Guid.NewGuid():N}.tmp");
         File.WriteAllText(staleTempPath, "stale-temp", System.Text.Encoding.UTF8);
         File.SetLastWriteTimeUtc(staleTempPath, DateTime.UtcNow.AddMinutes(-10));
 
@@ -499,6 +499,32 @@ public sealed class AppSettingsTests : IDisposable
 
         string[] tempFiles = Directory.GetFiles(AppSettings.ConfigDirectory, "appsettings.json*.tmp");
         Assert.Empty(tempFiles);
+    }
+
+    /// <summary>
+    /// 不屬於本服務 GUID 命名格式的舊暫存檔不應被清理流程刪除，避免誤刪其他流程的檔案。
+    /// </summary>
+    [Fact]
+    public void Save_WithStaleUnmanagedTempFile_PreservesForeignTempFile()
+    {
+        string foreignTempPath = Path.Combine(AppSettings.ConfigDirectory, "appsettings.json.foreign-stale.tmp");
+        File.WriteAllText(foreignTempPath, "foreign-temp", System.Text.Encoding.UTF8);
+        File.SetLastWriteTimeUtc(foreignTempPath, DateTime.UtcNow.AddMinutes(-10));
+
+        try
+        {
+            AppSettings.Current.HotKeyKey = "F8";
+            AppSettings.Save();
+
+            Assert.True(File.Exists(foreignTempPath));
+        }
+        finally
+        {
+            if (File.Exists(foreignTempPath))
+            {
+                File.Delete(foreignTempPath);
+            }
+        }
     }
 
     // ── 常數值驗證 ──────────────────────────────────────────────────────────
