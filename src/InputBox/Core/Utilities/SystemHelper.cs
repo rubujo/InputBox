@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using InputBox.Core.Interop;
+using Microsoft.Win32;
 using System.Diagnostics;
 
 namespace InputBox.Core.Utilities;
@@ -8,6 +9,34 @@ namespace InputBox.Core.Utilities;
 /// </summary>
 public static partial class SystemHelper
 {
+    /// <summary>
+    /// 偵測目前應用程式是否執行於 Wine (Proton) 環境下
+    /// </summary>
+    /// <remarks>
+    /// 藉由檢查 ntdll.dll 是否匯出 wine_get_version 函數來判定是否位於 Wine 模擬環境。
+    /// 這是偵測 Linux/Steam Deck (Proton) 環境下 Windows 程式執行狀態的最可靠方式。
+    /// </remarks>
+    /// <returns>若在 Wine 環境下執行則回傳 true，否則為 false。</returns>
+    public static bool IsRunningOnWine()
+    {
+        try
+        {
+            // Wine 的 ntdll.dll 會導出 wine_get_version 函數。
+            nint hModule = Kernel32.GetModuleHandle("ntdll.dll");
+
+            if (hModule == 0)
+            {
+                return false;
+            }
+
+            return Kernel32.GetProcAddress(hModule, "wine_get_version") != 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     /// <summary>
     /// 取得 TabTip.exe 或 TabTip32.exe 的絕對路徑
     /// </summary>
