@@ -522,10 +522,7 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 關閉時解除控制器事件。
-    /// </summary>
-    /// <summary>
-    /// 發送無障礙廣播
+    /// 發送無障礙廣播訊息。
     /// </summary>
     /// <param name="message">廣播文字。</param>
     private void AnnounceA11y(string message)
@@ -560,6 +557,10 @@ internal sealed class HelpDialog : Form
         });
     }
 
+    /// <summary>
+    /// 對話框關閉前解除控制器事件、釋放廣播器並清除字型引用。
+    /// </summary>
+    /// <param name="e">包含關閉原因的事件引數。</param>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         base.OnFormClosing(e);
@@ -586,6 +587,10 @@ internal sealed class HelpDialog : Form
         _ = Interlocked.Exchange(ref _closeBoldFont, null);
     }
 
+    /// <summary>
+    /// Handle 銷毀時確保靜態系統事件訂閱被絕對釋放。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnHandleDestroyed(EventArgs e)
     {
         try
@@ -647,8 +652,10 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 建立區段標題 Label
+    /// 建立區段標題 Label。
     /// </summary>
+    /// <param name="text">標題文字。</param>
+    /// <returns>已設定樣式的標題 Label。</returns>
     private static Label CreateSectionHeading(string text)
     {
         return new Label()
@@ -661,8 +668,9 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 建立表格面板（含表頭列）
+    /// 建立雙欄表格面板（含單框格線）。
     /// </summary>
+    /// <returns>已設定樣式的 TableLayoutPanel。</returns>
     private static TableLayoutPanel CreateTablePanel()
     {
         return new TableLayoutPanel()
@@ -729,8 +737,11 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 建立單一表格儲存格 Label
+    /// 建立單一表格儲存格 Label。
     /// </summary>
+    /// <param name="text">儲存格文字。</param>
+    /// <param name="isHeader">是否為表頭儲存格。</param>
+    /// <returns>已設定無障礙屬性的儲存格 Label。</returns>
     private static Label CreateCell(string text, bool isHeader = false)
     {
         return new Label()
@@ -746,9 +757,9 @@ internal sealed class HelpDialog : Form
     }
 
     /// <summary>
-    /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸
-    /// 確保捲動條只在真正需要時出現，且關閉按鈕永遠可見
+    /// 根據內容自然大小與螢幕工作區域，動態計算並套用視窗尺寸，確保捲動條只在真正需要時出現。
     /// </summary>
+    /// <param name="forceRecalculate">是否強制重新計算，忽略 DPI 未變更的快取防呆。</param>
     private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         float currentDpi = DeviceDpi;

@@ -481,12 +481,16 @@ public static class VibrationPatterns
     /// <summary>
     /// 取得柔和版的文字邊界重複回饋。
     /// </summary>
+    /// <param name="direction">負值為向左，正值為向右。</param>
+    /// <returns>對應方向的邊界重複震動設定。</returns>
     internal static VibrationProfile GetRepeatedBoundaryProfile(int direction)
         => direction < 0 ? BoundaryLeftRepeat : BoundaryRightRepeat;
 
     /// <summary>
     /// 取得用於識別目前作用中控制器的震動序列。
     /// </summary>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>識別序列的震動步驟清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetControllerIdentifySequence(
         VibrationMotorSupport motorSupport = VibrationMotorSupport.DualMain)
     {
@@ -498,6 +502,9 @@ public static class VibrationPatterns
     /// <summary>
     /// 取得結束程式長按保護的觸覺序列。
     /// </summary>
+    /// <param name="confirmed">長按確認完成為 <see langword="true"/>，僅進入待命狀態為 <see langword="false"/>。</param>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>對應長按狀態的震動步驟清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetExitHoldSequence(
         bool confirmed,
         VibrationMotorSupport motorSupport = VibrationMotorSupport.DualMain)
@@ -517,6 +524,10 @@ public static class VibrationPatterns
     /// <summary>
     /// 取得歷程快速翻閱時的阻尼滾輪震動序列。
     /// </summary>
+    /// <param name="direction">負值為向前（較舊），正值為向後（較新）。</param>
+    /// <param name="burstLevel">連發等級（0 為單次，越高代表越快速連發）。</param>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>對應方向與連發速度的震動步驟清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetHistoryScrollSequence(
         int direction,
         int burstLevel,
@@ -544,6 +555,9 @@ public static class VibrationPatterns
     /// <summary>
     /// 依剩餘字元數回傳接近上限或撞到上限時的觸覺序列。
     /// </summary>
+    /// <param name="remainingCharacters">距字元上限的剩餘數量；0 表示已達上限。</param>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>對應剩餘字元數的震動步驟清單；剩餘超過 10 個字元時回傳空清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetTextLimitSequence(
         int remainingCharacters,
         VibrationMotorSupport motorSupport = VibrationMotorSupport.DualMain)
@@ -580,6 +594,11 @@ public static class VibrationPatterns
     /// <summary>
     /// 依選取粒度與速度回傳右搖桿文字選取的觸覺序列。
     /// </summary>
+    /// <param name="direction">負值為向左選取，正值為向右選取。</param>
+    /// <param name="wordGranularity">設為 <see langword="true"/> 時以字詞為單位，否則以字元為單位。</param>
+    /// <param name="burstLevel">連發等級（0 為單次，越高代表越快速連發）。</param>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>對應選取方向、粒度與連發速度的震動步驟清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetSelectionSequence(
         int direction,
         bool wordGranularity,
@@ -612,6 +631,8 @@ public static class VibrationPatterns
     /// <summary>
     /// 取得由全域快速鍵喚起主視窗時的輕巧握手震動。
     /// </summary>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>焦點握手的震動步驟清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetFocusHandshakeSequence(
         VibrationMotorSupport motorSupport = VibrationMotorSupport.DualMain)
     {
@@ -623,6 +644,10 @@ public static class VibrationPatterns
     /// <summary>
     /// 依語意、方向與情境取得集中管理的方向性震動樣式。
     /// </summary>
+    /// <param name="semantic">操作的震動語意分類（游標移動、跳字、換頁等）。</param>
+    /// <param name="direction">負值為向左，正值為向右。</param>
+    /// <param name="context">操作情境（歷程、片語選單、文字邊界等）。</param>
+    /// <returns>對應語意、方向與情境的震動設定。</returns>
     internal static VibrationProfile GetNavigationProfile(
         VibrationSemantic semantic,
         int direction,
@@ -684,6 +709,11 @@ public static class VibrationPatterns
     /// <summary>
     /// 依控制器能力回傳最佳化的多段式觸覺序列；不支援扳機馬達時會安全退化為單段樣式。
     /// </summary>
+    /// <param name="semantic">操作的震動語意分類（游標移動、跳字、換頁等）。</param>
+    /// <param name="direction">負值為向左，正值為向右。</param>
+    /// <param name="context">操作情境（歷程、片語選單、文字邊界等）。</param>
+    /// <param name="motorSupport">目前控制器可支援的震動馬達能力。</param>
+    /// <returns>最佳化或退化後的多段震動步驟清單。</returns>
     internal static IReadOnlyList<VibrationSequenceStep> GetNavigationSequence(
         VibrationSemantic semantic,
         int direction,

@@ -5,10 +5,25 @@
 /// </summary>
 internal sealed class FormInputStateManager
 {
+    /// <summary>
+    /// 返回前景視窗流程旗標（0 = 未執行，1 = 執行中）。
+    /// </summary>
     private int _isReturning;
+    /// <summary>
+    /// 觸控鍵盤顯示流程旗標（0 = 未執行，1 = 執行中）。
+    /// </summary>
     private int _isShowingTouchKeyboard;
+    /// <summary>
+    /// 閃爍動畫流程旗標（0 = 未執行，1 = 執行中）。
+    /// </summary>
     private int _isFlashing;
+    /// <summary>
+    /// Activated 事件處理流程旗標（0 = 未執行，1 = 執行中）。
+    /// </summary>
     private int _isProcessingActivated;
+    /// <summary>
+    /// 快速鍵擷取模式旗標（0 = 停用，1 = 啟用）。
+    /// </summary>
     private int _isCapturingHotkey;
 
     /// <summary>

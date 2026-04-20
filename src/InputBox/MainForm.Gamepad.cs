@@ -4,6 +4,7 @@ using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Media;
@@ -888,6 +889,11 @@ public partial class MainForm
             return;
         }
 
+        if (SystemHelper.ShouldRestrictHighRiskShortcuts())
+        {
+            return;
+        }
+
         // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
         if (_isBackUsedAsModifier)
         {
@@ -1060,6 +1066,12 @@ public partial class MainForm
         // 組合鍵（含連發）：Back + Up／Down 調整透明度。
         if (controller.IsBackHeld)
         {
+            if (SystemHelper.ShouldRestrictHighRiskShortcuts())
+            {
+                _isBackUsedAsModifier = true;
+                return;
+            }
+
             _isBackUsedAsModifier = true;
             TryPlayBackModifierCue();
 
@@ -1302,6 +1314,13 @@ public partial class MainForm
         {
             Interlocked.Exchange(ref _triggerComboCueLatched, 0);
             return false;
+        }
+
+        if (SystemHelper.ShouldRestrictHighRiskShortcuts())
+        {
+            CancelPendingTriggerShortcuts();
+            Interlocked.Exchange(ref _privacyTriggerComboLatched, 1);
+            return true;
         }
 
         if (Interlocked.Exchange(ref _privacyTriggerComboLatched, 1) != 0)
@@ -1905,6 +1924,12 @@ public partial class MainForm
             controller.IsRightShoulderHeld)
         {
             _shoulderShortcutArbiter.ReserveDualShoulderCombo();
+
+            if (SystemHelper.ShouldRestrictHighRiskShortcuts())
+            {
+                return;
+            }
+
             TryPlayDualShoulderComboCue();
 
             if (IsGamepadReturnSuppressed())
@@ -1954,6 +1979,12 @@ public partial class MainForm
         // 組合鍵：Back + X 重設透明度（100%）。
         if (controller.IsBackHeld)
         {
+            if (SystemHelper.ShouldRestrictHighRiskShortcuts())
+            {
+                _isBackUsedAsModifier = true;
+                return;
+            }
+
             _isBackUsedAsModifier = true;
             TryPlayBackModifierCue();
 
@@ -2078,7 +2109,8 @@ public partial class MainForm
     /// </summary>
     private void OpenContextMenuFromGamepadIfAllowed()
     {
-        if (IsGamepadInputSuppressed() ||
+        if (SystemHelper.ShouldRestrictHighRiskShortcuts() ||
+            IsGamepadInputSuppressed() ||
             _cmsInput == null ||
             _cmsInput.Visible)
         {
@@ -2115,7 +2147,8 @@ public partial class MainForm
     /// </summary>
     private void HandleRSClickAction()
     {
-        if (ShouldSkipGamepadAction("RSClick") ||
+        if (SystemHelper.ShouldRestrictHighRiskShortcuts() ||
+            ShouldSkipGamepadAction("RSClick") ||
             TBInput == null ||
             TBInput.IsDisposed)
         {

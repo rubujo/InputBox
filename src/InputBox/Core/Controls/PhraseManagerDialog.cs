@@ -1617,6 +1617,10 @@ internal sealed class PhraseManagerDialog : Form
     /// 控制器連線狀態變更時更新恢復狀態並播報結果
     /// </summary>
     /// <param name="connected">新的控制器連線狀態。</param>
+    /// <summary>
+    /// 控制器連線狀態變更時更新連線並廣播無障礙訊息。
+    /// </summary>
+    /// <param name="connected">連線成功為 <see langword="true"/>，斷線為 <see langword="false"/>。</param>
     private void HandleGamepadConnectionChanged(bool connected)
     {
         try
@@ -1727,7 +1731,7 @@ internal sealed class PhraseManagerDialog : Form
     /// <param name="text">按鈕文字</param>
     /// <param name="a11yDesc">輔助功能描述</param>
     /// <param name="mnemonic">快捷鍵字元</param>
-    /// <returns>Button</returns>
+    /// <returns>已設定樣式、快捷鍵與無障礙屬性的動作按鈕執行個體。</returns>
     private static Button CreateActionButton(
         string text,
         string a11yDesc,
@@ -1808,6 +1812,8 @@ internal sealed class PhraseManagerDialog : Form
     /// <summary>
     /// 更新單一按鈕的最小尺寸
     /// </summary>
+    /// <param name="btn">要更新最小尺寸的按鈕。</param>
+    /// <param name="scale">目前 DPI 相對於基準 DPI 的縮放比例。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateSingleButtonMinimumSize(Button btn, float scale)
     {
@@ -1830,6 +1836,7 @@ internal sealed class PhraseManagerDialog : Form
     /// <summary>
     /// 更新最小尺寸（依按鈕面板實際內容高度動態計算）
     /// </summary>
+    /// <param name="forceRecalculate">設為 <see langword="true"/> 強制重算，忽略 DPI 快取。</param>
     private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         float currentDpi = DeviceDpi;
@@ -1951,6 +1958,8 @@ internal sealed class PhraseManagerDialog : Form
     /// <summary>
     /// 內部 A11y 廣播
     /// </summary>
+    /// <param name="message">要廣播的無障礙訊息文字。</param>
+    /// <param name="interrupt">設為 <see langword="true"/> 可中斷目前朗讀（需設定允許中斷）。</param>
     private void AnnounceA11y(string message, bool interrupt = false)
     {
         if (IsDisposed ||

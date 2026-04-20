@@ -106,9 +106,9 @@ public static class ControlExtensions
     /// 安全的非同步 Invoke（支援 Action）。
     /// 在 async 任務內優先使用此方法，內部封裝了 .NET 10 原生 InvokeAsync 並加入安全檢查。
     /// </summary>
-    /// <param name="control">控制項</param>
-    /// <param name="action">Action</param>
-    /// <returns>Task</returns>
+    /// <param name="control">要跨執行緒調度的目標控制項。</param>
+    /// <param name="action">要在 UI 執行緒上執行的同步動作。</param>
+    /// <returns>代表非同步調度操作的工作任務。</returns>
     public static async Task SafeInvokeAsync(this Control control, Action action)
     {
         if (control == null ||
@@ -186,8 +186,8 @@ public static class ControlExtensions
     /// 安全的非同步 Invoke（支援包含 await 的非同步邏輯）
     /// </summary>
     /// <param name="control">要執行的控制項</param>
-    /// <param name="action">要執行的非同步動作</param>
-    /// <returns>Task</returns>
+    /// <param name="action">要在 UI 執行緒上執行的非同步動作委派。</param>
+    /// <returns>代表非同步調度操作的工作任務。</returns>
     public static async Task SafeInvokeAsync(
         this Control control,
         Func<Task> action)
@@ -490,6 +490,10 @@ public static class ControlExtensions
     /// <summary>
     /// 繪製按鈕基礎邊框（非焦點、非懸停狀態）。
     /// </summary>
+    /// <param name="button">目標按鈕。</param>
+    /// <param name="graphics">繪圖物件。</param>
+    /// <param name="isDark">是否為深色模式。</param>
+    /// <param name="scale">目前 DPI 縮放比例。</param>
     public static void DrawButtonBaseBorder(
         this Button button,
         Graphics graphics,
@@ -510,6 +514,10 @@ public static class ControlExtensions
     /// <summary>
     /// 依互動情境取得焦點/懸停邊框色。
     /// </summary>
+    /// <param name="button">目標按鈕。</param>
+    /// <param name="isStrongVisual">是否為強視覺場景（按下或眼動儀目視狀態）。</param>
+    /// <param name="isDark">是否為深色模式。</param>
+    /// <returns>對應情境的邊框顏色。</returns>
     public static Color GetButtonInteractiveBorderColor(this Button button, bool isStrongVisual, bool isDark)
     {
         if (SystemInformation.HighContrast)
@@ -542,6 +550,12 @@ public static class ControlExtensions
     /// <summary>
     /// 繪製按鈕焦點/懸停邊框。
     /// </summary>
+    /// <param name="button">目標按鈕。</param>
+    /// <param name="graphics">繪圖物件。</param>
+    /// <param name="borderColor">邊框顏色。</param>
+    /// <param name="scale">目前 DPI 縮放比例。</param>
+    /// <param name="inset">輸出的內縮像素數，供後續繪製疊層使用。</param>
+    /// <param name="borderThickness">輸出的邊框厚度，供後續繪製疊層使用。</param>
     public static void DrawButtonInteractiveBorder(
         this Button button,
         Graphics graphics,
@@ -566,6 +580,11 @@ public static class ControlExtensions
     /// <summary>
     /// 繪製 Pressed 內緣提示（非顏色線索）。
     /// </summary>
+    /// <param name="button">目標按鈕。</param>
+    /// <param name="graphics">繪圖物件。</param>
+    /// <param name="scale">目前 DPI 縮放比例。</param>
+    /// <param name="inset">焦點邊框內縮量（由 DrawButtonInteractiveBorder 取得）。</param>
+    /// <param name="borderThickness">焦點邊框厚度（由 DrawButtonInteractiveBorder 取得）。</param>
     public static void DrawPressedInnerCue(
         this Button button,
         Graphics graphics,
@@ -600,7 +619,7 @@ public static class ControlExtensions
     /// <param name="progressSetter">設定進度值（0.0 ~ 1.0）的回呼委派。</param>
     /// <param name="durationMs">動畫總時長（毫秒），預設 1000ms。</param>
     /// <param name="ct">取消權杖。</param>
-    /// <returns>Task</returns>
+    /// <returns>代表眼動儀注視動畫非同步執行的工作任務。</returns>
     public static async Task RunDwellAnimationAsync(
         this Control control,
         long id,
@@ -845,6 +864,8 @@ public static class ControlExtensions
     /// <summary>
     /// 取得字元的精確類別，特別針對全形與 CJK 環境最佳化
     /// </summary>
+    /// <param name="c">要判斷類別的字元。</param>
+    /// <returns>對應該字元的 <see cref="CharType"/> 分類。</returns>
     private static CharType GetCharType(char c)
     {
         // 空白處理（.NET 已內建全形空格 U+3000 的支援）。

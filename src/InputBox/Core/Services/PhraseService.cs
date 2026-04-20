@@ -25,17 +25,29 @@ internal sealed class PhraseService
     /// </summary>
     public enum ImportError
     {
-        /// <summary>無錯誤（成功）</summary>
+        /// <summary>
+        /// 無錯誤（成功）
+        /// </summary>
         None,
-        /// <summary>檔案不存在</summary>
+        /// <summary>
+        /// 檔案不存在
+        /// </summary>
         FileNotFound,
-        /// <summary>檔案超過允許大小</summary>
+        /// <summary>
+        /// 檔案超過允許大小
+        /// </summary>
         FileTooLarge,
-        /// <summary>JSON 格式無效或反序列化失敗</summary>
+        /// <summary>
+        /// JSON 格式無效或反序列化失敗
+        /// </summary>
         InvalidJson,
-        /// <summary>片語已匯入記憶體，但寫入磁碟失敗（已回退）</summary>
+        /// <summary>
+        /// 片語已匯入記憶體，但寫入磁碟失敗（已回退）
+        /// </summary>
         PersistenceFailed,
-        /// <summary>未預期的例外</summary>
+        /// <summary>
+        /// 未預期的例外
+        /// </summary>
         Unknown
     }
 
@@ -44,9 +56,13 @@ internal sealed class PhraseService
     /// </summary>
     public enum ExportError
     {
-        /// <summary>無錯誤（成功）</summary>
+        /// <summary>
+        /// 無錯誤（成功）
+        /// </summary>
         None,
-        /// <summary>寫入使用者選定路徑失敗</summary>
+        /// <summary>
+        /// 寫入使用者選定路徑失敗
+        /// </summary>
         Unknown
     }
 

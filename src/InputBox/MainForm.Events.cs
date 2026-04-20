@@ -97,13 +97,13 @@ public partial class MainForm
             }
 
             // Gamescope (遊戲模式) 防護：
-            // 在 Steam Deck 遊戲模式下，Gamescope 預期應用程式為單一全螢幕表面。
-            // 執行 Restore 會導致視窗脫離合成器控制，引發黑屏或視窗消失。
+            // Gamescope 的 xwm 靜默忽略 _NET_WM_STATE_MAXIMIZED_*，
+            // WindowState = Maximized 無法真正鋪滿合成器表面。
+            // 改以 borderless fullscreen：移除邊框、保持 Normal 狀態、
+            // 直接將 Bounds 設為螢幕尺寸，繞過 WM atom 機制。
             if (SystemHelper.IsRunningOnGamescope())
             {
-                // 主動設為最大化，確保 Gamescope 合成器以全螢幕接管視窗表面。
-                // 若視窗以 Normal 狀態啟動，Gamescope 只會縮放小視窗而非滿版呈現。
-                WindowState = FormWindowState.Maximized;
+                ApplyGamescopeBorderlessFullscreen();
             }
             else
             {
@@ -630,6 +630,8 @@ public partial class MainForm
     {
         _historyService.Add(textToCopy);
 
+        bool shouldRestrictHighRiskShortcuts = SystemHelper.ShouldRestrictHighRiskShortcuts();
+
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
         await VibrateAsync(VibrationPatterns.CopySuccess);
@@ -642,11 +644,21 @@ public partial class MainForm
         BtnCopy.Text = Strings.Msg_Copied;
         BtnCopy.AccessibleDescription = Strings.Msg_Copied;
 
-        AnnounceA11y($"{Strings.Msg_Copied}. {Strings.A11y_Returning}");
+        if (shouldRestrictHighRiskShortcuts)
+        {
+            AnnounceA11y(Strings.Msg_Copied);
+        }
+        else
+        {
+            AnnounceA11y($"{Strings.Msg_Copied}. {Strings.A11y_Returning}");
+        }
 
         TBInput.Clear();
 
-        await ReturnToPreviousWindowAsync(announce: false);
+        if (!shouldRestrictHighRiskShortcuts)
+        {
+            await ReturnToPreviousWindowAsync(announce: false);
+        }
 
         if (IsDisposed ||
             BtnCopy == null)
@@ -1238,8 +1250,12 @@ public partial class MainForm
         // 顯示視窗。
         Show();
 
-        // 還原視窗。
-        User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
+        // Gamescope 下已採 borderless fullscreen（WindowState = Normal），
+        // SW_RESTORE 會干擾 xwm 的視窗狀態，明確跳過。
+        if (!SystemHelper.IsRunningOnGamescope())
+        {
+            User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
+        }
 
         // 先要求 Win32 前景切換，再更新 WinForms 的 Z-Order 與作用中狀態。
         _ = User32.SetForegroundWindow(Handle);
@@ -1249,6 +1265,36 @@ public partial class MainForm
 
         // 啟用視窗。
         Activate();
+    }
+
+    /// <summary>
+    /// 在 Gamescope 下套用 borderless fullscreen，避免依賴 WM 最大化狀態。
+    /// </summary>
+    private void ApplyGamescopeBorderlessFullscreen()
+    {
+        Rectangle targetBounds = Rectangle.Empty;
+
+        if (IsHandleCreated)
+        {
+            targetBounds = Screen.FromHandle(Handle).Bounds;
+        }
+        else if (Screen.PrimaryScreen != null)
+        {
+            targetBounds = Screen.PrimaryScreen.Bounds;
+        }
+        else if (Screen.AllScreens.Length > 0)
+        {
+            targetBounds = Screen.AllScreens[0].Bounds;
+        }
+
+        if (targetBounds == Rectangle.Empty)
+        {
+            return;
+        }
+
+        FormBorderStyle = FormBorderStyle.None;
+        WindowState = FormWindowState.Normal;
+        Bounds = targetBounds;
     }
 
     /// <summary>

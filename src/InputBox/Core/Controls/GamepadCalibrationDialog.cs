@@ -13,6 +13,7 @@ using System.Windows.Forms.Automation;
 
 namespace InputBox.Core.Controls;
 
+// 阻擋設計工具。
 partial class DesignerBlocker { };
 
 /// <summary>
@@ -25,6 +26,9 @@ internal sealed class GamepadCalibrationDialog : Form
     /// </summary>
     private sealed class BufferedPanel : Panel
     {
+        /// <summary>
+        /// 初始化 BufferedPanel，啟用雙緩衝與縮放重繪。
+        /// </summary>
         public BufferedPanel()
         {
             DoubleBuffered = true;
@@ -33,19 +37,74 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 目前指派的遊戲控制器實例。
+    /// </summary>
     private IGamepadController? _gamepadController;
+
+    /// <summary>
+    /// 對話框取消權杖來源，用於中止背景工作。
+    /// </summary>
     private CancellationTokenSource? _cts = new();
+
+    /// <summary>
+    /// 無障礙廣播標籤。
+    /// </summary>
     private AnnouncerLabel? _announcer;
+
+    /// <summary>
+    /// 繪製搖桿校準視覺化的雙緩衝畫布面板。
+    /// </summary>
     private BufferedPanel? _surface;
+
+    /// <summary>
+    /// 說明文字標籤。
+    /// </summary>
     private Label? _lblIntro;
+
+    /// <summary>
+    /// 校準狀態文字標籤。
+    /// </summary>
     private Label? _lblStatus;
+
+    /// <summary>
+    /// 重設校準按鈕。
+    /// </summary>
     private Button? _btnReset;
+
+    /// <summary>
+    /// 關閉對話框按鈕。
+    /// </summary>
     private Button? _btnClose;
+
+    /// <summary>
+    /// 按鈕列容器。
+    /// </summary>
     private FlowLayoutPanel? _buttonRow;
+
+    /// <summary>
+    /// 整體版面配置容器。
+    /// </summary>
     private TableLayoutPanel? _layoutHost;
+
+    /// <summary>
+    /// 無障礙字型，依目前 DPI 共用。
+    /// </summary>
     private Font? _a11yFont;
+
+    /// <summary>
+    /// 上一次套用版面的 DPI 值；用於避免重複計算。
+    /// </summary>
     private float _lastAppliedDpi = -1f;
+
+    /// <summary>
+    /// 目前控制器校準狀態快照。
+    /// </summary>
     private GamepadCalibrationSnapshot _snapshot = GamepadCalibrationSnapshot.Empty;
+
+    /// <summary>
+    /// 定期重新整理校準快照與畫布的計時器。
+    /// </summary>
     private System.Windows.Forms.Timer? _refreshTimer;
 
     /// <summary>
@@ -75,6 +134,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 初始化遊戲控制器校準診斷對話框，建立版面與控制項。
+    /// </summary>
     public GamepadCalibrationDialog()
     {
         SuspendLayout();
@@ -98,7 +160,7 @@ internal sealed class GamepadCalibrationDialog : Form
         Padding = new Padding((int)(8 * scale), (int)(8 * scale), (int)(8 * scale), (int)(10 * scale));
         Icon = Application.OpenForms.OfType<InputBox.MainForm>().FirstOrDefault()?.Icon ?? ActiveForm?.Icon;
 
-        _a11yFont = InputBox.MainForm.GetSharedA11yFont(DeviceDpi);
+        _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
         GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
 
         _lblIntro = new Label
@@ -233,6 +295,10 @@ internal sealed class GamepadCalibrationDialog : Form
         PerformLayout();
     }
 
+    /// <summary>
+    /// 視窗 Handle 建立後，更新最小尺寸並定位至初始位置。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnHandleCreated(EventArgs e)
     {
         try
@@ -247,6 +313,10 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 使用者完成調整視窗大小後，重新套用智慧定位。
+    /// </summary>
+    /// <param name="e">事件引數。</param>
     protected override void OnResizeEnd(EventArgs e)
     {
         try
@@ -260,6 +330,10 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// DPI 變更時更新字型、最小尺寸，並重新套用智慧定位。
+    /// </summary>
+    /// <param name="e">包含新舊 DPI 值的事件引數。</param>
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
         try
@@ -269,29 +343,17 @@ internal sealed class GamepadCalibrationDialog : Form
             {
                 try
                 {
-                    _a11yFont = InputBox.MainForm.GetSharedA11yFont(DeviceDpi);
+                    _a11yFont = MainForm.GetSharedA11yFont(DeviceDpi);
 
                     if (_a11yFont != null)
                     {
-                        if (_lblIntro != null)
-                        {
-                            _lblIntro.Font = _a11yFont;
-                        }
+                        _lblIntro?.Font = _a11yFont;
 
-                        if (_lblStatus != null)
-                        {
-                            _lblStatus.Font = _a11yFont;
-                        }
+                        _lblStatus?.Font = _a11yFont;
 
-                        if (_btnReset != null)
-                        {
-                            _btnReset.Font = _a11yFont;
-                        }
+                        _btnReset?.Font = _a11yFont;
 
-                        if (_btnClose != null)
-                        {
-                            _btnClose.Font = _a11yFont;
-                        }
+                        _btnClose?.Font = _a11yFont;
                     }
 
                     UpdateMinimumSize(forceRecalculate: true);
@@ -310,6 +372,11 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 對話框顯示後啟動重新整理計時器並播報開啟訊息。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private void HandleShown(object? sender, EventArgs e)
     {
         try
@@ -325,6 +392,11 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 對話框取得焦點後延遲恢復控制器輸入。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private void HandleActivated(object? sender, EventArgs e)
     {
         Task.Run(async () =>
@@ -354,6 +426,11 @@ internal sealed class GamepadCalibrationDialog : Form
         }).SafeFireAndForget();
     }
 
+    /// <summary>
+    /// 對話框失去焦點後，若無其他前景視窗則暫停控制器輸入。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private void HandleDeactivate(object? sender, EventArgs e)
     {
         try
@@ -379,6 +456,11 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 對話框關閉前停止計時器、取消訂閱事件並播報關閉訊息。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">包含關閉原因的事件引數。</param>
     private void HandleFormClosing(object? sender, FormClosingEventArgs e)
     {
         try
@@ -398,6 +480,11 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 攔截鍵盤輸入，按下 Escape 時關閉對話框。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">包含按鍵資訊的事件引數。</param>
     private void HandleDialogKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyCode == Keys.Escape)
@@ -408,6 +495,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 訂閱目前控制器的所有輸入事件。
+    /// </summary>
     private void SubscribeGamepadEvents()
     {
         if (_gamepadController == null)
@@ -432,6 +522,9 @@ internal sealed class GamepadCalibrationDialog : Form
         _gamepadController.ConnectionChanged += HandleGamepadConnectionChanged;
     }
 
+    /// <summary>
+    /// 取消訂閱目前控制器的所有輸入事件。
+    /// </summary>
     private void UnsubscribeGamepadEvents()
     {
         try
@@ -463,6 +556,10 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 控制器連線狀態變更時更新快照並播報連線訊息。
+    /// </summary>
+    /// <param name="isConnected">控制器是否已連線。</param>
     private void HandleGamepadConnectionChanged(bool isConnected)
     {
         try
@@ -480,6 +577,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 處理控制器確認按鍵，觸發目前焦點按鈕或預設按鈕的點擊。
+    /// </summary>
     private void HandleGamepadConfirm()
     {
         try
@@ -515,6 +615,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 處理控制器取消按鍵，觸發關閉按鈕或直接關閉對話框。
+    /// </summary>
     private void HandleGamepadCancel()
     {
         try
@@ -551,6 +654,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 處理 D-Pad 向前（左/上）輸入，在搖桿不干擾時移動焦點至前一個按鈕。
+    /// </summary>
     private void HandleDPadPrevious()
     {
         if (ShouldHandleDirectionalFocusNavigation(_gamepadController?.CurrentCalibrationSnapshot ?? _snapshot))
@@ -559,6 +665,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 處理 D-Pad 向後（右/下）輸入，在搖桿不干擾時移動焦點至下一個按鈕。
+    /// </summary>
     private void HandleDPadNext()
     {
         if (ShouldHandleDirectionalFocusNavigation(_gamepadController?.CurrentCalibrationSnapshot ?? _snapshot))
@@ -567,10 +676,20 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 將焦點移至前一個按鈕。
+    /// </summary>
     private void FocusPreviousButton() => MoveButtonFocus(-1);
 
+    /// <summary>
+    /// 將焦點移至下一個按鈕。
+    /// </summary>
     private void FocusNextButton() => MoveButtonFocus(+1);
 
+    /// <summary>
+    /// 依方向在重設與關閉按鈕之間移動焦點。
+    /// </summary>
+    /// <param name="direction">方向值；負值移往重設按鈕，正值移往關閉按鈕。</param>
     private void MoveButtonFocus(int direction)
     {
         try
@@ -595,6 +714,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 從控制器取得最新校準快照，更新狀態文字並觸發畫面重繪。
+    /// </summary>
     private void UpdateSnapshotFromController()
     {
         GamepadCalibrationSnapshot snapshot = _gamepadController?.CurrentCalibrationSnapshot ?? new GamepadCalibrationSnapshot
@@ -610,6 +732,9 @@ internal sealed class GamepadCalibrationDialog : Form
         _surface?.Invalidate();
     }
 
+    /// <summary>
+    /// 依目前快照更新狀態標籤文字，並同步重設按鈕的啟用狀態。
+    /// </summary>
     private void UpdateStatusText()
     {
         if (_lblStatus == null)
@@ -619,12 +744,15 @@ internal sealed class GamepadCalibrationDialog : Form
 
         _lblStatus.Text = FormatStatusText(_snapshot);
 
-        if (_btnReset != null)
-        {
-            _btnReset.Enabled = _snapshot.IsConnected;
-        }
+        _btnReset?.Enabled = _snapshot.IsConnected;
     }
 
+    /// <summary>
+    /// 依連線狀態與裝置名稱產生無障礙廣播訊息字串。
+    /// </summary>
+    /// <param name="isConnected">控制器是否已連線。</param>
+    /// <param name="deviceName">裝置名稱；可為 null。</param>
+    /// <returns>格式化後的連線狀態廣播訊息。</returns>
     internal static string FormatConnectionAnnouncement(bool isConnected, string? deviceName)
     {
         string template = isConnected ?
@@ -641,6 +769,11 @@ internal sealed class GamepadCalibrationDialog : Form
         return message.Replace(" .", ".", StringComparison.Ordinal).Trim();
     }
 
+    /// <summary>
+    /// 判斷目前搖桿是否靜止到足以安全處理方向焦點移動，避免搖桿偏移誤觸焦點導覽。
+    /// </summary>
+    /// <param name="snapshot">目前的校準狀態快照。</param>
+    /// <returns>若搖桿偏移量低於安全閾值（或控制器未連線）則回傳 true。</returns>
     internal static bool ShouldHandleDirectionalFocusNavigation(GamepadCalibrationSnapshot snapshot)
     {
         if (!snapshot.IsConnected)
@@ -661,6 +794,11 @@ internal sealed class GamepadCalibrationDialog : Form
                MathF.Abs(snapshot.CorrectedLeftY) <= navigationThreshold;
     }
 
+    /// <summary>
+    /// 依校準快照產生狀態文字標籤內容。
+    /// </summary>
+    /// <param name="snapshot">目前的校準狀態快照。</param>
+    /// <returns>格式化後的狀態文字；控制器未連線時回傳中斷連線提示訊息。</returns>
     internal static string FormatStatusText(GamepadCalibrationSnapshot snapshot)
     {
         if (!snapshot.IsConnected)
@@ -682,11 +820,19 @@ internal sealed class GamepadCalibrationDialog : Form
             snapshot.ThumbDeadzoneExit);
     }
 
+    /// <summary>
+    /// 將正規化軸值格式化為帶符號的兩位小數字串。
+    /// </summary>
+    /// <param name="value">正規化軸值（-1.0 ~ 1.0）。</param>
+    /// <returns>格式化後的字串，例如 "+0.75" 或 "-0.12"。</returns>
     private static string FormatAxis(float value)
     {
         return value.ToString("+0.00;-0.00;0.00");
     }
 
+    /// <summary>
+    /// 重設控制器校準資料，播放音效與震動回饋並更新快照。
+    /// </summary>
     private void ResetCalibration()
     {
         try
@@ -704,6 +850,10 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 播放重設校準的三段式震動序列回饋。
+    /// </summary>
+    /// <returns>代表震動序列播放過程的非同步工作。</returns>
     private async Task PlayResetCalibrationFeedbackAsync()
     {
         IGamepadController? controller = _gamepadController;
@@ -730,6 +880,11 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 繪製校準視覺化畫布，包含雙搖桿軌跡圖與死區圓圈。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">包含繪圖 Graphics 的事件引數。</param>
     private void HandleSurfacePaint(object? sender, PaintEventArgs e)
     {
         if (_surface == null)
@@ -807,6 +962,27 @@ internal sealed class GamepadCalibrationDialog : Form
         DrawStickPlot(graphics, rightPlot, "RS", _snapshot.RawRightX, _snapshot.RawRightY, _snapshot.CorrectedRightX, _snapshot.CorrectedRightY, axisColor, outerPen, crossPen, deadzonePen, deadzoneExitPen, rawPen, correctedOutlinePen, deadzoneFillBrush, rawBrush, correctedBrush, centerBrush);
     }
 
+    /// <summary>
+    /// 在指定範圍內繪製單一搖桿的校準圖，包含死區、原始與修正後軌跡。
+    /// </summary>
+    /// <param name="graphics">目標 GDI+ 繪圖物件。</param>
+    /// <param name="plotBounds">搖桿圖的像素邊界矩形。</param>
+    /// <param name="label">搖桿標籤（如 "LS" 或 "RS"）。</param>
+    /// <param name="rawX">原始 X 軸正規化值（-1.0 ~ 1.0）。</param>
+    /// <param name="rawY">原始 Y 軸正規化值（-1.0 ~ 1.0）。</param>
+    /// <param name="correctedX">死區修正後 X 軸正規化值。</param>
+    /// <param name="correctedY">死區修正後 Y 軸正規化值。</param>
+    /// <param name="axisColor">座標軸與外框顏色。</param>
+    /// <param name="outerPen">外框圓圈畫筆。</param>
+    /// <param name="crossPen">十字準線畫筆。</param>
+    /// <param name="deadzonePen">進入死區圓圈畫筆。</param>
+    /// <param name="deadzoneExitPen">退出死區虛線圓圈畫筆。</param>
+    /// <param name="rawPen">原始軌跡線畫筆。</param>
+    /// <param name="correctedOutlinePen">修正點外框畫筆。</param>
+    /// <param name="deadzoneFillBrush">死區填滿筆刷。</param>
+    /// <param name="rawBrush">原始位置填滿筆刷。</param>
+    /// <param name="correctedBrush">修正後位置填滿筆刷。</param>
+    /// <param name="centerBrush">中心點填滿筆刷。</param>
     private void DrawStickPlot(Graphics graphics, RectangleF plotBounds, string label, float rawX, float rawY, float correctedX, float correctedY, Color axisColor, Pen outerPen, Pen crossPen, Pen deadzonePen, Pen deadzoneExitPen, Pen rawPen, Pen correctedOutlinePen, Brush deadzoneFillBrush, Brush rawBrush, Brush correctedBrush, Brush centerBrush)
     {
         graphics.DrawEllipse(outerPen, plotBounds);
@@ -857,6 +1033,10 @@ internal sealed class GamepadCalibrationDialog : Form
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
     }
 
+    /// <summary>
+    /// 依目前 DPI 與可用工作區重新計算並套用對話框的最小尺寸。
+    /// </summary>
+    /// <param name="forceRecalculate">是否強制重新計算，忽略 DPI 未變更的快取防呆。</param>
     private void UpdateMinimumSize(bool forceRecalculate = false)
     {
         try
@@ -889,7 +1069,7 @@ internal sealed class GamepadCalibrationDialog : Form
             _lblIntro.MaximumSize = new Size(contentWidth, 0);
             _lblIntro.Margin = new Padding(0, 0, 0, (int)(6 * scale));
 
-            Font boldFont = InputBox.MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, (_a11yFont ?? Font).FontFamily);
+            Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, (_a11yFont ?? Font).FontFamily);
             DialogLayoutHelper.UpdateButtonMinimumSize(_btnReset, boldFont, scale, 120, 56, 32, 20);
             DialogLayoutHelper.UpdateButtonMinimumSize(_btnClose, boldFont, scale, 120, 56, 32, 20);
 
@@ -919,6 +1099,9 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 將對話框位置限制在螢幕可視範圍內，避免視窗超出邊界。
+    /// </summary>
     private void ApplySmartPosition()
     {
         try
@@ -934,9 +1117,18 @@ internal sealed class GamepadCalibrationDialog : Form
         }
     }
 
+    /// <summary>
+    /// 建立符合眼球追蹤規格的大型按鈕，並附加懸停回饋。
+    /// </summary>
+    /// <param name="text">按鈕顯示文字。</param>
+    /// <param name="accessibleName">按鈕無障礙名稱。</param>
+    /// <param name="description">按鈕無障礙描述與懸停提示。</param>
+    /// <param name="scale">目前 DPI 縮放比例。</param>
+    /// <param name="font">按鈕字型。</param>
+    /// <returns>已設定樣式與無障礙屬性的按鈕執行個體。</returns>
     private Button CreateEyeTrackerButton(string text, string accessibleName, string description, float scale, Font font)
     {
-        Font boldFont = InputBox.MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, font.FontFamily);
+        Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, font.FontFamily);
         Size boldTextSize = TextRenderer.MeasureText(text, boldFont);
 
         Button btn = new()
@@ -965,11 +1157,19 @@ internal sealed class GamepadCalibrationDialog : Form
         return btn;
     }
 
+    /// <summary>
+    /// 取得擁有此對話框的主視窗實例。
+    /// </summary>
+    /// <returns>MainForm 實例；若無法取得則回傳 null。</returns>
     private InputBox.MainForm? GetOwnerMainForm()
     {
         return Owner as InputBox.MainForm ?? Application.OpenForms.OfType<InputBox.MainForm>().FirstOrDefault();
     }
 
+    /// <summary>
+    /// 釋放受管理資源，停止計時器並清除所有控制項參考。
+    /// </summary>
+    /// <param name="disposing">true 表示由 Dispose() 呼叫；false 表示由完成項呼叫。</param>
     protected override void Dispose(bool disposing)
     {
         if (disposing)

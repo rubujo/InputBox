@@ -51,6 +51,9 @@ internal static class RestartMenuTextResolver
     /// <summary>
     /// 優先讀取指定資源鍵；若資源不存在則退回指定的預設備援字串。
     /// </summary>
+    /// <param name="resourceKey">要查找的資源字串鍵名。</param>
+    /// <param name="fallback">資源不存在時的備援字串。</param>
+    /// <returns>資源字串或備援字串。</returns>
     private static string GetResourceOrFallback(string resourceKey, string fallback)
     {
         string? value = Strings.ResourceManager.GetString(resourceKey);

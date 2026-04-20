@@ -7,9 +7,21 @@ namespace InputBox.Core.Interop;
 /// </summary>
 internal static partial class XInput
 {
+    /// <summary>
+    /// 取得指定控制器的目前輸入狀態
+    /// </summary>
+    /// <param name="userIndex">控制器索引（0～3）。</param>
+    /// <param name="state">接收狀態快照的輸出結構。</param>
+    /// <returns>成功時為 0（ERROR_SUCCESS）；控制器未連接時為 1167（ERROR_DEVICE_NOT_CONNECTED）。</returns>
     [LibraryImport("xinput1_4.dll")]
     public static partial uint XInputGetState(uint userIndex, out XInputState state);
 
+    /// <summary>
+    /// 設定指定控制器的震動馬達速度
+    /// </summary>
+    /// <param name="userIndex">控制器索引（0～3）。</param>
+    /// <param name="vibration">包含左右馬達速度的震動參數。</param>
+    /// <returns>成功時為 0（ERROR_SUCCESS）；控制器未連接時為 1167（ERROR_DEVICE_NOT_CONNECTED）。</returns>
     [LibraryImport("xinput1_4.dll")]
     public static partial uint XInputSetState(uint userIndex, in XInputVibration vibration);
 
@@ -102,19 +114,61 @@ internal static partial class XInput
     [Flags]
     public enum GamepadButton : ushort
     {
+        /// <summary>
+        /// 十字鍵上
+        /// </summary>
         DpadUp = 0x0001,
+        /// <summary>
+        /// 十字鍵下
+        /// </summary>
         DpadDown = 0x0002,
+        /// <summary>
+        /// 十字鍵左
+        /// </summary>
         DpadLeft = 0x0004,
+        /// <summary>
+        /// 十字鍵右
+        /// </summary>
         DpadRight = 0x0008,
+        /// <summary>
+        /// Start 鍵
+        /// </summary>
         Start = 0x0010,
+        /// <summary>
+        /// Back 鍵
+        /// </summary>
         Back = 0x0020,
+        /// <summary>
+        /// 左搖桿按下
+        /// </summary>
         LeftThumb = 0x0040,
+        /// <summary>
+        /// 右搖桿按下
+        /// </summary>
         RightThumb = 0x0080,
+        /// <summary>
+        /// 左肩鍵（LB）
+        /// </summary>
         LeftShoulder = 0x0100,
+        /// <summary>
+        /// 右肩鍵（RB）
+        /// </summary>
         RightShoulder = 0x0200,
+        /// <summary>
+        /// A 鍵（底部面板鍵）
+        /// </summary>
         A = 0x1000,
+        /// <summary>
+        /// B 鍵（右側面板鍵）
+        /// </summary>
         B = 0x2000,
+        /// <summary>
+        /// X 鍵（左側面板鍵）
+        /// </summary>
         X = 0x4000,
+        /// <summary>
+        /// Y 鍵（頂部面板鍵）
+        /// </summary>
         Y = 0x8000
     }
 }
