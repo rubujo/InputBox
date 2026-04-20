@@ -5,6 +5,7 @@ using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -1065,7 +1066,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 嘗試顯示 Windows 觸控式鍵盤
+    /// 依據執行環境（Windows 或 Wine/Proton）嘗試顯示對應的觸控式鍵盤
     /// </summary>
     private void ShowTouchKeyboard()
     {
@@ -1086,6 +1087,14 @@ public partial class MainForm
 
         // A11y 廣播。
         AnnounceA11y(Strings.A11y_Opening_Keyboard);
+
+        // 若執行於 Wine (Proton)，改用 Steam URI scheme 喚起 Steam 螢幕鍵盤。
+        // 使用者需自行在 OSK 輸入後複製貼上。
+        if (SystemHelper.IsRunningOnWine() &&
+            TouchKeyboardService.TryOpenSteamKeyboard())
+        {
+            return;
+        }
 
         // 使用非同步延遲，避免與系統原生的 Focus 彈出行為發生競態。
         // 快照 CancellationToken，避免多次讀取 _formCts 的競態條件。

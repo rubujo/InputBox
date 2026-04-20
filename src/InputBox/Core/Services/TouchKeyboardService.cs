@@ -119,6 +119,64 @@ internal static partial class TouchKeyboardService
     }
 
     /// <summary>
+    /// 在 Wine / Proton 環境下嘗試喚起 Steam 螢幕鍵盤
+    /// </summary>
+    /// <remarks>
+    /// 透過 Steam 的 URI Scheme (steam://open/keyboard) 來開啟 SteamOS 的螢幕鍵盤。
+    /// 由於不同環境（Steam Deck、桌面模式、不同 Proton 版本）對 URI 的處理方式不同，
+    /// 此方法實施了多重 Fallback 呼叫策略以確保最大相容性。
+    /// </remarks>
+    /// <returns>若成功啟動其中一種喚起指令則回傳 true，否則為 false。</returns>
+    internal static bool TryOpenSteamKeyboard()
+    {
+        string steamKeyboardUri = "steam://open/keyboard";
+
+        ProcessStartInfo[] attempts =
+        [
+            new ProcessStartInfo("explorer.exe", steamKeyboardUri)
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true
+            },
+            new ProcessStartInfo(steamKeyboardUri)
+            {
+                UseShellExecute = true,
+                Verb = "open"
+            },
+            new ProcessStartInfo("rundll32.exe", $"url.dll,FileProtocolHandler {steamKeyboardUri}")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true
+            },
+            new ProcessStartInfo("cmd.exe", $"/c start \"\" \"{steamKeyboardUri}\"")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true
+            }
+        ];
+
+        foreach (ProcessStartInfo startInfo in attempts)
+        {
+            try
+            {
+                using Process? process = Process.Start(startInfo);
+
+                if (process != null)
+                {
+                    Debug.WriteLine($"[SteamOSK] 已使用 {startInfo.FileName} 喚起鍵盤。");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SteamOSK] 使用 {startInfo.FileName} 喚起失敗：{ex.Message}");
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// 使用 COM 介面 ITipInvocation 嘗試開啟觸控鍵盤
     /// </summary>
     /// <returns>是否成功切換狀態</returns>
