@@ -1299,7 +1299,13 @@ public partial class MainForm
                     return;
                 }
 
-                _ = User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
+                // Gamescope 環境下跳過 Restore：視窗已在 MainForm_Shown 設為 Maximized，
+                // 反覆呼叫 SW_RESTORE 會覆蓋最大化狀態，導致 Gamescope 合成器接管失敗。
+                if (!SystemHelper.IsRunningOnGamescope())
+                {
+                    _ = User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
+                }
+
                 _ = User32.BringWindowToTop(Handle);
                 _ = User32.SetForegroundWindow(Handle);
                 BringToFront();

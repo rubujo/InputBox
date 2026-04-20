@@ -7,6 +7,7 @@ using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Core.Utilities;
 using InputBox.Resources;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
 
@@ -111,15 +112,9 @@ public partial class MainForm
 
         // Gamescope (遊戲模式) 防護：
         // 攔截選單開啟事件，防止產生彈出視窗表面破壞渲染鏈。
-        // 在 Steam Deck 遊戲模式下，應用程式應保持單一視窗表面以維持最大化穩定性。
-        _cmsInput.Opening += (s, e) =>
-        {
-            if (SystemHelper.IsRunningOnGamescope())
-            {
-                e.Cancel = true;
-                FeedbackService.PlaySound(SystemSounds.Asterisk);
-            }
-        };
+        // 使用具名處理器（先 -= 再 +=）確保多次呼叫時不重複訂閱。
+        _cmsInput.Opening -= OnContextMenuOpening_GamescopeGuard;
+        _cmsInput.Opening += OnContextMenuOpening_GamescopeGuard;
 
         ContextMenuBuilder.EnsureRestartItem(
             _cmsInput,
@@ -2447,6 +2442,20 @@ public partial class MainForm
     /// </summary>
     /// <param name="sender">事件來源。</param>
     /// <param name="e">預覽按鍵事件。</param>
+    /// <summary>
+    /// Gamescope（遊戲模式）防護：攔截右鍵選單開啟事件，防止彈出視窗破壞渲染鏈
+    /// </summary>
+    /// <param name="sender">事件來源（<see cref="ContextMenuStrip"/>）。</param>
+    /// <param name="e">取消事件引數；設定 <see cref="CancelEventArgs.Cancel"/> 為 true 可阻止選單顯示。</param>
+    private void OnContextMenuOpening_GamescopeGuard(object? sender, CancelEventArgs e)
+    {
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            e.Cancel = true;
+            FeedbackService.PlaySound(SystemSounds.Asterisk);
+        }
+    }
+
     private static void ContextMenu_PreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
     {
         if (e.KeyCode is Keys.Up or Keys.Down or Keys.Left or Keys.Right or Keys.Home or Keys.End or Keys.PageUp or Keys.PageDown or Keys.Enter or Keys.Escape)

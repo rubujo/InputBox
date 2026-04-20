@@ -27,7 +27,10 @@ public static partial class SystemHelper
     /// 這是偵測 Linux/Steam Deck (Proton) 環境下 Windows 程式執行狀態的最可靠方式。
     /// </remarks>
     /// <returns>若在 Wine 環境下執行則回傳 true，否則為 false。</returns>
-    public static bool IsRunningOnWine() => _isOnWine;
+    public static bool IsRunningOnWine()
+    {
+        return _isOnWine;
+    }
 
     /// <summary>
     /// 偵測目前應用程式是否執行於 Steam Deck 的 Gamescope（遊戲模式）環境下
@@ -37,7 +40,10 @@ public static partial class SystemHelper
     /// 在遊戲模式下，WinForms 的多視窗管理與還原邏輯常會導致渲染表面遺失，需進行特定保護。
     /// </remarks>
     /// <returns>若在 Gamescope 下執行則回傳 true，否則為 false。</returns>
-    public static bool IsRunningOnGamescope() => _isOnGamescope;
+    public static bool IsRunningOnGamescope()
+    {
+        return _isOnGamescope;
+    }
 
     /// <summary>
     /// 在程式啟動時執行一次 Wine 偵測，結果快取至 <see cref="_isOnWine"/>
