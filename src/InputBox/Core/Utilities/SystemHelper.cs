@@ -10,6 +10,16 @@ namespace InputBox.Core.Utilities;
 public static partial class SystemHelper
 {
     /// <summary>
+    /// 程式啟動時的 Wine (Proton) 環境偵測結果；由 <see cref="DetectWine"/> 初始化。
+    /// </summary>
+    private static readonly bool _isOnWine = DetectWine();
+
+    /// <summary>
+    /// 程式啟動時的 Gamescope 合成器環境偵測結果；由 <see cref="DetectGamescope"/> 初始化。
+    /// </summary>
+    private static readonly bool _isOnGamescope = DetectGamescope();
+
+    /// <summary>
     /// 偵測目前應用程式是否執行於 Wine (Proton) 環境下
     /// </summary>
     /// <remarks>
@@ -17,11 +27,27 @@ public static partial class SystemHelper
     /// 這是偵測 Linux/Steam Deck (Proton) 環境下 Windows 程式執行狀態的最可靠方式。
     /// </remarks>
     /// <returns>若在 Wine 環境下執行則回傳 true，否則為 false。</returns>
-    public static bool IsRunningOnWine()
+    public static bool IsRunningOnWine() => _isOnWine;
+
+    /// <summary>
+    /// 偵測目前應用程式是否執行於 Steam Deck 的 Gamescope（遊戲模式）環境下
+    /// </summary>
+    /// <remarks>
+    /// 透過檢查環境變數 GAMESCOPE_WAYLAND_DISPLAY 來判斷是否受 Gamescope 合成器控管。
+    /// 在遊戲模式下，WinForms 的多視窗管理與還原邏輯常會導致渲染表面遺失，需進行特定保護。
+    /// </remarks>
+    /// <returns>若在 Gamescope 下執行則回傳 true，否則為 false。</returns>
+    public static bool IsRunningOnGamescope() => _isOnGamescope;
+
+    /// <summary>
+    /// 在程式啟動時執行一次 Wine 偵測，結果快取至 <see cref="_isOnWine"/>
+    /// </summary>
+    /// <returns>若偵測到 Wine (Proton) 環境則回傳 true，偵測失敗或非 Wine 環境則回傳 false。</returns>
+    private static bool DetectWine()
     {
         try
         {
-            // Wine 的 ntdll.dll 會導出 wine_get_version 函數。
+            // Wine 的 ntdll.dll 會導出 wine_get_version 函數；原生 Windows 不含此匯出。
             nint hModule = Kernel32.GetModuleHandle("ntdll.dll");
 
             if (hModule == 0)
@@ -30,6 +56,24 @@ public static partial class SystemHelper
             }
 
             return Kernel32.GetProcAddress(hModule, "wine_get_version") != 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 在程式啟動時執行一次 Gamescope 合成器偵測，結果快取至 <see cref="_isOnGamescope"/>
+    /// </summary>
+    /// <returns>若偵測到 Gamescope 環境則回傳 true，環境變數不存在或讀取失敗則回傳 false。</returns>
+    private static bool DetectGamescope()
+    {
+        try
+        {
+            // GAMESCOPE_WAYLAND_DISPLAY 為 Gamescope 合成器設定的專有 Wayland 顯示環境變數。
+            return !string.IsNullOrWhiteSpace(
+                Environment.GetEnvironmentVariable("GAMESCOPE_WAYLAND_DISPLAY"));
         }
         catch
         {

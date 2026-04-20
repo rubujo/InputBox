@@ -96,14 +96,26 @@ public partial class MainForm
                 return;
             }
 
-            // 強制還原視窗，避免在 Windows 桌面（平板模式）下自動最大化。
-            // 對「Windows 遊戲：全螢幕體驗」（Xbox 全螢幕體驗）不受影響，一樣會自動最大化。
-            User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
+            // Gamescope (遊戲模式) 防護：
+            // 在 Steam Deck 遊戲模式下，Gamescope 預期應用程式為單一全螢幕表面。
+            // 執行 Restore 會導致視窗脫離合成器控制，引發黑屏或視窗消失。
+            if (SystemHelper.IsRunningOnGamescope())
+            {
+                // 主動設為最大化，確保 Gamescope 合成器以全螢幕接管視窗表面。
+                // 若視窗以 Normal 狀態啟動，Gamescope 只會縮放小視窗而非滿版呈現。
+                WindowState = FormWindowState.Maximized;
+            }
+            else
+            {
+                // 強制還原視窗，避免在 Windows 桌面（平板模式）下自動最大化。
+                // 對「Windows 遊戲：全螢幕體驗」（Xbox 全螢幕體驗）不受影響，一樣會自動最大化。
+                User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
 
-            // Restore 後執行位置修正，確保 WINDOWPLACEMENT.rcNormalPosition 夾回工作區範圍內。
-            // （若 Handle 建立前視窗已最大化，MinimumSize 已在 UpdateLayoutConstraints 設定；
-            //   Restore 後 Windows 夾至 MinimumSize，此處僅需確保位置合法即可。）
-            ApplySmartPosition();
+                // Restore 後執行位置修正，確保 WINDOWPLACEMENT.rcNormalPosition 夾回工作區範圍內。
+                // （若 Handle 建立前視窗已最大化，MinimumSize 已在 UpdateLayoutConstraints 設定；
+                //   Restore 後 Windows 夾至 MinimumSize，此處僅需確保位置合法即可。）
+                ApplySmartPosition();
+            }
 
             if (_forceForegroundOnFirstShow)
             {
@@ -701,6 +713,16 @@ public partial class MainForm
 
         e.SuppressKeyPress = true;
 
+        // Gamescope (遊戲模式) 防護：
+        // 攔截 F1 快捷鍵呼叫說明對話框，避免破壞遊戲模式下的單一渲染表面。
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            LoggerService.LogInfo("[Gamescope Intercept] Help (F1) intercepted.");
+            FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+            return true;
+        }
+
         ShowHelpDialog();
 
         return true;
@@ -1066,8 +1088,16 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 依據執行環境（Windows 或 Wine/Proton）嘗試顯示對應的觸控式鍵盤
+    /// 依據執行環境嘗試顯示對應的觸控式鍵盤
     /// </summary>
+    /// <remarks>
+    /// 選擇策略：
+    /// <list type="number">
+    ///   <item>Wine (Proton) 或 Gamescope 環境：透過 Steam URI scheme 喚起 Steam 螢幕鍵盤。</item>
+    ///   <item>標準 Windows 環境：以延遲非同步方式喚起系統觸控鍵盤（TabTip / COM）。</item>
+    /// </list>
+    /// 800 ms 防抖節流，防止重複觸發。
+    /// </remarks>
     private void ShowTouchKeyboard()
     {
         if ((DateTime.UtcNow - _lastTouchKeyboardOpened).TotalMilliseconds < 800)
@@ -1088,9 +1118,9 @@ public partial class MainForm
         // A11y 廣播。
         AnnounceA11y(Strings.A11y_Opening_Keyboard);
 
-        // 若執行於 Wine (Proton)，改用 Steam URI scheme 喚起 Steam 螢幕鍵盤。
-        // 使用者需自行在 OSK 輸入後複製貼上。
-        if (SystemHelper.IsRunningOnWine() &&
+        // 若執行於 Wine (Proton) 或 Gamescope，改用 Steam URI scheme 喚起 Steam 螢幕鍵盤。
+        // Gamescope 環境雖通常同時是 Wine，但以明確條件確保不因偵測差異而漏判。
+        if ((SystemHelper.IsRunningOnWine() || SystemHelper.IsRunningOnGamescope()) &&
             TouchKeyboardService.TryOpenSteamKeyboard())
         {
             return;

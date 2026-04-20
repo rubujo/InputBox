@@ -5,6 +5,7 @@ using InputBox.Core.Feedback;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using InputBox.Core.Services;
+using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Media;
@@ -107,6 +108,18 @@ public partial class MainForm
             _cmsInput,
             Strings.A11y_ContextMenu_Name,
             Strings.A11y_ContextMenu_Desc);
+
+        // Gamescope (遊戲模式) 防護：
+        // 攔截選單開啟事件，防止產生彈出視窗表面破壞渲染鏈。
+        // 在 Steam Deck 遊戲模式下，應用程式應保持單一視窗表面以維持最大化穩定性。
+        _cmsInput.Opening += (s, e) =>
+        {
+            if (SystemHelper.IsRunningOnGamescope())
+            {
+                e.Cancel = true;
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
+            }
+        };
 
         ContextMenuBuilder.EnsureRestartItem(
             _cmsInput,

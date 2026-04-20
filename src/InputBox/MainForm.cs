@@ -1081,8 +1081,17 @@ public partial class MainForm : Form
     /// <summary>
     /// 執行智慧定位修正，確保視窗不會跑出螢幕邊界
     /// </summary>
+    /// <remarks>
+    /// Gamescope 環境下跳過位置夾算：視窗位置由合成器決定，
+    /// 任何 <see cref="Form.Location"/> 設定均可能破壞全螢幕狀態。
+    /// </remarks>
     private void ApplySmartPosition()
     {
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            return;
+        }
+
         InputBoxLayoutManager.ApplySmartPosition(
             this,
             () => AnnounceA11y(Strings.A11y_SnapBack));
