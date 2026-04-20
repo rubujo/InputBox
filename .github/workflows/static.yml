@@ -71,7 +71,7 @@ jobs:
           ls -R _site
 
       - name: 上傳部署構件
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           # 上傳準備好的 _site 目錄。
           path: "_site"
