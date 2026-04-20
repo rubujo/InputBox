@@ -1111,7 +1111,7 @@ internal sealed class GamepadMessageBox : Form
             };
         }
 
-        using var dlg = new GamepadMessageBox(text, caption, buttons, icon, defaultButton);
+        using GamepadMessageBox dlg = new GamepadMessageBox(text, caption, buttons, icon, defaultButton);
 
         dlg.GamepadController = gamepad;
 

@@ -200,7 +200,7 @@ public static class ButtonEyeTrackerExtensions
     {
         if (sender is Button btn)
         {
-            if (_buttonStates.TryGetValue(btn, out var buttonState))
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? buttonState))
             {
                 buttonState.OnFocusStateChanged?.Invoke(true);
             }
@@ -254,7 +254,7 @@ public static class ButtonEyeTrackerExtensions
                 return;
             }
 
-            if (_buttonStates.TryGetValue(btn, out var state))
+            if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
                 state.IsHovered = true;
                 state.OnFocusStateChanged?.Invoke(true);
@@ -514,7 +514,7 @@ public static class ButtonEyeTrackerExtensions
 
         try
         {
-            _buttonStates.TryGetValue(btn, out var st);
+            _buttonStates.TryGetValue(btn, out ButtonVisualState? st);
 
             Graphics g = e.Graphics;
 
