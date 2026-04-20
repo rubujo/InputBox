@@ -32,13 +32,13 @@ npm run format
 
 ## 規範索引（依任務展開）
 
-| 任務 | 必讀規範 |
-|---|---|
-| 任何異動 | `docs/engineering/web-architecture.md` |
-| 多語系、Radio Hack、術語 | `docs/engineering/web-localization.md` |
-| 色彩、對比、焦點、動畫、A11y | `docs/engineering/web-a11y-safety.md` |
-| 排版、`<kbd>`、CJK 符號 | `docs/engineering/web-style-typography.md` |
-| Git 工作流、格式化、提交檢查清單 | `docs/engineering/web-git.md` |
+| 任務                             | 必讀規範                                   |
+| -------------------------------- | ------------------------------------------ |
+| 任何異動                         | `docs/engineering/web-architecture.md`     |
+| 多語系、Radio Hack、術語         | `docs/engineering/web-localization.md`     |
+| 色彩、對比、焦點、動畫、A11y     | `docs/engineering/web-a11y-safety.md`      |
+| 排版、`<kbd>`、CJK 符號          | `docs/engineering/web-style-typography.md` |
+| Git 工作流、格式化、提交檢查清單 | `docs/engineering/web-git.md`              |
 
 ---
 
@@ -58,8 +58,15 @@ npm run format
 
 @supports not selector(body:has()) {
   /* 退化：展開全部語系，隱藏切換器 */
-  .lang-switcher { display: none; }
-  .lang-zh, .lang-en, .lang-ja, .lang-sc { display: block; }
+  .lang-switcher {
+    display: none;
+  }
+  .lang-zh,
+  .lang-en,
+  .lang-ja,
+  .lang-sc {
+    display: block;
+  }
 }
 ```
 
@@ -73,7 +80,9 @@ npm run format
 
 ```css
 /* ✓ 預設可見、@supports 內隱藏並套用動畫 */
-.back-to-top { visibility: visible; }
+.back-to-top {
+  visibility: visible;
+}
 
 @supports (animation-timeline: scroll()) {
   .back-to-top {
@@ -88,16 +97,16 @@ npm run format
 
 ## A11y 核心數值
 
-| 規範 | 要求 |
-|---|---|
-| 文字對比度（WCAG AAA） | ≥ 7:1 |
-| 非文字 UI 對比度（WCAG 1.4.11） | ≥ 3:1 |
-| 焦點指示器主環 | `outline: 5px solid #e67e00` |
-| 焦點伴侶環（淺色模式） | `box-shadow: 0 0 0 10px #111827` |
-| 焦點伴侶環（深色模式） | `--focus-companion: none`（單橘環 7.05:1） |
-| 點擊目標最小尺寸 | ≥ 44×44px |
-| 動畫頻率上限 | ≤ 1Hz |
-| Hover/Focus 佈局影響 | 零抖動（禁止改變 width/height/margin/padding） |
+| 規範                            | 要求                                           |
+| ------------------------------- | ---------------------------------------------- |
+| 文字對比度（WCAG AAA）          | ≥ 7:1                                          |
+| 非文字 UI 對比度（WCAG 1.4.11） | ≥ 3:1                                          |
+| 焦點指示器主環                  | `outline: 5px solid #e67e00`                   |
+| 焦點伴侶環（淺色模式）          | `box-shadow: 0 0 0 10px #111827`               |
+| 焦點伴侶環（深色模式）          | `--focus-companion: none`（單橘環 7.05:1）     |
+| 點擊目標最小尺寸                | ≥ 44×44px                                      |
+| 動畫頻率上限                    | ≤ 1Hz                                          |
+| Hover/Focus 佈局影響            | 零抖動（禁止改變 width/height/margin/padding） |
 
 - 高對比模式：必須提供 `@media (forced-colors: active)`，覆蓋 `.skip-link:focus`、`.cta-button`、導覽列 hover/active。
 - 低效能觸控裝置：`(hover: none) and (pointer: coarse)` 條件下停用高成本動畫、濾鏡與陰影。
