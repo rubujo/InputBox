@@ -30,6 +30,8 @@ internal sealed class AnnouncerLabel : Label
         AccessibleRole = AccessibleRole.StatusBar;
         // 設定 LiveSetting 為 Polite，確保訊息會在語音空閒時報讀。
         LiveSetting = AutomationLiveSetting.Polite;
+        AccessibleName = "\u200B";
+        TabStop = false;
         Visible = true;
         Size = new Size(20, 20);
         Location = new Point(0, 0);

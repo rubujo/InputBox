@@ -11,8 +11,8 @@
 
 | 測試類別 | 被測目標 | 測試數 |
 |---|---|---|
-| `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊、Dispose 行為與關閉時背景工作退出保護 | 5 |
-| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照，以及設定檔實際保存／讀回、併發保存、暫存清理與併發暫存檔誤刪回歸保護 | 51 |
+| `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊、Dispose 行為與關閉時背景工作退出保護，以及 `AnnouncerLabel` 必要 A11y 預設值回歸保護 | 6 |
+| `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照，以及設定檔實際保存／讀回、併發保存、暫存清理、外來暫存檔保留與併發暫存檔誤刪回歸保護 | 52 |
 | `CmdKeyDispatcherTests` | `CmdKeyDispatcher` 對右鍵選單混合輸入的鍵盤命令轉譯與原生確認鍵行為回歸保護 | 4 |
 | `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
 | `DialogLabelStabilityTests` | 片語管理／編輯對話框的動態計數標籤固定寬度、完整數字可視與零抖動回歸保護 | 3 |
@@ -21,16 +21,16 @@
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載） | 12 |
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意與原生對話框切換時的殘留輸入回歸保護 | 5 |
-| `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 9 |
+| `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 14 |
 | `GamepadEventBinderTests` | `GamepadEventBinder` 的 LB / RB / LT / RT 與肩鍵放開事件綁定回歸保護 | 1 |
-| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆蓋優先權，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 13 |
+| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆蓋優先權，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 23 |
 | `GamepadShoulderShortcutArbiterTests` | `GamepadShoulderShortcutArbiter` 的肩鍵單按、連發、修飾鍵與雙肩鍵組合仲裁回歸保護 | 4 |
 | `GamepadMappedDirectionGuardTests` | `GamepadMappedDirectionGuard` 全方向幽靈保護的封鎖／解除節奏 | 2 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
 | `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 13 |
 | `GaussianDelayHelperTests` | `GaussianDelayHelper` 延遲計算 | 5 |
-| `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消、生命週期資源保護與已連線控制器提示同步 | 2 |
+| `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消、生命週期資源保護與已連線控制器提示同步 | 5 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD 與 5 筆翻頁導覽 | 15 |
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
@@ -40,9 +40,9 @@
 | `RestartPromptStateTests` | 需重啟設定的待處理狀態追蹤、標題列提示，以及右鍵選單依 App 設定／系統變更／兩者同時存在而動態切換文案的回歸保護 | 7 |
 | `RestartRequestDeciderTests` | 手動重啟與設定變更兩種入口的確認策略回歸保護 | 3 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
-| `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 30 |
+| `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **339** |
+| **合計** | | **350** |
 
 ## 二、執行方式 🚀
 
