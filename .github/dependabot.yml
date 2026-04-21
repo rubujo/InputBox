@@ -16,6 +16,14 @@ updates:
       day: monday
     open-pull-requests-limit: 5
 
+  # 追蹤 .NET 本地工具清單（dotnet-tools.json）的版本更新。
+  - package-ecosystem: nuget
+    directory: /.config
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+
   # 追蹤 GitHub Actions 本身的版本更新（checkout、setup-dotnet 等）。
   - package-ecosystem: github-actions
     directory: /
