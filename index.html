@@ -1297,6 +1297,7 @@
 
           body:has(#about:target) nav.main-nav a[href="#about"],
           body:has(#handheld:target) nav.main-nav a[href="#handheld"],
+          body:has(#steamdeck:target) nav.main-nav a[href="#steamdeck"],
           body:has(#usage:target) nav.main-nav a[href="#usage"],
           body:has(#spec:target) nav.main-nav a[href="#spec"],
           body:has(#vibration:target) nav.main-nav a[href="#vibration"],
@@ -1312,7 +1313,8 @@
           }
 
           body:has(#handheld:target) nav.main-nav a[href="#about"],
-          body:has(#usage:target) nav.main-nav a[href="#handheld"],
+          body:has(#steamdeck:target) nav.main-nav a[href="#handheld"],
+          body:has(#usage:target) nav.main-nav a[href="#steamdeck"],
           body:has(#spec:target) nav.main-nav a[href="#usage"],
           body:has(#vibration:target) nav.main-nav a[href="#spec"],
           body:has(#faq:target) nav.main-nav a[href="#vibration"] {
@@ -1336,7 +1338,7 @@
         @supports (timeline-scope: --section-about) {
           body {
             timeline-scope:
-              --section-about, --section-handheld, --section-usage, --section-usage-advanced,
+              --section-about, --section-handheld, --section-steamdeck, --section-usage, --section-usage-advanced,
               --section-spec, --section-vibration, --section-faq;
           }
         }
@@ -1347,6 +1349,10 @@
 
         #handheld {
           view-timeline: --section-handheld block;
+        }
+
+        #steamdeck {
+          view-timeline: --section-steamdeck block;
         }
 
         #usage {
@@ -1384,6 +1390,11 @@
 
         nav.main-nav a[href="#handheld"] {
           animation-timeline: --section-handheld;
+          animation-name: spy-current;
+        }
+
+        nav.main-nav a[href="#steamdeck"] {
+          animation-timeline: --section-steamdeck;
           animation-name: spy-current;
         }
 
@@ -3398,8 +3409,7 @@
                 </li>
               </ul>
             </div>
-          </div>
-          <div class="feature-card">
+            <div class="feature-card" style="grid-column: 1 / -1">
             <h3>
               <span class="lang-zh">注意事項 📌</span>
               <span class="lang-de" lang="de">Hinweise 📌</span>
@@ -3468,6 +3478,7 @@
                 </ul>
               </li>
             </ul>
+            </div>
           </div>
         </div>
       </section>
