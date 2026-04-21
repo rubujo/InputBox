@@ -114,6 +114,7 @@ public static class InputBoxLayoutManager
             return;
         }
 
+        bool isRunningOnGamescope = SystemHelper.IsRunningOnGamescope();
         float currentScale = form.DeviceDpi / AppSettings.BaseDpi;
 
         copyButton.MinimumSize = Size.Empty;
@@ -146,6 +147,11 @@ public static class InputBoxLayoutManager
         Size minWindowSize = sizeFromClientSize(new Size(totalMinWidth, finalClientHeight));
 
         int finalWindowHeight = Math.Max(minWindowSize.Height, (int)(80 * currentScale));
+
+        if (isRunningOnGamescope)
+        {
+            return;
+        }
 
         Rectangle workArea = Screen.FromControl(form).WorkingArea;
 

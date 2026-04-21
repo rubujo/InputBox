@@ -1256,6 +1256,14 @@ public partial class MainForm
     /// <param name="allowDelayedShortcut">是否允許先暫存單鍵捷徑，以便雙板機組合優先攔截。</param>
     private void HandleTriggerShortcut(bool moveToEnd, bool allowDelayedShortcut)
     {
+        if (SystemHelper.ShouldRestrictSteamKeyboardTriggerShortcuts())
+        {
+            CancelPendingTriggerShortcuts();
+            Interlocked.Exchange(ref _privacyTriggerComboLatched, 0);
+            Interlocked.Exchange(ref _triggerComboCueLatched, 0);
+            return;
+        }
+
         if (HandleContextMenuGamepadInput(moveToEnd ? "PhrasePageLast" : "PhrasePageFirst") ||
             _cmsInput?.Visible == true ||
             IsGamepadInputSuppressed())
