@@ -121,7 +121,8 @@ jobs:
         dotnet tool run reportgenerator `
           "-reports:${{ env.COVERAGE_GLOB }}" `
           "-targetdir:${{ env.REPORT_DIR }}" `
-          "-reporttypes:Html;Cobertura;MarkdownSummaryGithub"
+          "-reporttypes:Html;Cobertura;MarkdownSummaryGithub" `
+          "-filefilters:-*\obj\*"
 
     - name: 寫入覆蓋率摘要至 GitHub Step Summary
       run: |
