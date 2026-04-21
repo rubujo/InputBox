@@ -36,6 +36,9 @@ jobs:
     steps:
       - name: 檢出原始碼
         uses: actions/checkout@v6
+        with:
+          # 部署靜態網頁不需要完整歷史記錄。
+          fetch-depth: 1
 
       - name: 設定 Node.js
         uses: actions/setup-node@v6
@@ -44,6 +47,7 @@ jobs:
           cache: npm
 
       - name: 快取 Playwright 瀏覽器
+        id: playwright-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -52,8 +56,13 @@ jobs:
       - name: 安裝測試依賴
         run: npm ci --prefer-offline --no-audit --fund=false
 
-      - name: 安裝 Playwright 瀏覽器
+      - name: 安裝 Playwright 瀏覽器（含系統依賴）
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: 安裝 Playwright 系統依賴（快取命中）
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - name: 執行 A11y 測試
         run: npm test
