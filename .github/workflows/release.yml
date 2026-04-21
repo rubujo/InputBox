@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-and-release:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
       contents: write
@@ -68,11 +68,7 @@ jobs:
       with:
         # 使用 GitHub Actions 語法來讀取 env 變數。
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
-        # 啟用快取功能，加速 NuGet 套件還原（Restore）。
-        cache: true
-        cache-dependency-path: |
-          **/InputBox.csproj
-          .config/dotnet-tools.json
+        # Release 觸發頻率遠低於 cache TTL（7 天），不快取以避免無效寫入。
 
     - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
