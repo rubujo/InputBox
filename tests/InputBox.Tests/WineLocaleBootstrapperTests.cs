@@ -173,6 +173,24 @@ public sealed class WineLocaleBootstrapperTests
         Assert.Equal("ja", WineLocaleBootstrapper.NormalizePosixToTag("ja"));
     }
 
+    /// <summary>
+    /// 前後含空白字元的輸入應在修剪後正常正規化（驗證 Trim() 防禦邏輯）。
+    /// </summary>
+    [Fact]
+    public void NormalizePosixToTag_LeadingTrailingWhitespace_TrimsAndMaps()
+    {
+        Assert.Equal("zh-Hant", WineLocaleBootstrapper.NormalizePosixToTag("  zh_TW.UTF-8  "));
+    }
+
+    /// <summary>
+    /// en_US.UTF-8 應正規化為 en-US，無需特殊映射（Steam Deck 最常見的宿主 locale）。
+    /// </summary>
+    [Fact]
+    public void NormalizePosixToTag_EnUsUtf8_ReturnsEnUs()
+    {
+        Assert.Equal("en-US", WineLocaleBootstrapper.NormalizePosixToTag("en_US.UTF-8"));
+    }
+
     // ── MapToSupportedCulture：繁體中文 2 組件形式 ───────────────────────────
 
     /// <summary>
@@ -314,6 +332,26 @@ public sealed class WineLocaleBootstrapperTests
     public void MapToSupportedCulture_ZhHansMY_ReturnsZhHans()
     {
         Assert.Equal("zh-Hans", WineLocaleBootstrapper.MapToSupportedCulture("zh-Hans-MY"));
+    }
+
+    // ── MapToSupportedCulture：zh-Hant / zh-Hans 已正規化值 pass-through ────
+
+    /// <summary>
+    /// zh-Hant 已是目標值，應直接原樣回傳（不在 switch cases 中，走 _ => tag 路徑）。
+    /// </summary>
+    [Fact]
+    public void MapToSupportedCulture_ZhHant_ReturnsZhHant()
+    {
+        Assert.Equal("zh-Hant", WineLocaleBootstrapper.MapToSupportedCulture("zh-Hant"));
+    }
+
+    /// <summary>
+    /// zh-Hans 已是目標值，應直接原樣回傳（不在 switch cases 中，走 _ => tag 路徑）。
+    /// </summary>
+    [Fact]
+    public void MapToSupportedCulture_ZhHans_ReturnsZhHans()
+    {
+        Assert.Equal("zh-Hans", WineLocaleBootstrapper.MapToSupportedCulture("zh-Hans"));
     }
 
     // ── MapToSupportedCulture：非 zh 語系 pass-through ──────────────────────
