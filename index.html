@@ -969,6 +969,23 @@
         gap: 0.5rem;
       }
 
+      .feature-card pre {
+        overflow-x: auto;
+        max-width: 100%;
+        margin: 0.75rem 0 0;
+        padding: 0.75rem 1rem;
+        background-color: var(--section-alt-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+      }
+
+      .feature-card pre code {
+        font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+        white-space: pre;
+      }
+
       .quick-setup-list {
         list-style: none;
         padding-left: 0;
@@ -1931,6 +1948,10 @@
           max-width: 100%;
           box-sizing: border-box;
         }
+
+        .feature-card {
+          padding: 1.5rem;
+        }
       }
 
       /*
@@ -2247,6 +2268,20 @@
           text-shadow: none !important;
           color: black !important;
           border: 1px solid black !important;
+        }
+
+        /* code 區塊：列印時換行，避免長字串截斷或溢出頁面 */
+        pre {
+          white-space: pre-wrap !important;
+          word-break: break-all !important;
+          overflow: visible !important;
+          border: 1px solid #999 !important;
+          background: #f5f5f5 !important;
+          color: black !important;
+          font-size: 9pt !important;
+          padding: 0.5rem !important;
+          break-inside: avoid;
+          page-break-inside: avoid;
         }
       }
     </style>
