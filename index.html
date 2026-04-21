@@ -951,6 +951,10 @@
           border-color var(--transition-speed);
       }
 
+      .feature-card--full {
+        grid-column: 1 / -1;
+      }
+
       .feature-card:hover {
         box-shadow: var(--card-shadow-hover);
         border-color: var(--focus-ring);
@@ -3409,7 +3413,7 @@
                 </li>
               </ul>
             </div>
-            <div class="feature-card" style="grid-column: 1 / -1">
+            <div class="feature-card feature-card--full">
             <h3>
               <span class="lang-zh">注意事項 📌</span>
               <span class="lang-de" lang="de">Hinweise 📌</span>
@@ -3478,7 +3482,7 @@
                 </ul>
               </li>
             </ul>
-            </div>
+            </>
           </div>
         </div>
       </section>
