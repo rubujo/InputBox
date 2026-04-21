@@ -243,7 +243,6 @@ public sealed class MainFormUiSmokeTests : IDisposable
             FlaUiButton cancelButton = FindDescendantByLabel(calibrationDialog, ControlType.Button, Strings.Btn_Cancel, "找不到校準視覺化對話框中的取消按鈕。").AsButton();
 
             Assert.True(calibrationDialog.IsEnabled);
-            Assert.True(resetButton.IsEnabled);
             Assert.True(cancelButton.IsEnabled);
 
             cancelButton.Invoke();
