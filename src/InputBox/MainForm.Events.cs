@@ -1381,8 +1381,8 @@ public partial class MainForm
                     return;
                 }
 
-                // Gamescope 環境下跳過 Restore：視窗已在 MainForm_Shown 設為 Maximized，
-                // 反覆呼叫 SW_RESTORE 會覆蓋最大化狀態，導致 Gamescope 合成器接管失敗。
+                // Gamescope 環境下跳過 Restore：視窗已在 MainForm_Shown 套用無邊框全螢幕（Borderless Fullscreen），
+                // 反覆呼叫 SW_RESTORE 會覆蓋無邊框全螢幕狀態，導致 Gamescope 合成器接管失敗。
                 if (!SystemHelper.IsRunningOnGamescope())
                 {
                     _ = User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
