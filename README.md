@@ -53,6 +53,35 @@
     - **可轉散發組件（選用）**：可透過微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) NuGet 套件取得。
       - 安裝方式：執行套件 `redist` 目錄下的 `GameInputRedist.msi`。
 
+## Steam Deck／SteamOS 3 使用說明 🎮
+
+目前版本已針對 **WINE／Proton** 與 **SteamOS 3 的遊戲模式（Gamescope）** 加入相容性調整。整體原則是：**Steam Deck 桌面模式盡量保留完整功能；只有 Gamescope 遊戲模式會套用保守限制。**
+
+- **Steam Deck 桌面模式（KDE Plasma）**：
+  - 不套用 Gamescope 專用限制。
+  - 高風險快捷鍵與返回行為維持可用。
+  - 若執行於 WINE／Proton，開啟螢幕鍵盤時會優先嘗試使用 **Steam 虛擬鍵盤**。
+- **Steam Deck 遊戲模式（Gamescope）**：
+  - 會套用單一視窗與焦點安全限制，避免切換視窗、彈出選單或視窗狀態變更造成黑畫面、失焦或渲染表面異常。
+  - 開啟螢幕鍵盤時會優先使用 **Steam 虛擬鍵盤**。
+  - 下列功能目前會停用或受限制：
+    - 返回前一個視窗（包含複製成功後自動返回）。
+    - 視窗透明度調整與重設。
+    - 隱私模式快捷切換。
+    - 右鍵選單與說明對話框。
+    - 重新朗讀全文（R3）。
+    - `LT`／`RT` 的控制器快捷功能，避免與 Steam 虛擬鍵盤的保留按鍵衝突。
+- **注意事項**：
+  - 本專案目前的 Linux 相容性調整，重點在於 **Steam Deck／SteamOS 3 + WINE／Proton** 的實際使用情境。
+  - 即使在桌面模式下可保留完整功能，螢幕鍵盤、輸入法候選窗與焦點恢復行為仍可能受桌面環境設定影響。
+  - 若應用程式在 Steam Deck 上無法正常啟動、顯示異常或行為不穩定，可嘗試改用較新的 **Proton** 版本，或切換至 **Proton Experimental** 再重新測試。
+  - 若要在 SteamOS 3 的 Steam 啟動選項中明確指定正體中文語系，可加入：
+    ```shell
+    HOST_LC_ALL=zh_TW.UTF-8 %command%
+    ```
+    - 此設定可讓 WINE／Proton 優先繼承 `zh_TW.UTF-8` 語系，改善介面語系、資源挑選與部分在地化行為的穩定性。
+    - **前提**：SteamOS 本機需先生成對應的 `zh_TW.UTF-8` 語系；若系統尚未提供該 locale，則這個啟動參數不會生效，WINE／Proton 仍可能回退到預設語系。
+
 ## 三、使用方式 📖
 
 ### 0. 一分鐘快速設定教學 🚀

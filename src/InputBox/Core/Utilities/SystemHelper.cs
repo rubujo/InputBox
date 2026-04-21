@@ -59,6 +59,19 @@ public static partial class SystemHelper
     }
 
     /// <summary>
+    /// 判斷目前平台是否應停用 Steam 螢幕鍵盤保留的板機快捷功能。
+    /// </summary>
+    /// <remarks>
+    /// Gamescope 下 Steam 螢幕鍵盤會占用 LT 與 RT；
+    /// 此時應停用應用程式內依賴板機的快捷邏輯，避免與 OSK 映射衝突。
+    /// </remarks>
+    /// <returns>若應停用 Steam 螢幕鍵盤保留的板機快捷功能則回傳 true。</returns>
+    public static bool ShouldRestrictSteamKeyboardTriggerShortcuts()
+    {
+        return _isOnGamescope;
+    }
+
+    /// <summary>
     /// 在程式啟動時執行一次 Wine 偵測，結果快取至 <see cref="_isOnWine"/>
     /// </summary>
     /// <returns>若偵測到 Wine (Proton) 環境則回傳 true，偵測失敗或非 Wine 環境則回傳 false。</returns>
