@@ -2438,12 +2438,7 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 在右鍵選單與片語子選單內標記應由選單接手的輸入鍵，避免方向鍵與 Enter 被原焦點控制項吞掉。
-    /// </summary>
-    /// <param name="sender">事件來源。</param>
-    /// <param name="e">預覽按鍵事件。</param>
-    /// <summary>
-    /// Gamescope（遊戲模式）防護：攔截右鍵選單開啟事件，防止彈出視窗破壞渲染鏈
+    /// Gamescope（遊戲模式）防護：攔截右鍵選單開啟事件，防止彈出視窗破壞渲染鏈。
     /// </summary>
     /// <param name="sender">事件來源（<see cref="ContextMenuStrip"/>）。</param>
     /// <param name="e">取消事件引數；設定 <see cref="CancelEventArgs.Cancel"/> 為 true 可阻止選單顯示。</param>
@@ -2456,6 +2451,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 在右鍵選單與片語子選單內標記應由選單接手的輸入鍵，避免方向鍵與 Enter 被原焦點控制項吞掉。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">預覽按鍵事件。</param>
     private static void ContextMenu_PreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
     {
         if (e.KeyCode is Keys.Up or Keys.Down or Keys.Left or Keys.Right or Keys.Home or Keys.End or Keys.PageUp or Keys.PageDown or Keys.Enter or Keys.Escape)

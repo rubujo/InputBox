@@ -1614,11 +1614,7 @@ internal sealed class PhraseManagerDialog : Form
     }
 
     /// <summary>
-    /// 控制器連線狀態變更時更新恢復狀態並播報結果
-    /// </summary>
-    /// <param name="connected">新的控制器連線狀態。</param>
-    /// <summary>
-    /// 控制器連線狀態變更時更新連線並廣播無障礙訊息。
+    /// 控制器連線狀態變更時更新恢復狀態並廣播無障礙訊息。
     /// </summary>
     /// <param name="connected">連線成功為 <see langword="true"/>，斷線為 <see langword="false"/>。</param>
     private void HandleGamepadConnectionChanged(bool connected)
