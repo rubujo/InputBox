@@ -3449,31 +3449,31 @@
               </li>
               <li>
                 <span class="lang-zh">若要在 SteamOS 3 的 Steam 啟動選項中明確指定正體中文語系，可加入：</span>
-                <span class="lang-de" lang="de">Um die Sprache Traditionelles Chinesisch in den Steam-Startoptionen von SteamOS 3 explizit festzulegen, fügen Sie Folgendes hinzu:</span>
-                <span class="lang-en" lang="en">To explicitly set the Traditional Chinese locale in SteamOS 3 Steam launch options, add:</span>
-                <span class="lang-fr" lang="fr">Pour spécifier explicitement la langue chinois traditionnel dans les options de lancement Steam de SteamOS 3, ajoutez :</span>
-                <span class="lang-ja" lang="ja">SteamOS 3 の Steam 起動オプションで繁体字中国語ロケールを明示的に指定するには、以下を追加してください：</span>
-                <span class="lang-ko" lang="ko">SteamOS 3의 Steam 실행 옵션에서 번체 중국어 로케일을 명시적으로 설정하려면 다음을 추가하세요:</span>
-                <span class="lang-sc" lang="zh-Hans">若要在 SteamOS 3 的 Steam 启动选项中明确指定繁体中文语系，可加入：</span>
-                <pre><code>HOST_LC_ALL=zh_TW.UTF-8 %command%</code></pre>
+                <span class="lang-de" lang="de">Um das Deutsch-Gebietsschema in den Steam-Startoptionen von SteamOS 3 explizit festzulegen, fügen Sie Folgendes hinzu:</span>
+                <span class="lang-en" lang="en">To explicitly set the English locale in SteamOS 3 Steam launch options, add:</span>
+                <span class="lang-fr" lang="fr">Pour spécifier explicitement la langue française dans les options de lancement Steam de SteamOS 3, ajoutez :</span>
+                <span class="lang-ja" lang="ja">SteamOS 3 の Steam 起動オプションで日本語ロケールを明示的に指定するには、以下を追加してください：</span>
+                <span class="lang-ko" lang="ko">SteamOS 3의 Steam 실행 옵션에서 한국어 로케일을 명시적으로 설정하려면 다음을 추가하세요:</span>
+                <span class="lang-sc" lang="zh-Hans">若要在 SteamOS 3 的 Steam 启动选项中明确指定简体中文语系，可加入：</span>
+                <pre><code><span class="lang-zh">HOST_LC_ALL=zh_TW.UTF-8 %command%</span><span class="lang-de" lang="de">HOST_LC_ALL=de_DE.UTF-8 %command%</span><span class="lang-en" lang="en">HOST_LC_ALL=en_US.UTF-8 %command%</span><span class="lang-fr" lang="fr">HOST_LC_ALL=fr_FR.UTF-8 %command%</span><span class="lang-ja" lang="ja">HOST_LC_ALL=ja_JP.UTF-8 %command%</span><span class="lang-ko" lang="ko">HOST_LC_ALL=ko_KR.UTF-8 %command%</span><span class="lang-sc" lang="zh-Hans">HOST_LC_ALL=zh_CN.UTF-8 %command%</span></code></pre>
                 <ul>
                   <li>
                     <span class="lang-zh">此設定可讓 WINE／Proton 優先繼承 zh_TW.UTF-8 語系，改善介面語系、資源挑選與部分在地化行為的穩定性。</span>
-                    <span class="lang-de" lang="de">Dies lässt WINE/Proton das zh_TW.UTF-8-Gebietsschema bevorzugt übernehmen und verbessert Sprachauswahl, Ressourcenladung und Lokalisierungsstabilität.</span>
-                    <span class="lang-en" lang="en">This lets WINE/Proton inherit the zh_TW.UTF-8 locale with higher priority, improving UI language, resource loading, and localization stability.</span>
-                    <span class="lang-fr" lang="fr">Cela permet à WINE/Proton d'hériter de la locale zh_TW.UTF-8 en priorité, améliorant la langue de l'interface, le chargement des ressources et la stabilité de la localisation.</span>
-                    <span class="lang-ja" lang="ja">これにより WINE/Proton が zh_TW.UTF-8 ロケールを優先的に継承し、UI 言語・リソース読み込み・ローカライゼーションの安定性が向上します。</span>
-                    <span class="lang-ko" lang="ko">이를 통해 WINE/Proton이 zh_TW.UTF-8 로케일을 우선적으로 상속하여 UI 언어, 리소스 로딩, 현지화 안정성이 향상됩니다.</span>
-                    <span class="lang-sc" lang="zh-Hans">此设置可让 WINE／Proton 优先继承 zh_TW.UTF-8 语系，改善界面语系、资源挑选与部分本地化行为的稳定性。</span>
+                    <span class="lang-de" lang="de">Dies lässt WINE/Proton das de_DE.UTF-8-Gebietsschema bevorzugt übernehmen und verbessert Sprachauswahl, Ressourcenladung und Lokalisierungsstabilität.</span>
+                    <span class="lang-en" lang="en">This lets WINE/Proton inherit the en_US.UTF-8 locale with higher priority, improving UI language, resource loading, and localization stability.</span>
+                    <span class="lang-fr" lang="fr">Cela permet à WINE/Proton d'hériter de la locale fr_FR.UTF-8 en priorité, améliorant la langue de l'interface, le chargement des ressources et la stabilité de la localisation.</span>
+                    <span class="lang-ja" lang="ja">これにより WINE/Proton が ja_JP.UTF-8 ロケールを優先的に継承し、UI 言語・リソース読み込み・ローカライゼーションの安定性が向上します。</span>
+                    <span class="lang-ko" lang="ko">이를 통해 WINE/Proton이 ko_KR.UTF-8 로케일을 우선적으로 상속하여 UI 언어, 리소스 로딩, 현지화 안정성이 향상됩니다.</span>
+                    <span class="lang-sc" lang="zh-Hans">此设置可让 WINE／Proton 优先继承 zh_CN.UTF-8 语系，改善界面语系、资源挑选与部分本地化行为的稳定性。</span>
                   </li>
                   <li>
                     <span class="lang-zh">前提：SteamOS 本機需先生成對應的 zh_TW.UTF-8 語系；若系統尚未提供該 locale，則這個啟動參數不會生效，WINE／Proton 仍可能回退到預設語系。</span>
-                    <span class="lang-de" lang="de">Voraussetzung: Das Gebietsschema zh_TW.UTF-8 muss auf dem lokalen SteamOS-System vorhanden sein. Andernfalls hat diese Option keine Wirkung und WINE/Proton greift auf die Standardsprache zurück.</span>
-                    <span class="lang-en" lang="en">Prerequisite: The zh_TW.UTF-8 locale must be generated on the local SteamOS system first. If unavailable, this option has no effect and WINE/Proton may fall back to the default locale.</span>
-                    <span class="lang-fr" lang="fr">Prérequis : la locale zh_TW.UTF-8 doit d'abord être générée sur le système SteamOS local. Si elle n'est pas disponible, cette option n'a aucun effet et WINE/Proton peut revenir à la locale par défaut.</span>
-                    <span class="lang-ja" lang="ja">前提条件：ローカルの SteamOS システムに zh_TW.UTF-8 ロケールが事前に生成されている必要があります。利用できない場合、この起動オプションは効果がなく WINE/Proton はデフォルトロケールにフォールバックします。</span>
-                    <span class="lang-ko" lang="ko">전제 조건: 로컬 SteamOS 시스템에 zh_TW.UTF-8 로케일이 먼저 생성되어 있어야 합니다. 없으면 이 옵션은 효과가 없으며 WINE/Proton이 기본 로케일로 폴백될 수 있습니다.</span>
-                    <span class="lang-sc" lang="zh-Hans">前提：SteamOS 本机需先生成对应的 zh_TW.UTF-8 语系；若系统尚未提供该 locale，则这个启动参数不会生效，WINE／Proton 仍可能回退到默认语系。</span>
+                    <span class="lang-de" lang="de">Voraussetzung: Das Gebietsschema de_DE.UTF-8 muss auf dem lokalen SteamOS-System vorhanden sein. Andernfalls hat diese Option keine Wirkung und WINE/Proton greift auf die Standardsprache zurück.</span>
+                    <span class="lang-en" lang="en">Prerequisite: The en_US.UTF-8 locale must be generated on the local SteamOS system first. If unavailable, this option has no effect and WINE/Proton may fall back to the default locale.</span>
+                    <span class="lang-fr" lang="fr">Prérequis : la locale fr_FR.UTF-8 doit d'abord être générée sur le système SteamOS local. Si elle n'est pas disponible, cette option n'a aucun effet et WINE/Proton peut revenir à la locale par défaut.</span>
+                    <span class="lang-ja" lang="ja">前提条件：ローカルの SteamOS システムに ja_JP.UTF-8 ロケールが事前に生成されている必要があります。利用できない場合、この起動オプションは効果がなく WINE/Proton はデフォルトロケールにフォールバックします。</span>
+                    <span class="lang-ko" lang="ko">전제 조건: 로컬 SteamOS 시스템에 ko_KR.UTF-8 로케일이 먼저 생성되어 있어야 합니다. 없으면 이 옵션은 효과가 없으며 WINE/Proton이 기본 로케일로 폴백될 수 있습니다.</span>
+                    <span class="lang-sc" lang="zh-Hans">前提：SteamOS 本机需先生成对应的 zh_CN.UTF-8 语系；若系统尚未提供该 locale，则这个启动参数不会生效，WINE／Proton 仍可能回退到默认语系。</span>
                   </li>
                 </ul>
               </li>
