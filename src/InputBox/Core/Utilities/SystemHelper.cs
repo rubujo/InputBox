@@ -103,30 +103,42 @@ public static partial class SystemHelper
     {
         try
         {
-            // GAMESCOPE_WAYLAND_DISPLAY 為 Gamescope 合成器設定的專有 Wayland 顯示環境變數。
-            // 但在 SteamOS 切到桌面模式（KDE Plasma）後，此變數可能仍被繼承；
-            // 若目前桌面已明確是 Plasma / KDE session，則不應再套用遊戲模式限制。
-            string? gamescopeDisplay = Environment.GetEnvironmentVariable("GAMESCOPE_WAYLAND_DISPLAY");
-
-            if (string.IsNullOrWhiteSpace(gamescopeDisplay))
-            {
-                return false;
-            }
-
-            string currentDesktop = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? string.Empty,
-                desktopSession = Environment.GetEnvironmentVariable("DESKTOP_SESSION") ?? string.Empty;
-
-            bool isPlasmaDesktop =
-                currentDesktop.Contains("KDE", StringComparison.OrdinalIgnoreCase) ||
-                currentDesktop.Contains("PLASMA", StringComparison.OrdinalIgnoreCase) ||
-                desktopSession.Contains("plasma", StringComparison.OrdinalIgnoreCase);
-
-            return !isPlasmaDesktop;
+            return EvaluateGamescopeEnvironment(
+                Environment.GetEnvironmentVariable("GAMESCOPE_WAYLAND_DISPLAY"),
+                Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP"),
+                Environment.GetEnvironmentVariable("DESKTOP_SESSION"));
         }
         catch
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 根據指定環境變數值判斷是否處於 Gamescope 遊戲模式（非 Plasma 桌面）。
+    /// </summary>
+    /// <remarks>
+    /// 從 <see cref="DetectGamescope"/> 提取，以便單元測試注入任意環境變數組合。
+    /// GAMESCOPE_WAYLAND_DISPLAY 為 Gamescope 合成器設定的專有 Wayland 顯示環境變數。
+    /// 但在 SteamOS 切到桌面模式（KDE Plasma）後，此變數可能仍被繼承；
+    /// 若目前桌面已明確是 Plasma / KDE session，則不應再套用遊戲模式限制。
+    /// </remarks>
+    internal static bool EvaluateGamescopeEnvironment(
+        string? gamescopeDisplay,
+        string? xdgCurrentDesktop,
+        string? desktopSession)
+    {
+        if (string.IsNullOrWhiteSpace(gamescopeDisplay))
+        {
+            return false;
+        }
+
+        bool isPlasmaDesktop =
+            (xdgCurrentDesktop ?? string.Empty).Contains("KDE", StringComparison.OrdinalIgnoreCase) ||
+            (xdgCurrentDesktop ?? string.Empty).Contains("PLASMA", StringComparison.OrdinalIgnoreCase) ||
+            (desktopSession ?? string.Empty).Contains("plasma", StringComparison.OrdinalIgnoreCase);
+
+        return !isPlasmaDesktop;
     }
 
     /// <summary>
