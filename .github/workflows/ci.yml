@@ -178,12 +178,22 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
+        cache: true
+        cache-dependency-path: |
+          **/*.csproj
+          .config/dotnet-tools.json
 
     - name: 下載建置產出（來自 build-check）
       uses: actions/download-artifact@v4
       with:
         name: build-output
         path: tests/InputBox.Tests/bin/Release/
+
+    - name: 還原 NuGet 套件（供 MTP runner 偵測）
+      working-directory: ./tests/InputBox.Tests
+      # dotnet test --no-build 在 global.json MTP 模式下仍需 MSBuild 評估專案屬性，
+      # 必須先還原 NuGet 套件，否則 MTP props 無法匯入，導致誤判為 VSTest runner。
+      run: dotnet restore InputBox.Tests.csproj
 
     - name: 執行 UI 冒煙測試（FlaUI Smoke）
       id: ui_smoke
