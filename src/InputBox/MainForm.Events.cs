@@ -18,6 +18,11 @@ partial class DesignerBlocker { };
 
 public partial class MainForm
 {
+    /// <summary>
+    /// 視窗取得前景焦點時，確保輸入框自動取得焦點。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private async void MainForm_Activated(object sender, EventArgs e)
     {
         try
@@ -73,6 +78,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 視窗首次顯示時執行初始化流程（還原視窗狀態、觸覺握手等）。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private async void MainForm_Shown(object sender, EventArgs e)
     {
         try
@@ -205,6 +215,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 系統偏好設定變更時同步更新佈局、不透明度、邊框與選單。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">系統偏好設定事件引數。</param>
     private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
         try
@@ -278,6 +293,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 輸入框取得焦點時套用深色背景與焦點邊框視覺。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private void TBInput_Enter(object sender, EventArgs e)
     {
         try
@@ -376,6 +396,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 輸入框失去焦點時還原邊框色與背景，並視情況取消快速鍵擷取模式。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private void TBInput_Leave(object sender, EventArgs e)
     {
         try
@@ -428,6 +453,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 輸入框按鍵按下時轉發至集中的按鍵處理邏輯。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">鍵盤事件引數。</param>
     private void TBInput_KeyDown(object sender, KeyEventArgs e)
     {
         try
@@ -442,6 +472,11 @@ public partial class MainForm
         }
     }
 
+    /// <summary>
+    /// 複製按鈕點擊時執行輸入框內容複製流程。
+    /// </summary>
+    /// <param name="sender">事件來源。</param>
+    /// <param name="e">事件引數。</param>
     private async void BtnCopy_Click(object sender, EventArgs e)
     {
         try
@@ -482,7 +517,7 @@ public partial class MainForm
     /// <summary>
     /// 執行核心複製邏輯與歷程紀錄
     /// </summary>
-    /// <returns>Task</returns>
+    /// <returns>代表複製流程（含冷卻、空字串處理、成功與失敗分支）的非同步工作任務。</returns>
     private async Task PerformCopyAsync()
     {
         // 在最開頭建立快照。
@@ -672,7 +707,7 @@ public partial class MainForm
     /// <summary>
     /// 處理自定義快速鍵與歷史導覽
     /// </summary>
-    /// <param name="e">KeyEventArgs</param>
+    /// <param name="e">鍵盤事件引數。</param>
     private void HandleKeyDown(KeyEventArgs e)
     {
         if (TryHandleEscapeKeyDown(e) ||
@@ -1147,6 +1182,7 @@ public partial class MainForm
     /// <summary>
     /// 延遲嘗試開啟觸控鍵盤，避免與系統自動彈出邏輯競態
     /// </summary>
+    /// <param name="ct">取消權杖；視窗關閉或重複呼叫時可取消等待。</param>
     /// <returns>非同步作業。</returns>
     private async Task OpenTouchKeyboardWithDelayAsync(CancellationToken ct = default)
     {
@@ -1429,7 +1465,7 @@ public partial class MainForm
     /// 還原焦點至先前擷取的視窗
     /// </summary>
     /// <param name="announce">是否公告還原焦點的訊息</param>
-    /// <returns>Task</returns>
+    /// <returns>代表返回前景視窗操作的非同步工作任務。</returns>
     private async Task ReturnToPreviousWindowAsync(bool announce = true)
     {
         if (await TryNavigateBackWhenTargetMissingAsync())
@@ -1499,7 +1535,7 @@ public partial class MainForm
     /// <summary>
     /// 執行視覺警示閃爍效果
     /// </summary>
-    /// <returns>Task</returns>
+    /// <returns>代表閃爍動畫非同步執行的工作任務。</returns>
     private async Task FlashAlertAsync()
     {
         // 狀態與生命週期守衛。
@@ -1746,7 +1782,7 @@ public partial class MainForm
     /// <summary>
     /// 執行執行緒安全的視窗返回
     /// </summary>
-    /// <returns>Task</returns>
+    /// <returns>代表安全視窗返回操作的非同步工作任務。</returns>
     private async Task HandleReturnToPreviousWindowSafeAsync()
     {
         if (!_inputState.TryBeginReturning())
@@ -1902,7 +1938,7 @@ public partial class MainForm
     /// <summary>
     /// 重置觸控鍵盤標誌
     /// </summary>
-    /// <returns>Task</returns>
+    /// <returns>代表觸控鍵盤標誌延遲重置的非同步工作任務。</returns>
     private async Task ResetTouchKeyboardFlagAsync()
     {
         try

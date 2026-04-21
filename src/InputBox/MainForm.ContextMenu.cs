@@ -2208,7 +2208,7 @@ public partial class MainForm
     /// <summary>
     /// 取得片語子選單的分頁大小，根據螢幕高度調整以適應不同解析度的顯示空間
     /// </summary>
-    /// <returns>分頁大小</returns>
+    /// <returns>依螢幕高度決定的片語子選單分頁項目數量。</returns>
     private int GetPhraseMenuPageSize()
     {
         int screenHeight = Screen.GetWorkingArea(this).Height;
@@ -2229,7 +2229,7 @@ public partial class MainForm
     /// <summary>
     /// 取得最近使用片語的顯示限制，根據螢幕高度調整以適應不同解析度的顯示空間
     /// </summary>
-    /// <returns>顯示限制</returns>
+    /// <returns>依螢幕高度決定的最近使用片語最大顯示數量。</returns>
     private int GetRecentPhraseDisplayLimit()
     {
         int screenHeight = Screen.GetWorkingArea(this).Height;

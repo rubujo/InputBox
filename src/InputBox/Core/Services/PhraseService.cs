@@ -466,6 +466,7 @@ internal sealed class PhraseService
     /// <summary>
     /// 清理片語目錄內殘留的片語暫存檔。
     /// </summary>
+    /// <param name="baseFilePath">指定要清理的基礎路徑；為 null 或空字串時使用預設的 <see cref="PhrasePath"/>。</param>
     private static void CleanupPhraseTempFiles(string? baseFilePath = null)
     {
         try
