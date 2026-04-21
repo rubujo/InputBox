@@ -736,7 +736,7 @@ public partial class MainForm
     /// <summary>
     /// 取得目前活躍的 ToolStrip（針對右鍵選單及其子選單）
     /// </summary>
-    /// <returns>ToolStrip?</returns>
+    /// <returns>目前可見的 ToolStrip；若選單未顯示則回傳 <see langword="null"/>。</returns>
     private ToolStrip? GetActiveToolStrip()
     {
         if (_cmsInput == null ||
@@ -751,8 +751,8 @@ public partial class MainForm
     /// <summary>
     /// 找出目前可見的最深層 DropDown，確保導覽與操作針對正確的選單層級
     /// </summary>
-    /// <param name="root">ToolStrip</param>
-    /// <returns>ToolStrip</returns>
+    /// <param name="root">從此 ToolStrip 開始向下搜尋。</param>
+    /// <returns>最深層的可見 DropDown；若無子選單則回傳 root 本身。</returns>
     private static ToolStrip FindDeepestVisibleDropDown(ToolStrip root)
     {
         foreach (ToolStripItem item in root.Items)
@@ -827,6 +827,7 @@ public partial class MainForm
     /// <summary>
     /// 建立 XInput 控制器實例
     /// </summary>
+    /// <param name="settings">控制器連發設定。</param>
     private void CreateXInputController(GamepadRepeatSettings settings)
     {
         uint activeUserIndex = XInputGamepadController.GetFirstConnectedUserIndex();
@@ -1431,6 +1432,8 @@ public partial class MainForm
     /// <summary>
     /// 長按時節流重複的邊界提示音與震動，避免回饋過於密集。
     /// </summary>
+    /// <param name="key">邊界方向鍵識別字串，用於比對上一次觸發的方向。</param>
+    /// <returns>應節流（抑制）時為 <see langword="true"/>。</returns>
     private bool ShouldThrottleRepeatedBoundaryFeedback(string key)
     {
         return GetBoundaryFeedbackStage(key) == BoundaryFeedbackStage.Suppressed;
@@ -1439,6 +1442,8 @@ public partial class MainForm
     /// <summary>
     /// 解析目前文字邊界回饋應採用完整、柔和或抑制模式。
     /// </summary>
+    /// <param name="key">邊界方向鍵識別字串，用於比對上一次觸發的方向。</param>
+    /// <returns>對應目前觸發頻率的 <see cref="BoundaryFeedbackStage"/> 階段。</returns>
     private BoundaryFeedbackStage GetBoundaryFeedbackStage(string key)
     {
         DateTime now = DateTime.UtcNow;
@@ -1477,6 +1482,10 @@ public partial class MainForm
     /// <summary>
     /// 推進某類觸覺回饋的 burst 等級，用於快速連發時做輕量阻尼。
     /// </summary>
+    /// <param name="lastUtc">上次觸發時間（以傳址方式更新為目前時間）。</param>
+    /// <param name="burstLevel">目前的連發等級（以傳址方式遞增，上限為 3）。</param>
+    /// <param name="fastWindowMs">判定為連發的時間視窗（毫秒）。</param>
+    /// <returns>更新後的連發等級。</returns>
     private static int AdvanceFeedbackBurst(ref DateTime lastUtc, ref int burstLevel, int fastWindowMs)
     {
         DateTime now = DateTime.UtcNow;
@@ -1491,6 +1500,7 @@ public partial class MainForm
     /// <summary>
     /// 播放歷程導覽的阻尼滾輪手感回饋。
     /// </summary>
+    /// <param name="direction">導覽方向；負值為向較舊歷程，正值為向較新歷程。</param>
     private void PlayHistoryScrollFeedback(int direction)
     {
         IGamepadController? controller = _gamepadController;
@@ -1521,6 +1531,8 @@ public partial class MainForm
     /// <summary>
     /// 依剩餘字元數分級，目前只在接近上限時回傳有效 bucket。
     /// </summary>
+    /// <param name="remainingCharacters">距字元上限的剩餘數量。</param>
+    /// <returns>對應等級的 bucket 值（0–3）；超出警告閾值時回傳 -1。</returns>
     private static int GetTextLimitWarningBucket(int remainingCharacters)
     {
         return remainingCharacters switch
@@ -1609,6 +1621,7 @@ public partial class MainForm
     /// <summary>
     /// 使用者在字數已滿時仍嘗試輸入一般字元，播放硬牆回饋。
     /// </summary>
+    /// <param name="e">按鍵事件引數，用於判斷輸入字元是否為控制字元。</param>
     private void HandleTextLimitKeyPress(KeyPressEventArgs e)
     {
         if (TBInput == null ||
@@ -1635,6 +1648,8 @@ public partial class MainForm
     /// <summary>
     /// 根據選取粒度與速度播放不同的右搖桿文字選取回饋。
     /// </summary>
+    /// <param name="direction">選取方向；負值為向左，正值為向右。</param>
+    /// <param name="wordGranularity">設為 <see langword="true"/> 時以字詞為單位，否則以字元為單位。</param>
     private void PlaySelectionFeedback(int direction, bool wordGranularity)
     {
         IGamepadController? controller = _gamepadController;
@@ -1659,6 +1674,9 @@ public partial class MainForm
     /// <summary>
     /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
     /// </summary>
+    /// <param name="caret">目前游標位置（字元索引）。</param>
+    /// <param name="direction">跳轉方向；正值為向右，負值為向左。</param>
+    /// <returns>跳轉後的游標位置。</returns>
     private int GetWordSelectionCaretTarget(int caret, int direction)
     {
         if (TBInput == null ||
@@ -1688,6 +1706,9 @@ public partial class MainForm
     /// <summary>
     /// 取得資源字串；若缺少翻譯則回退到預設文字。
     /// </summary>
+    /// <param name="resourceKey">資源字串的鍵名。</param>
+    /// <param name="fallback">找不到對應資源時使用的預設文字。</param>
+    /// <returns>已翻譯的字串，或 fallback 值。</returns>
     private static string GetLocalizedString(string resourceKey, string fallback)
     {
         string? localized = Strings.ResourceManager.GetString(resourceKey, Strings.Culture);
@@ -1706,6 +1727,7 @@ public partial class MainForm
     /// <summary>
     /// 啟動 LB + RB + X 的長按結束保護流程。
     /// </summary>
+    /// <param name="controller">觸發此流程的控制器實例，用於確認各鍵的持續按壓狀態。</param>
     private void BeginExitHoldConfirmation(IGamepadController controller)
     {
         if (Interlocked.Exchange(ref _exitHoldLatched, 1) != 0)
@@ -1733,6 +1755,9 @@ public partial class MainForm
     /// <summary>
     /// 非同步等待長按結束保護時間，確認使用者仍持續按住完整組合鍵後才關閉程式。
     /// </summary>
+    /// <param name="controller">用於驗證各鍵持續按壓狀態的控制器實例。</param>
+    /// <param name="exitHoldCts">與此次長按流程綁定的取消權杖來源；放開按鍵時會觸發取消。</param>
+    /// <returns>代表長按確認等待流程的非同步工作任務。</returns>
     private async Task ConfirmExitHoldAsync(IGamepadController controller, CancellationTokenSource exitHoldCts)
     {
         try
@@ -1775,6 +1800,9 @@ public partial class MainForm
     /// <summary>
     /// 以柔和、分級的方式播放文字邊界回饋，避免長按撞牆時造成疲勞。
     /// </summary>
+    /// <param name="direction">邊界方向；負值為行首，正值為行尾。</param>
+    /// <param name="boundaryKey">用於節流判斷的邊界識別字串。</param>
+    /// <param name="announcement">完整模式下要廣播的無障礙訊息。</param>
     private void PlayTextBoundaryFeedback(int direction, string boundaryKey, string announcement)
     {
         BoundaryFeedbackStage stage = GetBoundaryFeedbackStage(boundaryKey);
@@ -2503,8 +2531,8 @@ public partial class MainForm
     /// <summary>
     /// 讓控制器震動
     /// </summary>
-    /// <param name="profile">VibrationProfile</param>
-    /// <returns>Task</returns>
+    /// <param name="profile">要播放的震動設定。</param>
+    /// <returns>代表震動播放的非同步工作任務。</returns>
     private Task VibrateAsync(VibrationProfile profile)
     {
         // 委派給 Service 處理。
@@ -2517,6 +2545,8 @@ public partial class MainForm
     /// <summary>
     /// 以目前控制器播放自訂的多段式震動序列。
     /// </summary>
+    /// <param name="sequence">要依序播放的震動步驟清單。</param>
+    /// <returns>代表序列播放的非同步工作任務。</returns>
     private Task VibrateSequenceAsync(IReadOnlyList<VibrationSequenceStep> sequence)
     {
         return FeedbackService.VibrateSequenceAsync(

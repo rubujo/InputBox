@@ -1910,6 +1910,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 取得偏移校正後的左搖桿軸值（short）。
     /// </summary>
+    /// <param name="rawValue">原始軸浮點數值。</param>
+    /// <param name="bias">校準偏移量（由使用者校準流程取得）。</param>
+    /// <returns>套用偏移後、限制在 short 範圍內的軸值。</returns>
     private static short GetCorrectedLeftThumbShort(float rawValue, float bias)
     {
         return (short)Math.Clamp((rawValue - bias) * 32767f, short.MinValue, short.MaxValue);

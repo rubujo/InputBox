@@ -2042,6 +2042,9 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 依指定比例計算單顆 XInput 馬達的安全強度。
     /// </summary>
+    /// <param name="strength">基礎震動強度（0–65535）。</param>
+    /// <param name="motorScale">馬達比例（0.0–1.0），由 <see cref="VibrationProfile.ClampMotorScale"/> 限制。</param>
+    /// <returns>套用比例後的馬達強度值。</returns>
     private static ushort ScaleMotorStrength(ushort strength, float motorScale)
     {
         float clampedScale = VibrationProfile.ClampMotorScale(motorScale);
@@ -2052,6 +2055,8 @@ internal sealed partial class XInputGamepadController : IGamepadController
     /// <summary>
     /// 將 XInput 軸值正規化到 -1.0 ~ 1.0。
     /// </summary>
+    /// <param name="value">原始 XInput 軸值（範圍 -32768 ~ 32767）。</param>
+    /// <returns>正規化後的浮點數值（-1.0 ~ 1.0）。</returns>
     private static float NormalizeAxis(float value)
     {
         return Math.Clamp(value / 32768f, -1.0f, 1.0f);

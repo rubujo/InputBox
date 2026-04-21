@@ -562,7 +562,7 @@ internal static class Program
     /// <summary>
     /// 統一處理未捕捉的例外
     /// </summary>
-    /// <param name="ex">Exception</param>
+    /// <param name="ex">要處理的例外；為 null 時直接略過。</param>
     static void HandleException(Exception? ex)
     {
         if (ex == null)
