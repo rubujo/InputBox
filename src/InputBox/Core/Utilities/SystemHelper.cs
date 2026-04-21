@@ -49,13 +49,13 @@ public static partial class SystemHelper
     /// 判斷目前平台是否應限制高風險快捷鍵與自動返回行為。
     /// </summary>
     /// <remarks>
-    /// Proton / Wine 與 Gamescope 環境下，A11y 廣播與視窗切換可靠度較低，
-    /// 因此需停用依賴明確播報或前景切換的高風險操作。
+    /// 只有 Gamescope（SteamOS 遊戲模式）需要限制依賴明確播報或前景切換的高風險操作；
+    /// Steam Deck 桌面模式（KDE Plasma）下即使執行於 Wine / Proton，也應保留完整功能。
     /// </remarks>
     /// <returns>若應限制高風險快捷鍵則回傳 true。</returns>
     public static bool ShouldRestrictHighRiskShortcuts()
     {
-        return _isOnGamescope || _isOnWine;
+        return _isOnGamescope;
     }
 
     /// <summary>
@@ -85,14 +85,30 @@ public static partial class SystemHelper
     /// <summary>
     /// 在程式啟動時執行一次 Gamescope 合成器偵測，結果快取至 <see cref="_isOnGamescope"/>
     /// </summary>
-    /// <returns>若偵測到 Gamescope 環境則回傳 true，環境變數不存在或讀取失敗則回傳 false。</returns>
+    /// <returns>若偵測到受 Gamescope 控管且非 Plasma 桌面模式的環境則回傳 true，否則為 false。</returns>
     private static bool DetectGamescope()
     {
         try
         {
             // GAMESCOPE_WAYLAND_DISPLAY 為 Gamescope 合成器設定的專有 Wayland 顯示環境變數。
-            return !string.IsNullOrWhiteSpace(
-                Environment.GetEnvironmentVariable("GAMESCOPE_WAYLAND_DISPLAY"));
+            // 但在 SteamOS 切到桌面模式（KDE Plasma）後，此變數可能仍被繼承；
+            // 若目前桌面已明確是 Plasma / KDE session，則不應再套用遊戲模式限制。
+            string? gamescopeDisplay = Environment.GetEnvironmentVariable("GAMESCOPE_WAYLAND_DISPLAY");
+
+            if (string.IsNullOrWhiteSpace(gamescopeDisplay))
+            {
+                return false;
+            }
+
+            string currentDesktop = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? string.Empty,
+                desktopSession = Environment.GetEnvironmentVariable("DESKTOP_SESSION") ?? string.Empty;
+
+            bool isPlasmaDesktop =
+                currentDesktop.Contains("KDE", StringComparison.OrdinalIgnoreCase) ||
+                currentDesktop.Contains("PLASMA", StringComparison.OrdinalIgnoreCase) ||
+                desktopSession.Contains("plasma", StringComparison.OrdinalIgnoreCase);
+
+            return !isPlasmaDesktop;
         }
         catch
         {
