@@ -70,7 +70,9 @@ jobs:
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         # 啟用快取功能，加速 NuGet 套件還原（Restore）。
         cache: true
-        cache-dependency-path: '**/InputBox.csproj'
+        cache-dependency-path: |
+          **/InputBox.csproj
+          .config/dotnet-tools.json
 
     - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
@@ -81,21 +83,15 @@ jobs:
         -p:PublishReadyToRun=true
         -o out
 
-    - name: 自動產生第三方套件授權聲明（sensslen/nuget-license）
+    - name: 自動產生第三方套件授權聲明（nuget-license）
       shell: pwsh
       run: |
-        if (Get-Command nuget-license -ErrorAction SilentlyContinue) {
-            Write-Host "nuget-license 已可直接使用，略過重複安裝。"
-        } else {
-            Write-Host "安裝 nuget-license 工具……"
-            dotnet tool install --global nuget-license
-        }
-
+        dotnet tool restore
         Write-Host "掃描專案 NuGet 套件並匯出 ThirdPartyNotices.txt……"
         # -i：指定專案檔路徑。
         # -o：指定輸出格式為 Markdown（讓純文字檔內有整齊的表格排版）。
         # -fo：指定輸出的檔案名稱（File Output）。
-        nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt
+        dotnet tool run nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt
 
         if (Test-Path "ThirdPartyNotices.txt") {
             Write-Host "✅ 成功產生專案依賴套件的 ThirdPartyNotices.txt！"
