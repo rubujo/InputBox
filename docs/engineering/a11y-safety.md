@@ -26,7 +26,7 @@
 - **眼動儀優化與視覺穩定性**：
   - **視覺凍結 (Zero-Jitter)**：狀態變更嚴禁變動物理尺寸、Margin 或 Padding。
   - **抗抖動鎖定 (Anti-Jitter Lock)**：初始化時預先計算 **Bold** 狀態最大寬度並鎖定為 `MinimumSize`。
-  - **懸停進度條對比 (WCAG 1.4.11)**：填色須以按鈕「**實際**底色」為基準，使用 `btn.BackColor.GetBrightness() > 0.5f`（`Color.Empty` 時回退至 `!isDark`）動態選色，**禁止**直接使用 `isDark` 旗標（懸停時 `ApplyStrongVisual` 會反轉底色，`isDark` 與實際底色脫節）：
+  - **懸停進度條對比 (WCAG 1.4.11)**：填色須以按鈕「**實際**底色」為基準，使用 `btn.BackColor.GetBrightness() > 0.5f`（`Color.Empty` 時退回至 `!isDark`）動態選色，**禁止**直接使用 `isDark` 旗標（懸停時 `ApplyStrongVisual` 會反轉底色，`isDark` 與實際底色脫節）：
     - 底色為淺色（亮度 > 0.5，含懸停反轉後的 White）→ **Green** + CVD 紋理 PaleGreen。
     - 底色為深色（亮度 ≤ 0.5，含懸停反轉後的 Black）→ **LimeGreen** + CVD 紋理 DarkGreen。
     - 自然狀態對比：淺色模式 Green vs `#DCDCDC` = 3.75:1 ✅；深色模式 LimeGreen vs `#3C3C3C` = 5.21:1 ✅。
@@ -42,6 +42,6 @@
     - 基色：固定為焦點反轉底色 (深色用 White，淺色用 Black)。
     - **動態 ForeColor 連動**：背景亮度 **L > 0.1791** 時切換文字顏色。
     - **sRGB 線性化公式**：`f = C/255; C_lin = f <= 0.04045 ? f/12.92 : ((f+0.055)/1.055)^2.4`；`L = 0.2126R + 0.7152G + 0.0722B`。
-- **遞歸與隔離**：
-  - **遞歸更新**：更新 `NumericUpDown` 顏色時必須遞歸更新內部 `TextBox` 編輯區。
-  - **作用域隔離**：邊界警示僅作用於數據內容區，互動按鈕禁止參與背景閃爍。
+- **遞迴與隔離**：
+  - **遞迴更新**：更新 `NumericUpDown` 顏色時必須遞迴更新內部 `TextBox` 編輯區。
+  - **作用域隔離**：邊界警示僅作用於資料內容區，互動按鈕禁止參與背景閃爍。
