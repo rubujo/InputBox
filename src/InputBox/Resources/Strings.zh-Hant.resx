@@ -271,7 +271,7 @@
   </data>
   <data name="A11y_Layout_Main_Desc" xml:space="preserve">
     <value>包含文字輸入與操作按鈕的主要容器。</value>
-    <comment>主要佈局容器的無障礙描述。</comment>
+    <comment>主要版面配置容器的無障礙描述。</comment>
   </data>
   <data name="A11y_Layout_Input" xml:space="preserve">
     <value>輸入區</value>
@@ -400,8 +400,8 @@
     <comment>無障礙訊息，當偵測到控制器連線時播放。{0} 是控制器的編號或名稱。</comment>
   </data>
   <data name="A11y_Gamepad_Disconnected" xml:space="preserve">
-    <value>控制器 {0} 已斷開。</value>
-    <comment>無障礙訊息，當控制器斷開連線時播放。{0} 是控制器的編號或名稱。</comment>
+    <value>控制器 {0} 已中斷連線。</value>
+    <comment>無障礙訊息，當控制器中斷連線時播放。{0} 是控制器的編號或名稱。</comment>
   </data>
   <data name="A11y_Delete_Multiple" xml:space="preserve">
     <value>已刪除 {0} 個字元。</value>
@@ -739,7 +739,7 @@ RS 原始 {4}, {5} • 校正 {6}, {7}
   </data>
   <data name="A11y_Gamepad_ExitHoldStart" xml:space="preserve">
     <value>按住 LB + RB + X 0.8 秒即可結束程式。</value>
-    <comment>開始執行保護式結束快捷鍵時播報的無障礙提示。</comment>
+    <comment>開始執行保護式結束快速鍵時播報的無障礙提示。</comment>
   </data>
   <data name="A11y_Gamepad_IdentifyStarted" xml:space="preserve">
     <value>正在識別目前的遊戲控制器：{0}。</value>
@@ -1044,7 +1044,7 @@ Back／View + ↑／↓	調整視窗透明度（±5%）</value>
   </data>
   <data name="Msg_ImportPhrases_Error_Persist" xml:space="preserve">
     <value>片語已匯入但寫入磁碟失敗，已還原原有片語。</value>
-    <comment>記憶體中匯入成功但無法持久化時的錯誤訊息，資料已回退。</comment>
+    <comment>記憶體中匯入成功但無法持久化時的錯誤訊息，資料已還原。</comment>
   </data>
   <data name="Msg_ExportPhrases_Success" xml:space="preserve">
     <value>已匯出 {0} 個片語。</value>
@@ -1164,7 +1164,7 @@ Back／View + ↑／↓	調整視窗透明度（±5%）</value>
   </data>
   <data name="Phrase_A11y_Page_Shortcuts" xml:space="preserve">
     <value>使用 LB、RB 快速切換頁面，LT、RT 跳至首頁或末頁。</value>
-    <comment>片語子選單開啟時的快捷翻頁提示。</comment>
+    <comment>片語子選單開啟時的快速翻頁提示。</comment>
   </data>
   <data name="Phrase_A11y_Btn_Add_Desc" xml:space="preserve">
     <value>新增一個片語。控制器：Y 鍵。</value>
