@@ -485,7 +485,7 @@ bin\Release\net10.0-windows\publish\win-x64\InputBox.exe
 
 ## 九、測試 🧪
 
-為確保異動不造成行為回歸，建議在發佈前先執行單元測試。
+為確保異動不造成行為回歸，建議在發佈前先執行測試（含單元測試與 UI 冒煙測試）。
 
 ### 1. 執行單元測試
 
@@ -503,12 +503,21 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosi
 
 ```powershell
 dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
+  --filter-not-trait "Category=UI" `
   --coverage `
   --coverage-output-format cobertura `
   --coverage-output coverage.cobertura.xml
 ```
 
-> 注意：本專案使用 Microsoft Testing Platform（MTP）；相關測試規範與注意事項請參閱 `docs/engineering/testing.md` 與 `tests/InputBox.Tests/README.md`。
+### 4. 執行 UI 冒煙測試（需桌面環境）
+
+```powershell
+$env:INPUTBOX_RUN_UI_TESTS = "1"
+dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build --filter-trait "Category=UI"
+Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
+```
+
+> 注意：本專案使用 Microsoft Testing Platform（MTP）；UI 冒煙測試需要 Windows 桌面環境與 `INPUTBOX_RUN_UI_TESTS=1` 環境變數才會執行。相關測試規範與注意事項請參閱 `docs/engineering/testing.md` 與 `tests/InputBox.Tests/README.md`。
 
 ## 十、聲明 📢
 
