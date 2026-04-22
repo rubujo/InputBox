@@ -23,7 +23,7 @@
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意與原生對話框切換時的殘留輸入回歸保護 | 5 |
 | `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 14 |
 | `GamepadEventBinderTests` | `GamepadEventBinder` 的 LB / RB / LT / RT 與肩鍵放開事件綁定回歸保護 | 1 |
-| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆蓋優先權，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 23 |
+| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆寫優先權，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 23 |
 | `GamepadShoulderShortcutArbiterTests` | `GamepadShoulderShortcutArbiter` 的肩鍵單按、連發、修飾鍵與雙肩鍵組合仲裁回歸保護 | 4 |
 | `GamepadMappedDirectionGuardTests` | `GamepadMappedDirectionGuard` 全方向幽靈保護的封鎖／解除節奏 | 2 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
@@ -35,14 +35,14 @@
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD 與 5 筆翻頁導覽 | 15 |
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
 | `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、設定中的控制器子選單、控制器校準視覺化對話框、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框、程式內確認重啟後主視窗保持前景，以及基本複製流程的 UI 冒煙測試 | 11 |
-| `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出、併發暫存檔誤刪，以及持久化失敗時的記憶體回滾回歸保護 | 39 |
+| `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出、併發暫存檔誤刪，以及持久化失敗時的記憶體復原回歸保護 | 39 |
 | `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護 | 3 |
 | `RestartPromptStateTests` | 需重啟設定的待處理狀態追蹤、標題列提示，以及右鍵選單依 App 設定／系統變更／兩者同時存在而動態切換文案的回歸保護 | 7 |
 | `RestartRequestDeciderTests` | 手動重啟與設定變更兩種入口的確認策略回歸保護 | 3 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| `WineLocaleBootstrapperTests` | `WineLocaleBootstrapper` 的 POSIX locale 正規化（編碼後綴、@ 修飾詞去除、底線轉連字號）、zh 2 組件映射（TW/HK/MO → zh-Hant、CN/SG/MY → zh-Hans）、zh 3 組件 ICU 映射（zh-Hant-TW/HK/MO/MY、zh-Hans-CN/HK/MO/SG/MY）與無效輸入回傳 null 保護 | 34 |
+| `WineLocaleBootstrapperTests` | `WineLocaleBootstrapper` 的 POSIX locale 正規化（編碼後綴、@ 修飾詞去除、底線轉連字號）、zh 2 元件映射（TW/HK/MO → zh-Hant、CN/SG/MY → zh-Hans）、zh 3 元件 ICU 映射（zh-Hant-TW/HK/MO/MY、zh-Hans-CN/HK/MO/SG/MY）與無效輸入回傳 null 保護 | 34 |
 | **合計** | | **384** |
 
 ## 二、執行方式 🚀

@@ -5,7 +5,7 @@
   - **執行緒鎖定**：必須使用宣告為 `private readonly Lock _lock = new();` 的專用物件。
 - **非同步與 UI 安全 (Threading)**：
   - **同步與非同步調度**：
-    - `InvokeAsync(Action)`：同步屬性賦值或簡單調用。
+    - `InvokeAsync(Action)`：同步屬性賦值或簡單呼叫。
     - `InvokeAsync(Func<Task>)`：包含 `await` 的非同步 UI 邏輯。
     - 優先使用 `SafeInvokeAsync` 或 `await control.InvokeAsync(...)` 以避免阻塞。
   - **權杖安全 (Token Safety)**：存取 `CancellationTokenSource?` 一律使用 `?.Token ?? CancellationToken.None` 模式。
@@ -17,12 +17,12 @@
   - **字體回收桶 (Trash Can)**：更換「視窗私有」字體實例時，舊實例必須放入 `AddFontToTrashCan` 延遲釋放。
   - **暫存檔清理邊界**：對 JSON 或其他持久化檔案使用唯一暫存檔時，清理流程只能刪除「已不活躍且屬於本服務命名格式」的殘留檔案；不可直接掃掉所有匹配的 `.tmp`，否則併發寫入時可能把別的流程正在使用的暫存檔誤刪。
   - **COM 執行緒親和性**：像 GameInput 這類 COM 物件若要求在固定背景 MTA 執行緒存取，就必須在該執行緒完成初始化、讀取與狀態預同步；跨到 UI 執行緒直接呼叫常會導致 `InvalidCastException` 或未定義行為。
-- **DPI 與佈局一致性**：
-  - **佈局約束**：必須實作 `UpdateLayoutConstraints` 與 `UpdateMinimumSize` 並在 `OnHandleCreated` 與 `OnDpiChanged` 調用。
+- **DPI 與版面配置一致性**：
+  - **版面配置約束**：必須實作 `UpdateLayoutConstraints` 與 `UpdateMinimumSize` 並在 `OnHandleCreated` 與 `OnDpiChanged` 呼叫。
   - **計算標記**：計算縮放時除數/被除數必須包含 `96.0f` 或 `(float)` 強制轉型，杜絕整數截斷誤差。
-  - **智慧重定位 (Smart Positioning)**：視窗初始顯示或佈局擴張時，須執行 `ApplySmartPosition` 螢幕邊界檢查。
+  - **智慧重定位 (Smart Positioning)**：視窗初始顯示或版面配置擴張時，須執行 `ApplySmartPosition` 螢幕邊界檢查。
 - **系統偏好同步**：
-  - **主題還原**：還原預設配色時應將屬性設為 `Color.Empty`，由 .NET 10 主題引擎自動判斷 (禁：硬編碼 `SystemColors.Control`)。
+  - **主題還原**：還原預設配色時應將屬性設為 `Color.Empty`，由 .NET 10 主題引擎自動判斷 (禁：硬式編碼 `SystemColors.Control`)。
 - **程式內重啟與前景恢復**：
   - **單次啟用標記**：若為本程式主動要求重新啟動，舊執行個體必須先寫入具短時效的一次性啟用標記，供新執行個體在首次顯示時消費；標記必須於讀取後立即清除，避免重複生效。
   - **前景授權交接**：呼叫 `Application.Restart()` 前，應先透過 `AllowSetForegroundWindow(...)` 授權新執行個體搶回前景，降低焦點落回前一個視窗的機率。
