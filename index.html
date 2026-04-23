@@ -259,7 +259,7 @@
         }
 
         .lang-zh {
-          display: inline-block;
+          display: inline;
         }
 
         body:has(#lang-en:checked) .lang-zh,
@@ -272,27 +272,27 @@
         }
 
         body:has(#lang-en:checked) .lang-en {
-          display: inline-block;
+          display: inline;
         }
 
         body:has(#lang-ja:checked) .lang-ja {
-          display: inline-block;
+          display: inline;
         }
 
         body:has(#lang-sc:checked) .lang-sc {
-          display: inline-block;
+          display: inline;
         }
 
         body:has(#lang-ko:checked) .lang-ko {
-          display: inline-block;
+          display: inline;
         }
 
         body:has(#lang-de:checked) .lang-de {
-          display: inline-block;
+          display: inline;
         }
 
         body:has(#lang-fr:checked) .lang-fr {
-          display: inline-block;
+          display: inline;
         }
 
         /* 表格橫向滑動提示文字 L10N */
@@ -323,7 +323,7 @@
 
       /*
        * @supports not：不支援 :has() 的瀏覽器退化方案。
-       * 預設語系（ZH）已透過 .lang-zh { display: inline-block } 顯示，
+       * 預設語系（ZH）已透過 .lang-zh { display: inline } 顯示，
        * 語言切換功能不可用但內容可讀。
        */
       @supports not selector(body:has(#lang-zh:checked)) {
