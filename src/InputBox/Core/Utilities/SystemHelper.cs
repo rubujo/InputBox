@@ -49,24 +49,16 @@ public static partial class SystemHelper
     /// 判斷目前平台是否應限制高風險快捷鍵與自動返回行為。
     /// </summary>
     /// <remarks>
-    /// 只有 Gamescope（SteamOS 遊戲模式）需要限制依賴明確播報或前景切換的高風險操作；
+    /// 只有 Gamescope（SteamOS 遊戲模式）需要限制；
     /// Steam Deck 桌面模式（KDE Plasma）下即使執行於 Wine / Proton，也應保留完整功能。
+    /// <para>
+    /// 此旗標只保留那些沒有更下游安全閘門的高風險捷徑；
+    /// 例如「返回前景視窗」會直接切走目前渲染表面，因此仍需在入口就攔截。
+    /// 會建立新視窗表面的路徑（如右鍵選單）則應優先由實際建立點自行拒絕，避免重複防護。
+    /// </para>
     /// </remarks>
     /// <returns>若應限制高風險快捷鍵則回傳 true。</returns>
     public static bool ShouldRestrictHighRiskShortcuts()
-    {
-        return _isOnGamescope;
-    }
-
-    /// <summary>
-    /// 判斷目前平台是否應停用 Steam 螢幕鍵盤保留的板機快捷功能。
-    /// </summary>
-    /// <remarks>
-    /// Gamescope 下 Steam 螢幕鍵盤會占用 LT 與 RT；
-    /// 此時應停用應用程式內依賴板機的快捷邏輯，避免與 OSK 映射衝突。
-    /// </remarks>
-    /// <returns>若應停用 Steam 螢幕鍵盤保留的板機快捷功能則回傳 true。</returns>
-    public static bool ShouldRestrictSteamKeyboardTriggerShortcuts()
     {
         return _isOnGamescope;
     }

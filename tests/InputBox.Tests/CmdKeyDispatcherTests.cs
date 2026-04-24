@@ -70,4 +70,73 @@ public sealed class CmdKeyDispatcherTests
         Assert.True(CmdKeyDispatcher.TryGetContextMenuAction(Keys.End, true, out string? lastPageAction));
         Assert.Equal("PhrasePageLast", lastPageAction);
     }
+
+    /// <summary>
+    /// 全域返回快捷鍵應正確分派到返回處理器，實際是否允許返回由共用返回流程決定。
+    /// </summary>
+    [Fact]
+    public void TryHandleGlobal_ReturnShortcut_DispatchesToReturnHandler()
+    {
+        int returnCalls = 0;
+
+        bool handled = CmdKeyDispatcher.TryHandleGlobal(
+            Keys.Alt | Keys.B,
+            () => returnCalls++,
+            _ => throw new NotSupportedException(),
+            () => throw new NotSupportedException(),
+            () => throw new NotSupportedException(),
+            () => throw new NotSupportedException(),
+            static () => false,
+            static () => { },
+            static () => { });
+
+        Assert.True(handled);
+        Assert.Equal(1, returnCalls);
+    }
+
+    /// <summary>
+    /// 右鍵選單捷徑應保留分派，是否真的顯示交由選單建立點自行判斷。
+    /// </summary>
+    [Fact]
+    public void TryHandleGlobal_ContextMenuShortcut_DispatchesToContextMenuHandler()
+    {
+        int contextMenuCalls = 0;
+
+        bool handled = CmdKeyDispatcher.TryHandleGlobal(
+            Keys.F10,
+            () => throw new NotSupportedException(),
+            _ => throw new NotSupportedException(),
+            () => throw new NotSupportedException(),
+            () => throw new NotSupportedException(),
+            () => contextMenuCalls++,
+            static () => false,
+            static () => { },
+            static () => { });
+
+        Assert.True(handled);
+        Assert.Equal(1, contextMenuCalls);
+    }
+
+    /// <summary>
+    /// 隱私模式快捷鍵應保留分派，不應被全域命令分派器吞掉。
+    /// </summary>
+    [Fact]
+    public void TryHandleGlobal_PrivacyShortcut_DispatchesToPrivacyHandler()
+    {
+        int privacyCalls = 0;
+
+        bool handled = CmdKeyDispatcher.TryHandleGlobal(
+            Keys.Alt | Keys.P,
+            () => throw new NotSupportedException(),
+            _ => throw new NotSupportedException(),
+            () => throw new NotSupportedException(),
+            () => privacyCalls++,
+            () => throw new NotSupportedException(),
+            static () => false,
+            static () => { },
+            static () => { });
+
+        Assert.True(handled);
+        Assert.Equal(1, privacyCalls);
+    }
 }

@@ -99,7 +99,6 @@ internal static class CmdKeyDispatcher
     /// <param name="canFocusInput">回傳輸入框是否可聚焦。</param>
     /// <param name="onFocusInput">聚焦輸入框的動作。</param>
     /// <param name="onAnnounceSkipNav">播報略過導覽訊息的動作。</param>
-    /// <param name="restrictHighRiskShortcuts">是否停用高風險快捷鍵。</param>
     /// <returns>若命令鍵已被處理則回傳 true。</returns>
     public static bool TryHandleGlobal(
         Keys keyData,
@@ -110,21 +109,8 @@ internal static class CmdKeyDispatcher
         Action onShowContextMenu,
         Func<bool> canFocusInput,
         Action onFocusInput,
-        Action onAnnounceSkipNav,
-        bool restrictHighRiskShortcuts = false)
+        Action onAnnounceSkipNav)
     {
-        if (restrictHighRiskShortcuts &&
-            keyData is (Keys.Alt | Keys.B) or
-                (Keys.Alt | Keys.Up) or
-                (Keys.Alt | Keys.Down) or
-                (Keys.Alt | Keys.D0) or
-                (Keys.Alt | Keys.P) or
-                Keys.F10 or
-                (Keys.Alt | Keys.M))
-        {
-            return true;
-        }
-
         switch (keyData)
         {
             case Keys.Alt | Keys.B:

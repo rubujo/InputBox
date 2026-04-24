@@ -72,14 +72,26 @@ internal static partial class TouchKeyboardService
 
         try
         {
-            // 策略 1：優先使用 COM 介面（ITipInvocation）。
+            // 策略 1：Wine / Proton 或 Gamescope 環境下，COM 不可用，改用 Steam URI scheme。
+            if (SystemHelper.IsRunningOnWine() || SystemHelper.IsRunningOnGamescope())
+            {
+                bool opened = TryOpenSteamKeyboard();
+
+                Debug.WriteLine(opened
+                    ? "[TryOpen] Wine/Gamescope：已透過 Steam URI scheme 喚起螢幕鍵盤。"
+                    : "[TryOpen] Wine/Gamescope：Steam URI scheme 喚起失敗。");
+
+                return opened;
+            }
+
+            // 策略 2：優先使用 COM 介面（ITipInvocation）。
             // 在 Windows 10 週年更新之後，使用 COM 介面能更穩定地向背景服務發送 Toggle 指令。
             if (TryOpenViaCOM())
             {
                 return true;
             }
 
-            // 策略 2：Fallback 至啟動 TabTip.exe 程式。
+            // 策略 3：Fallback 至啟動 TabTip.exe 程式。
             string? strTabTipPath = SystemHelper.GetTabTipPath();
 
             if (string.IsNullOrEmpty(strTabTipPath))

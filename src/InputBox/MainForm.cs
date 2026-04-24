@@ -870,8 +870,7 @@ public partial class MainForm : Form
             onShowContextMenu: () => this.SafeInvoke(ShowContextMenuAtInput),
             canFocusInput: () => TBInput.CanFocus,
             onFocusInput: () => TBInput.Focus(),
-            onAnnounceSkipNav: () => AnnounceA11y(Strings.A11y_SkipNav_JumpToInput),
-            restrictHighRiskShortcuts: SystemHelper.ShouldRestrictHighRiskShortcuts()))
+            onAnnounceSkipNav: () => AnnounceA11y(Strings.A11y_SkipNav_JumpToInput)))
         {
             return false;
         }
