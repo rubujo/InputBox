@@ -890,11 +890,6 @@ public partial class MainForm
             return;
         }
 
-        if (SystemHelper.ShouldRestrictHighRiskShortcuts())
-        {
-            return;
-        }
-
         // 如果在按住 Back 期間使用了組合鍵（如 Back + Up），放開時就不觸發返回。
         if (_isBackUsedAsModifier)
         {
@@ -1067,12 +1062,6 @@ public partial class MainForm
         // 組合鍵（含連發）：Back + Up／Down 調整透明度。
         if (controller.IsBackHeld)
         {
-            if (SystemHelper.ShouldRestrictHighRiskShortcuts())
-            {
-                _isBackUsedAsModifier = true;
-                return;
-            }
-
             _isBackUsedAsModifier = true;
             TryPlayBackModifierCue();
 
@@ -1256,14 +1245,6 @@ public partial class MainForm
     /// <param name="allowDelayedShortcut">是否允許先暫存單鍵捷徑，以便雙板機組合優先攔截。</param>
     private void HandleTriggerShortcut(bool moveToEnd, bool allowDelayedShortcut)
     {
-        if (SystemHelper.ShouldRestrictSteamKeyboardTriggerShortcuts())
-        {
-            CancelPendingTriggerShortcuts();
-            Interlocked.Exchange(ref _privacyTriggerComboLatched, 0);
-            Interlocked.Exchange(ref _triggerComboCueLatched, 0);
-            return;
-        }
-
         if (HandleContextMenuGamepadInput(moveToEnd ? "PhrasePageLast" : "PhrasePageFirst") ||
             _cmsInput?.Visible == true ||
             IsGamepadInputSuppressed())
@@ -1325,12 +1306,6 @@ public partial class MainForm
             return false;
         }
 
-        if (SystemHelper.ShouldRestrictHighRiskShortcuts())
-        {
-            CancelPendingTriggerShortcuts();
-            Interlocked.Exchange(ref _privacyTriggerComboLatched, 1);
-            return true;
-        }
 
         if (Interlocked.Exchange(ref _privacyTriggerComboLatched, 1) != 0)
         {
@@ -1961,11 +1936,6 @@ public partial class MainForm
         {
             _shoulderShortcutArbiter.ReserveDualShoulderCombo();
 
-            if (SystemHelper.ShouldRestrictHighRiskShortcuts())
-            {
-                return;
-            }
-
             TryPlayDualShoulderComboCue();
 
             if (IsGamepadReturnSuppressed())
@@ -2015,12 +1985,6 @@ public partial class MainForm
         // 組合鍵：Back + X 重設透明度（100%）。
         if (controller.IsBackHeld)
         {
-            if (SystemHelper.ShouldRestrictHighRiskShortcuts())
-            {
-                _isBackUsedAsModifier = true;
-                return;
-            }
-
             _isBackUsedAsModifier = true;
             TryPlayBackModifierCue();
 
@@ -2145,18 +2109,13 @@ public partial class MainForm
     /// </summary>
     private void OpenContextMenuFromGamepadIfAllowed()
     {
-        if (SystemHelper.ShouldRestrictHighRiskShortcuts() ||
-            IsGamepadInputSuppressed() ||
-            _cmsInput == null ||
-            _cmsInput.Visible)
+        if (IsGamepadInputSuppressed() ||
+            !TryShowContextMenuAtInput())
         {
             return;
         }
 
-        // 在文字方塊下方開啟選單。
-        _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
-
-        SelectFirstVisibleMenuItemAndAnnounce(_cmsInput);
+        SelectFirstVisibleMenuItemAndAnnounce(_cmsInput!);
 
         VibrateNavigationAsync(VibrationSemantic.CursorMove, 1).SafeFireAndForget();
     }
@@ -2183,8 +2142,7 @@ public partial class MainForm
     /// </summary>
     private void HandleRSClickAction()
     {
-        if (SystemHelper.ShouldRestrictHighRiskShortcuts() ||
-            ShouldSkipGamepadAction("RSClick") ||
+        if (ShouldSkipGamepadAction("RSClick") ||
             TBInput == null ||
             TBInput.IsDisposed)
         {

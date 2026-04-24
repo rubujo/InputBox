@@ -1165,15 +1165,8 @@ public partial class MainForm
         // A11y 廣播。
         AnnounceA11y(Strings.A11y_Opening_Keyboard);
 
-        // 若執行於 Wine (Proton) 或 Gamescope，改用 Steam URI scheme 喚起 Steam 螢幕鍵盤。
-        // Gamescope 環境雖通常同時是 Wine，但以明確條件確保不因偵測差異而漏判。
-        if ((SystemHelper.IsRunningOnWine() || SystemHelper.IsRunningOnGamescope()) &&
-            TouchKeyboardService.TryOpenSteamKeyboard())
-        {
-            return;
-        }
-
         // 使用非同步延遲，避免與系統原生的 Focus 彈出行為發生競態。
+        // Wine / Gamescope 的 Steam URI scheme 分支由 TouchKeyboardService.TryOpen() 統一處理。
         // 快照 CancellationToken，避免多次讀取 _formCts 的競態條件。
         CancellationToken ct = _formCts?.Token ?? CancellationToken.None;
         OpenTouchKeyboardWithDelayAsync(ct).SafeFireAndForget();
@@ -1785,6 +1778,13 @@ public partial class MainForm
     /// <returns>代表安全視窗返回操作的非同步工作任務。</returns>
     private async Task HandleReturnToPreviousWindowSafeAsync()
     {
+        // Gamescope 下不允許切離目前單一渲染表面；
+        // 將返回前景視窗的防護集中到共用入口，避免各快捷鍵路徑重複判斷。
+        if (SystemHelper.ShouldRestrictHighRiskShortcuts())
+        {
+            return;
+        }
+
         if (!_inputState.TryBeginReturning())
         {
             return;

@@ -1740,30 +1740,42 @@ public partial class MainForm
     /// </summary>
     private void ShowContextMenuAtInput()
     {
-        if (IsDisposed ||
-            TBInput == null ||
-            TBInput.IsDisposed ||
-            _cmsInput == null)
+        if (!TryShowContextMenuAtInput())
         {
             return;
         }
 
-        if (!_cmsInput.Visible)
+        if (ContextMenuBuilder.TrySelectFirstVisibleItem(
+            _cmsInput!,
+            Strings.A11y_Checked,
+            Strings.A11y_Unchecked,
+            out string announcement))
         {
-            // 在文字方塊下方開啟選單。
-            _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
-
-            if (ContextMenuBuilder.TrySelectFirstVisibleItem(
-                _cmsInput,
-                Strings.A11y_Checked,
-                Strings.A11y_Unchecked,
-                out string announcement))
-            {
-                AnnounceA11y(announcement, interrupt: true);
-            }
-
-            VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+            AnnounceA11y(announcement, interrupt: true);
         }
+
+        VibrateAsync(VibrationPatterns.CursorMove).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// 嘗試在輸入框下方顯示右鍵選單，並回報選單是否真的可見。
+    /// </summary>
+    /// <returns>若選單已成功顯示則回傳 true。</returns>
+    private bool TryShowContextMenuAtInput()
+    {
+        if (IsDisposed ||
+            TBInput == null ||
+            TBInput.IsDisposed ||
+            _cmsInput == null ||
+            _cmsInput.Visible)
+        {
+            return false;
+        }
+
+        _cmsInput.Show(this, new Point(TBInput.Left, TBInput.Bottom));
+
+        // Opening 事件可能取消顯示；只有選單真的可見時才執行後續選取與回饋。
+        return _cmsInput.Visible;
     }
 
     /// <summary>
