@@ -1261,6 +1261,15 @@ internal sealed class PhraseManagerDialog : Form
     {
         try
         {
+            if (GamescopeSurfaceRecovery.TryRecoverFromGamepadChord(
+                this,
+                RecreateHandle,
+                _gamepadController,
+                context: "PhraseManagerDialog Gamescope surface recovery 失敗"))
+            {
+                return;
+            }
+
             if (!CanHandleGamepadInput())
             {
                 return;

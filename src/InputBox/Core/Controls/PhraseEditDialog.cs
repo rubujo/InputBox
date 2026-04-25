@@ -1624,6 +1624,16 @@ internal sealed class PhraseEditDialog : Form
     {
         try
         {
+            if (GamescopeSurfaceRecovery.TryRecoverFromGamepadChord(
+                this,
+                RecreateHandle,
+                _gamepadController,
+                beforeRecover: CloseActiveTextBoxContextMenu,
+                context: "PhraseEditDialog Gamescope surface recovery 失敗"))
+            {
+                return;
+            }
+
             TextBox? tb = GetActiveTextBox();
 
             if (tb == null)
@@ -1647,6 +1657,14 @@ internal sealed class PhraseEditDialog : Form
             Debug.WriteLine($"[片語編輯] 開啟右鍵選單失敗：{ex.Message}");
         }
     });
+
+    /// <summary>
+    /// 在重建 PhraseEditDialog surface 前關閉目前 TextBox 的右鍵選單。
+    /// </summary>
+    private void CloseActiveTextBoxContextMenu()
+    {
+        GetActiveTextBox()?.ContextMenuStrip?.Close();
+    }
 
     /// <summary>
     /// 擴張或縮減文字選取範圍（比照 MainForm.Gamepad.cs 的 ExpandSelection）

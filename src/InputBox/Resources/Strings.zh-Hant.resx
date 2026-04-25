@@ -471,6 +471,14 @@
     <value>設定數值…</value>
     <comment>右鍵選單項目，用於開啟不透明度調整對話框（不透明度子選單的子項目）。</comment>
   </data>
+  <data name="Menu_RecoverGamescopeSurface" xml:space="preserve">
+    <value>恢復 Gamescope 畫面</value>
+    <comment>Gamescope 專用右鍵選單項目，當主視窗畫面變成黑畫面時重建主視窗表面。</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface_Desc" xml:space="preserve">
+    <value>當 Gamescope 顯示黑畫面時，恢復 InputBox 主視窗畫面。</value>
+    <comment>Gamescope 畫面恢復右鍵選單項目的無障礙描述。</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>開啟設定資料夾</value>
     <comment>右鍵選單項目，用於開啟應用程式在 AppData Roaming 中的設定資料夾。</comment>

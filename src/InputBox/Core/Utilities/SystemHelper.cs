@@ -46,24 +46,6 @@ public static partial class SystemHelper
     }
 
     /// <summary>
-    /// 判斷目前平台是否應限制高風險快捷鍵與自動返回行為。
-    /// </summary>
-    /// <remarks>
-    /// 只有 Gamescope（SteamOS 遊戲模式）需要限制；
-    /// Steam Deck 桌面模式（KDE Plasma）下即使執行於 Wine / Proton，也應保留完整功能。
-    /// <para>
-    /// 此旗標只保留那些沒有更下游安全閘門的高風險捷徑；
-    /// 例如「返回前景視窗」會直接切走目前渲染表面，因此仍需在入口就攔截。
-    /// 會建立新視窗表面的路徑（如右鍵選單）則應優先由實際建立點自行拒絕，避免重複防護。
-    /// </para>
-    /// </remarks>
-    /// <returns>若應限制高風險快捷鍵則回傳 true。</returns>
-    public static bool ShouldRestrictHighRiskShortcuts()
-    {
-        return _isOnGamescope;
-    }
-
-    /// <summary>
     /// 在程式啟動時執行一次 Wine 偵測，結果快取至 <see cref="_isOnWine"/>
     /// </summary>
     /// <returns>若偵測到 Wine (Proton) 環境則回傳 true，偵測失敗或非 Wine 環境則回傳 false。</returns>

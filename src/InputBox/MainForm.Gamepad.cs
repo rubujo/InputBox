@@ -318,6 +318,18 @@ public partial class MainForm
     /// <param name="physicalButton">被按下的實體按鍵方位。</param>
     private void HandleFaceButtonAction(IGamepadController controller, GamepadFacePhysicalButton physicalButton)
     {
+        if (physicalButton == GamepadFacePhysicalButton.North &&
+            controller.IsLeftShoulderHeld &&
+            controller.IsRightShoulderHeld &&
+            SystemHelper.IsRunningOnGamescope())
+        {
+            _shoulderShortcutArbiter.ReserveDualShoulderCombo();
+            TryPlayDualShoulderComboCue();
+            RecoverGamescopeMainSurfaceFromGamepad();
+
+            return;
+        }
+
         // Back 修飾鍵寬容視窗：IsBackHeld 為 true，或 Back 在 GamepadModifierGraceDelayMs 內曾被按下
         // （處理 A/Y 比 Back 早一個輪詢 frame 被偵測到的時序偏差）。
         bool isBackActiveOrRecent =
@@ -2118,6 +2130,22 @@ public partial class MainForm
         SelectFirstVisibleMenuItemAndAnnounce(_cmsInput!);
 
         VibrateNavigationAsync(VibrationSemantic.CursorMove, 1).SafeFireAndForget();
+    }
+
+    /// <summary>
+    /// Gamescope 專用控制器救援：不重建目前 popup HWND，只重建 MainForm surface。
+    /// </summary>
+    private void RecoverGamescopeMainSurfaceFromGamepad()
+    {
+        if (!SystemHelper.IsRunningOnGamescope())
+        {
+            return;
+        }
+
+        CloseContextMenuForSurfaceRecovery();
+        RecoverGamescopeMainSurface();
+
+        VibrateNavigationAsync(VibrationSemantic.ModeToggle, 1).SafeFireAndForget();
     }
 
     /// <summary>
