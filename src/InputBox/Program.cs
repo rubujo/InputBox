@@ -54,10 +54,6 @@ internal static class Program
     [STAThread]
     static void Main()
     {
-        // 在 Wine / Proton 環境下，將宿主 locale 橋接為 .NET CultureInfo，
-        // 確保衛星資源組件（zh-Hant、zh-Hans 等）能在啟動時正確載入。
-        WineLocaleBootstrapper.Apply();
-
         try
         {
             // 使用 Mutex 確保單一執行個體。

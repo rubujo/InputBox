@@ -85,6 +85,7 @@ internal sealed class GamepadMessageBox : Form
         _gamepadController.StartPressed += HandleGamepadA;
         _gamepadController.BPressed += profile.ConfirmOnSouth ? HandleGamepadB : HandleGamepadA;
         _gamepadController.BackPressed += HandleGamepadB;
+        _gamepadController.YPressed += HandleGamescopeSurfaceRecovery;
         _gamepadController.LeftPressed += HandleDPadLeft;
         _gamepadController.LeftRepeat += HandleDPadLeft;
         _gamepadController.RightPressed += HandleDPadRight;
@@ -110,6 +111,7 @@ internal sealed class GamepadMessageBox : Form
             _gamepadController.BPressed -= HandleGamepadA;
             _gamepadController.BPressed -= HandleGamepadB;
             _gamepadController.BackPressed -= HandleGamepadB;
+            _gamepadController.YPressed -= HandleGamescopeSurfaceRecovery;
             _gamepadController.LeftPressed -= HandleDPadLeft;
             _gamepadController.LeftRepeat -= HandleDPadLeft;
             _gamepadController.RightPressed -= HandleDPadRight;
@@ -995,6 +997,18 @@ internal sealed class GamepadMessageBox : Form
     }
 
     /// <summary>
+    /// 處理 Gamescope 專用 surface recovery 組合鍵。
+    /// </summary>
+    private void HandleGamescopeSurfaceRecovery()
+    {
+        GamescopeSurfaceRecovery.TryRecoverFromGamepadChord(
+            this,
+            RecreateHandle,
+            _gamepadController,
+            context: "GamepadMessageBox Gamescope surface recovery 失敗");
+    }
+
+    /// <summary>
     /// 處理遊戲控制器 DPad 左鍵事件，將焦點移動到上一個可用按鈕，並播報新焦點按鈕名稱給螢幕閱讀器
     /// </summary>
     private void HandleDPadLeft() => CycleFocus(forward: false);
@@ -1119,31 +1133,6 @@ internal sealed class GamepadMessageBox : Form
         MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1,
         IGamepadController? gamepad = null)
     {
-        // Gamescope (遊戲模式) 防護：
-        // 攔截所有會建立新視窗表面的 ShowDialog 呼叫，改為 Log 紀錄並回傳預設值。
-        // 這能防止 Gamescope 合成器因視窗切換導致的主介面渲染鏈中斷與黑屏。
-        if (SystemHelper.IsRunningOnGamescope())
-        {
-            LoggerService.LogInfo($"[Gamescope Intercept] {caption}: {text} (Buttons: {buttons})");
-
-            if (gamepad != null)
-            {
-                FeedbackService.VibrateAsync(gamepad, VibrationPatterns.ActionFail, CancellationToken.None).SafeFireAndForget();
-            }
-
-            // 回傳安全預設值：單一按鈕回傳 OK，確認型按鈕回傳 No 或 Cancel。
-            return buttons switch
-            {
-                MessageBoxButtons.OK => DialogResult.OK,
-                MessageBoxButtons.OKCancel => DialogResult.Cancel,
-                MessageBoxButtons.YesNo => DialogResult.No,
-                MessageBoxButtons.YesNoCancel => DialogResult.Cancel,
-                MessageBoxButtons.RetryCancel => DialogResult.Cancel,
-                MessageBoxButtons.AbortRetryIgnore => DialogResult.Ignore,
-                _ => DialogResult.OK,
-            };
-        }
-
         using GamepadMessageBox dlg = new(text, caption, buttons, icon, defaultButton);
 
         dlg.GamepadController = gamepad;

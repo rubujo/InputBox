@@ -440,7 +440,7 @@ Make sure that multiple instances of this application are not running at the sam
     <comment>Submenu name containing various advanced settings.</comment>
   </data>
   <data name="Menu_Settings_Window" xml:space="preserve">
-    <value>Window &amp; Operations</value>
+    <value>Window Operations</value>
     <comment>Context menu item for window and operation related settings.</comment>
   </data>
   <data name="Menu_Settings_Feedback" xml:space="preserve">
@@ -470,6 +470,14 @@ Make sure that multiple instances of this application are not running at the sam
   <data name="Menu_Opacity_Adjust" xml:space="preserve">
     <value>Adjust…</value>
     <comment>Context menu item to open the opacity adjustment dialog (child item of the Opacity submenu).</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface" xml:space="preserve">
+    <value>Recover Gamescope Display</value>
+    <comment>Gamescope-only context menu item that rebuilds the main window surface when the display turns black.</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface_Desc" xml:space="preserve">
+    <value>Recover the main InputBox display when Gamescope shows a black screen.</value>
+    <comment>Accessibility description for the Gamescope display recovery context menu item.</comment>
   </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>Open Settings Folder</value>

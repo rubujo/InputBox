@@ -1051,6 +1051,15 @@ internal sealed class NumericInputDialog : Form
     {
         try
         {
+            if (GamescopeSurfaceRecovery.TryRecoverFromGamepadChord(
+                this,
+                RecreateHandle,
+                _gamepadController,
+                context: "NumericInputDialog Gamescope surface recovery 失敗"))
+            {
+                return;
+            }
+
             if (IsDisposed ||
                 !IsHandleCreated ||
                 _nud == null)

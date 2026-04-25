@@ -1837,6 +1837,24 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
+        ///   查詢類似 Recover Gamescope Display 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_RecoverGamescopeSurface {
+            get {
+                return ResourceManager.GetString("Menu_RecoverGamescopeSurface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Recover the main InputBox display when Gamescope shows a black screen. 的當地語系化字串。
+        /// </summary>
+        internal static string Menu_RecoverGamescopeSurface_Desc {
+            get {
+                return ResourceManager.GetString("Menu_RecoverGamescopeSurface_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Settings 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings {
@@ -1900,7 +1918,7 @@ namespace InputBox.Resources {
         }
         
         /// <summary>
-        ///   查詢類似 Window &amp; Operations 的當地語系化字串。
+        ///   查詢類似 Window Operations 的當地語系化字串。
         /// </summary>
         internal static string Menu_Settings_Window {
             get {

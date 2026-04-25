@@ -471,6 +471,14 @@
     <value>数値を設定…</value>
     <comment>右クリックメニュー項目。不透明度調整ダイアログを開くために使用します（不透明度サブメニューの子項目）。</comment>
   </data>
+  <data name="Menu_RecoverGamescopeSurface" xml:space="preserve">
+    <value>Gamescope の画面を復旧</value>
+    <comment>メイン ウィンドウが黒画面になったときにメイン ウィンドウのサーフェスを再作成する、Gamescope 専用の右クリック メニュー項目です。</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface_Desc" xml:space="preserve">
+    <value>Gamescope で黒画面が表示されたときに、InputBox のメイン画面を復旧します。</value>
+    <comment>Gamescope 画面復旧メニュー項目のアクセシビリティ説明です。</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>設定フォルダーを開く</value>
     <comment>右クリック メニュー項目です。AppData Roaming 内のアプリ設定フォルダーを開きます。</comment>

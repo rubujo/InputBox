@@ -471,6 +471,14 @@
     <value>조정...</value>
     <comment>불투명도 조정 대화 상자를 열기 위한 상황에 맞는 메뉴 항목입니다(불투명도 하위 메뉴의 항목).</comment>
   </data>
+  <data name="Menu_RecoverGamescopeSurface" xml:space="preserve">
+    <value>Gamescope 화면 복구</value>
+    <comment>기본 창 화면이 검은 화면으로 바뀌었을 때 기본 창 표면을 다시 만드는 Gamescope 전용 오른쪽 클릭 메뉴 항목입니다.</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface_Desc" xml:space="preserve">
+    <value>Gamescope에서 검은 화면이 표시될 때 InputBox 기본 화면을 복구합니다.</value>
+    <comment>Gamescope 화면 복구 오른쪽 클릭 메뉴 항목의 접근성 설명입니다.</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>설정 폴더 열기</value>
     <comment>AppData Roaming에 있는 앱 설정 폴더를 여는 바로 가기 메뉴 항목입니다.</comment>

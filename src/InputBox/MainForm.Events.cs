@@ -665,8 +665,6 @@ public partial class MainForm
     {
         _historyService.Add(textToCopy);
 
-        bool shouldRestrictHighRiskShortcuts = SystemHelper.ShouldRestrictHighRiskShortcuts();
-
         FeedbackService.PlaySound(SystemSounds.Asterisk);
 
         await VibrateAsync(VibrationPatterns.CopySuccess);
@@ -679,21 +677,11 @@ public partial class MainForm
         BtnCopy.Text = Strings.Msg_Copied;
         BtnCopy.AccessibleDescription = Strings.Msg_Copied;
 
-        if (shouldRestrictHighRiskShortcuts)
-        {
-            AnnounceA11y(Strings.Msg_Copied);
-        }
-        else
-        {
-            AnnounceA11y($"{Strings.Msg_Copied}. {Strings.A11y_Returning}");
-        }
+        AnnounceA11y($"{Strings.Msg_Copied}. {Strings.A11y_Returning}");
 
         TBInput.Clear();
 
-        if (!shouldRestrictHighRiskShortcuts)
-        {
-            await ReturnToPreviousWindowAsync(announce: false);
-        }
+        await ReturnToPreviousWindowAsync(announce: false);
 
         if (IsDisposed ||
             BtnCopy == null)
@@ -759,16 +747,6 @@ public partial class MainForm
         }
 
         e.SuppressKeyPress = true;
-
-        // Gamescope (遊戲模式) 防護：
-        // 攔截 F1 快捷鍵呼叫說明對話框，避免破壞遊戲模式下的單一渲染表面。
-        if (SystemHelper.IsRunningOnGamescope())
-        {
-            LoggerService.LogInfo("[Gamescope Intercept] Help (F1) intercepted.");
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-            return true;
-        }
 
         ShowHelpDialog();
 
@@ -1778,13 +1756,6 @@ public partial class MainForm
     /// <returns>代表安全視窗返回操作的非同步工作任務。</returns>
     private async Task HandleReturnToPreviousWindowSafeAsync()
     {
-        // Gamescope 下不允許切離目前單一渲染表面；
-        // 將返回前景視窗的防護集中到共用入口，避免各快捷鍵路徑重複判斷。
-        if (SystemHelper.ShouldRestrictHighRiskShortcuts())
-        {
-            return;
-        }
-
         if (!_inputState.TryBeginReturning())
         {
             return;

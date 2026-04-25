@@ -511,6 +511,7 @@ internal sealed class GamepadCalibrationDialog : Form
         _gamepadController.StartPressed += HandleGamepadConfirm;
         _gamepadController.BPressed += profile.ConfirmOnSouth ? HandleGamepadCancel : HandleGamepadConfirm;
         _gamepadController.BackPressed += HandleGamepadCancel;
+        _gamepadController.YPressed += HandleGamescopeSurfaceRecovery;
         _gamepadController.LeftPressed += HandleDPadPrevious;
         _gamepadController.LeftRepeat += HandleDPadPrevious;
         _gamepadController.UpPressed += HandleDPadPrevious;
@@ -540,6 +541,7 @@ internal sealed class GamepadCalibrationDialog : Form
             _gamepadController.BPressed -= HandleGamepadConfirm;
             _gamepadController.BPressed -= HandleGamepadCancel;
             _gamepadController.BackPressed -= HandleGamepadCancel;
+            _gamepadController.YPressed -= HandleGamescopeSurfaceRecovery;
             _gamepadController.LeftPressed -= HandleDPadPrevious;
             _gamepadController.LeftRepeat -= HandleDPadPrevious;
             _gamepadController.UpPressed -= HandleDPadPrevious;
@@ -652,6 +654,18 @@ internal sealed class GamepadCalibrationDialog : Form
         {
             Debug.WriteLine($"[GamepadCalibrationDialog] HandleGamepadCancel 失敗：{ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 處理 Gamescope 專用 surface recovery 組合鍵。
+    /// </summary>
+    private void HandleGamescopeSurfaceRecovery()
+    {
+        GamescopeSurfaceRecovery.TryRecoverFromGamepadChord(
+            this,
+            RecreateHandle,
+            _gamepadController,
+            context: "GamepadCalibrationDialog Gamescope surface recovery 失敗");
     }
 
     /// <summary>

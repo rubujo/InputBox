@@ -894,6 +894,7 @@ internal sealed class HelpDialog : Form
         GamepadController.BackPressed += OnGamepadClose;
         GamepadController.StartPressed += OnGamepadClose;
         GamepadController.APressed += OnGamepadClose;
+        GamepadController.YPressed += OnGamepadSurfaceRecovery;
         GamepadController.LeftTriggerPressed += OnGamepadPageUp;
         GamepadController.RightTriggerPressed += OnGamepadPageDown;
         GamepadController.LeftTriggerRepeat += OnGamepadPageUp;
@@ -919,6 +920,7 @@ internal sealed class HelpDialog : Form
         GamepadController.BackPressed -= OnGamepadClose;
         GamepadController.StartPressed -= OnGamepadClose;
         GamepadController.APressed -= OnGamepadClose;
+        GamepadController.YPressed -= OnGamepadSurfaceRecovery;
         GamepadController.LeftTriggerPressed -= OnGamepadPageUp;
         GamepadController.RightTriggerPressed -= OnGamepadPageDown;
         GamepadController.LeftTriggerRepeat -= OnGamepadPageUp;
@@ -1036,6 +1038,18 @@ internal sealed class HelpDialog : Form
 
             Close();
         });
+    }
+
+    /// <summary>
+    /// 處理 Gamescope 專用 surface recovery 組合鍵。
+    /// </summary>
+    private void OnGamepadSurfaceRecovery()
+    {
+        GamescopeSurfaceRecovery.TryRecoverFromGamepadChord(
+            this,
+            RecreateHandle,
+            GamepadController,
+            context: "HelpDialog Gamescope surface recovery 失敗");
     }
 
     #endregion

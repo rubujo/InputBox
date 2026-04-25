@@ -471,6 +471,14 @@ Stellen Sie sicher, dass nicht mehrere Instanzen dieser Anwendung gleichzeitig a
     <value>Anpassen ...</value>
     <comment>Klicken Sie mit der rechten Maustaste auf den Menüpunkt, um das Dialogfeld zur Anpassung der Deckkraft zu öffnen (ein Unterpunkt des Untermenüs „Deckkraft“).</comment>
   </data>
+  <data name="Menu_RecoverGamescopeSurface" xml:space="preserve">
+    <value>Gamescope-Anzeige wiederherstellen</value>
+    <comment>Nur unter Gamescope sichtbarer Kontextmenüeintrag, der die Oberfläche des Hauptfensters neu erstellt, wenn die Anzeige schwarz wird.</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface_Desc" xml:space="preserve">
+    <value>Stellt die Hauptanzeige von InputBox wieder her, wenn Gamescope einen schwarzen Bildschirm zeigt.</value>
+    <comment>Barrierefreiheitsbeschreibung für den Kontextmenüeintrag zur Wiederherstellung der Gamescope-Anzeige.</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>Einstellungsordner öffnen</value>
     <comment>Kontextmenüeintrag zum Öffnen des Ordners mit den App-Einstellungen in AppData Roaming.</comment>

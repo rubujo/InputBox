@@ -7,7 +7,6 @@ using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Core.Utilities;
 using InputBox.Resources;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
 
@@ -32,6 +31,11 @@ public partial class MainForm
     /// 小尺寸畫面時，片語選單單頁顯示的筆數。
     /// </summary>
     private const int PhraseMenuPageSizeSmall = 3;
+
+    /// <summary>
+    /// Gamescope 主畫面恢復選單項。
+    /// </summary>
+    private ToolStripMenuItem? _tsmiRecoverGamescopeSurface;
 
     /// <summary>
     /// 大尺寸畫面時，最近使用片語的最大顯示筆數。
@@ -109,12 +113,6 @@ public partial class MainForm
             _cmsInput,
             Strings.A11y_ContextMenu_Name,
             Strings.A11y_ContextMenu_Desc);
-
-        // Gamescope (遊戲模式) 防護：
-        // 攔截選單開啟事件，防止產生彈出視窗表面破壞渲染鏈。
-        // 使用具名處理器（先 -= 再 +=）確保多次呼叫時不重複訂閱。
-        _cmsInput.Opening -= OnContextMenuOpening_GamescopeGuard;
-        _cmsInput.Opening += OnContextMenuOpening_GamescopeGuard;
 
         ContextMenuBuilder.EnsureRestartItem(
             _cmsInput,
@@ -1504,6 +1502,28 @@ public partial class MainForm
             }
         };
 
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            _tsmiRecoverGamescopeSurface = new ToolStripMenuItem(Strings.Menu_RecoverGamescopeSurface)
+            {
+                AccessibleName = Strings.Menu_RecoverGamescopeSurface,
+                AccessibleDescription = Strings.Menu_RecoverGamescopeSurface_Desc
+            };
+            _tsmiRecoverGamescopeSurface.Click += (s, e) =>
+            {
+                try
+                {
+                    RecoverGamescopeMainSurface();
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.LogException(ex, "tsmiRecoverGamescopeSurface.Click 失敗");
+
+                    Debug.WriteLine($"[選單] tsmiRecoverGamescopeSurface.Click 失敗：{ex.Message}");
+                }
+            };
+        }
+
         _cmsInput.Items.Add(_tsmiPrivacyMode);
         _cmsInput.Items.Add(_tsmiA11yInterrupt);
         _cmsInput.Items.Add(_tsmiAnimatedVisualAlerts);
@@ -1515,6 +1535,12 @@ public partial class MainForm
         _cmsInput.Items.Add(tsmiSettings);
         _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(tsmiClearHistory);
+        if (_tsmiRecoverGamescopeSurface != null)
+        {
+            _cmsInput.Items.Add(new ToolStripSeparator());
+            _cmsInput.Items.Add(_tsmiRecoverGamescopeSurface);
+        }
+
         _cmsInput.Items.Add(new ToolStripSeparator());
         _cmsInput.Items.Add(tsmiHelp);
         _cmsInput.Items.Add(new ToolStripSeparator());
@@ -1523,6 +1549,72 @@ public partial class MainForm
         // 綁定選單至容器控制項，確保 TBInput 能保留其原始的 Windows 右鍵選單（剪下、複製、貼上）。
         PInputHost.ContextMenuStrip = _cmsInput;
         TLPHost.ContextMenuStrip = _cmsInput;
+    }
+
+    /// <summary>
+    /// 恢復 Gamescope 下 MainForm 的主視窗 surface。
+    /// </summary>
+    private void RecoverGamescopeMainSurface()
+    {
+        if (IsDisposed ||
+            !SystemHelper.IsRunningOnGamescope())
+        {
+            return;
+        }
+
+        Show();
+        RecreateGamescopeMainSurface();
+    }
+
+    /// <summary>
+    /// 在重建 MainForm surface 前關閉右鍵選單 popup 鏈。
+    /// </summary>
+    private void CloseContextMenuForSurfaceRecovery()
+    {
+        try
+        {
+            _cmsInput?.Close(ToolStripDropDownCloseReason.CloseCalled);
+        }
+        catch (InvalidOperationException ex)
+        {
+            LoggerService.LogException(ex, "Gamescope surface recovery 關閉右鍵選單失敗");
+        }
+    }
+
+    /// <summary>
+    /// 重建 MainForm HWND 並還原 Gamescope 滿版與輸入框狀態。
+    /// </summary>
+    private void RecreateGamescopeMainSurface()
+    {
+        // 保留使用者目前輸入內容，避免 recovery 導致文字被 WinForms 重建流程清空。
+        string inputText = TBInput.Text;
+
+        // 保留游標起點；使用 Math.Min 避免文字長度在 recovery 前後變化造成越界。
+        int selectionStart = Math.Min(TBInput.SelectionStart, inputText.Length);
+
+        // 保留選取長度；上限以目前文字剩餘長度計算，避免 SelectionLength 還原時超出範圍。
+        int selectionLength = Math.Min(TBInput.SelectionLength, inputText.Length - selectionStart);
+
+        GamescopeSurfaceRecovery.RecoverFormSurface(
+            this,
+            RecreateHandle,
+            afterRecover: () =>
+            {
+                if (!string.Equals(TBInput.Text, inputText, StringComparison.Ordinal))
+                {
+                    TBInput.Text = inputText;
+                }
+
+                TBInput.SelectionStart = selectionStart;
+                TBInput.SelectionLength = selectionLength;
+
+                ApplyGamescopeBorderlessFullscreen();
+                UpdateLayoutConstraints();
+
+                _ = User32.BringWindowToTop(Handle);
+                TryFocusInputControl();
+            },
+            context: "Gamescope MainForm surface recovery 失敗");
     }
 
     /// <summary>
@@ -1547,6 +1639,12 @@ public partial class MainForm
                     () => AskForRestart(RestartRequestSource.ManualMenu),
                     RestartMenuAccessibleDescription);
 
+                if (_tsmiRecoverGamescopeSurface != null)
+                {
+                    _tsmiRecoverGamescopeSurface.Text = Strings.Menu_RecoverGamescopeSurface;
+                    _tsmiRecoverGamescopeSurface.AccessibleName = Strings.Menu_RecoverGamescopeSurface;
+                    _tsmiRecoverGamescopeSurface.AccessibleDescription = Strings.Menu_RecoverGamescopeSurface_Desc;
+                }
 
                 foreach (ToolStripItem item in _cmsInput.Items)
                 {
@@ -2447,20 +2545,6 @@ public partial class MainForm
     private void EnsurePhraseSubMenuReadyForKeyboard()
     {
         SelectPreferredPhraseMenuItem(PhraseMenuSelectionTarget.FirstPhrase);
-    }
-
-    /// <summary>
-    /// Gamescope（遊戲模式）防護：攔截右鍵選單開啟事件，防止彈出視窗破壞渲染鏈。
-    /// </summary>
-    /// <param name="sender">事件來源（<see cref="ContextMenuStrip"/>）。</param>
-    /// <param name="e">取消事件引數；設定 <see cref="CancelEventArgs.Cancel"/> 為 true 可阻止選單顯示。</param>
-    private void OnContextMenuOpening_GamescopeGuard(object? sender, CancelEventArgs e)
-    {
-        if (SystemHelper.IsRunningOnGamescope())
-        {
-            e.Cancel = true;
-            FeedbackService.PlaySound(SystemSounds.Asterisk);
-        }
     }
 
     /// <summary>

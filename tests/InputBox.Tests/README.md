@@ -13,7 +13,7 @@
 |---|---|---|
 | `AnnouncementServiceTests` | `AnnouncementService` 訊息排隊、Dispose 行為與關閉時背景工作退出保護，以及 `AnnouncerLabel` 必要 A11y 預設值回歸保護 | 6 |
 | `AppSettingsTests` | `AppSettings` 關鍵常數、Clamp 行為、遊戲控制器調校快照，以及設定檔實際保存／讀回、併發保存、暫存清理、外來暫存檔保留與併發暫存檔誤刪回歸保護 | 52 |
-| `CmdKeyDispatcherTests` | `CmdKeyDispatcher` 對右鍵選單混合輸入的鍵盤命令轉譯，以及 Gamescope 下高風險快捷鍵分流回歸保護 | 7 |
+| `CmdKeyDispatcherTests` | `CmdKeyDispatcher` 對右鍵選單混合輸入的鍵盤命令轉譯與全域快捷鍵分派回歸保護 | 7 |
 | `DialogLayoutHelperTests` | `DialogLayoutHelper` 對話框版面輔助方法 | 9 |
 | `DialogLabelStabilityTests` | 片語管理／編輯對話框的動態計數標籤固定寬度、完整數字可視與零抖動回歸保護 | 3 |
 | `PhraseManagerDialogGamepadTests` | `PhraseManagerDialog` 左側片語清單的 LB/RB/LT/RT 快速切換、邊界跳轉、焦點接手與非必要連發抑制回歸保護 | 3 |
@@ -42,8 +42,7 @@
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| `WineLocaleBootstrapperTests` | `WineLocaleBootstrapper` 的 POSIX locale 正規化（編碼後綴、@ 修飾詞去除、底線轉連字號）、zh 2 元件映射（TW/HK/MO → zh-Hant、CN/SG/MY → zh-Hans）、zh 3 元件 ICU 映射（zh-Hant-TW/HK/MO/MY、zh-Hans-CN/HK/MO/SG/MY）與無效輸入回傳 null 保護 | 34 |
-| **合計** | | **402** |
+| **合計** | | **364** |
 
 ## 二、執行方式 🚀
 

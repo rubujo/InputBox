@@ -471,6 +471,14 @@ Vérifiez que plusieurs instances de cette application ne s'exécutent pas en m�
     <value>Ajuster…</value>
     <comment>Élément de menu contextuel utilisé pour ouvrir la boîte de dialogue de réglage de l&apos;opacité (un sous-élément du sous-menu d&apos;opacité).</comment>
   </data>
+  <data name="Menu_RecoverGamescopeSurface" xml:space="preserve">
+    <value>Restaurer l’affichage Gamescope</value>
+    <comment>Élément du menu contextuel réservé à Gamescope qui recrée la surface de la fenêtre principale lorsque l’affichage devient noir.</comment>
+  </data>
+  <data name="Menu_RecoverGamescopeSurface_Desc" xml:space="preserve">
+    <value>Restaure l’affichage principal d’InputBox lorsque Gamescope affiche un écran noir.</value>
+    <comment>Description d’accessibilité de l’élément de menu de restauration de l’affichage Gamescope.</comment>
+  </data>
   <data name="Menu_OpenDataFolder" xml:space="preserve">
     <value>Ouvrir le dossier des paramètres</value>
     <comment>Élément du menu contextuel permettant d&apos;ouvrir le dossier des paramètres de l&apos;application dans AppData Roaming.</comment>
