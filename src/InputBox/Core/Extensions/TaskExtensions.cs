@@ -138,15 +138,9 @@ public static class TaskExtensions
         }
         catch (Exception ex)
         {
-            // 記錄至檔案系統。
-            LoggerService.LogException(ex, "背景任務 SafeFireAndForget 發生未捕捉例外");
-
-            // 記錄至 Debug 視窗。
-            Debug.WriteLine($"[背景任務例外] {ex.Message}");
-
             try
             {
-                // 如果有提供額外的處理動作（如記錄至日誌或彈出視窗），則執行它。
+                // 先執行回呼，避免被後續的磁碟 I/O 延誤。
                 onException?.Invoke(ex);
 
                 // 執行全域處理（使用快照確保原子性）。
@@ -158,6 +152,12 @@ public static class TaskExtensions
             {
                 Debug.WriteLine($"[背景任務例外] 例外處理程序發生錯誤：{secondaryEx.Message}");
             }
+
+            // 記錄至檔案系統（可能有 I/O 延遲，放在回呼之後）。
+            LoggerService.LogException(ex, "背景任務 SafeFireAndForget 發生未捕捉例外");
+
+            // 記錄至 Debug 視窗。
+            Debug.WriteLine($"[背景任務例外] {ex.Message}");
         }
     }
 }

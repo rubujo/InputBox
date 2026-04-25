@@ -157,16 +157,21 @@ public class TaskExtensionsTests
     public async Task SafeFireAndForget_FaultedTask_InvokesOnException()
     {
         Exception? captured = null;
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         Task faultedTask = Task.Run(
             () => throw new InvalidOperationException("test-error"),
             TestContext.Current.CancellationToken);
 
         faultedTask.SafeFireAndForget(
-            onException: ex => captured = ex);
+            onException: ex =>
+            {
+                captured = ex;
+                tcs.TrySetResult();
+            });
 
-        // 等待背景任務完成處理
-        await Task.Delay(300, TestContext.Current.CancellationToken);
+        // 等待回呼被觸發，最多 5 秒，不依賴固定計時
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         Assert.NotNull(captured);
         Assert.IsType<InvalidOperationException>(captured);
