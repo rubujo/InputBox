@@ -386,7 +386,7 @@ jobs:
     - name: 使用 VirusTotal 掃描並更新 Release
       if: ${{ steps.vt-config.outputs.enabled == 'true' }}
       continue-on-error: true
-      uses: cssnr/virustotal-action@v1
+      uses: cssnr/virustotal-action@v2
       with:
         vt_api_key: ${{ secrets.VT_API_KEY }}
         release_id: ${{ steps.release.outputs.id }}
