@@ -1,16 +1,9 @@
 name: 部署靜態網頁至 GitHub Pages
 
 on:
-  # 當推送到 gh-pages 分支且網站相關檔案有變更時觸發。
+  # 當推送到 gh-pages 分支時觸發，確保修正提交即使未異動 index.html 仍會重新驗證與部署。
   push:
     branches: ["gh-pages"]
-    paths:
-      - "index.html"
-      - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - "playwright.config.js"
-      - ".github/workflows/static.yml"
 
   # 允許從 Actions 標籤手動執行此工作流。
   workflow_dispatch:
