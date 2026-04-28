@@ -28,4 +28,4 @@
   - 驗證 Windows 高對比模式（`forced-colors: active`）下關鍵互動元素（`.skip-link`、`.cta-button`、導覽列 hover / active）可辨識。
   - 確認互動元素 hover/focus 邊框色對所有相鄰背景均達 WCAG 1.4.11（≥ 3:1 非文字對比度）。
   - 必須執行 `npm test`（Playwright + axe-core A11y 檢查）並確認通過。
-  - 仍須完成人工驗證（符號全形化、`lang` 屬性、Landmark 導覽結構、四語內容一致性）。
+  - 仍須完成人工驗證（符號全形化、`lang` 屬性、Landmark 導覽結構、七語內容一致性）。

@@ -327,14 +327,14 @@
        * 語言切換功能不可用但內容可讀。
        */
       @supports not selector(body:has(#lang-zh:checked)) {
-        .lang-switcher .lang-fieldset {
+        .lang-switcher .language-switcher-fieldset {
           display: none;
         }
       }
 
       /* iPhone SE 響應式布局 (≤544px) */
       @media (max-width: 544px) {
-        .lang-switcher .lang-fieldset {
+        .lang-switcher .language-switcher-fieldset {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 0.25rem;

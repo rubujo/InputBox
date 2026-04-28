@@ -64,6 +64,9 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      - name: 檢查格式
+        run: npm run format:check
+
       - name: 執行 A11y 測試
         run: npm test
 
