@@ -8,6 +8,9 @@ namespace InputBox.Tests;
 /// </summary>
 public sealed class GamepadShoulderShortcutArbiterTests
 {
+    /// <summary>
+    /// 已武裝的單次肩鍵點按在放開時應輸出一次翻頁動作。
+    /// </summary>
     [Fact]
     public void TryConsumeTapOnRelease_WhenSingleTapWasArmed_EmitsSinglePageAction()
     {
@@ -18,6 +21,9 @@ public sealed class GamepadShoulderShortcutArbiterTests
         Assert.True(arbiter.TryConsumeTapOnRelease(direction: -1, isLeftStillHeld: false, isRightStillHeld: false));
     }
 
+    /// <summary>
+    /// 肩鍵長按連發已消費動作後，放開時不應再額外輸出單次翻頁。
+    /// </summary>
     [Fact]
     public void TryConsumeTapOnRelease_WhenRepeatAlreadyConsumed_DoesNotEmitExtraTap()
     {
@@ -29,6 +35,9 @@ public sealed class GamepadShoulderShortcutArbiterTests
         Assert.False(arbiter.TryConsumeTapOnRelease(direction: -1, isLeftStillHeld: false, isRightStillHeld: false));
     }
 
+    /// <summary>
+    /// 肩鍵已被用作修飾鍵時，放開時不應誤觸發單次翻頁。
+    /// </summary>
     [Fact]
     public void TryConsumeTapOnRelease_WhenModifierWasUsed_DoesNotEmitTapOnRelease()
     {
@@ -40,6 +49,9 @@ public sealed class GamepadShoulderShortcutArbiterTests
         Assert.False(arbiter.TryConsumeTapOnRelease(direction: +1, isLeftStillHeld: false, isRightStillHeld: false));
     }
 
+    /// <summary>
+    /// 雙肩鍵組合保留期間應抑制翻頁，直到兩側肩鍵都放開後才解除抑制。
+    /// </summary>
     [Fact]
     public void ReserveDualShoulderCombo_SuppressesPagingUntilBothShouldersAreReleased()
     {
