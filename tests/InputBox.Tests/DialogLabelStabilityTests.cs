@@ -11,6 +11,9 @@ namespace InputBox.Tests;
 /// </summary>
 public sealed class DialogLabelStabilityTests
 {
+    /// <summary>
+    /// 片語編輯對話框的名稱與內容計數標籤應使用固定寬度，避免文字長度變動造成版面抖動。
+    /// </summary>
     [Fact]
     public void PhraseEditDialog_CountLabels_UseFixedWidth()
     {
@@ -25,6 +28,9 @@ public sealed class DialogLabelStabilityTests
         Assert.True(contentCount.MinimumSize.Width > 0);
     }
 
+    /// <summary>
+    /// 片語管理對話框的片語數量標籤應使用固定寬度，避免數量變動時推擠其他控制項。
+    /// </summary>
     [Fact]
     public void PhraseManagerDialog_CountLabel_UsesFixedWidth()
     {

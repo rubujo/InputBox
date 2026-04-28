@@ -48,19 +48,19 @@
 ## 二、執行方式 🚀
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
 ```
 
 加入詳細輸出（MTP）：
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
 ```
 
 收集 Code Coverage（MTP 原生模式，同 CI）：
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
 		--filter-not-trait "Category=UI" `
 		--coverage `
 		--coverage-output-format cobertura `

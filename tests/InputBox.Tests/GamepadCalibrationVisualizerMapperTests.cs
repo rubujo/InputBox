@@ -23,6 +23,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.Equal(expected, actual, 3);
     }
 
+    /// <summary>
+    /// 死區半徑應依完整軸向範圍換算成正規化比例，避免校準圖縮放錯誤。
+    /// </summary>
     [Fact]
     public void CalculateDeadzoneRadius_UsesFullScaleRatioAndClamps()
     {
@@ -31,6 +34,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.InRange(actual, 0.07f, 0.08f);
     }
 
+    /// <summary>
+    /// 死區值超過完整軸向範圍時應夾至最大半徑，避免繪製超出校準圖邊界。
+    /// </summary>
     [Fact]
     public void CalculateDeadzoneRadius_WhenInputExceedsFullScale_ReturnsOne()
     {
@@ -39,6 +45,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.Equal(1.0f, actual, 3);
     }
 
+    /// <summary>
+    /// 控制器已連線的廣播文字應包含裝置名稱，且不應殘留格式化預留位置。
+    /// </summary>
     [Fact]
     public void FormatConnectionAnnouncement_WhenConnected_IncludesDeviceName()
     {
@@ -48,6 +57,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.DoesNotContain("{0}", actual);
     }
 
+    /// <summary>
+    /// 控制器未連線的廣播文字應使用斷線範本並帶入裝置名稱，避免播報未格式化字串。
+    /// </summary>
     [Fact]
     public void FormatConnectionAnnouncement_WhenDisconnected_UsesDisconnectedTemplate()
     {
@@ -57,6 +69,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.DoesNotContain("{0}", actual);
     }
 
+    /// <summary>
+    /// 已連線狀態文字應包含左右搖桿座標與死區數值，讓校準診斷資訊完整可讀。
+    /// </summary>
     [Fact]
     public void FormatStatusText_WhenConnected_IncludesLeftAndRightStickValues()
     {
@@ -83,6 +98,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.Contains("2500", actual);
     }
 
+    /// <summary>
+    /// 未連線狀態文字應回到資源檔中的斷線訊息，避免顯示空白或過期座標。
+    /// </summary>
     [Fact]
     public void FormatStatusText_WhenDisconnected_UsesDisconnectedMessage()
     {
@@ -91,6 +109,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.Equal(Strings.Dialog_GamepadCalibrationVisualizer_StatusDisconnected, actual);
     }
 
+    /// <summary>
+    /// 左搖桿位於中心區域時應允許 D-Pad 導覽焦點，避免校準對話框失去基本可操作性。
+    /// </summary>
     [Fact]
     public void ShouldHandleDirectionalFocusNavigation_WhenStickIsCentered_ReturnsTrue()
     {
@@ -106,6 +127,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.True(actual);
     }
 
+    /// <summary>
+    /// 左搖桿已明顯偏移時應阻止 D-Pad 焦點導覽，避免同一輸入同時觸發兩種移動。
+    /// </summary>
     [Fact]
     public void ShouldHandleDirectionalFocusNavigation_WhenLeftStickIsActive_ReturnsFalse()
     {
@@ -121,6 +145,9 @@ public sealed class GamepadCalibrationVisualizerMapperTests
         Assert.False(actual);
     }
 
+    /// <summary>
+    /// 左搖桿剛跨越進入死區時應阻止焦點導覽，避免 stick-to-DPad 映射後又重複移動焦點。
+    /// </summary>
     [Fact]
     public void ShouldHandleDirectionalFocusNavigation_WhenStickJustCrossesEnterDeadzone_ReturnsFalse()
     {

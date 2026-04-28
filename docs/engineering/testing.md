@@ -11,13 +11,13 @@
 
 ```powershell
 # 從 repo 根目錄執行
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
 
 # 加入詳細輸出
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
 
 # 收集 Code Coverage（MTP 原生模式，同 CI）
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
     --coverage `
     --coverage-output-format cobertura `
     --coverage-output coverage.cobertura.xml
