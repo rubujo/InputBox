@@ -3374,6 +3374,55 @@
               桌面模式尽量保留完整功能；只有 Steam Deck 游戏模式（Gamescope）会套用保守限制。</span
             >
           </p>
+          <p>
+            <span class="lang-zh"
+              >此支援屬於 best-effort compatibility：專案會保留既有 Wine／Proton／Gamescope
+              偵測、Steam 虛擬鍵盤喚起與 Gamescope 畫面恢復機制，但不承諾原生 Linux
+              桌面版本。未來只有在實機回報、既有功能回歸或相容性保護失效時，才會繼續投入 Steam Deck
+              相容性修補。</span
+            >
+            <span class="lang-de" lang="de"
+              >Diese Unterstützung ist best-effort compatibility: Das Projekt behält vorhandene
+              Wine/Proton/Gamescope-Erkennung, Steam-Bildschirmtastatur-Aufruf und
+              Gamescope-Anzeigewiederherstellung bei, verspricht aber keine native
+              Linux-Desktopversion. Weitere Steam Deck-Kompatibilitätskorrekturen erfolgen nur bei
+              Rückmeldungen von echter Hardware, Regressionen vorhandener Funktionen oder
+              fehlgeschlagenen Kompatibilitätsschutzmaßnahmen.</span
+            >
+            <span class="lang-en" lang="en"
+              >This support is best-effort compatibility: the project keeps the existing
+              Wine/Proton/Gamescope detection, Steam virtual keyboard launch, and Gamescope display
+              recovery mechanisms, but does not promise a native Linux desktop version. Future Steam
+              Deck compatibility work will continue only for real-device reports, regressions in
+              existing behavior, or failed compatibility protections.</span
+            >
+            <span class="lang-fr" lang="fr"
+              >Cette prise en charge relève de la best-effort compatibility : le projet conserve la
+              détection Wine/Proton/Gamescope existante, l'ouverture du clavier virtuel Steam et la
+              récupération de l'affichage Gamescope, mais ne promet pas de version de bureau Linux
+              native. Les corrections de compatibilité Steam Deck ne continueront qu'en cas de
+              retours sur matériel réel, de régressions de fonctionnalités existantes ou d'échec des
+              protections de compatibilité.</span
+            >
+            <span class="lang-ja" lang="ja"
+              >このサポートは best-effort compatibility です。既存の Wine/Proton/Gamescope
+              検出、Steam 仮想キーボード起動、Gamescope 画面復旧機構は維持しますが、ネイティブ Linux
+              デスクトップ版は約束しません。今後の Steam Deck
+              互換性修正は、実機からの報告、既存動作の回帰、または互換性保護の失敗がある場合に限って継続します。</span
+            >
+            <span class="lang-ko" lang="ko"
+              >이 지원은 best-effort compatibility입니다. 기존 Wine/Proton/Gamescope 감지, Steam
+              가상 키보드 실행, Gamescope 화면 복구 메커니즘은 유지하지만 네이티브 Linux 데스크톱
+              버전을 보장하지는 않습니다. 앞으로의 Steam Deck 호환성 수정은 실제 기기 제보, 기존
+              동작 회귀, 또는 호환성 보호 실패가 있을 때만 계속 진행합니다.</span
+            >
+            <span class="lang-sc" lang="zh-Hans"
+              >此支持属于 best-effort compatibility：项目会保留既有 Wine／Proton／Gamescope
+              检测、Steam 虚拟键盘唤起与 Gamescope 画面恢复机制，但不承诺原生 Linux
+              桌面版本。未来只有在实机回报、既有功能回归或兼容性保护失效时，才会继续投入 Steam Deck
+              兼容性修补。</span
+            >
+          </p>
           <div class="feature-grid">
             <div class="feature-card">
               <h3>
@@ -3879,6 +3928,48 @@
                   <span class="lang-sc" lang="zh-Hans"
                     >本项目目前的 Linux 兼容性调整，重点在于 Steam Deck／SteamOS 3 + Wine／Proton
                     的实际使用情境。</span
+                  >
+                </li>
+                <li>
+                  <span class="lang-zh"
+                    >目前沒有計畫為 Steam Deck 支援而遷移到 WPF、WinUI 3、Avalonia 或 .NET
+                    MAUI；現有 WinForms 架構仍最貼近本專案需要的
+                    Win32、TabTip、全域快捷鍵、前景視窗恢復與控制器 API。</span
+                  >
+                  <span class="lang-de" lang="de"
+                    >Es gibt derzeit keinen Plan, für Steam Deck-Unterstützung zu WPF, WinUI 3,
+                    Avalonia oder .NET MAUI zu migrieren. Die vorhandene WinForms-Architektur passt
+                    weiterhin am besten zu den benötigten Win32-, TabTip-, globalen Hotkey-,
+                    Vordergrundfenster-Wiederherstellungs- und Controller-APIs.</span
+                  >
+                  <span class="lang-en" lang="en"
+                    >There is currently no plan to migrate to WPF, WinUI 3, Avalonia, or .NET MAUI
+                    for Steam Deck support. The existing WinForms architecture remains the best fit
+                    for the Win32, TabTip, global hotkey, foreground-window recovery, and controller
+                    APIs this project needs.</span
+                  >
+                  <span class="lang-fr" lang="fr"
+                    >Il n'est actuellement pas prévu de migrer vers WPF, WinUI 3, Avalonia ou .NET
+                    MAUI pour la prise en charge de Steam Deck. L'architecture WinForms existante
+                    reste la plus adaptée aux API Win32, TabTip, raccourcis globaux, récupération de
+                    fenêtre au premier plan et manette dont ce projet a besoin.</span
+                  >
+                  <span class="lang-ja" lang="ja"
+                    >Steam Deck サポートのために WPF、WinUI 3、Avalonia、.NET MAUI
+                    へ移行する計画は現在ありません。既存の WinForms
+                    アーキテクチャは、このプロジェクトに必要な
+                    Win32、TabTip、グローバルホットキー、前景ウィンドウ復元、コントローラー API
+                    に最も適しています。</span
+                  >
+                  <span class="lang-ko" lang="ko"
+                    >Steam Deck 지원을 위해 WPF, WinUI 3, Avalonia 또는 .NET MAUI로 이전할 계획은
+                    현재 없습니다. 기존 WinForms 아키텍처가 이 프로젝트에 필요한 Win32, TabTip, 전역
+                    단축키, 전경 창 복구, 컨트롤러 API에 여전히 가장 적합합니다.</span
+                  >
+                  <span class="lang-sc" lang="zh-Hans"
+                    >目前没有计划为 Steam Deck 支持而迁移到 WPF、WinUI 3、Avalonia 或 .NET
+                    MAUI；现有 WinForms 架构仍最贴近本项目需要的
+                    Win32、TabTip、全局快捷键、前景窗口恢复与控制器 API。</span
                   >
                 </li>
                 <li>
