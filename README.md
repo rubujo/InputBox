@@ -57,6 +57,8 @@
 
 目前版本已針對 **Wine／Proton** 與 **SteamOS 3 的遊戲模式（Gamescope）** 加入相容性調整。整體原則是：**Steam Deck 桌面模式盡量保留完整功能；只有遊戲模式（Gamescope）會套用保守限制。**
 
+本支援屬於 **best-effort compatibility**：專案會保留既有 Wine／Proton／Gamescope 偵測、Steam 虛擬鍵盤喚起與 Gamescope 畫面恢復機制，但不承諾原生 Linux 桌面版本。現階段仍以 Windows 11 + WinForms 作為主要技術路線；未來只有在實機回報、既有功能回歸或相容性保護失效時，才會繼續投入 Steam Deck 相容性修補。
+
 - **Steam Deck 桌面模式（KDE Plasma）**：
   - 不套用 Gamescope 專用限制。
   - 高風險快速鍵與返回行為維持可用。
@@ -74,6 +76,7 @@
     - **右鍵選單**：透過觸控螢幕或觸控板開啟右鍵選單，選擇「**恢復 Gamescope 畫面**」。
 - **注意事項**：
   - 本專案目前的 Linux 相容性調整，重點在於 **Steam Deck／SteamOS 3 + Wine／Proton** 的實際使用情境。
+  - 目前沒有計畫為 Steam Deck 支援而遷移到 WPF、WinUI 3、Avalonia 或 .NET MAUI；現有 WinForms 架構仍最貼近本專案需要的 Win32、TabTip、全域快速鍵、前景視窗恢復與控制器 API。
   - 即使在桌面模式下可保留完整功能，螢幕鍵盤、輸入法候選窗與焦點恢復行為仍可能受桌面環境設定影響。
   - 若應用程式在遊戲模式下出現難以解釋的異常行為，建議直接重新啟動應用程式，而非持續嘗試各種恢復操作。
 
@@ -536,19 +539,19 @@ bin\Release\net10.0-windows\publish\win-x64\InputBox.exe
 ### 1. 執行單元測試
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
 ```
 
 ### 2. 顯示詳細輸出（除錯用）
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj --logger "console;verbosity=detailed"
 ```
 
 ### 3. 收集 Code Coverage（與 CI 一致）
 
 ```powershell
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
   --filter-not-trait "Category=UI" `
   --coverage `
   --coverage-output-format cobertura `
@@ -559,7 +562,7 @@ dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build `
 
 ```powershell
 $env:INPUTBOX_RUN_UI_TESTS = "1"
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build --filter-trait "Category=UI"
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj -c Release --no-build --filter-trait "Category=UI"
 Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
 ```
 
