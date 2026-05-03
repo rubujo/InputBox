@@ -36,6 +36,7 @@
 | 任務類型 | 必讀文件 |
 |---|---|
 | 任何程式碼異動 | `docs/engineering/environment.md`、`docs/engineering/core-engineering.md` |
+| Steam Deck、Wine、Proton、Gamescope、支援平台或 UI 技術方向 | `docs/engineering/environment.md` |
 | UI、WinForms、DPI、版面、視覺回饋、螢幕報讀 | `docs/engineering/a11y-safety.md` |
 | 控制器輸入、XInput、GameInput、按鍵映射 | `docs/engineering/gamepad-api.md` |
 | 使用者可見文字、`.resx`、術語、助記鍵 | `docs/engineering/localization.md` |
@@ -131,7 +132,7 @@ _cts?.Token ?? CancellationToken.None
 
 ```powershell
 dotnet build src/InputBox/InputBox.csproj --configuration Debug
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
 ```
 
 - 若測試會讀寫 `%AppData%` 相關資料，必須依 `docs/engineering/testing.md` 採用檔案系統隔離模式。
@@ -176,7 +177,7 @@ docs/engineering/
 交付前至少確認：
 
 1. `dotnet build src/InputBox/InputBox.csproj --configuration Debug`
-2. 若異動可測，執行 `dotnet test tests/InputBox.Tests/InputBox.Tests.csproj`
+2. 若異動可測，執行 `dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj`
 3. 修改過的 `*.cs` 沒有新增 IDE 或 CS 診斷
 4. 若有使用者可見文字異動，已同步更新對應 `.resx`
 5. 若有輸入、輸出、剪貼簿、快速鍵或控制器邏輯異動，已重新檢查 `docs/engineering/git-commit-safety.md`

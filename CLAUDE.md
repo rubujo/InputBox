@@ -30,5 +30,5 @@
 ```powershell
 [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 dotnet build src/InputBox/InputBox.csproj --configuration Debug
-dotnet test tests/InputBox.Tests/InputBox.Tests.csproj
+dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
 ```
