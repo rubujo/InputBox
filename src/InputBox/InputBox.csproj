@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -15,6 +15,8 @@
     <AssemblyTitle>輸入框 InputBox</AssemblyTitle>
     <Company>垃圾桶 rubujo</Company>
     <Copyright>在法律允許的最大範圍內，作者已放棄所有著作權及相關權利（CC0 1.0）</Copyright>
+    <GameInputNativeShimProject>..\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj</GameInputNativeShimProject>
+    <GameInputNativeShimPath>..\InputBox.GameInput.Native\bin\x64\$(Configuration)\InputBox.GameInput.Native.dll</GameInputNativeShimPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -52,9 +54,30 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GameInput.Net" Version="1.2.2" />
-    <PackageReference Include="UsbVendorsLibrary" Version="1.0.12" />
+    <PackageReference Include="Microsoft.GameInput" Version="3.4.218" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(GameInputNativeShimProject)"
+                      Condition="'$(OS)' == 'Windows_NT' and Exists('$(VCTargetsPath)\Microsoft.Cpp.Default.props')"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      Properties="Configuration=$(Configuration);Platform=x64;GameInputPackageVersion=3.4.218" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeLibrary Include="$(GameInputNativeShimPath)"
+                   Condition="Exists('$(GameInputNativeShimPath)')"
+                   CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="CopyGameInputNativeShimToBuildOutput"
+          AfterTargets="Build"
+          Condition="Exists('$(GameInputNativeShimPath)') and '$(TargetDir)' != ''">
+    <Copy SourceFiles="$(GameInputNativeShimPath)"
+          DestinationFolder="$(TargetDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

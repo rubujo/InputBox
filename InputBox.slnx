@@ -29,6 +29,7 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="src/InputBox.GameInput.Native/InputBox.GameInput.Native.vcxproj" Id="3e85c875-5e9d-4c7d-9b87-0d5b3eb3da53" />
   <Project Path="src/InputBox/InputBox.csproj" />
   <Project Path="tests/InputBox.Tests/InputBox.Tests.csproj" />
 </Solution>

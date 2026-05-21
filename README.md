@@ -50,8 +50,7 @@
   - **XInput**：系統原生支援，無需額外安裝。
   - **GameInput**：系統需具備 **GameInput 執行階段**。
     - 多數 Windows 11 系統已內建 GameInput 執行階段；若系統未提供或載入失敗，本應用程式會自動退避至 **XInput** 相容模式。
-    - **可轉散發元件（選用）**：可透過微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) NuGet 套件取得。
-      - 安裝方式：執行套件 `redist` 目錄下的 `GameInputRedist.msi`。
+    - **可轉散發元件（選用）**：正式發佈 ZIP 會隨附微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) 套件提供的 `redist/GameInputRedist.msi`，供需要者手動安裝；本應用程式不會自動執行該安裝程式。
 
 ## Steam Deck／SteamOS 3 使用說明 🎮
 
@@ -590,10 +589,6 @@ Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
 
 - [.NET Runtime](https://github.com/dotnet/runtime)：由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/dotnet/runtime/graphs/contributors) 開發並採用 [**MIT License**](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT) 授權，作為本應用程式之底層執行環境，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [Windows Forms（WinForms）](https://github.com/dotnet/winforms)：由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/dotnet/winforms/graphs/contributors) 開發並採用 [**MIT License**](https://github.com/dotnet/winforms/blob/main/LICENSE.TXT) 授權，提供桌面視窗圖形介面基礎架構，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/winforms/blob/main/THIRD-PARTY-NOTICES.TXT)。
-- [GameInput.Net](https://github.com/Cephy314/GameInputNet)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/GameInputNet/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/GameInputNet/blob/main/LICENSE) 授權，用於存取 GameInput API。
-- [UsbVendorsLibrary](https://github.com/Cephy314/UsbVendorsLibrary)：由 [Cephy314](https://github.com/Cephy314) 及其[貢獻者](https://github.com/Cephy314/UsbVendorsLibrary/graphs/contributors)開發並採用 [**MIT License**](https://github.com/Cephy314/UsbVendorsLibrary/blob/main/LICENSE) 授權，用於存取裝置資訊。
-- [USB ID Database（usb.ids）](http://www.linux-usb.org/usb-ids.html)：由 Stephen J. Gowdy 等人維護的公開 USB 裝置識別碼資料庫。該資料庫採雙重授權（[GNU General Public License（第 2 版或是更新的版本）](https://opensource.org/license/GPL-2.0)／[**3-clause BSD License**](https://opensource.org/license/bsd-3-clause)）。
-  - 本應用程式透過第三方函式庫 [**UsbVendorsLibrary**](https://github.com/Cephy314/UsbVendorsLibrary) 使用該資料庫，並於 **自包含部署（self‑contained）** 發佈之執行檔中以嵌入資源形式包含其內容。
-  - 本專案依照官方雙重授權所明示之選項，以 [**3-clause BSD License**](https://opensource.org/license/bsd-3-clause) 條款隨附發佈；歸因聲明請參閱發佈檔 **Licenses/usb_ids_LICENSE.txt**。
+- [Microsoft GameInput Redistributable](https://www.nuget.org/packages/Microsoft.GameInput)：由 Microsoft 提供，作為選用的 GameInput 執行階段可轉散發元件。正式發佈 ZIP 會隨附 `redist/GameInputRedist.msi` 供使用者手動安裝；本應用程式不會自動安裝，且該 redist 依 Microsoft.GameInput 授權條款散布，不屬於本專案 CC0 授權範圍。
 
-本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）及各元件完整授權文字。
+本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）、Microsoft GameInput 授權／Notice，以及各元件完整授權文字。

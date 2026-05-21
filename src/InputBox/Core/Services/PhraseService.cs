@@ -671,18 +671,21 @@ internal sealed class PhraseService
     /// <returns>包含成功狀態、錯誤類型與匯出筆數的匯出結果。</returns>
     public ExportOutcome ExportToFile(string filePath)
     {
-        string json;
-        int count;
-
-        lock (PhraseLock)
+        lock (PhrasePersistenceLock)
         {
-            count = _phrases.Count;
-            json = JsonSerializer.Serialize(_phrases, Options);
-        }
+            string json;
+            int count;
 
-        return TryWriteJsonToPath(filePath, json, "片語匯出失敗")
-            ? new ExportOutcome(true, ExportError.None, count)
-            : new ExportOutcome(false, ExportError.Unknown);
+            lock (PhraseLock)
+            {
+                count = _phrases.Count;
+                json = JsonSerializer.Serialize(_phrases, Options);
+            }
+
+            return TryWriteJsonToPath(filePath, json, "片語匯出失敗")
+                ? new ExportOutcome(true, ExportError.None, count)
+                : new ExportOutcome(false, ExportError.Unknown);
+        }
     }
 
     /// <summary>

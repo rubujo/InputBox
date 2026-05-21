@@ -1,8 +1,4 @@
-﻿using GameInputDotNet;
-using GameInputDotNet.Interop.Enums;
-using GameInputDotNet.Interop.Structs;
-using GameInputDotNet.States;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Services;
@@ -10,7 +6,6 @@ using InputBox.Resources;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
-using UsbVendorsLibrary;
 
 namespace InputBox.Core.Input;
 
@@ -93,6 +88,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 重新連接計數器
     /// </summary>
     private int _reconnectCounter;
+
+    /// <summary>
+    /// 目前裝置連續讀不到有效 reading 的幀數。
+    /// </summary>
+    private int _missingReadingFrameCounter;
 
     /// <summary>
     /// 輪詢任務的 CancellationTokenSource
@@ -761,6 +761,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         bool wasConnected = _isConnected || _hasPreviousState;
 
         _isConnected = false;
+        _missingReadingFrameCounter = 0;
         UpdateCalibrationSnapshot(null, AppSettings.Current.GamepadSettings, false);
 
         if (wasConnected)
@@ -1050,7 +1051,51 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        // 從佇列中取出所有事件（Event-Driven）。
+        try
+        {
+            GameInputDeviceStatus status = dev.GetDeviceStatus();
+
+            if ((status & GameInputDeviceStatus.Connected) == 0)
+            {
+                Debug.WriteLine("[GameInput] 目前裝置狀態已非 Connected，立即重新整理裝置清單。");
+                RefreshAfterCurrentDeviceBecameUnavailable();
+
+                return;
+            }
+
+            using GameInputReading? reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, dev);
+            GamepadStateSnapshot? currentSnapshot = reading?.GetGamepadState();
+
+            if (currentSnapshot == null)
+            {
+                if (HandleMissingCurrentReading())
+                {
+                    return;
+                }
+            }
+            else
+            {
+                _missingReadingFrameCounter = 0;
+
+                if (!_hasPreviousState ||
+                    _previousState == null ||
+                    currentSnapshot != _previousState)
+                {
+                    _readingQueue.Enqueue(currentSnapshot);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GameInput] 讀取目前狀態失敗，稍後重新整理裝置：{ex.Message}");
+
+            if (HandleMissingCurrentReading())
+            {
+                return;
+            }
+        }
+
+        // 從佇列中取出所有快照。
         // 分離「邊緣偵測」與「狀態維持」。
         bool hasNewState = false;
 
@@ -1160,6 +1205,55 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             ResetMechanismHealthLogState();
         }
+    }
+
+    /// <summary>
+    /// 目前裝置已不可用時立即重新整理裝置清單。
+    /// </summary>
+    private void RefreshAfterCurrentDeviceBecameUnavailable()
+    {
+        _missingReadingFrameCounter = 0;
+        _needsRefresh = true;
+        Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
+
+        TryFindDevice();
+    }
+
+    /// <summary>
+    /// 處理目前裝置連續讀不到 reading 的情境；超過閾值時立即重列舉以偵測斷線。
+    /// </summary>
+    /// <returns>若已重列舉且目前幀應停止後續狀態處理則回傳 true。</returns>
+    private bool HandleMissingCurrentReading()
+    {
+        if (!ShouldRefreshAfterMissingCurrentReading())
+        {
+            return false;
+        }
+
+        _needsRefresh = true;
+        Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
+
+        TryFindDevice();
+
+        return _device == null;
+    }
+
+    /// <summary>
+    /// 計算連續 missing reading 是否已達重列舉門檻。
+    /// </summary>
+    /// <returns>若應重列舉裝置則回傳 true。</returns>
+    private bool ShouldRefreshAfterMissingCurrentReading()
+    {
+        _missingReadingFrameCounter++;
+
+        if (_missingReadingFrameCounter < AppSettings.GamepadReconnectThresholdFrames)
+        {
+            return false;
+        }
+
+        _missingReadingFrameCounter = 0;
+
+        return true;
     }
 
     /// <summary>
@@ -1435,6 +1529,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _rtRepeatCounter = 0;
         _currentRTRepeatInterval = 0;
         _reconnectCounter = 0;
+        _missingReadingFrameCounter = 0;
         _previousState = null;
         _previousProcessedButtons = 0;
         _hasPreviousState = false;
@@ -1464,7 +1559,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             // 執行一次完整的列舉。
             IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(GameInputKind.Gamepad);
 
-            // 1. 釋放清單中已不再存在的舊裝置代理（Zero-allocation 替換 LINQ Any）。
+            // 1. 釋放清單中已不再存在或已非 Connected 的舊裝置代理（Zero-allocation 替換 LINQ Any）。
             for (int i = _allDevices.Count - 1; i >= 0; i--)
             {
                 GameInputDevice oldDev = _allDevices[i];
@@ -1473,15 +1568,27 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 {
                     GameInputDeviceInfo oldInfo = oldDev.GetDeviceInfo();
 
-                    bool stillExists = false;
+                    bool stillExists = IsDeviceConnected(oldDev);
 
-                    for (int j = 0; j < devices.Count; j++)
+                    if (stillExists)
                     {
-                        if (devices[j].GetDeviceInfo().DeviceId.Equals(oldInfo.DeviceId))
-                        {
-                            stillExists = true;
+                        stillExists = false;
 
-                            break;
+                        for (int j = 0; j < devices.Count; j++)
+                        {
+                            GameInputDevice candidate = devices[j];
+
+                            if (!IsDeviceConnected(candidate))
+                            {
+                                continue;
+                            }
+
+                            if (candidate.GetDeviceInfo().DeviceId.Equals(oldInfo.DeviceId))
+                            {
+                                stillExists = true;
+
+                                break;
+                            }
                         }
                     }
 
@@ -1530,6 +1637,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 try
                 {
+                    if (!IsDeviceConnected(newDev))
+                    {
+                        newDev.Dispose();
+
+                        continue;
+                    }
+
                     GameInputDeviceInfo newInfo = newDev.GetDeviceInfo();
 
                     bool alreadyTracked = false;
@@ -1571,6 +1685,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     _device = _allDevices[0];
 
                     _hasPreviousState = false;
+                    _missingReadingFrameCounter = 0;
 
                     UpdateDeviceInfo();
                     InitializeDeviceState();
@@ -1601,6 +1716,33 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             ConnectionChanged?.Invoke(true);
         }
     }
+
+    /// <summary>
+    /// 判斷 GameInput 裝置目前是否仍可用於輸入。
+    /// </summary>
+    /// <param name="device">要檢查的 GameInput 裝置。</param>
+    /// <returns>裝置狀態包含 Connected 時回傳 true。</returns>
+    private static bool IsDeviceConnected(GameInputDevice device)
+    {
+        try
+        {
+            return IsConnectedStatus(device.GetDeviceStatus());
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GameInput] 檢查裝置連線狀態失敗（視為不可用）：{ex.Message}");
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 判斷 GameInput 裝置狀態是否包含 Connected 旗標。
+    /// </summary>
+    /// <param name="status">GameInput 裝置狀態旗標。</param>
+    /// <returns>若包含 Connected 則回傳 true。</returns>
+    private static bool IsConnectedStatus(GameInputDeviceStatus status)
+        => (status & GameInputDeviceStatus.Connected) != 0;
 
     /// <summary>
     /// 掃描目前是否有其他正在活動的裝置，若有則切換
@@ -1752,32 +1894,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             int supportedMotorCount = BitOperations.PopCount(supportedMotorBits);
             _rumbleThermalWeight = Math.Clamp(supportedMotorCount, 1, 4);
 
-            // 更新裝置名稱與穩定識別資訊。業界實務上會優先使用 VID/PID 或產品家族資訊，
-            // 再把易變動的藍牙/接收器顯示名稱當成備援。
-            string displayName = string.Empty;
+            // 更新裝置名稱與穩定識別資訊。Auto 判斷改以 VID/PID 與 GameInput
+            // 原始顯示名稱作為穩定線索。
+            string displayName = info.GetDisplayName();
 
-            // 保留 GameInput 原始顯示名稱，供 USB 名稱查詢失敗或比對時作為補充線索。
-            string fallbackDisplayName = info.GetDisplayName() ?? "Unknown Gamepad";
-
-            if (UsbIds.TryGetVendorName(info.VendorId, out string? vendorName) &&
-                !string.IsNullOrWhiteSpace(vendorName))
+            if (string.IsNullOrWhiteSpace(displayName))
             {
-                displayName = $"{vendorName} ";
+                displayName = "Unknown Gamepad";
             }
 
-            if (UsbIds.TryGetProductName(info.VendorId, info.ProductId, out string? productName) &&
-                !string.IsNullOrWhiteSpace(productName))
-            {
-                displayName += productName;
-            }
-            else
-            {
-                displayName += fallbackDisplayName;
-            }
-
-            displayName = string.IsNullOrWhiteSpace(displayName) ? fallbackDisplayName : displayName.Trim();
             _cachedDeviceName = displayName;
-            _cachedDeviceIdentity = $"VID_{info.VendorId:X4} PID_{info.ProductId:X4} {displayName} {fallbackDisplayName}".Trim();
+            _cachedDeviceIdentity = $"VID_{info.VendorId:X4} PID_{info.ProductId:X4} {displayName}".Trim();
         }
         catch (Exception ex)
         {

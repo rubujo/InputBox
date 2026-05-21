@@ -1,7 +1,4 @@
-﻿using GameInputDotNet.Interop.Enums;
-using GameInputDotNet.Interop.Structs;
-using GameInputDotNet.States;
-using InputBox.Core.Configuration;
+﻿using InputBox.Core.Configuration;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
 using System.Reflection;
@@ -173,6 +170,76 @@ public sealed class GamepadControllerPauseTests
         SetPrivateField(controller, "_isConnected", true);
 
         Assert.True(controller.IsConnected);
+    }
+
+    /// <summary>
+    /// GameInput 即使目前沒有可用裝置，StopVibration 也應同步取消待執行震動並讓令牌失效。
+    /// </summary>
+    [Fact]
+    public void StopVibration_GameInputControllerWithoutDevice_CancelsPendingRumbleState()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        CancellationTokenSource vibrationCts = new();
+        CancellationToken token = vibrationCts.Token;
+
+        SetPrivateField(controller, "_vibrationCts", vibrationCts);
+        SetPrivateField(controller, "_vibrationToken", 10L);
+
+        controller.StopVibration();
+
+        Assert.Null(GetPrivateField<CancellationTokenSource?>(controller, "_vibrationCts"));
+        Assert.True(token.IsCancellationRequested);
+        Assert.Equal(11L, GetPrivateField<long>(controller, "_vibrationToken"));
+    }
+
+    /// <summary>
+    /// GameInput 目前裝置連續讀不到 reading 時，應在重連閾值後觸發裝置重列舉，避免斷線後仍沿用上一幀狀態。
+    /// </summary>
+    [Fact]
+    public void ShouldRefreshAfterMissingCurrentReading_WhenThresholdReached_ReturnsTrueAndResetsCounter()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "ShouldRefreshAfterMissingCurrentReading",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.ShouldRefreshAfterMissingCurrentReading。");
+
+        for (int i = 1; i < AppSettings.GamepadReconnectThresholdFrames; i++)
+        {
+            Assert.False((bool)method.Invoke(controller, [])!);
+            Assert.Equal(i, GetPrivateField<int>(controller, "_missingReadingFrameCounter"));
+        }
+
+        Assert.True((bool)method.Invoke(controller, [])!);
+        Assert.Equal(0, GetPrivateField<int>(controller, "_missingReadingFrameCounter"));
+    }
+
+    /// <summary>
+    /// GameInput 裝置列舉後，只有狀態仍包含 Connected 的裝置才應被視為可用，
+    /// 避免拔除瞬間仍在列舉清單中的裝置造成假重連公告。
+    /// </summary>
+    [Fact]
+    public void IsConnectedStatus_GameInputDeviceStatus_FiltersUnavailableDevices()
+    {
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "IsConnectedStatus",
+            BindingFlags.Static | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.IsConnectedStatus。");
+
+        Assert.True((bool)method.Invoke(null, [GameInputDeviceStatus.Connected])!);
+        Assert.False((bool)method.Invoke(null, [(GameInputDeviceStatus)0])!);
     }
 
     /// <summary>
