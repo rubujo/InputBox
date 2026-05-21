@@ -51,6 +51,7 @@
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).compile.pdb</ProgramDataBaseFileName>
       <ForceSynchronousPDBWrites>true</ForceSynchronousPDBWrites>
       <AdditionalIncludeDirectories>$(GameInputPackageRoot)native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -70,6 +71,7 @@
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).compile.pdb</ProgramDataBaseFileName>
       <ForceSynchronousPDBWrites>true</ForceSynchronousPDBWrites>
       <AdditionalIncludeDirectories>$(GameInputPackageRoot)native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -80,6 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="InputBoxGameInputNative.cpp" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
