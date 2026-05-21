@@ -491,61 +491,36 @@ public partial class MainForm
     /// <returns>非同步作業。</returns>
     private async Task InitializeConfiguredControllerAsync(AppSettings config, GamepadRepeatSettings gamepadRepeatSettings)
     {
-        // 根據設定嘗試建立遊戲控制器實作。
-        if (config.GamepadProviderType == AppSettings.GamepadProvider.GameInput)
+        IInputContext? inputContext = _inputContext;
+
+        if (inputContext == null)
         {
-            await TryInitializeGameInputControllerAsync(gamepadRepeatSettings);
+            return;
+        }
+
+        GamepadControllerCreationResult result = await GamepadControllerFactory.CreateAsync(
+            config.GamepadProviderType,
+            inputContext,
+            gamepadRepeatSettings);
+
+        if (IsDisposed)
+        {
+            result.Controller.Dispose();
 
             return;
         }
 
-        // 預設使用 XInput 實作。
-        CreateXInputController(gamepadRepeatSettings);
-    }
+        _gamepadController = result.Controller;
 
-    /// <summary>
-    /// 嘗試初始化 GameInput；失敗時退避至 XInput
-    /// </summary>
-    /// <param name="gamepadRepeatSettings">控制器連發設定。</param>
-    /// <returns>非同步作業。</returns>
-    private async Task TryInitializeGameInputControllerAsync(GamepadRepeatSettings gamepadRepeatSettings)
-    {
-        try
+        if (result.FellBackToXInput &&
+            result.GameInputFailure != null)
         {
-            IInputContext? inputContext = _inputContext;
+            LoggerService.LogException(result.GameInputFailure, "GameInput 初始化失敗，嘗試退避至 XInput");
 
-            if (inputContext == null)
-            {
-                CreateXInputController(gamepadRepeatSettings);
-
-                return;
-            }
-
-            // 嘗試初始化 GameInput。
-            GameInputGamepadController controller = await GameInputGamepadController.CreateAsync(
-                inputContext,
-                gamepadRepeatSettings);
-
-            if (IsDisposed)
-            {
-                controller.Dispose();
-
-                return;
-            }
-
-            _gamepadController = controller;
-        }
-        catch (Exception ex)
-        {
-            LoggerService.LogException(ex, "GameInput 初始化失敗，嘗試退避至 XInput");
-
-            Debug.WriteLine($"[控制器] GameInput 初始化失敗，嘗試退避至 XInput：{ex.Message}");
+            Debug.WriteLine($"[控制器] GameInput 初始化失敗，嘗試退避至 XInput：{result.GameInputFailure.Message}");
 
             // 告知使用者已切換至相容模式。
             AnnounceA11y(Strings.A11y_Gamepad_Fallback);
-
-            // 退避至 XInput。
-            CreateXInputController(gamepadRepeatSettings);
         }
     }
 
@@ -834,17 +809,6 @@ public partial class MainForm
                 return;
             }
         }
-    }
-
-    /// <summary>
-    /// 建立 XInput 控制器實例
-    /// </summary>
-    /// <param name="settings">控制器連發設定。</param>
-    private void CreateXInputController(GamepadRepeatSettings settings)
-    {
-        uint activeUserIndex = XInputGamepadController.GetFirstConnectedUserIndex();
-
-        _gamepadController = new XInputGamepadController(_inputContext!, activeUserIndex, settings);
     }
 
     /// <summary>

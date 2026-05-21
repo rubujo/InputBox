@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 25
     permissions:
       contents: write
@@ -30,7 +30,10 @@ jobs:
       DOTNET_NOLOGO: '1'
       PUBLISH_DIR: "./src/InputBox/out"
       EXE_NAME: 'InputBox.exe'
+      NATIVE_SHIM_NAME: 'InputBox.GameInput.Native.dll'
+      GAMEINPUT_VERSION: '3.4.218'
       SHA256_HASH: ''
+      GAMEINPUT_REDIST_SHA256: ''
       ZIP_FILENAME: ''
 
     steps:
@@ -70,12 +73,27 @@ jobs:
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         # Release 觸發頻率遠低於 cache TTL（7 天），不快取以避免無效寫入。
 
+    - name: 安裝 MSBuild（Native Shim）
+      uses: microsoft/setup-msbuild@v3
+
+    - name: 還原 NuGet 套件
+      run: dotnet restore ./src/InputBox/InputBox.csproj
+
+    - name: 建置 GameInput Native Shim
+      run: >
+        msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj
+        /p:Configuration=Release
+        /p:Platform=x64
+        /p:GameInputPackageVersion=${{ env.GAMEINPUT_VERSION }}
+        /m
+
     - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
       run: >
         dotnet publish -c Release -r win-x64
         --self-contained true
         -p:PublishSingleFile=true
+        -p:IncludeNativeLibrariesForSelfExtract=true
         -p:PublishReadyToRun=true
         -o out
 
@@ -87,7 +105,7 @@ jobs:
         # -i：指定專案檔路徑。
         # -o：指定輸出格式為 Markdown（讓純文字檔內有整齊的表格排版）。
         # -fo：指定輸出的檔案名稱（File Output）。
-        dotnet tool run nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt
+        dotnet tool run nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt -ignore Microsoft.GameInput
 
         if (Test-Path "ThirdPartyNotices.txt") {
             Write-Host "✅ 成功產生專案依賴套件的 ThirdPartyNotices.txt！"
@@ -117,15 +135,17 @@ jobs:
         $zipName = "InputBox-$tagName-win-x64.zip"
         "ZIP_FILENAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-        # 1. 建立外層目錄（dist）、內層目錄（dist/InputBox）與授權子目錄（dist/InputBox/Licenses）。
+        # 1. 建立外層目錄（dist）、內層目錄（dist/InputBox）、授權子目錄與 redist 子目錄。
         $distDir = "./dist"
         $packDir = Join-Path $distDir "InputBox"
         $licensesDir = Join-Path $packDir "Licenses"
+        $redistDir = Join-Path $packDir "redist"
         if (Test-Path $distDir) {
             Remove-Item -Recurse -Force $distDir
         }
         New-Item -ItemType Directory -Force -Path $packDir | Out-Null
         New-Item -ItemType Directory -Force -Path $licensesDir | Out-Null
+        New-Item -ItemType Directory -Force -Path $redistDir | Out-Null
 
         # 2. 複製執行檔與專案文件到內層目錄。
         #    - 執行檔與 README.md 放根目錄。
@@ -273,81 +293,102 @@ jobs:
             Write-Warning "❌ 無法解析 .NET Runtime 的版本號，請確認安裝步驟。"
         }
 
-        # 4. 動態解析 csproj，抓取套件授權與產生 usb.ids 授權檔案。
-        Write-Host "=== 開始解析 csproj 抓取第三方套件版本並處理授權 ==="
+        # 4. 打包 Microsoft GameInput redist 與授權檔案。
+        Write-Host "=== 開始處理 Microsoft GameInput redist 與授權 ==="
+        $gameInputPackageDir = Join-Path $env:USERPROFILE ".nuget\packages\microsoft.gameinput\${{ env.GAMEINPUT_VERSION }}"
+        $gameInputRedistSource = Join-Path $gameInputPackageDir "redist\GameInputRedist.msi"
+        $gameInputLicenseSource = Join-Path $gameInputPackageDir "LICENSE.txt"
+        $gameInputNoticeSource = Join-Path $gameInputPackageDir "NOTICE.txt"
 
-        $csprojPath = "./src/InputBox/InputBox.csproj"
-        if (Test-Path $csprojPath) {
-            # 將 csproj 轉為 XML 物件以便解析。
-            [xml]$csproj = Get-Content $csprojPath
-
-            # 尋找特定的 PackageReference 節點。
-            $gameInputRef = $csproj.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'GameInput.Net' }
-            $usbVendorsRef = $csproj.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'UsbVendorsLibrary' }
-
-            # 如果有找到版本號，前面補上 v；如果沒找到（理論上不會發生），退回抓 main。
-            $gameInputVer = if ($gameInputRef.Version) { "v" + $gameInputRef.Version } else { "main" }
-            $usbVendorsVer = if ($usbVendorsRef.Version) { "v" + $usbVendorsRef.Version } else { "main" }
-
-            Write-Host "解析到 GameInput.Net 版本標籤: $gameInputVer"
-            Write-Host "解析到 UsbVendorsLibrary 版本標籤: $usbVendorsVer"
-
-            $extraFiles = @(
-                @{ Url = "https://raw.githubusercontent.com/Cephy314/GameInputNet/$gameInputVer/LICENSE"; Out = "GameInputNet_LICENSE.txt" },
-                @{ Url = "https://raw.githubusercontent.com/Cephy314/UsbVendorsLibrary/$usbVendorsVer/LICENSE"; Out = "UsbVendorsLibrary_LICENSE.txt" }
-            )
-
-            foreach ($item in $extraFiles) {
-                $outPath = Join-Path $licensesDir $item.Out
-                Write-Host "嘗試下載: $($item.Url)"
-                try {
-                    Invoke-WebRequest -Uri $item.Url -OutFile $outPath -ErrorAction Stop
-                    Write-Host "✅ 成功儲存為 $($item.Out)"
-                } catch {
-                    Write-Warning "⚠️ 無法下載 $($item.Url)，請確認該套件的 GitHub 庫是否有此版本標籤！"
-                }
-            }
-        } else {
-            Write-Warning "找不到 csproj 檔案 ($csprojPath)，無法動態抓取套件版本。"
+        if (-not (Test-Path $gameInputRedistSource)) {
+            Write-Error "找不到 Microsoft.GameInput redist：$gameInputRedistSource"
         }
 
-        Write-Host "產生 usb.ids 的歸因聲明檔……"
-        # 以事實性歸因聲明（factual attribution notice）替代硬編碼的授權條款全文。
-        # 理由：UsbVendorsLibrary NuGet 套件所嵌入的 usb.ids 副本已移除原始授權標頭，
-        # 無法在發佈時提供從來源可追溯的授權文本。直接產生 BSD 全文會造成文件來源
-        # 無法稽核的問題。改以聲明形式標示資料來源、官方雙重授權及本專案所採用的條款。
-        $attributionText = @(
-            'USB ID Database (usb.ids) Attribution Notice',
-            '=============================================',
+        if (-not (Test-Path $gameInputLicenseSource)) {
+            Write-Error "找不到 Microsoft.GameInput 授權檔：$gameInputLicenseSource"
+        }
+
+        if (-not (Test-Path $gameInputNoticeSource)) {
+            Write-Error "找不到 Microsoft.GameInput notice 檔：$gameInputNoticeSource"
+        }
+
+        Copy-Item -Path $gameInputRedistSource -Destination (Join-Path $redistDir "GameInputRedist.msi")
+        Copy-Item -Path $gameInputLicenseSource -Destination (Join-Path $licensesDir "Microsoft.GameInput_LICENSE.txt")
+        Copy-Item -Path $gameInputNoticeSource -Destination (Join-Path $licensesDir "Microsoft.GameInput_NOTICE.txt")
+
+        $redistHash = (Get-FileHash (Join-Path $redistDir "GameInputRedist.msi") -Algorithm SHA256).Hash
+        "GAMEINPUT_REDIST_SHA256=$redistHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+        $redistReadme = @(
+            'Microsoft GameInput Redistributable',
+            '===================================',
             '',
-            'This release package includes data from the USB ID Database (usb.ids),',
-            'used via the UsbVendorsLibrary NuGet package.',
+            "Version: ${{ env.GAMEINPUT_VERSION }}",
+            'Included file: GameInputRedist.msi',
+            "SHA256: $redistHash",
             '',
-            '  Source:     http://www.linux-usb.org/usb-ids.html',
-            '  Maintained: Stephen J. Gowdy <linux.usb.ids@gmail.com>',
-            '  License:    Dual-licensed — GPL-2.0-or-later OR BSD-3-Clause',
-            '              (as stated at the official source above)',
+            'InputBox bundles this redistributable for optional manual installation only.',
+            'InputBox does not execute this installer automatically and does not require administrator elevation during normal application startup.',
             '',
-            'Note: The usb.ids file itself does not contain an embedded license',
-            'header or copyright notice. The dual-license terms above are stated',
-            'solely on the official project webpage (the Source URL above).',
-            '',
-            'This project redistributes the embedded usb.ids data under the',
-            'BSD 3-Clause License, which is one of the two licenses explicitly',
-            'stated at the official source listed above.',
-            '',
-            'For the full text of the BSD 3-Clause License, see:',
-            '  https://opensource.org/license/bsd-3-clause',
-            '',
-            'For the full text of the GNU General Public License (version 2 or later), see:',
-            '  https://opensource.org/license/GPL-2.0'
+            'License: see ../Licenses/Microsoft.GameInput_LICENSE.txt',
+            'Third-party notices: see ../Licenses/Microsoft.GameInput_NOTICE.txt'
         ) -join "`n"
-        $attributionText | Out-File -FilePath (Join-Path $licensesDir "usb_ids_LICENSE.txt") -Encoding utf8
-        Write-Host "✅ 成功建立 usb_ids_LICENSE.txt"
+        $redistReadme | Out-File -FilePath (Join-Path $redistDir "README.txt") -Encoding utf8
+
+        if (Test-Path "ThirdPartyNotices.txt") {
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value ''
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '## Microsoft GameInput Redistributable'
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value ''
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value "- Package: Microsoft.GameInput ${{ env.GAMEINPUT_VERSION }}"
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- Source: https://www.nuget.org/packages/Microsoft.GameInput/${{ env.GAMEINPUT_VERSION }}'
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- Included file: redist/GameInputRedist.msi'
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value "- SHA256: $redistHash"
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- Install policy: bundled for optional manual installation; InputBox does not install it automatically.'
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- License: see Microsoft.GameInput_LICENSE.txt and Microsoft.GameInput_NOTICE.txt in this Licenses directory.'
+            Copy-Item -Path "ThirdPartyNotices.txt" -Destination $licensesDir -Force
+        } else {
+            Write-Error "找不到 ThirdPartyNotices.txt，無法加入 Microsoft GameInput redist 聲明。"
+        }
         Write-Host "======================================="
 
-        # 5. 執行壓縮。
+        # 5. 執行壓縮並驗證 ZIP 內容。
         Compress-Archive -Path $packDir -DestinationPath $zipName -CompressionLevel Optimal
+
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $zipName))
+        try {
+            $entries = $zip.Entries | ForEach-Object { $_.FullName }
+            $requiredEntries = @(
+                'InputBox/InputBox.exe',
+                'InputBox/LICENSE',
+                'InputBox/README.md',
+                'InputBox/Licenses/ThirdPartyNotices.txt',
+                'InputBox/Licenses/Microsoft.GameInput_LICENSE.txt',
+                'InputBox/Licenses/Microsoft.GameInput_NOTICE.txt',
+                'InputBox/redist/GameInputRedist.msi',
+                'InputBox/redist/README.txt'
+            )
+            foreach ($entry in $requiredEntries) {
+                if ($entries -notcontains $entry) {
+                    Write-Error "ZIP 缺少必要項目：$entry"
+                }
+            }
+
+            $forbiddenPatterns = @(
+                'GameInputNet_LICENSE.txt',
+                'UsbVendorsLibrary_LICENSE.txt',
+                'usb_ids_LICENSE.txt',
+                'gameinput.dll',
+                '${{ env.NATIVE_SHIM_NAME }}'
+            )
+            foreach ($pattern in $forbiddenPatterns) {
+                if ($entries | Where-Object { $_ -like "*$pattern" }) {
+                    Write-Error "ZIP 包含禁止項目：$pattern"
+                }
+            }
+        } finally {
+            $zip.Dispose()
+        }
 
     - name: 檢查 VirusTotal API Key 設定
       id: vt-config
@@ -376,8 +417,12 @@ jobs:
           - **目標平台**：Windows x64
           - **執行環境**：.NET 10（已隨附 Runtime，無需額外安裝）
           - **執行檔案的雜湊值（SHA256）**：`${{ env.SHA256_HASH }}`
+          - **GameInput Redist（選用手動安裝）SHA256**：`${{ env.GAMEINPUT_REDIST_SHA256 }}`
 
           ---
+          > [!NOTE]
+          > 壓縮檔內含 Microsoft GameInput Redistributable (`redist/GameInputRedist.msi`) 供需要者手動安裝；InputBox 不會自動執行該安裝程式，GameInput 不可用時會退避至 XInput。
+
           > [!NOTE]
           > 本版本由 GitHub Actions 自動建置並發佈。詳細變更內容請參考下方的自動產生說明。
       env:

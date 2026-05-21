@@ -55,6 +55,36 @@ public sealed class GamepadFaceButtonProfileTests
     }
 
     /// <summary>
+    /// Auto 模式即使只取得自有 shim 保留的 Sony VID/PID，也應解析為 PlayStation 國際配置。
+    /// </summary>
+    [Fact]
+    public void ResolveEffectiveLayout_AutoWithSonyVidIdentity_ReturnsPlayStationCrossConfirm()
+    {
+        AppSettings.GamepadFaceButtonMode resolved = GamepadFaceButtonProfile.ResolveEffectiveLayout(
+            AppSettings.GamepadFaceButtonMode.Auto,
+            AppSettings.GamepadProvider.GameInput,
+            "Wireless Controller",
+            "VID_054C PID_0CE6 Wireless Controller");
+
+        Assert.Equal(AppSettings.GamepadFaceButtonMode.PlayStationCrossConfirm, resolved);
+    }
+
+    /// <summary>
+    /// Auto 模式即使只取得自有 shim 保留的 Nintendo VID/PID，也應解析為 Nintendo 配置。
+    /// </summary>
+    [Fact]
+    public void ResolveEffectiveLayout_AutoWithNintendoVidIdentity_ReturnsNintendo()
+    {
+        AppSettings.GamepadFaceButtonMode resolved = GamepadFaceButtonProfile.ResolveEffectiveLayout(
+            AppSettings.GamepadFaceButtonMode.Auto,
+            AppSettings.GamepadProvider.GameInput,
+            "Pro Controller",
+            "VID_057E PID_2009 Pro Controller");
+
+        Assert.Equal(AppSettings.GamepadFaceButtonMode.Nintendo, resolved);
+    }
+
+    /// <summary>
     /// 業界常見的藍牙名稱有時只會顯示 PS4 / PS5 或 Wireless Controller，仍應辨識為 PlayStation，而不是落回 Xbox。
     /// </summary>
     /// <param name="deviceName">測試用的 PlayStation 裝置名稱樣本。</param>

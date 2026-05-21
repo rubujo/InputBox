@@ -158,8 +158,8 @@ internal static class Program
 
         try
         {
-            // 載入 XInput DLL。
-            NativeLibrary.SetDllImportResolver(typeof(XInput).Assembly, DllResolver.ResolveXInput);
+            // 載入控制器相關 native DLL。
+            NativeLibrary.SetDllImportResolver(typeof(XInput).Assembly, DllResolver.ResolveNativeLibrary);
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.

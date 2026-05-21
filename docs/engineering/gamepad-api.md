@@ -19,6 +19,8 @@
 ## 2. API 選擇與退避機制 (Provider & Backoff)
 - **預設提供者**：應用程式之預設控制器提供者應設定為相容性最高之 **XInput**。
 - **自動退避**：當使用者手動設定使用 `GameInput` 但初始化失敗（如系統不支援）時，系統必須**自動退避至 XInput** 並透過 `AnnounceA11y` 告知使用者。
+- **GameInput 實作邊界**：GameInput 必須透過專案自有 `InputBox.GameInput.Native` shim 與專案內部 C# 型別存取 Microsoft GameInput runtime；不得重新引入已封存的第三方 `GameInput.Net`、`GameInputDotNet`、`UsbVendorsLibrary` 或 `usb.ids` 流程。
+- **GameInput runtime/redist 政策**：`Microsoft.GameInput` NuGet 僅作為官方 SDK、header 與 redist 來源。發佈 ZIP 可隨附 `redist/GameInputRedist.msi` 供使用者手動安裝，但應用程式不得自動執行安裝程式，也不得要求一般啟動流程取得系統管理員權限。
 - **Auto 模式解析優先序**：當使用者選擇 Face 鍵 `Auto` 模式且目前提供者為 **GameInput** 時，必須先使用較穩定的硬體識別資訊（例如 VID/PID、產品家族名稱）判斷裝置類型，再退回裝置名稱關鍵字比對；像 `Wireless`、`Bluetooth`、`Adapter`、`Receiver` 等連線詞應視為雜訊而忽略。
 - **Auto 模式預設對照**：在上述自動判斷下，Sony / PlayStation 裝置預設應解析為 **PlayStation（× 確認）**，Nintendo 裝置解析為 Nintendo 配置，其餘則回到 Xbox 配置；若使用者手動指定模式，必須優先於自動判斷。
 - **緊急停止**：程式結束前必須執行 `EmergencyStopAllActiveControllers()` 強制停止所有控制器馬達。
