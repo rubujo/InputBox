@@ -279,13 +279,93 @@ internal readonly record struct GameInputGamepadCapabilities(
 }
 
 /// <summary>
+/// GameInput shim 字串欄位截斷旗標。
+/// </summary>
+[Flags]
+internal enum GameInputStringTruncationFlags : uint
+{
+    None = 0x00000000,
+    DeviceId = 0x00000001,
+    DeviceRootId = 0x00000002,
+    ContainerId = 0x00000004,
+    DisplayName = 0x00000008,
+    PnpPath = 0x00000010,
+    AttemptedModulePath = 0x00000020,
+    LoadedModulePath = 0x00000040
+}
+
+/// <summary>
+/// GameInput shim 與 managed layer 的 ABI 尺寸資訊。
+/// </summary>
+internal readonly record struct GameInputAbiInfo(
+    uint PointerSize,
+    uint ShimInfoSize,
+    uint RuntimeProbeInfoSize,
+    uint DeviceInfoSize,
+    uint GamepadStateSize,
+    uint DiagnosticsSnapshotSize)
+{
+    public static GameInputAbiInfo Managed { get; } = new(
+        (uint)IntPtr.Size,
+        (uint)Marshal.SizeOf<GameInputNativeShimInfo>(),
+        (uint)Marshal.SizeOf<GameInputNativeRuntimeProbeInfo>(),
+        (uint)Marshal.SizeOf<GameInputNativeDeviceInfo>(),
+        (uint)Marshal.SizeOf<GameInputGamepadState>(),
+        (uint)Marshal.SizeOf<GameInputNativeDiagnosticsSnapshot>());
+
+    public bool MatchesManagedLayout => this == Managed;
+
+    public void ThrowIfMismatch()
+    {
+        if (!MatchesManagedLayout)
+        {
+            throw new BadImageFormatException(
+                $"GameInput native shim ABI mismatch. Native={this}; Managed={Managed}");
+        }
+    }
+}
+
+/// <summary>
 /// GameInput shim 載入診斷資訊。
 /// </summary>
 internal readonly record struct GameInputShimInfo(
     uint AbiVersion,
     uint GameInputApiVersion,
+    GameInputAbiInfo AbiInfo,
     GameInputShimModuleKind LoadedModuleKind,
     string LoadedModulePath);
+
+/// <summary>
+/// GameInput runtime probe 結果。
+/// </summary>
+internal readonly record struct GameInputRuntimeProbeInfo(
+    uint AbiVersion,
+    uint GameInputApiVersion,
+    GameInputAbiInfo AbiInfo,
+    GameInputShimModuleKind AttemptedModuleKind,
+    GameInputShimModuleKind LoadedModuleKind,
+    int LoadLibraryHResult,
+    int GetProcAddressHResult,
+    int InitializeHResult,
+    int FinalHResult,
+    uint LoadLibraryWin32Error,
+    uint GetProcAddressWin32Error,
+    uint InitializeWin32Error,
+    GameInputStringTruncationFlags StringTruncationFlags,
+    string AttemptedModulePath,
+    string LoadedModulePath);
+
+/// <summary>
+/// GameInput shim 診斷計數器快照。
+/// </summary>
+internal readonly record struct GameInputDiagnosticsSnapshot(
+    ulong MissingReadingCount,
+    ulong RepeatedTimestampCount,
+    ulong BackwardTimestampCount,
+    ulong DeviceUnavailableRefreshCount,
+    ulong LastReadingTimestamp,
+    int LastReadHResult,
+    uint LastReadDeviceStatus);
 
 /// <summary>
 /// GameInput runtime 載入來源。
@@ -319,6 +399,7 @@ internal readonly record struct GameInputDeviceInfo
         string deviceRootId,
         string containerId,
         string pnpPath,
+        GameInputStringTruncationFlags stringTruncationFlags,
         GameInputGamepadCapabilities gamepadCapabilities,
         string displayName)
     {
@@ -337,6 +418,7 @@ internal readonly record struct GameInputDeviceInfo
         DeviceRootId = deviceRootId;
         ContainerId = containerId;
         PnpPath = pnpPath;
+        StringTruncationFlags = stringTruncationFlags;
         GamepadCapabilities = gamepadCapabilities;
         DisplayName = displayName;
     }
@@ -371,6 +453,8 @@ internal readonly record struct GameInputDeviceInfo
 
     public string PnpPath { get; }
 
+    public GameInputStringTruncationFlags StringTruncationFlags { get; }
+
     public GameInputGamepadCapabilities GamepadCapabilities { get; }
 
     private string DisplayName { get; }
@@ -401,6 +485,12 @@ internal unsafe struct GameInputNativeShimInfo
 {
     public uint AbiVersion;
     public uint GameInputApiVersion;
+    public uint PointerSize;
+    public uint ShimInfoSize;
+    public uint RuntimeProbeInfoSize;
+    public uint DeviceInfoSize;
+    public uint GamepadStateSize;
+    public uint DiagnosticsSnapshotSize;
     public uint LoadedModuleKind;
     public fixed byte LoadedModulePath[512];
 
@@ -416,7 +506,78 @@ internal unsafe struct GameInputNativeShimInfo
         return new GameInputShimInfo(
             AbiVersion,
             GameInputApiVersion,
+            new GameInputAbiInfo(
+                PointerSize,
+                ShimInfoSize,
+                RuntimeProbeInfoSize,
+                DeviceInfoSize,
+                GamepadStateSize,
+                DiagnosticsSnapshotSize),
             (GameInputShimModuleKind)LoadedModuleKind,
+            loadedModulePath);
+    }
+}
+
+/// <summary>
+/// Native shim 回傳的 runtime probe 診斷資訊。
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+internal unsafe struct GameInputNativeRuntimeProbeInfo
+{
+    public uint AbiVersion;
+    public uint GameInputApiVersion;
+    public uint PointerSize;
+    public uint ShimInfoSize;
+    public uint RuntimeProbeInfoSize;
+    public uint DeviceInfoSize;
+    public uint GamepadStateSize;
+    public uint DiagnosticsSnapshotSize;
+    public uint AttemptedModuleKind;
+    public uint LoadedModuleKind;
+    public int LoadLibraryHResult;
+    public int GetProcAddressHResult;
+    public int InitializeHResult;
+    public int FinalHResult;
+    public uint LoadLibraryWin32Error;
+    public uint GetProcAddressWin32Error;
+    public uint InitializeWin32Error;
+    public uint StringTruncationFlags;
+    public fixed byte AttemptedModulePath[512];
+    public fixed byte LoadedModulePath[512];
+
+    public readonly GameInputRuntimeProbeInfo ToProbeInfo()
+    {
+        string attemptedModulePath;
+        string loadedModulePath;
+
+        fixed (byte* attemptedModulePathPtr = AttemptedModulePath)
+        fixed (byte* loadedModulePathPtr = LoadedModulePath)
+        {
+            attemptedModulePath = Marshal.PtrToStringUTF8((nint)attemptedModulePathPtr) ?? string.Empty;
+            loadedModulePath = Marshal.PtrToStringUTF8((nint)loadedModulePathPtr) ?? string.Empty;
+        }
+
+        return new GameInputRuntimeProbeInfo(
+            AbiVersion,
+            GameInputApiVersion,
+            new GameInputAbiInfo(
+                PointerSize,
+                ShimInfoSize,
+                RuntimeProbeInfoSize,
+                DeviceInfoSize,
+                GamepadStateSize,
+                DiagnosticsSnapshotSize),
+            (GameInputShimModuleKind)AttemptedModuleKind,
+            (GameInputShimModuleKind)LoadedModuleKind,
+            LoadLibraryHResult,
+            GetProcAddressHResult,
+            InitializeHResult,
+            FinalHResult,
+            LoadLibraryWin32Error,
+            GetProcAddressWin32Error,
+            InitializeWin32Error,
+            (GameInputStringTruncationFlags)StringTruncationFlags,
+            attemptedModulePath,
             loadedModulePath);
     }
 }
@@ -448,6 +609,7 @@ internal unsafe struct GameInputNativeDeviceInfo
     public uint ExtraButtonIndexCount;
     public uint ExtraAxisIndexCount;
     public uint HasInputMapper;
+    public uint StringTruncationFlags;
     public GameInputNativeVersionInfo HardwareVersion;
     public GameInputNativeVersionInfo FirmwareVersion;
     public fixed byte ExtraButtonIndexes[32];
@@ -511,6 +673,7 @@ internal unsafe struct GameInputNativeDeviceInfo
             parsedDeviceRootId,
             parsedContainerId,
             parsedPnpPath,
+            (GameInputStringTruncationFlags)StringTruncationFlags,
             capabilities,
             parsedDisplayName);
     }
@@ -533,4 +696,30 @@ internal unsafe struct GameInputNativeDeviceInfo
 
         return indexes;
     }
+}
+
+/// <summary>
+/// Native shim 回傳的診斷計數器快照。
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct GameInputNativeDiagnosticsSnapshot
+{
+    public ulong MissingReadingCount;
+    public ulong RepeatedTimestampCount;
+    public ulong BackwardTimestampCount;
+    public ulong DeviceUnavailableRefreshCount;
+    public ulong LastReadingTimestamp;
+    public int LastReadHResult;
+    public uint LastReadDeviceStatus;
+    public uint Reserved;
+
+    public readonly GameInputDiagnosticsSnapshot ToDiagnosticsSnapshot()
+        => new(
+            MissingReadingCount,
+            RepeatedTimestampCount,
+            BackwardTimestampCount,
+            DeviceUnavailableRefreshCount,
+            LastReadingTimestamp,
+            LastReadHResult,
+            LastReadDeviceStatus);
 }

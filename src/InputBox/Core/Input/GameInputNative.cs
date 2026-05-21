@@ -39,15 +39,49 @@ internal sealed class GameInput : IDisposable
             Marshal.ThrowExceptionForHR(hr);
         }
 
-        hr = GameInputNativeMethods.GetShimInfo(handle, out GameInputNativeShimInfo nativeShimInfo);
+        try
+        {
+            hr = GameInputNativeMethods.GetShimInfo(handle, out GameInputNativeShimInfo nativeShimInfo);
 
-        if (hr < 0)
+            if (hr < 0)
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
+
+            GameInputShimInfo shimInfo = nativeShimInfo.ToShimInfo();
+            shimInfo.AbiInfo.ThrowIfMismatch();
+
+            return new GameInput(handle, shimInfo);
+        }
+        catch
         {
             handle.Dispose();
-            Marshal.ThrowExceptionForHR(hr);
-        }
 
-        return new GameInput(handle, nativeShimInfo.ToShimInfo());
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 嘗試取得 GameInput runtime 載入診斷資訊；此方法不會建立長生命週期 context。
+    /// </summary>
+    /// <param name="probeInfo">runtime probe 結果。</param>
+    /// <returns>若 probe export 可呼叫則回傳 true。</returns>
+    public static bool TryProbeRuntime(out GameInputRuntimeProbeInfo probeInfo)
+    {
+        try
+        {
+            _ = GameInputNativeMethods.ProbeRuntime(out GameInputNativeRuntimeProbeInfo nativeProbeInfo);
+            probeInfo = nativeProbeInfo.ToProbeInfo();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"GameInput runtime probe failed: {ex.Message}");
+            probeInfo = default;
+
+            return false;
+        }
     }
 
     /// <summary>
@@ -220,6 +254,20 @@ internal sealed class GameInput : IDisposable
             out uint status);
 
         return hr >= 0 ? (GameInputDeviceStatus)status : 0;
+    }
+
+    internal GameInputDiagnosticsSnapshot GetDiagnosticsSnapshot()
+    {
+        int hr = GameInputNativeMethods.GetDiagnosticsSnapshot(
+            _handle,
+            out GameInputNativeDiagnosticsSnapshot snapshot);
+
+        if (hr < 0)
+        {
+            Marshal.ThrowExceptionForHR(hr);
+        }
+
+        return snapshot.ToDiagnosticsSnapshot();
     }
 
     /// <summary>
@@ -475,6 +523,10 @@ internal static partial class GameInputNativeMethods
 {
     private const string NativeLibraryName = "InputBox.GameInput.Native";
 
+    [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputProbeRuntime")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
+    internal static extern int ProbeRuntime(out GameInputNativeRuntimeProbeInfo info);
+
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputCreate")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int Create(out SafeGameInputContextHandle context);
@@ -488,6 +540,12 @@ internal static partial class GameInputNativeMethods
     internal static extern int GetShimInfo(
         SafeGameInputContextHandle context,
         out GameInputNativeShimInfo info);
+
+    [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetDiagnosticsSnapshot")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
+    internal static extern int GetDiagnosticsSnapshot(
+        SafeGameInputContextHandle context,
+        out GameInputNativeDiagnosticsSnapshot snapshot);
 
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputSetFocusPolicy")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]

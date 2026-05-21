@@ -87,6 +87,122 @@ public sealed class GameInputPrimitivesTests
     }
 
     /// <summary>
+    /// Shim info 應保留 native struct size metadata，供 managed create 階段拒絕載錯或 ABI 不符的 DLL。
+    /// </summary>
+    [Fact]
+    public unsafe void ToShimInfo_NativeAbiSizes_PreservesManagedLayoutMetadata()
+    {
+        GameInputNativeShimInfo nativeInfo = CreateNativeShimInfo();
+        byte* loadedModulePath = nativeInfo.LoadedModulePath;
+        WriteUtf8(loadedModulePath, 512, @"C:\Windows\System32\GameInput.dll");
+
+        GameInputShimInfo shimInfo = nativeInfo.ToShimInfo();
+
+        Assert.Equal(GameInputAbiInfo.Managed, shimInfo.AbiInfo);
+        Assert.True(shimInfo.AbiInfo.MatchesManagedLayout);
+        Assert.Equal(GameInputShimModuleKind.SystemGameInput, shimInfo.LoadedModuleKind);
+        Assert.Equal(@"C:\Windows\System32\GameInput.dll", shimInfo.LoadedModulePath);
+    }
+
+    /// <summary>
+    /// ABI size mismatch 應被視為 shim 載錯，避免 managed layer 用錯 struct layout 讀取 native 資料。
+    /// </summary>
+    [Fact]
+    public void ThrowIfMismatch_DifferentNativeDeviceInfoSize_ThrowsBadImageFormatException()
+    {
+        GameInputAbiInfo mismatched = GameInputAbiInfo.Managed with
+        {
+            DeviceInfoSize = GameInputAbiInfo.Managed.DeviceInfoSize + 4
+        };
+
+        Assert.Throws<BadImageFormatException>(mismatched.ThrowIfMismatch);
+    }
+
+    /// <summary>
+    /// Runtime probe 應完整保留載入階段錯誤資訊，讓 fallback XInput 時能定位 DLL、export 或 initialize 失敗。
+    /// </summary>
+    [Fact]
+    public unsafe void ToProbeInfo_NativeRuntimeProbe_PreservesLoadDiagnostics()
+    {
+        GameInputNativeRuntimeProbeInfo nativeInfo = new()
+        {
+            AbiVersion = 3,
+            GameInputApiVersion = 0x12345678,
+            PointerSize = GameInputAbiInfo.Managed.PointerSize,
+            ShimInfoSize = GameInputAbiInfo.Managed.ShimInfoSize,
+            RuntimeProbeInfoSize = GameInputAbiInfo.Managed.RuntimeProbeInfoSize,
+            DeviceInfoSize = GameInputAbiInfo.Managed.DeviceInfoSize,
+            GamepadStateSize = GameInputAbiInfo.Managed.GamepadStateSize,
+            DiagnosticsSnapshotSize = GameInputAbiInfo.Managed.DiagnosticsSnapshotSize,
+            AttemptedModuleKind = (uint)GameInputShimModuleKind.RegistryGameInputRedist,
+            LoadedModuleKind = (uint)GameInputShimModuleKind.RegistryGameInputRedist,
+            LoadLibraryHResult = unchecked((int)0x8007007E),
+            GetProcAddressHResult = 0,
+            InitializeHResult = unchecked((int)0x80004005),
+            FinalHResult = unchecked((int)0x80004005),
+            LoadLibraryWin32Error = 126,
+            GetProcAddressWin32Error = 0,
+            InitializeWin32Error = 0,
+            StringTruncationFlags = (uint)GameInputStringTruncationFlags.AttemptedModulePath
+        };
+
+        byte* attemptedModulePath = nativeInfo.AttemptedModulePath;
+        byte* loadedModulePath = nativeInfo.LoadedModulePath;
+        WriteUtf8(attemptedModulePath, 512, @"C:\Program Files\GameInput\GameInputRedist.dll");
+        WriteUtf8(loadedModulePath, 512, @"C:\Program Files\GameInput\GameInputRedist.dll");
+
+        GameInputRuntimeProbeInfo probeInfo = nativeInfo.ToProbeInfo();
+
+        Assert.Equal(GameInputAbiInfo.Managed, probeInfo.AbiInfo);
+        Assert.Equal(GameInputShimModuleKind.RegistryGameInputRedist, probeInfo.AttemptedModuleKind);
+        Assert.Equal(GameInputShimModuleKind.RegistryGameInputRedist, probeInfo.LoadedModuleKind);
+        Assert.Equal(unchecked((int)0x8007007E), probeInfo.LoadLibraryHResult);
+        Assert.Equal(unchecked((int)0x80004005), probeInfo.InitializeHResult);
+        Assert.Equal(126u, probeInfo.LoadLibraryWin32Error);
+        Assert.True(probeInfo.StringTruncationFlags.HasFlag(GameInputStringTruncationFlags.AttemptedModulePath));
+        Assert.Equal(@"C:\Program Files\GameInput\GameInputRedist.dll", probeInfo.AttemptedModulePath);
+    }
+
+    /// <summary>
+    /// Shim diagnostics counter 應只作為診斷快照保留，不與 gamepad state edge detection 混在一起。
+    /// </summary>
+    [Fact]
+    public void ToDiagnosticsSnapshot_NativeCounters_PreservesStaleReadingMetadata()
+    {
+        GameInputNativeDiagnosticsSnapshot nativeSnapshot = new()
+        {
+            MissingReadingCount = 3,
+            RepeatedTimestampCount = 4,
+            BackwardTimestampCount = 5,
+            DeviceUnavailableRefreshCount = 6,
+            LastReadingTimestamp = 7,
+            LastReadHResult = unchecked((int)0x8007048F),
+            LastReadDeviceStatus = 0x20
+        };
+
+        GameInputDiagnosticsSnapshot snapshot = nativeSnapshot.ToDiagnosticsSnapshot();
+
+        Assert.Equal(3ul, snapshot.MissingReadingCount);
+        Assert.Equal(4ul, snapshot.RepeatedTimestampCount);
+        Assert.Equal(5ul, snapshot.BackwardTimestampCount);
+        Assert.Equal(6ul, snapshot.DeviceUnavailableRefreshCount);
+        Assert.Equal(7ul, snapshot.LastReadingTimestamp);
+        Assert.Equal(unchecked((int)0x8007048F), snapshot.LastReadHResult);
+        Assert.Equal(0x20u, snapshot.LastReadDeviceStatus);
+    }
+
+    /// <summary>
+    /// Managed GameInput kind 應維持 gamepad-only subset，不暴露 keyboard、mouse、sensor 或 raw report 路徑。
+    /// </summary>
+    [Fact]
+    public void GameInputKind_ManagedSubset_OnlyExposesUnknownAndGamepad()
+    {
+        GameInputKind[] values = Enum.GetValues<GameInputKind>();
+
+        Assert.Equal([GameInputKind.Unknown, GameInputKind.Gamepad], values);
+    }
+
+    /// <summary>
     /// Native device info 擴充欄位應完整轉成 managed model，保留 VID/PID、版本、PnP path 與 extra control indexes。
     /// </summary>
     [Fact]
@@ -114,6 +230,7 @@ public sealed class GameInputPrimitivesTests
             ExtraButtonIndexCount = 2,
             ExtraAxisIndexCount = 1,
             HasInputMapper = 1,
+            StringTruncationFlags = (uint)GameInputStringTruncationFlags.PnpPath,
             HardwareVersion = new GameInputNativeVersionInfo { Major = 1, Minor = 2, Build = 3, Revision = 4 },
             FirmwareVersion = new GameInputNativeVersionInfo { Major = 5, Minor = 6, Build = 7, Revision = 8 }
         };
@@ -145,6 +262,7 @@ public sealed class GameInputPrimitivesTests
         Assert.Equal((ushort)0x054C, info.VendorId);
         Assert.Equal((ushort)0x0CE6, info.ProductId);
         Assert.Equal((ushort)7, info.RevisionNumber);
+        Assert.Equal(GameInputStringTruncationFlags.PnpPath, info.StringTruncationFlags);
         Assert.Equal(new GameInputVersionInfo(1, 2, 3, 4), info.HardwareVersion);
         Assert.Equal(new GameInputVersionInfo(5, 6, 7, 8), info.FirmwareVersion);
         Assert.True(info.GamepadCapabilities.HasInputMapper);
@@ -152,6 +270,20 @@ public sealed class GameInputPrimitivesTests
         Assert.Equal(new byte[] { 4, 5 }, info.GamepadCapabilities.ExtraButtonIndexes);
         Assert.Equal(new byte[] { 6 }, info.GamepadCapabilities.ExtraAxisIndexes);
     }
+
+    private static GameInputNativeShimInfo CreateNativeShimInfo()
+        => new()
+        {
+            AbiVersion = 3,
+            GameInputApiVersion = 0x12345678,
+            PointerSize = GameInputAbiInfo.Managed.PointerSize,
+            ShimInfoSize = GameInputAbiInfo.Managed.ShimInfoSize,
+            RuntimeProbeInfoSize = GameInputAbiInfo.Managed.RuntimeProbeInfoSize,
+            DeviceInfoSize = GameInputAbiInfo.Managed.DeviceInfoSize,
+            GamepadStateSize = GameInputAbiInfo.Managed.GamepadStateSize,
+            DiagnosticsSnapshotSize = GameInputAbiInfo.Managed.DiagnosticsSnapshotSize,
+            LoadedModuleKind = (uint)GameInputShimModuleKind.SystemGameInput
+        };
 
     private static unsafe void WriteUtf8(byte* destination, int destinationLength, string value)
     {

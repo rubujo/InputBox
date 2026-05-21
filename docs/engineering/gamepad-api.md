@@ -21,6 +21,11 @@
 - **自動退避**：當使用者手動設定使用 `GameInput` 但初始化失敗（如系統不支援）時，系統必須**自動退避至 XInput** 並透過 `AnnounceA11y` 告知使用者。
 - **GameInput 實作邊界**：GameInput 必須透過專案自有 `InputBox.GameInput.Native` shim 與專案內部 C# 型別存取 Microsoft GameInput runtime；不得重新引入已封存的第三方 `GameInput.Net`、`GameInputDotNet`、`UsbVendorsLibrary` 或 `usb.ids` 流程。
 - **GameInput shim 同版發布**：Native shim 與 managed GameInput layer 視為同版、同包、一起發布的內部實作；更新 C ABI 時直接同步兩端 struct，不維護外部相容層或 `V2` suffix。若 shim 載入失敗或 ABI 不符，應走既有 GameInput 初始化失敗並退避 XInput 路徑。
+- **GameInput shim ABI 防呆**：shim 必須在 `InputBoxGameInputGetShimInfo` 回報 native ABI number、`GAMEINPUT_API_VERSION`、pointer size 與所有跨邊界 struct size；managed layer 必須以 `Marshal.SizeOf<T>()` 驗證尺寸，不符即視為 shim 載錯並退避 XInput。
+- **GameInput runtime probe**：shim 必須提供建立 context 前可呼叫的 runtime probe，回報 LoadLibrary、GetProcAddress、GameInputInitialize 的 HRESULT / Win32 error、嘗試與實際載入的 module kind/path，以及字串截斷旗標；此資訊只供 log 與測試，不可影響按鍵語意。
+- **GameInput DLL 載入安全**：系統 GameInput runtime 只能使用 System32 搜尋範圍；registry redist 絕對路徑必須搭配 `LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32`，並記錄實際載入來源。不得從工作目錄、目前目錄或未限定搜尋路徑載入 `gameinput.dll`。
+- **GameInput native context 同步**：native shim 必須以 SRW lock 保護 `devices`、`callbacks`、診斷 counter，以及 refresh/read/unregister/destroy 等會交錯的路徑；callback 只能複製 POD event 或設定喚醒訊號，不得持有 context lock 呼叫 managed callback。
+- **GameInput 診斷 metadata 邊界**：string truncation flags、timestamp stale counters、missing reading counters、device zombie refresh counters 只能進入 log、測試或未來診斷快照，不可直接改變 edge detection、Pause/Resume neutral gate 或任何 UI 命令。
 - **GameInput subset 範圍**：目前只實作 InputBox 需要的 Gamepad subset：裝置資訊、VID/PID、timestamp、gamepad button state、rumble、device/reading callbacks，以及 gamepad capabilities / extra control metadata。不得在未重新評估安全與產品需求前擴張到 keyboard、mouse、sensors、raw report、force feedback、aggregate device 或 1:1 GameInput wrapper。
 - **Callback 使用邊界**：GameInput 的 `RegisterDeviceCallback` / `RegisterReadingCallback` 僅可用於要求背景 MTA polling thread 重新整理或喚醒診斷路徑；正式輸入命令仍必須由 60 FPS polling 消費，callback 不得直接觸發 UI、剪貼簿、返回前景或任何輸入動作。
 - **GameInput runtime/redist 政策**：`Microsoft.GameInput` NuGet 僅作為官方 SDK、header 與 redist 來源。發佈 ZIP 可隨附 `redist/GameInputRedist.msi` 供使用者手動安裝，但應用程式不得自動執行安裝程式，也不得要求一般啟動流程取得系統管理員權限。
