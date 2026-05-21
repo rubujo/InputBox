@@ -59,6 +59,8 @@ namespace
         uint16_t revision;
     };
 
+    // 下列 C ABI 結構必須與 GameInputPrimitives.cs 的受控端結構保持版面相容。
+    // 欄位異動時，請同步更新 InputBoxGameInputShimAbiVersion 與受控端大小檢查。
     struct InputBoxGameInputShimInfo
     {
         uint32_t abiVersion;
@@ -191,6 +193,8 @@ namespace
         ComPtr<IGameInput> gameInput;
         std::vector<DeviceEntry> devices;
         std::vector<std::unique_ptr<CallbackRegistration>> callbacks;
+        // 保護 GameInput COM 存取，以及銷毀期間的裝置、回呼與診斷狀態。
+        // 持有此鎖時不得呼叫受控端回呼。
         SRWLOCK lock = SRWLOCK_INIT;
         uint64_t lastReadingTimestamp = 0;
         uint64_t missingReadingCount = 0;
@@ -679,6 +683,8 @@ namespace
         GameInputInitializeFn* initialize,
         InputBoxGameInputRuntimeProbeInfo* probe) noexcept
     {
+        // 保留每個候選載入嘗試的診斷資訊。GameInput 退避到 XInput 時，
+        // 這些欄位是判斷 DLL 缺失、export 缺失或初始化失敗的主要線索。
         if (probe != nullptr)
         {
             probe->attemptedModuleKind = moduleKind;
@@ -747,6 +753,8 @@ namespace
         *gameInput = nullptr;
 
         GameInputInitializeFn initialize = nullptr;
+        // 優先使用 System32 內的系統 GameInput。登錄檔 redist 路徑排在最後，
+        // 並使用 DLL_LOAD_DIR + SYSTEM32，避免相依 DLL 從目前工作目錄解析。
         HRESULT hr = TryLoadGameInputCandidate(
             L"GameInput.dll",
             LOAD_LIBRARY_SEARCH_SYSTEM32,
@@ -887,6 +895,8 @@ namespace
         ComPtr<IGameInputDevice>* device,
         InputBoxGameInputDeviceInfo* info = nullptr) noexcept
     {
+        // 呼叫端必須先持有 context->lock。回傳的 ComPtr 可讓裝置離開 vector 後仍存活，
+        // 但 vector 查找本身仍必須同步。
         if (context == nullptr ||
             deviceId == nullptr ||
             device == nullptr)
@@ -940,6 +950,8 @@ namespace
             return;
         }
 
+        // 這些計數器僅供診斷；受控端邊緣偵測與中立閘門
+        // 不應依據它們改變行為。
         context->lastReadHResult = hr;
         context->lastReadDeviceStatus = deviceStatus;
 
@@ -1035,6 +1047,8 @@ namespace
         _In_ void* context,
         _In_ IGameInputReading* reading)
     {
+        // 回呼路徑只作為喚醒與診斷的輔助通道。這裡只把 reading 轉成 POD，
+        // 是否重新整理則交由受控端輪詢迴圈決定。
         auto* registration = static_cast<CallbackRegistration*>(context);
 
         if (registration == nullptr ||
@@ -1065,6 +1079,8 @@ namespace
         _In_ GameInputDeviceStatus currentStatus,
         _In_ GameInputDeviceStatus previousStatus)
     {
+        // 不要把 IGameInputDevice 跨過 C ABI 傳給受控端。受控層只接收穩定識別與狀態位元，
+        // 再透過輪詢執行緒重新整理。
         auto* registration = static_cast<CallbackRegistration*>(context);
 
         if (registration == nullptr ||
@@ -1146,6 +1162,8 @@ extern "C"
         char modulePath[512]{};
         ComPtr<IGameInput> gameInput;
 
+        // Probe 只建立短生命週期的 IGameInput，用來分類執行階段載入失敗原因。
+        // 不得留下持久 context 或回呼註冊。
         HRESULT hr = LoadGameInput(
             &module,
             &moduleKind,
@@ -1211,6 +1229,7 @@ extern "C"
         {
             ExclusiveContextLock lock(context->lock);
 
+            // 先停止回呼，再釋放 vector/module，避免回呼觀察到半銷毀的原生狀態。
             if (context->gameInput != nullptr)
             {
                 for (const std::unique_ptr<CallbackRegistration>& registration : context->callbacks)
@@ -1327,6 +1346,8 @@ extern "C"
 
             DeviceCollector collector;
             GameInputCallbackToken token = 0;
+            // 阻塞列舉提供 60 FPS 輪詢迴圈需要的完整快照。
+            // 這個回呼註冊是暫時的，替換裝置清單前會先解除註冊。
             HRESULT hr = context->gameInput->RegisterDeviceCallback(
                 nullptr,
                 GameInputKindGamepad,
@@ -1550,6 +1571,8 @@ extern "C"
                 return E_INVALIDARG;
             }
 
+            // 在 shared lock 內複製 COM 參考，接著不持有 context lock 進行註冊。
+            // GameInput 可能在註冊期間呼叫回呼。
             gameInput = context->gameInput;
             HRESULT hr = ResolveOptionalDeviceLocked(context, deviceId, &device);
 
@@ -1583,6 +1606,8 @@ extern "C"
             ExclusiveContextLock lock(context->lock);
             if (context->gameInput == nullptr)
             {
+                // 原生註冊成功後 destroy 搶先完成。這裡立即解除註冊並回報失敗，
+                // 避免受控端保留這個 token。
                 registration->active.store(false);
                 gameInput->StopCallback(token);
                 gameInput->UnregisterCallback(token);
@@ -1628,6 +1653,8 @@ extern "C"
                 return E_INVALIDARG;
             }
 
+            // 參考 RegisterReadingCallback：回呼註冊不持有 context lock，
+            // 並且只在 context 仍存活時發布 token。
             gameInput = context->gameInput;
             HRESULT hr = ResolveOptionalDeviceLocked(context, deviceId, &device);
 
@@ -1663,6 +1690,7 @@ extern "C"
             ExclusiveContextLock lock(context->lock);
             if (context->gameInput == nullptr)
             {
+                // context 銷毀與註冊發生競態；回傳前先停止並解除註冊。
                 registration->active.store(false);
                 gameInput->StopCallback(token);
                 gameInput->UnregisterCallback(token);
