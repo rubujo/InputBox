@@ -894,6 +894,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             LoggerService.LogException(ex, "GameInput 在背景執行緒初始化失敗");
 
+            if (GameInput.TryProbeRuntime(out GameInputRuntimeProbeInfo probeInfo))
+            {
+                LoggerService.LogInfo(
+                    $"GameInputProbe finalHr=0x{probeInfo.FinalHResult:X8} loadHr=0x{probeInfo.LoadLibraryHResult:X8} procHr=0x{probeInfo.GetProcAddressHResult:X8} initHr=0x{probeInfo.InitializeHResult:X8} loadWin32={probeInfo.LoadLibraryWin32Error} procWin32={probeInfo.GetProcAddressWin32Error} initWin32={probeInfo.InitializeWin32Error} attemptedKind={probeInfo.AttemptedModuleKind} loadedKind={probeInfo.LoadedModuleKind} attemptedPath={probeInfo.AttemptedModulePath} loadedPath={probeInfo.LoadedModulePath}");
+            }
+
             Debug.WriteLine($"GameInput 在背景執行緒初始化失敗：{ex.Message}");
 
             // 若系統不支援，通知 CreateAsync 丟出例外以觸發退避邏輯

@@ -28,7 +28,7 @@ using namespace GameInput::v3;
 namespace
 {
     const HRESULT InputBoxGameInputNoReading = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
-    constexpr uint32_t InputBoxGameInputShimAbiVersion = 2;
+    constexpr uint32_t InputBoxGameInputShimAbiVersion = 3;
     constexpr uint32_t InputBoxGameInputMaxExtraControlIndexes = 32;
 
     enum InputBoxGameInputModuleKind : uint32_t
@@ -37,6 +37,18 @@ namespace
         InputBoxGameInputModuleSystemGameInput = 1,
         InputBoxGameInputModuleSystemGameInputRedist = 2,
         InputBoxGameInputModuleRegistryGameInputRedist = 3
+    };
+
+    enum InputBoxGameInputStringTruncationFlags : uint32_t
+    {
+        InputBoxGameInputStringTruncatedNone = 0x00000000,
+        InputBoxGameInputStringTruncatedDeviceId = 0x00000001,
+        InputBoxGameInputStringTruncatedDeviceRootId = 0x00000002,
+        InputBoxGameInputStringTruncatedContainerId = 0x00000004,
+        InputBoxGameInputStringTruncatedDisplayName = 0x00000008,
+        InputBoxGameInputStringTruncatedPnpPath = 0x00000010,
+        InputBoxGameInputStringTruncatedAttemptedModulePath = 0x00000020,
+        InputBoxGameInputStringTruncatedLoadedModulePath = 0x00000040
     };
 
     struct InputBoxGameInputVersion
@@ -51,7 +63,37 @@ namespace
     {
         uint32_t abiVersion;
         uint32_t gameInputApiVersion;
+        uint32_t pointerSize;
+        uint32_t shimInfoSize;
+        uint32_t runtimeProbeInfoSize;
+        uint32_t deviceInfoSize;
+        uint32_t gamepadStateSize;
+        uint32_t diagnosticsSnapshotSize;
         uint32_t loadedModuleKind;
+        char loadedModulePath[512];
+    };
+
+    struct InputBoxGameInputRuntimeProbeInfo
+    {
+        uint32_t abiVersion;
+        uint32_t gameInputApiVersion;
+        uint32_t pointerSize;
+        uint32_t shimInfoSize;
+        uint32_t runtimeProbeInfoSize;
+        uint32_t deviceInfoSize;
+        uint32_t gamepadStateSize;
+        uint32_t diagnosticsSnapshotSize;
+        uint32_t attemptedModuleKind;
+        uint32_t loadedModuleKind;
+        int32_t loadLibraryHResult;
+        int32_t getProcAddressHResult;
+        int32_t initializeHResult;
+        int32_t finalHResult;
+        uint32_t loadLibraryWin32Error;
+        uint32_t getProcAddressWin32Error;
+        uint32_t initializeWin32Error;
+        uint32_t stringTruncationFlags;
+        char attemptedModulePath[512];
         char loadedModulePath[512];
     };
 
@@ -78,6 +120,7 @@ namespace
         uint32_t extraButtonIndexCount;
         uint32_t extraAxisIndexCount;
         uint32_t hasInputMapper;
+        uint32_t stringTruncationFlags;
         InputBoxGameInputVersion hardwareVersion;
         InputBoxGameInputVersion firmwareVersion;
         uint8_t extraButtonIndexes[InputBoxGameInputMaxExtraControlIndexes];
@@ -100,6 +143,18 @@ namespace
         float leftThumbstickY;
         float rightThumbstickX;
         float rightThumbstickY;
+    };
+
+    struct InputBoxGameInputDiagnosticsSnapshot
+    {
+        uint64_t missingReadingCount;
+        uint64_t repeatedTimestampCount;
+        uint64_t backwardTimestampCount;
+        uint64_t deviceUnavailableRefreshCount;
+        uint64_t lastReadingTimestamp;
+        int32_t lastReadHResult;
+        uint32_t lastReadDeviceStatus;
+        uint32_t reserved;
     };
 
     struct DeviceEntry
@@ -136,34 +191,87 @@ namespace
         ComPtr<IGameInput> gameInput;
         std::vector<DeviceEntry> devices;
         std::vector<std::unique_ptr<CallbackRegistration>> callbacks;
+        SRWLOCK lock = SRWLOCK_INIT;
+        uint64_t lastReadingTimestamp = 0;
+        uint64_t missingReadingCount = 0;
+        uint64_t repeatedTimestampCount = 0;
+        uint64_t backwardTimestampCount = 0;
+        uint64_t deviceUnavailableRefreshCount = 0;
+        int32_t lastReadHResult = S_OK;
+        uint32_t lastReadDeviceStatus = 0;
     };
 
     using GameInputInitializeFn = HRESULT(WINAPI*)(
         _In_ REFIID riid,
         _COM_Outptr_ LPVOID* ppv);
 
-    void CopyUtf8(
+    class SharedContextLock
+    {
+    public:
+        explicit SharedContextLock(SRWLOCK& lock) noexcept
+            : _lock(lock)
+        {
+            AcquireSRWLockShared(&_lock);
+        }
+
+        SharedContextLock(const SharedContextLock&) = delete;
+        SharedContextLock& operator=(const SharedContextLock&) = delete;
+
+        ~SharedContextLock() noexcept
+        {
+            ReleaseSRWLockShared(&_lock);
+        }
+
+    private:
+        SRWLOCK& _lock;
+    };
+
+    class ExclusiveContextLock
+    {
+    public:
+        explicit ExclusiveContextLock(SRWLOCK& lock) noexcept
+            : _lock(lock)
+        {
+            AcquireSRWLockExclusive(&_lock);
+        }
+
+        ExclusiveContextLock(const ExclusiveContextLock&) = delete;
+        ExclusiveContextLock& operator=(const ExclusiveContextLock&) = delete;
+
+        ~ExclusiveContextLock() noexcept
+        {
+            ReleaseSRWLockExclusive(&_lock);
+        }
+
+    private:
+        SRWLOCK& _lock;
+    };
+
+    bool CopyUtf8(
         char* destination,
         size_t destinationLength,
         const char* value) noexcept
     {
         if (destinationLength == 0)
         {
-            return;
+            return false;
         }
 
         const char* source = value != nullptr ? value : "";
+        bool truncated = strlen(source) >= destinationLength;
         strncpy_s(destination, destinationLength, source, _TRUNCATE);
+
+        return truncated;
     }
 
-    void CopyWideAsUtf8(
+    bool CopyWideAsUtf8(
         char* destination,
         size_t destinationLength,
         const wchar_t* value) noexcept
     {
         if (destinationLength == 0)
         {
-            return;
+            return false;
         }
 
         destination[0] = '\0';
@@ -171,33 +279,47 @@ namespace
         if (value == nullptr ||
             value[0] == L'\0')
         {
-            return;
+            return false;
         }
 
+        int required = WideCharToMultiByte(
+            CP_UTF8,
+            0,
+            value,
+            -1,
+            nullptr,
+            0,
+            nullptr,
+            nullptr);
+
+        if (required <= 0)
+        {
+            return false;
+        }
+
+        std::vector<char> converted(static_cast<size_t>(required));
         int written = WideCharToMultiByte(
             CP_UTF8,
             0,
             value,
             -1,
-            destination,
-            static_cast<int>(destinationLength),
+            converted.data(),
+            required,
             nullptr,
             nullptr);
 
-        if (written == 0)
-        {
-            destination[0] = '\0';
-        }
+        return written > 0 &&
+            CopyUtf8(destination, destinationLength, converted.data());
     }
 
-    void CopyDeviceId(
+    bool CopyDeviceId(
         char* destination,
         size_t destinationLength,
         const APP_LOCAL_DEVICE_ID& deviceId) noexcept
     {
         if (destinationLength < 2)
         {
-            return;
+            return true;
         }
 
         destination[0] = '\0';
@@ -209,9 +331,11 @@ namespace
         {
             sprintf_s(destination + (i * 2), destinationLength - (i * 2), "%02X", bytes[i]);
         }
+
+        return byteCount < sizeof(APP_LOCAL_DEVICE_ID);
     }
 
-    void CopyGuid(
+    bool CopyGuid(
         char* destination,
         size_t destinationLength,
         const GUID& value) noexcept
@@ -221,12 +345,56 @@ namespace
 
         if (written <= 0)
         {
-            CopyUtf8(destination, destinationLength, "");
-
-            return;
+            return CopyUtf8(destination, destinationLength, "");
         }
 
-        CopyWideAsUtf8(destination, destinationLength, buffer);
+        return CopyWideAsUtf8(destination, destinationLength, buffer);
+    }
+
+    void FillAbiSizes(
+        uint32_t& pointerSize,
+        uint32_t& shimInfoSize,
+        uint32_t& runtimeProbeInfoSize,
+        uint32_t& deviceInfoSize,
+        uint32_t& gamepadStateSize,
+        uint32_t& diagnosticsSnapshotSize) noexcept
+    {
+        pointerSize = static_cast<uint32_t>(sizeof(void*));
+        shimInfoSize = static_cast<uint32_t>(sizeof(InputBoxGameInputShimInfo));
+        runtimeProbeInfoSize = static_cast<uint32_t>(sizeof(InputBoxGameInputRuntimeProbeInfo));
+        deviceInfoSize = static_cast<uint32_t>(sizeof(InputBoxGameInputDeviceInfo));
+        gamepadStateSize = static_cast<uint32_t>(sizeof(InputBoxGameInputGamepadState));
+        diagnosticsSnapshotSize = static_cast<uint32_t>(sizeof(InputBoxGameInputDiagnosticsSnapshot));
+    }
+
+    void FillShimInfoCommon(InputBoxGameInputShimInfo* info) noexcept
+    {
+        info->abiVersion = InputBoxGameInputShimAbiVersion;
+        info->gameInputApiVersion = GAMEINPUT_API_VERSION;
+        FillAbiSizes(
+            info->pointerSize,
+            info->shimInfoSize,
+            info->runtimeProbeInfoSize,
+            info->deviceInfoSize,
+            info->gamepadStateSize,
+            info->diagnosticsSnapshotSize);
+    }
+
+    void FillRuntimeProbeCommon(InputBoxGameInputRuntimeProbeInfo* info) noexcept
+    {
+        info->abiVersion = InputBoxGameInputShimAbiVersion;
+        info->gameInputApiVersion = GAMEINPUT_API_VERSION;
+        FillAbiSizes(
+            info->pointerSize,
+            info->shimInfoSize,
+            info->runtimeProbeInfoSize,
+            info->deviceInfoSize,
+            info->gamepadStateSize,
+            info->diagnosticsSnapshotSize);
+        info->loadLibraryHResult = E_FAIL;
+        info->getProcAddressHResult = E_FAIL;
+        info->initializeHResult = E_FAIL;
+        info->finalHResult = E_FAIL;
     }
 
     InputBoxGameInputVersion ToInputBoxVersion(const GameInputVersion& version) noexcept
@@ -290,11 +458,31 @@ namespace
         destination->outputReportCount = info->outputReportCount;
         destination->hardwareVersion = ToInputBoxVersion(info->hardwareVersion);
         destination->firmwareVersion = ToInputBoxVersion(info->firmwareVersion);
-        CopyDeviceId(destination->deviceId, sizeof(destination->deviceId), info->deviceId);
-        CopyDeviceId(destination->deviceRootId, sizeof(destination->deviceRootId), info->deviceRootId);
-        CopyGuid(destination->containerId, sizeof(destination->containerId), info->containerId);
-        CopyUtf8(destination->displayName, sizeof(destination->displayName), info->displayName);
-        CopyUtf8(destination->pnpPath, sizeof(destination->pnpPath), info->pnpPath);
+
+        if (CopyDeviceId(destination->deviceId, sizeof(destination->deviceId), info->deviceId))
+        {
+            destination->stringTruncationFlags |= InputBoxGameInputStringTruncatedDeviceId;
+        }
+
+        if (CopyDeviceId(destination->deviceRootId, sizeof(destination->deviceRootId), info->deviceRootId))
+        {
+            destination->stringTruncationFlags |= InputBoxGameInputStringTruncatedDeviceRootId;
+        }
+
+        if (CopyGuid(destination->containerId, sizeof(destination->containerId), info->containerId))
+        {
+            destination->stringTruncationFlags |= InputBoxGameInputStringTruncatedContainerId;
+        }
+
+        if (CopyUtf8(destination->displayName, sizeof(destination->displayName), info->displayName))
+        {
+            destination->stringTruncationFlags |= InputBoxGameInputStringTruncatedDisplayName;
+        }
+
+        if (CopyUtf8(destination->pnpPath, sizeof(destination->pnpPath), info->pnpPath))
+        {
+            destination->stringTruncationFlags |= InputBoxGameInputStringTruncatedPnpPath;
+        }
 
         if (info->gamepadInfo != nullptr)
         {
@@ -359,25 +547,83 @@ namespace
         const wchar_t* path,
         DWORD flags,
         HMODULE* module,
-        GameInputInitializeFn* initialize) noexcept
+        GameInputInitializeFn* initialize,
+        HRESULT* loadLibraryHResult = nullptr,
+        DWORD* loadLibraryWin32Error = nullptr,
+        HRESULT* getProcAddressHResult = nullptr,
+        DWORD* getProcAddressWin32Error = nullptr) noexcept
     {
         *module = nullptr;
         *initialize = nullptr;
+        if (loadLibraryHResult != nullptr)
+        {
+            *loadLibraryHResult = E_FAIL;
+        }
+
+        if (loadLibraryWin32Error != nullptr)
+        {
+            *loadLibraryWin32Error = ERROR_SUCCESS;
+        }
+
+        if (getProcAddressHResult != nullptr)
+        {
+            *getProcAddressHResult = E_FAIL;
+        }
+
+        if (getProcAddressWin32Error != nullptr)
+        {
+            *getProcAddressWin32Error = ERROR_SUCCESS;
+        }
 
         HMODULE candidate = LoadLibraryExW(path, nullptr, flags);
 
         if (candidate == nullptr)
         {
-            return HRESULT_FROM_WIN32(GetLastError());
+            DWORD error = GetLastError();
+            HRESULT hr = HRESULT_FROM_WIN32(error);
+
+            if (loadLibraryHResult != nullptr)
+            {
+                *loadLibraryHResult = hr;
+            }
+
+            if (loadLibraryWin32Error != nullptr)
+            {
+                *loadLibraryWin32Error = error;
+            }
+
+            return hr;
+        }
+
+        if (loadLibraryHResult != nullptr)
+        {
+            *loadLibraryHResult = S_OK;
         }
 
         FARPROC proc = GetProcAddress(candidate, "GameInputInitialize");
 
         if (proc == nullptr)
         {
+            DWORD error = GetLastError();
+            HRESULT hr = HRESULT_FROM_WIN32(error);
             FreeLibrary(candidate);
 
-            return HRESULT_FROM_WIN32(GetLastError());
+            if (getProcAddressHResult != nullptr)
+            {
+                *getProcAddressHResult = hr;
+            }
+
+            if (getProcAddressWin32Error != nullptr)
+            {
+                *getProcAddressWin32Error = error;
+            }
+
+            return hr;
+        }
+
+        if (getProcAddressHResult != nullptr)
+        {
+            *getProcAddressHResult = S_OK;
         }
 
         *module = candidate;
@@ -386,10 +632,15 @@ namespace
         return S_OK;
     }
 
-    HRESULT TryLoadRedistFromRegistry(
-        HMODULE* module,
-        GameInputInitializeFn* initialize) noexcept
+    HRESULT TryGetRedistPathFromRegistry(std::wstring* path) noexcept
     {
+        if (path == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        path->clear();
+
         std::array<wchar_t, MAX_PATH> redistDir{};
         DWORD redistDirSize = static_cast<DWORD>(redistDir.size() * sizeof(wchar_t));
 
@@ -407,17 +658,73 @@ namespace
             return HRESULT_FROM_WIN32(status);
         }
 
-        std::wstring path(redistDir.data());
+        *path = redistDir.data();
 
-        if (!path.empty() &&
-            path.back() != L'\\')
+        if (!path->empty() &&
+            path->back() != L'\\')
         {
-            path += L'\\';
+            *path += L'\\';
         }
 
-        path += L"GameInputRedist.dll";
+        *path += L"GameInputRedist.dll";
 
-        return TryLoadGameInputModule(path.c_str(), 0, module, initialize);
+        return S_OK;
+    }
+
+    HRESULT TryLoadGameInputCandidate(
+        const wchar_t* path,
+        DWORD flags,
+        uint32_t moduleKind,
+        HMODULE* module,
+        GameInputInitializeFn* initialize,
+        InputBoxGameInputRuntimeProbeInfo* probe) noexcept
+    {
+        if (probe != nullptr)
+        {
+            probe->attemptedModuleKind = moduleKind;
+            if (CopyWideAsUtf8(probe->attemptedModulePath, sizeof(probe->attemptedModulePath), path))
+            {
+                probe->stringTruncationFlags |= InputBoxGameInputStringTruncatedAttemptedModulePath;
+            }
+        }
+
+        HRESULT loadHr = E_FAIL;
+        HRESULT procHr = E_FAIL;
+        DWORD loadError = ERROR_SUCCESS;
+        DWORD procError = ERROR_SUCCESS;
+        HRESULT hr = TryLoadGameInputModule(
+            path,
+            flags,
+            module,
+            initialize,
+            &loadHr,
+            &loadError,
+            &procHr,
+            &procError);
+
+        if (probe != nullptr)
+        {
+            probe->loadLibraryHResult = loadHr;
+            probe->loadLibraryWin32Error = loadError;
+            probe->getProcAddressHResult = procHr;
+            probe->getProcAddressWin32Error = procError;
+
+            if (SUCCEEDED(hr))
+            {
+                probe->loadedModuleKind = moduleKind;
+
+                std::array<wchar_t, 512> loadedPath{};
+                DWORD pathLength = GetModuleFileNameW(*module, loadedPath.data(), static_cast<DWORD>(loadedPath.size()));
+
+                if (pathLength > 0 &&
+                    CopyWideAsUtf8(probe->loadedModulePath, sizeof(probe->loadedModulePath), loadedPath.data()))
+                {
+                    probe->stringTruncationFlags |= InputBoxGameInputStringTruncatedLoadedModulePath;
+                }
+            }
+        }
+
+        return hr;
     }
 
     HRESULT LoadGameInput(
@@ -425,19 +732,28 @@ namespace
         uint32_t* moduleKind,
         char* modulePath,
         size_t modulePathLength,
-        IGameInput** gameInput) noexcept
+        IGameInput** gameInput,
+        InputBoxGameInputRuntimeProbeInfo* probe = nullptr) noexcept
     {
+        if (probe != nullptr)
+        {
+            *probe = {};
+            FillRuntimeProbeCommon(probe);
+        }
+
         *module = nullptr;
         *moduleKind = InputBoxGameInputModuleUnknown;
         CopyUtf8(modulePath, modulePathLength, "");
         *gameInput = nullptr;
 
         GameInputInitializeFn initialize = nullptr;
-        HRESULT hr = TryLoadGameInputModule(
+        HRESULT hr = TryLoadGameInputCandidate(
             L"GameInput.dll",
             LOAD_LIBRARY_SEARCH_SYSTEM32,
+            InputBoxGameInputModuleSystemGameInput,
             module,
-            &initialize);
+            &initialize,
+            probe);
 
         if (SUCCEEDED(hr))
         {
@@ -446,11 +762,13 @@ namespace
 
         if (FAILED(hr))
         {
-            hr = TryLoadGameInputModule(
+            hr = TryLoadGameInputCandidate(
                 L"GameInputRedist.dll",
                 LOAD_LIBRARY_SEARCH_SYSTEM32,
+                InputBoxGameInputModuleSystemGameInputRedist,
                 module,
-                &initialize);
+                &initialize,
+                probe);
 
             if (SUCCEEDED(hr))
             {
@@ -460,16 +778,46 @@ namespace
 
         if (FAILED(hr))
         {
-            hr = TryLoadRedistFromRegistry(module, &initialize);
+            std::wstring redistPath;
+            HRESULT pathHr = TryGetRedistPathFromRegistry(&redistPath);
 
-            if (SUCCEEDED(hr))
+            if (SUCCEEDED(pathHr))
             {
-                *moduleKind = InputBoxGameInputModuleRegistryGameInputRedist;
+                hr = TryLoadGameInputCandidate(
+                    redistPath.c_str(),
+                    LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32,
+                    InputBoxGameInputModuleRegistryGameInputRedist,
+                    module,
+                    &initialize,
+                    probe);
+
+                if (SUCCEEDED(hr))
+                {
+                    *moduleKind = InputBoxGameInputModuleRegistryGameInputRedist;
+                }
+            }
+            else
+            {
+                hr = pathHr;
+
+                if (probe != nullptr)
+                {
+                    probe->attemptedModuleKind = InputBoxGameInputModuleRegistryGameInputRedist;
+                    probe->loadLibraryHResult = pathHr;
+                    probe->loadLibraryWin32Error = HRESULT_FACILITY(pathHr) == FACILITY_WIN32
+                        ? HRESULT_CODE(pathHr)
+                        : ERROR_SUCCESS;
+                }
             }
         }
 
         if (FAILED(hr))
         {
+            if (probe != nullptr)
+            {
+                probe->finalHResult = hr;
+            }
+
             return hr;
         }
 
@@ -477,10 +825,25 @@ namespace
         DWORD pathLength = GetModuleFileNameW(*module, path.data(), static_cast<DWORD>(path.size()));
         if (pathLength > 0)
         {
-            CopyWideAsUtf8(modulePath, modulePathLength, path.data());
+            bool truncated = CopyWideAsUtf8(modulePath, modulePathLength, path.data());
+
+            if (probe != nullptr &&
+                truncated)
+            {
+                probe->stringTruncationFlags |= InputBoxGameInputStringTruncatedLoadedModulePath;
+            }
         }
 
         hr = initialize(IID_IGameInput, reinterpret_cast<void**>(gameInput));
+
+        if (probe != nullptr)
+        {
+            probe->initializeHResult = hr;
+            probe->initializeWin32Error = FAILED(hr) && HRESULT_FACILITY(hr) == FACILITY_WIN32
+                ? HRESULT_CODE(hr)
+                : ERROR_SUCCESS;
+            probe->finalHResult = hr;
+        }
 
         if (FAILED(hr))
         {
@@ -488,6 +851,10 @@ namespace
             *module = nullptr;
             *moduleKind = InputBoxGameInputModuleUnknown;
             CopyUtf8(modulePath, modulePathLength, "");
+        }
+        else if (probe != nullptr)
+        {
+            probe->finalHResult = S_OK;
         }
 
         return hr;
@@ -512,6 +879,131 @@ namespace
         }
 
         return nullptr;
+    }
+
+    HRESULT CopyDeviceLocked(
+        InputBoxGameInputContext* context,
+        const char* deviceId,
+        ComPtr<IGameInputDevice>* device,
+        InputBoxGameInputDeviceInfo* info = nullptr) noexcept
+    {
+        if (context == nullptr ||
+            deviceId == nullptr ||
+            device == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        device->Reset();
+
+        DeviceEntry* entry = FindDevice(context, deviceId);
+
+        if (entry == nullptr)
+        {
+            return HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
+        }
+
+        *device = entry->device;
+
+        if (info != nullptr)
+        {
+            *info = entry->info;
+        }
+
+        return S_OK;
+    }
+
+    HRESULT CopyDevice(
+        InputBoxGameInputContext* context,
+        const char* deviceId,
+        ComPtr<IGameInputDevice>* device,
+        InputBoxGameInputDeviceInfo* info = nullptr) noexcept
+    {
+        if (context == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        SharedContextLock lock(context->lock);
+
+        return CopyDeviceLocked(context, deviceId, device, info);
+    }
+
+    void RecordReadResultLocked(
+        InputBoxGameInputContext* context,
+        HRESULT hr,
+        uint32_t deviceStatus,
+        uint64_t timestamp) noexcept
+    {
+        if (context == nullptr)
+        {
+            return;
+        }
+
+        context->lastReadHResult = hr;
+        context->lastReadDeviceStatus = deviceStatus;
+
+        if (FAILED(hr))
+        {
+            if (hr == InputBoxGameInputNoReading)
+            {
+                context->missingReadingCount++;
+            }
+
+            return;
+        }
+
+        if (timestamp != 0)
+        {
+            if (context->lastReadingTimestamp == timestamp)
+            {
+                context->repeatedTimestampCount++;
+            }
+            else if (context->lastReadingTimestamp > timestamp)
+            {
+                context->backwardTimestampCount++;
+            }
+
+            context->lastReadingTimestamp = timestamp;
+        }
+    }
+
+    void RecordReadResult(
+        InputBoxGameInputContext* context,
+        HRESULT hr,
+        uint32_t deviceStatus,
+        uint64_t timestamp) noexcept
+    {
+        if (context == nullptr)
+        {
+            return;
+        }
+
+        ExclusiveContextLock lock(context->lock);
+        RecordReadResultLocked(context, hr, deviceStatus, timestamp);
+    }
+
+    void RecordDeviceUnavailableLocked(InputBoxGameInputContext* context, uint32_t status) noexcept
+    {
+        if (context == nullptr)
+        {
+            return;
+        }
+
+        context->deviceUnavailableRefreshCount++;
+        context->lastReadDeviceStatus = status;
+        context->lastReadHResult = HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
+    }
+
+    void RecordDeviceUnavailable(InputBoxGameInputContext* context, uint32_t status) noexcept
+    {
+        if (context == nullptr)
+        {
+            return;
+        }
+
+        ExclusiveContextLock lock(context->lock);
+        RecordDeviceUnavailableLocked(context, status);
     }
 
     struct DeviceCollector
@@ -602,17 +1094,17 @@ namespace
             static_cast<uint32_t>(previousStatus));
     }
 
-    HRESULT ResolveOptionalDevice(
+    HRESULT ResolveOptionalDeviceLocked(
         InputBoxGameInputContext* context,
         const char* deviceId,
-        IGameInputDevice** device) noexcept
+        ComPtr<IGameInputDevice>* device) noexcept
     {
         if (device == nullptr)
         {
             return E_INVALIDARG;
         }
 
-        *device = nullptr;
+        device->Reset();
 
         if (deviceId == nullptr ||
             deviceId[0] == '\0')
@@ -620,21 +1112,58 @@ namespace
             return S_OK;
         }
 
-        DeviceEntry* entry = FindDevice(context, deviceId);
+        return CopyDeviceLocked(context, deviceId, device);
+    }
 
-        if (entry == nullptr)
+    HRESULT ResolveOptionalDevice(
+        InputBoxGameInputContext* context,
+        const char* deviceId,
+        ComPtr<IGameInputDevice>* device) noexcept
+    {
+        if (context == nullptr)
         {
-            return HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
+            return E_INVALIDARG;
         }
 
-        *device = entry->device.Get();
+        SharedContextLock lock(context->lock);
 
-        return S_OK;
+        return ResolveOptionalDeviceLocked(context, deviceId, device);
     }
 }
 
 extern "C"
 {
+    __declspec(dllexport) HRESULT __stdcall InputBoxGameInputProbeRuntime(
+        InputBoxGameInputRuntimeProbeInfo* info) noexcept
+    {
+        if (info == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        HMODULE module = nullptr;
+        uint32_t moduleKind = InputBoxGameInputModuleUnknown;
+        char modulePath[512]{};
+        ComPtr<IGameInput> gameInput;
+
+        HRESULT hr = LoadGameInput(
+            &module,
+            &moduleKind,
+            modulePath,
+            sizeof(modulePath),
+            &gameInput,
+            info);
+
+        gameInput.Reset();
+
+        if (module != nullptr)
+        {
+            FreeLibrary(module);
+        }
+
+        return hr;
+    }
+
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputCreate(
         InputBoxGameInputContext** context) noexcept
     {
@@ -679,22 +1208,27 @@ extern "C"
             return;
         }
 
-        if (context->gameInput != nullptr)
         {
-            for (const std::unique_ptr<CallbackRegistration>& registration : context->callbacks)
+            ExclusiveContextLock lock(context->lock);
+
+            if (context->gameInput != nullptr)
             {
-                if (registration != nullptr &&
-                    registration->token != 0)
+                for (const std::unique_ptr<CallbackRegistration>& registration : context->callbacks)
                 {
-                    registration->active.store(false);
-                    context->gameInput->StopCallback(registration->token);
-                    context->gameInput->UnregisterCallback(registration->token);
+                    if (registration != nullptr &&
+                        registration->token != 0)
+                    {
+                        registration->active.store(false);
+                        context->gameInput->StopCallback(registration->token);
+                        context->gameInput->UnregisterCallback(registration->token);
+                    }
                 }
             }
+
+            context->callbacks.clear();
+            context->devices.clear();
         }
 
-        context->callbacks.clear();
-        context->devices.clear();
         context->gameInput.Reset();
 
         if (context->module != nullptr)
@@ -716,14 +1250,39 @@ extern "C"
         }
 
         *info = {};
-        info->abiVersion = InputBoxGameInputShimAbiVersion;
-        info->gameInputApiVersion = GAMEINPUT_API_VERSION;
+        FillShimInfoCommon(info);
 
         if (context != nullptr)
         {
+            SharedContextLock lock(context->lock);
+
             info->loadedModuleKind = context->moduleKind;
             CopyUtf8(info->loadedModulePath, sizeof(info->loadedModulePath), context->modulePath);
         }
+
+        return S_OK;
+    }
+
+    __declspec(dllexport) HRESULT __stdcall InputBoxGameInputGetDiagnosticsSnapshot(
+        InputBoxGameInputContext* context,
+        InputBoxGameInputDiagnosticsSnapshot* snapshot) noexcept
+    {
+        if (context == nullptr ||
+            snapshot == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        SharedContextLock lock(context->lock);
+
+        snapshot->missingReadingCount = context->missingReadingCount;
+        snapshot->repeatedTimestampCount = context->repeatedTimestampCount;
+        snapshot->backwardTimestampCount = context->backwardTimestampCount;
+        snapshot->deviceUnavailableRefreshCount = context->deviceUnavailableRefreshCount;
+        snapshot->lastReadingTimestamp = context->lastReadingTimestamp;
+        snapshot->lastReadHResult = context->lastReadHResult;
+        snapshot->lastReadDeviceStatus = context->lastReadDeviceStatus;
+        snapshot->reserved = 0;
 
         return S_OK;
     }
@@ -732,8 +1291,14 @@ extern "C"
         InputBoxGameInputContext* context,
         uint32_t policy) noexcept
     {
-        if (context == nullptr ||
-            context->gameInput == nullptr)
+        if (context == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        SharedContextLock lock(context->lock);
+
+        if (context->gameInput == nullptr)
         {
             return E_INVALIDARG;
         }
@@ -746,14 +1311,20 @@ extern "C"
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputRefreshDevices(
         InputBoxGameInputContext* context) noexcept
     {
-        if (context == nullptr ||
-            context->gameInput == nullptr)
+        if (context == nullptr)
         {
             return E_INVALIDARG;
         }
 
         try
         {
+            ExclusiveContextLock lock(context->lock);
+
+            if (context->gameInput == nullptr)
+            {
+                return E_INVALIDARG;
+            }
+
             DeviceCollector collector;
             GameInputCallbackToken token = 0;
             HRESULT hr = context->gameInput->RegisterDeviceCallback(
@@ -806,6 +1377,8 @@ extern "C"
             return 0;
         }
 
+        SharedContextLock lock(context->lock);
+
         return static_cast<int32_t>(context->devices.size());
     }
 
@@ -816,8 +1389,14 @@ extern "C"
     {
         if (context == nullptr ||
             info == nullptr ||
-            index < 0 ||
-            static_cast<size_t>(index) >= context->devices.size())
+            index < 0)
+        {
+            return E_INVALIDARG;
+        }
+
+        SharedContextLock lock(context->lock);
+
+        if (static_cast<size_t>(index) >= context->devices.size())
         {
             return E_INVALIDARG;
         }
@@ -839,14 +1418,32 @@ extern "C"
 
         *status = 0;
 
-        DeviceEntry* entry = FindDevice(context, deviceId);
-
-        if (entry == nullptr)
+        if (context == nullptr)
         {
-            return HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
+            return E_INVALIDARG;
         }
 
-        *status = static_cast<uint32_t>(entry->device->GetDeviceStatus());
+        ExclusiveContextLock lock(context->lock);
+
+        if (context->gameInput == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        ComPtr<IGameInputDevice> device;
+        HRESULT hr = CopyDeviceLocked(context, deviceId, &device);
+
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        *status = static_cast<uint32_t>(device->GetDeviceStatus());
+
+        if ((*status & GameInputDeviceConnected) == 0)
+        {
+            RecordDeviceUnavailableLocked(context, *status);
+        }
 
         return S_OK;
     }
@@ -863,38 +1460,63 @@ extern "C"
 
         *state = {};
 
-        DeviceEntry* entry = FindDevice(context, deviceId);
-
-        if (entry == nullptr)
+        if (context == nullptr)
         {
-            return HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
+            return E_INVALIDARG;
         }
 
-        if ((entry->device->GetDeviceStatus() & GameInputDeviceConnected) == 0)
+        ExclusiveContextLock lock(context->lock);
+
+        if (context->gameInput == nullptr)
         {
+            return E_INVALIDARG;
+        }
+
+        ComPtr<IGameInputDevice> device;
+        HRESULT hr = CopyDeviceLocked(context, deviceId, &device);
+
+        if (FAILED(hr))
+        {
+            RecordReadResultLocked(context, hr, 0, 0);
+
+            return hr;
+        }
+
+        uint32_t deviceStatus = static_cast<uint32_t>(device->GetDeviceStatus());
+
+        if ((deviceStatus & GameInputDeviceConnected) == 0)
+        {
+            RecordDeviceUnavailableLocked(context, deviceStatus);
+
             return HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
         }
 
         ComPtr<IGameInputReading> reading;
-        HRESULT hr = context->gameInput->GetCurrentReading(
+        hr = context->gameInput->GetCurrentReading(
             GameInputKindGamepad,
-            entry->device.Get(),
+            device.Get(),
             &reading);
 
         if (FAILED(hr) ||
             reading == nullptr)
         {
-            return FAILED(hr) ? hr : InputBoxGameInputNoReading;
+            HRESULT result = FAILED(hr) ? hr : InputBoxGameInputNoReading;
+            RecordReadResultLocked(context, result, deviceStatus, 0);
+
+            return result;
         }
 
         GameInputGamepadState gamepadState{};
 
         if (!reading->GetGamepadState(&gamepadState))
         {
+            RecordReadResultLocked(context, InputBoxGameInputNoReading, deviceStatus, 0);
+
             return InputBoxGameInputNoReading;
         }
 
         FillGamepadState(reading.Get(), gamepadState, state);
+        RecordReadResultLocked(context, S_OK, deviceStatus, state->timestamp);
 
         return S_OK;
     }
@@ -908,7 +1530,7 @@ extern "C"
         uint64_t* callbackToken) noexcept
     {
         if (context == nullptr ||
-            context->gameInput == nullptr ||
+            kind != static_cast<uint32_t>(GameInputKindGamepad) ||
             callback == nullptr ||
             callbackToken == nullptr)
         {
@@ -917,12 +1539,24 @@ extern "C"
 
         *callbackToken = 0;
 
-        IGameInputDevice* device = nullptr;
-        HRESULT hr = ResolveOptionalDevice(context, deviceId, &device);
+        ComPtr<IGameInput> gameInput;
+        ComPtr<IGameInputDevice> device;
 
-        if (FAILED(hr))
         {
-            return hr;
+            SharedContextLock lock(context->lock);
+
+            if (context->gameInput == nullptr)
+            {
+                return E_INVALIDARG;
+            }
+
+            gameInput = context->gameInput;
+            HRESULT hr = ResolveOptionalDeviceLocked(context, deviceId, &device);
+
+            if (FAILED(hr))
+            {
+                return hr;
+            }
         }
 
         auto registration = std::make_unique<CallbackRegistration>();
@@ -930,8 +1564,8 @@ extern "C"
         registration->callbackContext = callbackContext;
 
         GameInputCallbackToken token = 0;
-        hr = context->gameInput->RegisterReadingCallback(
-            device,
+        HRESULT hr = gameInput->RegisterReadingCallback(
+            device.Get(),
             static_cast<GameInputKind>(kind),
             registration.get(),
             OnReadingCallback,
@@ -944,7 +1578,21 @@ extern "C"
 
         registration->token = token;
         *callbackToken = token;
-        context->callbacks.push_back(std::move(registration));
+
+        {
+            ExclusiveContextLock lock(context->lock);
+            if (context->gameInput == nullptr)
+            {
+                registration->active.store(false);
+                gameInput->StopCallback(token);
+                gameInput->UnregisterCallback(token);
+                *callbackToken = 0;
+
+                return E_INVALIDARG;
+            }
+
+            context->callbacks.push_back(std::move(registration));
+        }
 
         return S_OK;
     }
@@ -960,7 +1608,7 @@ extern "C"
         uint64_t* callbackToken) noexcept
     {
         if (context == nullptr ||
-            context->gameInput == nullptr ||
+            kind != static_cast<uint32_t>(GameInputKindGamepad) ||
             callback == nullptr ||
             callbackToken == nullptr)
         {
@@ -969,12 +1617,24 @@ extern "C"
 
         *callbackToken = 0;
 
-        IGameInputDevice* device = nullptr;
-        HRESULT hr = ResolveOptionalDevice(context, deviceId, &device);
+        ComPtr<IGameInput> gameInput;
+        ComPtr<IGameInputDevice> device;
 
-        if (FAILED(hr))
         {
-            return hr;
+            SharedContextLock lock(context->lock);
+
+            if (context->gameInput == nullptr)
+            {
+                return E_INVALIDARG;
+            }
+
+            gameInput = context->gameInput;
+            HRESULT hr = ResolveOptionalDeviceLocked(context, deviceId, &device);
+
+            if (FAILED(hr))
+            {
+                return hr;
+            }
         }
 
         auto registration = std::make_unique<CallbackRegistration>();
@@ -982,8 +1642,8 @@ extern "C"
         registration->callbackContext = callbackContext;
 
         GameInputCallbackToken token = 0;
-        hr = context->gameInput->RegisterDeviceCallback(
-            device,
+        HRESULT hr = gameInput->RegisterDeviceCallback(
+            device.Get(),
             static_cast<GameInputKind>(kind),
             static_cast<GameInputDeviceStatus>(statusFilter),
             static_cast<GameInputEnumerationKind>(enumerationKind),
@@ -998,7 +1658,21 @@ extern "C"
 
         registration->token = token;
         *callbackToken = token;
-        context->callbacks.push_back(std::move(registration));
+
+        {
+            ExclusiveContextLock lock(context->lock);
+            if (context->gameInput == nullptr)
+            {
+                registration->active.store(false);
+                gameInput->StopCallback(token);
+                gameInput->UnregisterCallback(token);
+                *callbackToken = 0;
+
+                return E_INVALIDARG;
+            }
+
+            context->callbacks.push_back(std::move(registration));
+        }
 
         return S_OK;
     }
@@ -1008,8 +1682,14 @@ extern "C"
         uint64_t callbackToken) noexcept
     {
         if (context == nullptr ||
-            context->gameInput == nullptr ||
             callbackToken == 0)
+        {
+            return E_INVALIDARG;
+        }
+
+        ExclusiveContextLock lock(context->lock);
+
+        if (context->gameInput == nullptr)
         {
             return E_INVALIDARG;
         }
@@ -1044,11 +1724,24 @@ extern "C"
         float leftTrigger,
         float rightTrigger) noexcept
     {
-        DeviceEntry* entry = FindDevice(context, deviceId);
-
-        if (entry == nullptr)
+        if (context == nullptr)
         {
-            return HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED);
+            return E_INVALIDARG;
+        }
+
+        SharedContextLock lock(context->lock);
+
+        if (context->gameInput == nullptr)
+        {
+            return E_INVALIDARG;
+        }
+
+        ComPtr<IGameInputDevice> device;
+        HRESULT hr = CopyDeviceLocked(context, deviceId, &device);
+
+        if (FAILED(hr))
+        {
+            return hr;
         }
 
         GameInputRumbleParams rumble
@@ -1059,7 +1752,7 @@ extern "C"
             rightTrigger
         };
 
-        entry->device->SetRumbleState(&rumble);
+        device->SetRumbleState(&rumble);
 
         return S_OK;
     }
