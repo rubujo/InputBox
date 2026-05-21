@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace InputBox.Core.Input;
 
@@ -7,13 +8,21 @@ namespace InputBox.Core.Input;
 /// </summary>
 internal sealed class GameInput : IDisposable
 {
+    private static readonly GameInputNativeReadingCallback ReadingCallback = OnNativeReadingCallback;
+    private static readonly GameInputNativeDeviceCallback DeviceCallback = OnNativeDeviceCallback;
     private readonly SafeGameInputContextHandle _handle;
     private GameInputDevice[] _devices = [];
 
-    private GameInput(SafeGameInputContextHandle handle)
+    private GameInput(SafeGameInputContextHandle handle, GameInputShimInfo shimInfo)
     {
         _handle = handle;
+        ShimInfo = shimInfo;
     }
+
+    /// <summary>
+    /// 取得 native shim 與 GameInput runtime 載入診斷資訊。
+    /// </summary>
+    public GameInputShimInfo ShimInfo { get; }
 
     /// <summary>
     /// 建立 GameInput 內容；若 shim 或 runtime 不可用會丟出例外，交由 XInput 退避流程處理。
@@ -30,7 +39,15 @@ internal sealed class GameInput : IDisposable
             Marshal.ThrowExceptionForHR(hr);
         }
 
-        return new GameInput(handle);
+        hr = GameInputNativeMethods.GetShimInfo(handle, out GameInputNativeShimInfo nativeShimInfo);
+
+        if (hr < 0)
+        {
+            handle.Dispose();
+            Marshal.ThrowExceptionForHR(hr);
+        }
+
+        return new GameInput(handle, nativeShimInfo.ToShimInfo());
     }
 
     /// <summary>
@@ -104,24 +121,75 @@ internal sealed class GameInput : IDisposable
     }
 
     /// <summary>
-    /// 註冊讀取回呼。自有 shim 目前以 60 FPS 輪詢為主，此方法保留為 no-op 以維持 controller 結構。
+    /// 註冊讀取回呼。控制器仍以 60 FPS 輪詢為主，此回呼只作為輔助訊號來源。
     /// </summary>
     public GameInputCallbackRegistration RegisterReadingCallback(
-        GameInputDevice _,
-        GameInputKind __,
-        Action<GameInputReading> ___)
-        => new();
+        GameInputDevice device,
+        GameInputKind kind,
+        Action<GameInputReading> callback)
+    {
+        if (device.Owner != this ||
+            kind != GameInputKind.Gamepad)
+        {
+            return new GameInputCallbackRegistration();
+        }
+
+        var callbackState = new ReadingCallbackState(callback);
+        GCHandle callbackStateHandle = GCHandle.Alloc(callbackState);
+
+        int hr = GameInputNativeMethods.RegisterReadingCallback(
+            _handle,
+            device.DeviceInfo.DeviceId,
+            (uint)kind,
+            ReadingCallback,
+            GCHandle.ToIntPtr(callbackStateHandle),
+            out ulong callbackToken);
+
+        if (hr < 0)
+        {
+            callbackStateHandle.Free();
+            Marshal.ThrowExceptionForHR(hr);
+        }
+
+        return new GameInputCallbackRegistration(_handle, callbackToken, callbackStateHandle);
+    }
 
     /// <summary>
-    /// 註冊裝置回呼。自有 shim 以定期重新列舉偵測變化，此方法保留為 no-op。
+    /// 註冊裝置回呼，用於要求輪詢執行緒重新整理裝置清單。
     /// </summary>
     public GameInputCallbackRegistration RegisterDeviceCallback(
-        GameInputDevice? _,
-        GameInputKind __,
-        GameInputDeviceStatus ___,
-        GameInputEnumerationKind ____,
-        Action<GameInputDevice?, ulong, GameInputDeviceStatus, GameInputDeviceStatus> _____)
-        => new();
+        GameInputDevice? device,
+        GameInputKind kind,
+        GameInputDeviceStatus statusFilter,
+        GameInputEnumerationKind enumerationKind,
+        Action<GameInputDevice?, ulong, GameInputDeviceStatus, GameInputDeviceStatus> callback)
+    {
+        if (kind != GameInputKind.Gamepad)
+        {
+            return new GameInputCallbackRegistration();
+        }
+
+        var callbackState = new DeviceCallbackState(this, callback);
+        GCHandle callbackStateHandle = GCHandle.Alloc(callbackState);
+
+        int hr = GameInputNativeMethods.RegisterDeviceCallback(
+            _handle,
+            device?.DeviceInfo.DeviceId,
+            (uint)kind,
+            (uint)statusFilter,
+            (uint)enumerationKind,
+            DeviceCallback,
+            GCHandle.ToIntPtr(callbackStateHandle),
+            out ulong callbackToken);
+
+        if (hr < 0)
+        {
+            callbackStateHandle.Free();
+            Marshal.ThrowExceptionForHR(hr);
+        }
+
+        return new GameInputCallbackRegistration(_handle, callbackToken, callbackStateHandle);
+    }
 
     internal void SetRumbleState(GameInputDevice device, GameInputRumbleParams rumble)
     {
@@ -163,16 +231,139 @@ internal sealed class GameInput : IDisposable
         _handle.Dispose();
     }
 
+    private GameInputDevice? FindDeviceById(string deviceId)
+    {
+        if (string.IsNullOrWhiteSpace(deviceId))
+        {
+            return null;
+        }
+
+        GameInputDevice[] devices = _devices;
+
+        for (int i = 0; i < devices.Length; i++)
+        {
+            if (devices[i].DeviceInfo.DeviceId.Equals(deviceId, StringComparison.Ordinal))
+            {
+                return devices[i];
+            }
+        }
+
+        return null;
+    }
+
+    private static void OnNativeReadingCallback(nint callbackContext, ref GameInputGamepadState state)
+    {
+        try
+        {
+            if (GCHandle.FromIntPtr(callbackContext).Target is ReadingCallbackState callbackState)
+            {
+                callbackState.Callback(new GameInputReading(new GamepadStateSnapshot(state)));
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"GameInput native reading callback failed: {ex.Message}");
+        }
+    }
+
+    private static void OnNativeDeviceCallback(
+        nint callbackContext,
+        nint deviceId,
+        ulong timestamp,
+        uint currentStatus,
+        uint previousStatus)
+    {
+        try
+        {
+            if (GCHandle.FromIntPtr(callbackContext).Target is not DeviceCallbackState callbackState)
+            {
+                return;
+            }
+
+            string parsedDeviceId = Marshal.PtrToStringUTF8(deviceId) ?? string.Empty;
+            GameInputDevice? device = callbackState.Owner.FindDeviceById(parsedDeviceId);
+
+            callbackState.Callback(
+                device,
+                timestamp,
+                (GameInputDeviceStatus)currentStatus,
+                (GameInputDeviceStatus)previousStatus);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"GameInput native device callback failed: {ex.Message}");
+        }
+    }
+
+    private sealed class ReadingCallbackState(Action<GameInputReading> callback)
+    {
+        public Action<GameInputReading> Callback { get; } = callback;
+    }
+
+    private sealed class DeviceCallbackState(
+        GameInput owner,
+        Action<GameInputDevice?, ulong, GameInputDeviceStatus, GameInputDeviceStatus> callback)
+    {
+        public GameInput Owner { get; } = owner;
+
+        public Action<GameInputDevice?, ulong, GameInputDeviceStatus, GameInputDeviceStatus> Callback { get; } = callback;
+    }
+
     /// <summary>
     /// GameInput 回呼註冊憑證。
     /// </summary>
     internal sealed class GameInputCallbackRegistration : IDisposable
     {
+        private readonly SafeGameInputContextHandle? _handle;
+        private readonly ulong _callbackToken;
+        private GCHandle _callbackStateHandle;
+        private int _disposed;
+
+        public GameInputCallbackRegistration()
+        {
+
+        }
+
+        internal GameInputCallbackRegistration(
+            SafeGameInputContextHandle handle,
+            ulong callbackToken,
+            GCHandle callbackStateHandle)
+        {
+            _handle = handle;
+            _callbackToken = callbackToken;
+            _callbackStateHandle = callbackStateHandle;
+        }
+
         /// <summary>
         /// 釋放回呼註冊。
         /// </summary>
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_handle != null &&
+                    !_handle.IsInvalid &&
+                    _callbackToken != 0)
+                {
+                    _ = GameInputNativeMethods.UnregisterCallback(_handle, _callbackToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"GameInput unregister callback failed: {ex.Message}");
+            }
+            finally
+            {
+                if (_callbackStateHandle.IsAllocated)
+                {
+                    _callbackStateHandle.Free();
+                }
+            }
 
         }
     }
@@ -292,6 +483,12 @@ internal static partial class GameInputNativeMethods
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern void Destroy(nint context);
 
+    [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetShimInfo")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
+    internal static extern int GetShimInfo(
+        SafeGameInputContextHandle context,
+        out GameInputNativeShimInfo info);
+
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputSetFocusPolicy")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int SetFocusPolicy(SafeGameInputContextHandle context, uint policy);
@@ -325,6 +522,34 @@ internal static partial class GameInputNativeMethods
         [MarshalAs(UnmanagedType.LPUTF8Str)] string deviceId,
         out GameInputGamepadState state);
 
+    [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputRegisterReadingCallback")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
+    internal static extern int RegisterReadingCallback(
+        SafeGameInputContextHandle context,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? deviceId,
+        uint kind,
+        GameInputNativeReadingCallback callback,
+        nint callbackContext,
+        out ulong callbackToken);
+
+    [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputRegisterDeviceCallback")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
+    internal static extern int RegisterDeviceCallback(
+        SafeGameInputContextHandle context,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? deviceId,
+        uint kind,
+        uint statusFilter,
+        uint enumerationKind,
+        GameInputNativeDeviceCallback callback,
+        nint callbackContext,
+        out ulong callbackToken);
+
+    [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputUnregisterCallback")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
+    internal static extern int UnregisterCallback(
+        SafeGameInputContextHandle context,
+        ulong callbackToken);
+
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputSetRumbleState")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int SetRumbleState(
@@ -335,3 +560,16 @@ internal static partial class GameInputNativeMethods
         float leftTrigger,
         float rightTrigger);
 }
+
+[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+internal delegate void GameInputNativeReadingCallback(
+    nint callbackContext,
+    ref GameInputGamepadState state);
+
+[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+internal delegate void GameInputNativeDeviceCallback(
+    nint callbackContext,
+    nint deviceId,
+    ulong timestamp,
+    uint currentStatus,
+    uint previousStatus);

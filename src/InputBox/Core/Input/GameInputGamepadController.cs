@@ -60,6 +60,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private long _refreshRequestedTicks;
 
     /// <summary>
+    /// 記錄最後一次收到讀取回呼的時間點；正式輸入仍由 60 FPS polling 消費。
+    /// </summary>
+    private long _readingCallbackObservedTicks;
+
+    /// <summary>
     /// 儲存 GameInput 讀取回呼註冊憑證
     /// </summary>
     private GameInput.GameInputCallbackRegistration? _readingCallbackReg;
@@ -819,30 +824,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     GameInputKind.Gamepad,
                     (reading) =>
                     {
-                        try
+                        if (!_isPaused &&
+                            _disposed == 0)
                         {
-                            GamepadStateSnapshot? state = reading.GetGamepadState();
-
-                            if (state != null)
-                            {
-                                if (_isPaused ||
-                                    _disposed != 0)
-                                {
-                                    return;
-                                }
-
-                                // 防護機制：避免在背景暫停輪詢時，佇列因玩家在其他遊戲中的操作而無限增長。
-                                if (_readingQueue.Count > 100)
-                                {
-                                    _readingQueue.TryDequeue(out _);
-                                }
-
-                                _readingQueue.Enqueue(state);
-                            }
-                        }
-                        catch (Exception cbEx)
-                        {
-                            Debug.WriteLine($"GameInput 讀取回呼內部發生錯誤：{cbEx.Message}");
+                            _ = reading;
+                            Interlocked.Exchange(ref _readingCallbackObservedTicks, Stopwatch.GetTimestamp());
                         }
                     });
             }
@@ -871,6 +857,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 _gameInput = GameInput.Create();
                 _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
+
+                GameInputShimInfo shimInfo = _gameInput.ShimInfo;
+                LoggerService.LogInfo($"GameInputShim abi={shimInfo.AbiVersion} api={shimInfo.GameInputApiVersion} moduleKind={shimInfo.LoadedModuleKind} modulePath={shimInfo.LoadedModulePath}");
 
                 // 初始化時先直接列舉一次，再註冊非阻塞裝置回呼。
                 // 這樣可避免為了拿到既有裝置名單而付出兩次同步枚舉成本。
@@ -1002,6 +991,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 取得目前的設定快照，確保本幀處理邏輯的原子性。
         AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
+        if (Interlocked.Exchange(ref _readingCallbackObservedTicks, 0) != 0 &&
+            _device == null)
+        {
+            _needsRefresh = true;
+            Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
+        }
+
         // 裝置清單防抖與掃描邏輯。
         if (_needsRefresh)
         {
@@ -1079,7 +1075,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 if (!_hasPreviousState ||
                     _previousState == null ||
-                    currentSnapshot != _previousState)
+                    !HasSameInputValues(currentSnapshot, _previousState))
                 {
                     _readingQueue.Enqueue(currentSnapshot);
                 }
@@ -1414,6 +1410,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 rightThumbY: state.RightThumbstickY,
                 threshold: AppSettings.GameInputIdleThreshold);
     }
+
+    /// <summary>
+    /// 比較兩個快照的可操作輸入值；GameInput timestamp 僅供診斷，不應讓 edge detection 誤判為新輸入。
+    /// </summary>
+    private static bool HasSameInputValues(GamepadStateSnapshot current, GamepadStateSnapshot previous)
+        => current.Buttons == previous.Buttons &&
+            current.LeftTrigger.Equals(previous.LeftTrigger) &&
+            current.RightTrigger.Equals(previous.RightTrigger) &&
+            current.LeftThumbstickX.Equals(previous.LeftThumbstickX) &&
+            current.LeftThumbstickY.Equals(previous.LeftThumbstickY) &&
+            current.RightThumbstickX.Equals(previous.RightThumbstickX) &&
+            current.RightThumbstickY.Equals(previous.RightThumbstickY);
 
     /// <summary>
     /// 是否存在方向連發狀態（D-Pad 或 RS）
