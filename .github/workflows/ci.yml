@@ -124,7 +124,7 @@ jobs:
           /p:GameInputPackageVersion=$env:GAMEINPUT_VERSION `
           /m
 
-    - name: 驗證 GameInput Native Shim exports / probe
+    - name: 驗證 GameInput Native Shim exports / probe / lifecycle
       shell: pwsh
       run: |
         .\tools\Validate-GameInputNativeShim.ps1 `

@@ -316,10 +316,335 @@ public static unsafe class $typeName
         $probe.DiagnosticsSnapshotSize,
         (ConvertTo-UInt32HexValue -Value $probe.FinalHResult),
         (ConvertTo-UInt32HexValue -Value $probe.InitializeHResult))
+
+    return [pscustomobject]@{
+        HResult = $hr
+        FinalHResult = [int]$probe.FinalHResult
+        InitializeHResult = [int]$probe.InitializeHResult
+    }
+}
+
+function Invoke-LifecycleStressSmoke {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$NativeShim,
+
+        [Parameter(Mandatory = $true)]
+        [pscustomobject]$ProbeInfo
+    )
+
+    $nativeShimLiteral = $NativeShim.Replace('\', '\\').Replace('"', '\"')
+    $typeName = 'InputBoxGameInputNativeLifecycleSmoke' + [Guid]::NewGuid().ToString('N')
+    $source = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Threading;
+
+public static unsafe class $typeName
+{
+    private const uint GameInputKindGamepad = 0x00040000;
+    private const uint GameInputDeviceStatusAny = 0xFFFFFFFF;
+    private const uint GameInputEnumerationNone = 0;
+    private const int HResultNotFound = unchecked((int)0x80070490);
+
+    private static int s_readingCallbackCount;
+    private static int s_deviceCallbackCount;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ShimInfo
+    {
+        public uint AbiVersion;
+        public uint GameInputApiVersion;
+        public uint PointerSize;
+        public uint ShimInfoSize;
+        public uint RuntimeProbeInfoSize;
+        public uint DeviceInfoSize;
+        public uint GamepadStateSize;
+        public uint DiagnosticsSnapshotSize;
+        public uint LoadedModuleKind;
+        public fixed byte LoadedModulePath[512];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct GamepadState
+    {
+        public ulong Timestamp;
+        public uint InputKind;
+        public uint Buttons;
+        public float LeftTrigger;
+        public float RightTrigger;
+        public float LeftThumbstickX;
+        public float LeftThumbstickY;
+        public float RightThumbstickX;
+        public float RightThumbstickY;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct DiagnosticsSnapshot
+    {
+        public ulong MissingReadingCount;
+        public ulong RepeatedTimestampCount;
+        public ulong BackwardTimestampCount;
+        public ulong DeviceUnavailableRefreshCount;
+        public ulong LastReadingTimestamp;
+        public int LastReadHResult;
+        public uint LastReadDeviceStatus;
+        public uint Reserved;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate void ReadingCallback(IntPtr context, ref GamepadState state);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate void DeviceCallback(
+        IntPtr context,
+        IntPtr deviceId,
+        ulong timestamp,
+        uint currentStatus,
+        uint previousStatus);
+
+    private static readonly ReadingCallback ReadingCallbackRoot = OnReadingCallback;
+    private static readonly DeviceCallback DeviceCallbackRoot = OnDeviceCallback;
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputCreate", CallingConvention = CallingConvention.StdCall)]
+    public static extern int Create(out IntPtr context);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputDestroy", CallingConvention = CallingConvention.StdCall)]
+    public static extern void Destroy(IntPtr context);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputGetShimInfo", CallingConvention = CallingConvention.StdCall)]
+    public static extern int GetShimInfo(IntPtr context, out ShimInfo info);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputRefreshDevices", CallingConvention = CallingConvention.StdCall)]
+    public static extern int RefreshDevices(IntPtr context);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputGetDeviceCount", CallingConvention = CallingConvention.StdCall)]
+    public static extern int GetDeviceCount(IntPtr context);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputRegisterReadingCallback", CallingConvention = CallingConvention.StdCall)]
+    public static extern int RegisterReadingCallback(
+        IntPtr context,
+        IntPtr deviceId,
+        uint kind,
+        ReadingCallback callback,
+        IntPtr callbackContext,
+        out ulong callbackToken);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputRegisterDeviceCallback", CallingConvention = CallingConvention.StdCall)]
+    public static extern int RegisterDeviceCallback(
+        IntPtr context,
+        IntPtr deviceId,
+        uint kind,
+        uint statusFilter,
+        uint enumerationKind,
+        DeviceCallback callback,
+        IntPtr callbackContext,
+        out ulong callbackToken);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputGetDiagnosticsSnapshot", CallingConvention = CallingConvention.StdCall)]
+    public static extern int GetDiagnosticsSnapshot(IntPtr context, out DiagnosticsSnapshot snapshot);
+
+    [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputUnregisterCallback", CallingConvention = CallingConvention.StdCall)]
+    public static extern int UnregisterCallback(IntPtr context, ulong callbackToken);
+
+    public static int TryCreateAndDestroy()
+    {
+        IntPtr context = IntPtr.Zero;
+        int hr = Create(out context);
+
+        if (context != IntPtr.Zero)
+        {
+            Destroy(context);
+        }
+
+        return hr;
+    }
+
+    public static string RunStress(int iterations)
+    {
+        int explicitUnregisterCount = 0;
+        int destroyCleanupCount = 0;
+        int doubleUnregisterNotFoundCount = 0;
+        int maxDeviceCount = 0;
+
+        for (int i = 0; i < iterations; i++)
+        {
+            IntPtr context = IntPtr.Zero;
+            ulong readingToken = 0;
+            ulong deviceToken = 0;
+            bool destroyOwnsCallbacks = (i % 2) == 1;
+
+            try
+            {
+                int hr = Create(out context);
+                ThrowIfFailed(hr, "Create");
+
+                if (context == IntPtr.Zero)
+                {
+                    throw new InvalidOperationException("Create 回傳成功但 context 為空。");
+                }
+
+                ShimInfo shimInfo;
+                ThrowIfFailed(GetShimInfo(context, out shimInfo), "GetShimInfo");
+                ThrowIfFailed(RefreshDevices(context), "RefreshDevices");
+
+                int deviceCount = GetDeviceCount(context);
+                if (deviceCount < 0)
+                {
+                    throw new InvalidOperationException("GetDeviceCount 回傳負值。");
+                }
+
+                maxDeviceCount = Math.Max(maxDeviceCount, deviceCount);
+
+                ThrowIfFailed(
+                    RegisterDeviceCallback(
+                        context,
+                        IntPtr.Zero,
+                        GameInputKindGamepad,
+                        GameInputDeviceStatusAny,
+                        GameInputEnumerationNone,
+                        DeviceCallbackRoot,
+                        IntPtr.Zero,
+                        out deviceToken),
+                    "RegisterDeviceCallback");
+                EnsureToken(deviceToken, "RegisterDeviceCallback");
+
+                ThrowIfFailed(
+                    RegisterReadingCallback(
+                        context,
+                        IntPtr.Zero,
+                        GameInputKindGamepad,
+                        ReadingCallbackRoot,
+                        IntPtr.Zero,
+                        out readingToken),
+                    "RegisterReadingCallback");
+                EnsureToken(readingToken, "RegisterReadingCallback");
+
+                DiagnosticsSnapshot diagnostics;
+                ThrowIfFailed(GetDiagnosticsSnapshot(context, out diagnostics), "GetDiagnosticsSnapshot");
+
+                if (!destroyOwnsCallbacks)
+                {
+                    ThrowIfFailed(UnregisterCallback(context, readingToken), "Unregister reading callback");
+                    int secondReadingUnregister = UnregisterCallback(context, readingToken);
+                    if (secondReadingUnregister != HResultNotFound)
+                    {
+                        throw new InvalidOperationException(
+                            string.Format(
+                                "第二次解除 reading callback 應回傳 not found，但得到 0x{0:X8}。",
+                                unchecked((uint)secondReadingUnregister)));
+                    }
+
+                    doubleUnregisterNotFoundCount++;
+                    ThrowIfFailed(UnregisterCallback(context, deviceToken), "Unregister device callback");
+                    explicitUnregisterCount++;
+                    readingToken = 0;
+                    deviceToken = 0;
+                }
+                else
+                {
+                    destroyCleanupCount++;
+                }
+            }
+            finally
+            {
+                if (context != IntPtr.Zero)
+                {
+                    Destroy(context);
+                }
+
+                GC.KeepAlive(ReadingCallbackRoot);
+                GC.KeepAlive(DeviceCallbackRoot);
+            }
+        }
+
+        return string.Format(
+            "iterations={0}, explicitUnregister={1}, destroyCleanup={2}, doubleUnregisterNotFound={3}, maxDeviceCount={4}, readingCallbacks={5}, deviceCallbacks={6}",
+            iterations,
+            explicitUnregisterCount,
+            destroyCleanupCount,
+            doubleUnregisterNotFoundCount,
+            maxDeviceCount,
+            Volatile.Read(ref s_readingCallbackCount),
+            Volatile.Read(ref s_deviceCallbackCount));
+    }
+
+    private static void OnReadingCallback(IntPtr context, ref GamepadState state)
+    {
+        Interlocked.Increment(ref s_readingCallbackCount);
+    }
+
+    private static void OnDeviceCallback(
+        IntPtr context,
+        IntPtr deviceId,
+        ulong timestamp,
+        uint currentStatus,
+        uint previousStatus)
+    {
+        Interlocked.Increment(ref s_deviceCallbackCount);
+    }
+
+    private static void ThrowIfFailed(int hr, string operation)
+    {
+        if (hr < 0)
+        {
+            throw new InvalidOperationException(
+                string.Format(
+                    "{0} failed: 0x{1:X8}",
+                    operation,
+                    unchecked((uint)hr)));
+        }
+    }
+
+    private static void EnsureToken(ulong callbackToken, string operation)
+    {
+        if (callbackToken == 0)
+        {
+            throw new InvalidOperationException(operation + " 回傳成功但 callback token 為 0。");
+        }
+    }
+}
+"@
+
+    $stressType = Add-Type -TypeDefinition $source -Language CSharp -CompilerOptions '/unsafe' -PassThru |
+        Where-Object { $_.Name -eq $typeName } |
+        Select-Object -First 1
+    if ($stressType -eq $null) {
+        throw '無法建立 GameInput native lifecycle smoke 型別。'
+    }
+
+    $createHr = [int]$stressType.GetMethod('TryCreateAndDestroy').Invoke($null, @())
+    if ($createHr -lt 0) {
+        if ($ProbeInfo.FinalHResult -eq 0 -or $ProbeInfo.InitializeHResult -eq 0) {
+            throw ("GameInput native lifecycle smoke 建立 context 失敗，但 probe 顯示 runtime 初始化成功：createHr=0x{0:X8}, finalHr=0x{1:X8}, initHr=0x{2:X8}" -f `
+                (ConvertTo-UInt32HexValue -Value $createHr),
+                (ConvertTo-UInt32HexValue -Value $ProbeInfo.FinalHResult),
+                (ConvertTo-UInt32HexValue -Value $ProbeInfo.InitializeHResult))
+        }
+
+        Write-Warning ("GameInput native lifecycle smoke 已略過：runtime/context 不可用，createHr=0x{0:X8}, finalHr=0x{1:X8}, initHr=0x{2:X8}。" -f `
+            (ConvertTo-UInt32HexValue -Value $createHr),
+            (ConvertTo-UInt32HexValue -Value $ProbeInfo.FinalHResult),
+            (ConvertTo-UInt32HexValue -Value $ProbeInfo.InitializeHResult))
+        return
+    }
+
+    try {
+        $summary = [string]$stressType.GetMethod('RunStress').Invoke($null, @(16))
+        Write-Host "GameInput native lifecycle stress smoke 通過：$summary"
+    }
+    catch [System.Reflection.TargetInvocationException] {
+        if ($_.Exception.InnerException -ne $null) {
+            throw $_.Exception.InnerException
+        }
+
+        throw
+    }
 }
 
 $resolvedNativeShim = Resolve-RequiredPath -Path $NativeShimPath -Description 'GameInput native shim'
 $resolvedManagedSource = Resolve-RequiredPath -Path $ManagedSourcePath -Description 'managed GameInputNative.cs'
 
 Test-NativeExports -NativeShim $resolvedNativeShim -ManagedSource $resolvedManagedSource
-Invoke-ProbeSmoke -NativeShim $resolvedNativeShim
+$probeInfo = Invoke-ProbeSmoke -NativeShim $resolvedNativeShim
+Invoke-LifecycleStressSmoke -NativeShim $resolvedNativeShim -ProbeInfo $probeInfo
