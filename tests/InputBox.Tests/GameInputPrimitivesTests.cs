@@ -1,6 +1,7 @@
 ﻿using InputBox.Core.Input;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -10,6 +11,50 @@ namespace InputBox.Tests;
 /// </summary>
 public sealed class GameInputPrimitivesTests
 {
+    /// <summary>
+    /// Managed P/Invoke 宣告的 EntryPoint 清單應維持固定，讓 CI/release export 驗證能防止執行期才發現符號缺失。
+    /// </summary>
+    [Fact]
+    public void GameInputNativeMethods_DeclaredEntryPoints_MatchExpectedExportSet()
+    {
+        string sourcePath = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "InputBox",
+            "Core",
+            "Input",
+            "GameInputNative.cs");
+        string source = File.ReadAllText(sourcePath, Encoding.UTF8);
+
+        string[] actual = Regex
+            .Matches(source, @"EntryPoint\s*=\s*""(?<name>InputBoxGameInput[^""]+)""")
+            .Select(match => match.Groups["name"].Value)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        string[] expected =
+        [
+            "InputBoxGameInputCreate",
+            "InputBoxGameInputDestroy",
+            "InputBoxGameInputGetDeviceCount",
+            "InputBoxGameInputGetDeviceInfo",
+            "InputBoxGameInputGetDeviceStatus",
+            "InputBoxGameInputGetDiagnosticsSnapshot",
+            "InputBoxGameInputGetShimInfo",
+            "InputBoxGameInputProbeRuntime",
+            "InputBoxGameInputReadGamepadState",
+            "InputBoxGameInputRefreshDevices",
+            "InputBoxGameInputRegisterDeviceCallback",
+            "InputBoxGameInputRegisterReadingCallback",
+            "InputBoxGameInputSetFocusPolicy",
+            "InputBoxGameInputSetRumbleState",
+            "InputBoxGameInputUnregisterCallback"
+        ];
+
+        Assert.Equal(expected.OrderBy(name => name, StringComparer.Ordinal), actual);
+    }
+
     /// <summary>
     /// GameInput v3 官方新增的 C/Z、搖桿方向與背鍵位元，應與 Microsoft header 常數一致且不覆蓋既有按鍵。
     /// </summary>
@@ -284,6 +329,24 @@ public sealed class GameInputPrimitivesTests
             DiagnosticsSnapshotSize = GameInputAbiInfo.Managed.DiagnosticsSnapshotSize,
             LoadedModuleKind = (uint)GameInputShimModuleKind.SystemGameInput
         };
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+
+        while (directory != null)
+        {
+            string candidate = Path.Combine(directory.FullName, "src", "InputBox", "Core", "Input", "GameInputNative.cs");
+            if (File.Exists(candidate))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new InvalidOperationException("找不到 InputBox repository root。");
+    }
 
     private static unsafe void WriteUtf8(byte* destination, int destinationLength, string value)
     {

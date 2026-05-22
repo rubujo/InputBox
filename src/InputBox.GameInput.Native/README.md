@@ -70,6 +70,8 @@ DLL 載入規則必須維持保守：
 
 - 原生 shim 由 `InputBox.GameInput.Native.vcxproj` 建置。
 - `src/InputBox/InputBox.csproj` 會把 Release shim 以原生程式庫形式納入單檔發佈。
+- CI 與 release 在原生 shim 建置後必須執行 `tools/Validate-GameInputNativeShim.ps1`，確認 `GameInputNativeMethods` 使用的 `InputBoxGameInput*` exports 全部存在。
+- 同一支驗證腳本也會呼叫 `InputBoxGameInputProbeRuntime` 做無硬體 smoke test；GameInput runtime 初始化可成功或失敗，但 probe 必須可安全回報 ABI、指標大小與結構大小。
 - Release ZIP 不應包含可見的 `InputBox.GameInput.Native.dll` 側載 DLL，也不應包含 `gameinput.dll`。
 - ZIP 可包含 `redist/GameInputRedist.msi` 供使用者手動安裝；InputBox 不會自動執行安裝程式。
 
@@ -80,6 +82,7 @@ DLL 載入規則必須維持保守：
 ```powershell
 dotnet build src/InputBox/InputBox.csproj --configuration Debug
 dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
+.\tools\Validate-GameInputNativeShim.ps1 -NativeShimPath .\src\InputBox.GameInput.Native\bin\x64\Debug\InputBox.GameInput.Native.dll -ManagedSourcePath .\src\InputBox\Core\Input\GameInputNative.cs
 ```
 
 修改 shim ABI、執行階段載入或發佈打包時，還要做 Release 發佈 / ZIP 試跑，確認單檔發佈、redist、授權聲明與禁止項目仍符合工作流程。
