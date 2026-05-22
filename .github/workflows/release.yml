@@ -31,7 +31,6 @@ jobs:
       PUBLISH_DIR: "./src/InputBox/out"
       EXE_NAME: 'InputBox.exe'
       NATIVE_SHIM_NAME: 'InputBox.GameInput.Native.dll'
-      GAMEINPUT_VERSION: '3.4.218'
       SHA256_HASH: ''
       GAMEINPUT_REDIST_SHA256: ''
       ZIP_FILENAME: ''
@@ -79,13 +78,97 @@ jobs:
     - name: 還原 NuGet 套件
       run: dotnet restore ./src/InputBox/InputBox.csproj
 
+    - name: 讀取 Microsoft.GameInput 版本
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        [xml]$project = Get-Content -LiteralPath "./src/InputBox/InputBox.csproj" -Raw
+        $packageRefs = @($project.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'Microsoft.GameInput' })
+
+        if ($packageRefs.Count -ne 1) {
+            Write-Error "InputBox.csproj 必須剛好包含一個 Microsoft.GameInput PackageReference；目前找到 $($packageRefs.Count) 個。"
+        }
+
+        $version = [string]$packageRefs[0].Version
+        if ([string]::IsNullOrWhiteSpace($version)) {
+            Write-Error "Microsoft.GameInput PackageReference 缺少明確 Version。"
+        }
+
+        if ($version -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?$') {
+            Write-Error "Microsoft.GameInput Version 必須是明確穩定版本，不可使用 floating/range/prerelease：$version"
+        }
+
+        "GAMEINPUT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        Write-Host "Microsoft.GameInput pinned version: $version"
+
+        if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
+            "Microsoft.GameInput pinned version: ``$version``" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+        }
+
+    - name: 檢查 Microsoft.GameInput 最新穩定版本（非阻擋）
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Continue'
+        $indexUrl = "https://api.nuget.org/v3-flatcontainer/microsoft.gameinput/index.json"
+
+        try {
+            $index = Invoke-RestMethod -Uri $indexUrl -ErrorAction Stop
+            $stableVersions = @(
+                $index.versions |
+                    Where-Object { $_ -match '^\d+\.\d+\.\d+(?:\.\d+)?$' } |
+                    Sort-Object { [version]$_ }
+            )
+
+            if ($stableVersions.Count -eq 0) {
+                throw "NuGet index 未回傳可解析的 stable 版本。"
+            }
+
+            $latest = $stableVersions[-1]
+            Write-Host "Microsoft.GameInput pinned version: $env:GAMEINPUT_VERSION"
+            Write-Host "Microsoft.GameInput latest stable:  $latest"
+
+            if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
+                @(
+                    '',
+                    '### Microsoft.GameInput 版本資訊',
+                    '',
+                    "- Pinned: ``$env:GAMEINPUT_VERSION``",
+                    "- Latest stable: ``$latest``"
+                ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            }
+
+            if ($env:GAMEINPUT_VERSION -ne $latest) {
+                Write-Warning "Microsoft.GameInput pinned version ($env:GAMEINPUT_VERSION) 不是 NuGet 最新 stable ($latest)；本檢查不阻擋發佈。"
+            }
+        } catch {
+            Write-Warning "無法查詢 Microsoft.GameInput 最新 stable 版本；本檢查不阻擋發佈。原因：$($_.Exception.Message)"
+
+            if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
+                @(
+                    '',
+                    '### Microsoft.GameInput 版本資訊',
+                    '',
+                    "- Pinned: ``$env:GAMEINPUT_VERSION``",
+                    '- Latest stable: 查詢失敗（非阻擋）'
+                ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            }
+        }
+
     - name: 建置 GameInput Native Shim
-      run: >
-        msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj
-        /p:Configuration=Release
-        /p:Platform=x64
-        /p:GameInputPackageVersion=${{ env.GAMEINPUT_VERSION }}
-        /m
+      shell: pwsh
+      run: |
+        msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj `
+          /p:Configuration=Release `
+          /p:Platform=x64 `
+          /p:GameInputPackageVersion=$env:GAMEINPUT_VERSION `
+          /m
+
+    - name: 驗證 GameInput Native Shim exports / probe
+      shell: pwsh
+      run: |
+        .\tools\Validate-GameInputNativeShim.ps1 `
+          -NativeShimPath ".\src\InputBox.GameInput.Native\bin\x64\Release\InputBox.GameInput.Native.dll" `
+          -ManagedSourcePath ".\src\InputBox\Core\Input\GameInputNative.cs"
 
     - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
@@ -295,7 +378,7 @@ jobs:
 
         # 4. 打包 Microsoft GameInput redist 與授權檔案。
         Write-Host "=== 開始處理 Microsoft GameInput redist 與授權 ==="
-        $gameInputPackageDir = Join-Path $env:USERPROFILE ".nuget\packages\microsoft.gameinput\${{ env.GAMEINPUT_VERSION }}"
+        $gameInputPackageDir = Join-Path $env:USERPROFILE ".nuget\packages\microsoft.gameinput\$env:GAMEINPUT_VERSION"
         $gameInputRedistSource = Join-Path $gameInputPackageDir "redist\GameInputRedist.msi"
         $gameInputLicenseSource = Join-Path $gameInputPackageDir "LICENSE.txt"
         $gameInputNoticeSource = Join-Path $gameInputPackageDir "NOTICE.txt"
@@ -323,7 +406,7 @@ jobs:
             'Microsoft GameInput Redistributable',
             '===================================',
             '',
-            "Version: ${{ env.GAMEINPUT_VERSION }}",
+            "Version: $env:GAMEINPUT_VERSION",
             'Included file: GameInputRedist.msi',
             "SHA256: $redistHash",
             '',
@@ -339,8 +422,8 @@ jobs:
             Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value ''
             Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '## Microsoft GameInput Redistributable'
             Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value ''
-            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value "- Package: Microsoft.GameInput ${{ env.GAMEINPUT_VERSION }}"
-            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- Source: https://www.nuget.org/packages/Microsoft.GameInput/${{ env.GAMEINPUT_VERSION }}'
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value "- Package: Microsoft.GameInput $env:GAMEINPUT_VERSION"
+            Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value "- Source: https://www.nuget.org/packages/Microsoft.GameInput/$env:GAMEINPUT_VERSION"
             Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- Included file: redist/GameInputRedist.msi'
             Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value "- SHA256: $redistHash"
             Add-Content -Path "ThirdPartyNotices.txt" -Encoding utf8 -Value '- Install policy: bundled for optional manual installation; InputBox does not install it automatically.'

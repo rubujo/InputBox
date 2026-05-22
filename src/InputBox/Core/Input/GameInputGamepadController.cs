@@ -755,7 +755,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void StopPolling()
     {
-        Interlocked.Exchange(ref _ctsPolling, null)?.CancelAndDispose();
+        CancellationTokenSource? cts = Interlocked.Exchange(ref _ctsPolling, null);
+        if (cts == null)
+        {
+            return;
+        }
+
+        LogGameInputDiagnosticsSnapshot("stop-polling");
+        cts.CancelAndDispose();
     }
 
     /// <summary>
@@ -860,6 +867,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 GameInputShimInfo shimInfo = _gameInput.ShimInfo;
                 LoggerService.LogInfo($"GameInputShim abi={shimInfo.AbiVersion} api={shimInfo.GameInputApiVersion} moduleKind={shimInfo.LoadedModuleKind} modulePath={shimInfo.LoadedModulePath}");
+                LogGameInputDiagnosticsSnapshot("init");
 
                 // 初始化時先直接列舉一次，再註冊非阻塞裝置回呼。
                 // 這樣可避免為了拿到既有裝置名單而付出兩次同步枚舉成本。
@@ -983,6 +991,37 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 以低噪音方式記錄 GameInput shim 診斷快照。
+    /// </summary>
+    /// <param name="reason">診斷觸發原因。</param>
+    private void LogGameInputDiagnosticsSnapshot(string reason)
+        => LogGameInputDiagnosticsSnapshot(_gameInput, reason);
+
+    /// <summary>
+    /// 以低噪音方式記錄指定 GameInput context 的 native 診斷快照。
+    /// </summary>
+    /// <param name="gameInput">GameInput context。</param>
+    /// <param name="reason">診斷觸發原因。</param>
+    private static void LogGameInputDiagnosticsSnapshot(GameInput? gameInput, string reason)
+    {
+        if (gameInput == null)
+        {
+            return;
+        }
+
+        try
+        {
+            GameInputDiagnosticsSnapshot snapshot = gameInput.GetDiagnosticsSnapshot();
+            LoggerService.LogInfo(
+                $"GameInputDiag reason={reason} missingReadings={snapshot.MissingReadingCount} repeatedTimestamps={snapshot.RepeatedTimestampCount} backwardTimestamps={snapshot.BackwardTimestampCount} deviceUnavailableRefreshes={snapshot.DeviceUnavailableRefreshCount} lastTimestamp={snapshot.LastReadingTimestamp} lastReadHr=0x{unchecked((uint)snapshot.LastReadHResult):X8} lastDeviceStatus=0x{snapshot.LastReadDeviceStatus:X8}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GameInput] 讀取診斷快照失敗（{reason}，已忽略）：{ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// 輪詢
     /// </summary>
     private void Poll()
@@ -1060,6 +1099,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             if ((status & GameInputDeviceStatus.Connected) == 0)
             {
                 Debug.WriteLine("[GameInput] 目前裝置狀態已非 Connected，立即重新整理裝置清單。");
+                LogGameInputDiagnosticsSnapshot("device-status-non-connected");
                 RefreshAfterCurrentDeviceBecameUnavailable();
 
                 return;
@@ -1235,6 +1275,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _needsRefresh = true;
         Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
 
+        LogGameInputDiagnosticsSnapshot("missing-reading-threshold");
         TryFindDevice();
 
         return _device == null;
@@ -2995,6 +3036,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     d.Dispose();
                 }
 
+                LogGameInputDiagnosticsSnapshot(gameInput, "dispose");
                 gameInput?.Dispose();
             }
             catch (Exception ex)

@@ -18,7 +18,7 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <GameInputPackageVersion Condition="'$(GameInputPackageVersion)'==''">3.4.218</GameInputPackageVersion>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)'==''">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
-    <GameInputPackageRoot>$(NuGetPackageRoot)microsoft.gameinput\$(GameInputPackageVersion)\</GameInputPackageRoot>
+    <GameInputPackageRoot Condition="'$(GameInputPackageRoot)'==''">$(NuGetPackageRoot)microsoft.gameinput\$(GameInputPackageVersion)\</GameInputPackageRoot>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

@@ -89,6 +89,47 @@ jobs:
           **/*.csproj
           .config/dotnet-tools.json
 
+    - name: 安裝 MSBuild（Native Shim）
+      uses: microsoft/setup-msbuild@v3
+
+    - name: 還原主專案 NuGet 套件（Native Shim）
+      run: dotnet restore ./src/InputBox/InputBox.csproj
+
+    - name: 讀取 Microsoft.GameInput 版本（Native Shim）
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        [xml]$project = Get-Content -LiteralPath "./src/InputBox/InputBox.csproj" -Raw
+        $packageRefs = @($project.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'Microsoft.GameInput' })
+
+        if ($packageRefs.Count -ne 1) {
+          Write-Error "InputBox.csproj 必須剛好包含一個 Microsoft.GameInput PackageReference；目前找到 $($packageRefs.Count) 個。"
+        }
+
+        $version = [string]$packageRefs[0].Version
+        if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?$') {
+          Write-Error "Microsoft.GameInput Version 必須是明確穩定版本：$version"
+        }
+
+        "GAMEINPUT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        Write-Host "Microsoft.GameInput version: $version"
+
+    - name: 建置 GameInput Native Shim
+      shell: pwsh
+      run: |
+        msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj `
+          /p:Configuration=Release `
+          /p:Platform=x64 `
+          /p:GameInputPackageVersion=$env:GAMEINPUT_VERSION `
+          /m
+
+    - name: 驗證 GameInput Native Shim exports / probe
+      shell: pwsh
+      run: |
+        .\tools\Validate-GameInputNativeShim.ps1 `
+          -NativeShimPath ".\src\InputBox.GameInput.Native\bin\x64\Release\InputBox.GameInput.Native.dll" `
+          -ManagedSourcePath ".\src\InputBox\Core\Input\GameInputNative.cs"
+
     - name: 建置應用程式與測試專案（Build App + Tests）
       working-directory: ./tests/InputBox.Tests
       # 測試專案會連同主專案相依一起建置，避免重複編譯浪費資源。

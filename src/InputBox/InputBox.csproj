@@ -54,7 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.GameInput" Version="3.4.218" />
+    <PackageReference Include="Microsoft.GameInput" Version="3.4.218" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,7 +62,7 @@
                       Condition="'$(OS)' == 'Windows_NT' and Exists('$(VCTargetsPath)\Microsoft.Cpp.Default.props')"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Properties="Configuration=$(Configuration);Platform=x64;GameInputPackageVersion=3.4.218" />
+                      Properties="Configuration=$(Configuration);Platform=x64;GameInputPackageRoot=$(PkgMicrosoft_GameInput)\" />
   </ItemGroup>
 
   <ItemGroup>

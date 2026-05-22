@@ -22,6 +22,7 @@
 - **GameInput 實作邊界**：GameInput 必須透過專案自有 `InputBox.GameInput.Native` shim 與專案內部 C# 型別存取 Microsoft GameInput runtime；不得重新引入已封存的第三方 `GameInput.Net`、`GameInputDotNet`、`UsbVendorsLibrary` 或 `usb.ids` 流程。
 - **GameInput shim 同版發布**：Native shim 與 managed GameInput layer 視為同版、同包、一起發布的內部實作；更新 C ABI 時直接同步兩端 struct，不維護外部相容層或 `V2` suffix。若 shim 載入失敗或 ABI 不符，應走既有 GameInput 初始化失敗並退避 XInput 路徑。
 - **GameInput shim ABI 防呆**：shim 必須在 `InputBoxGameInputGetShimInfo` 回報 native ABI number、`GAMEINPUT_API_VERSION`、pointer size 與所有跨邊界 struct size；managed layer 必須以 `Marshal.SizeOf<T>()` 驗證尺寸，不符即視為 shim 載錯並退避 XInput。
+- **GameInput shim 發佈驗證**：CI 與 release 必須在 native shim 建置後比對 `GameInputNativeMethods` 宣告的 `InputBoxGameInput*` EntryPoint 與 DLL exports，並執行 `InputBoxGameInputProbeRuntime` smoke test；缺 export 或 probe crash 時不得產生發佈 ZIP。
 - **GameInput runtime probe**：shim 必須提供建立 context 前可呼叫的 runtime probe，回報 LoadLibrary、GetProcAddress、GameInputInitialize 的 HRESULT / Win32 error、嘗試與實際載入的 module kind/path，以及字串截斷旗標；此資訊只供 log 與測試，不可影響按鍵語意。
 - **GameInput DLL 載入安全**：系統 GameInput runtime 只能使用 System32 搜尋範圍；registry redist 絕對路徑必須搭配 `LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32`，並記錄實際載入來源。不得從工作目錄、目前目錄或未限定搜尋路徑載入 `gameinput.dll`。
 - **GameInput native context 同步**：native shim 必須以 SRW lock 保護 `devices`、`callbacks`、診斷 counter，以及 refresh/read/unregister/destroy 等會交錯的路徑；callback 只能複製 POD event 或設定喚醒訊號，不得持有 context lock 呼叫 managed callback。
