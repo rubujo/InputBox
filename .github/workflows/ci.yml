@@ -35,6 +35,7 @@ jobs:
           code:
             - 'src/**'
             - 'tests/**'
+            - 'tools/**'
             - '.github/workflows/**'
             - 'global.json'
             - '*.sln'

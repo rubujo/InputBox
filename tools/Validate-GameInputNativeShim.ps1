@@ -138,6 +138,30 @@ using System.Runtime.InteropServices;
 public static unsafe class $typeName
 {
     [StructLayout(LayoutKind.Sequential)]
+    public struct VersionInfo
+    {
+        public ushort Major;
+        public ushort Minor;
+        public ushort Build;
+        public ushort Revision;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ShimInfo
+    {
+        public uint AbiVersion;
+        public uint GameInputApiVersion;
+        public uint PointerSize;
+        public uint ShimInfoSize;
+        public uint RuntimeProbeInfoSize;
+        public uint DeviceInfoSize;
+        public uint GamepadStateSize;
+        public uint DiagnosticsSnapshotSize;
+        public uint LoadedModuleKind;
+        public fixed byte LoadedModulePath[512];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct RuntimeProbeInfo
     {
         public uint AbiVersion;
@@ -162,8 +186,83 @@ public static unsafe class $typeName
         public fixed byte LoadedModulePath[512];
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct DeviceInfo
+    {
+        public ushort VendorId;
+        public ushort ProductId;
+        public ushort RevisionNumber;
+        public ushort UsagePage;
+        public ushort UsageId;
+        public ushort Reserved;
+        public uint DeviceFamily;
+        public uint SupportedInput;
+        public uint SupportedRumbleMotors;
+        public uint SupportedSystemButtons;
+        public uint GamepadSupportedLayout;
+        public uint GamepadExtraButtonCount;
+        public uint GamepadExtraAxisCount;
+        public uint ForceFeedbackMotorCount;
+        public uint InputReportCount;
+        public uint OutputReportCount;
+        public uint ExtraButtonCount;
+        public uint ExtraAxisCount;
+        public uint ExtraButtonIndexCount;
+        public uint ExtraAxisIndexCount;
+        public uint HasInputMapper;
+        public uint StringTruncationFlags;
+        public VersionInfo HardwareVersion;
+        public VersionInfo FirmwareVersion;
+        public fixed byte ExtraButtonIndexes[32];
+        public fixed byte ExtraAxisIndexes[32];
+        public fixed byte DeviceId[65];
+        public fixed byte DeviceRootId[65];
+        public fixed byte ContainerId[39];
+        public fixed byte DisplayName[256];
+        public fixed byte PnpPath[512];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct GamepadState
+    {
+        public ulong Timestamp;
+        public uint InputKind;
+        public uint Buttons;
+        public float LeftTrigger;
+        public float RightTrigger;
+        public float LeftThumbstickX;
+        public float LeftThumbstickY;
+        public float RightThumbstickX;
+        public float RightThumbstickY;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct DiagnosticsSnapshot
+    {
+        public ulong MissingReadingCount;
+        public ulong RepeatedTimestampCount;
+        public ulong BackwardTimestampCount;
+        public ulong DeviceUnavailableRefreshCount;
+        public ulong LastReadingTimestamp;
+        public int LastReadHResult;
+        public uint LastReadDeviceStatus;
+        public uint Reserved;
+    }
+
     [DllImport("$nativeShimLiteral", EntryPoint = "InputBoxGameInputProbeRuntime", CallingConvention = CallingConvention.StdCall)]
     public static extern int ProbeRuntime(out RuntimeProbeInfo info);
+
+    public static uint GetPointerSize() => (uint)IntPtr.Size;
+
+    public static uint GetShimInfoSize() => (uint)Marshal.SizeOf<ShimInfo>();
+
+    public static uint GetRuntimeProbeInfoSize() => (uint)Marshal.SizeOf<RuntimeProbeInfo>();
+
+    public static uint GetDeviceInfoSize() => (uint)Marshal.SizeOf<DeviceInfo>();
+
+    public static uint GetGamepadStateSize() => (uint)Marshal.SizeOf<GamepadState>();
+
+    public static uint GetDiagnosticsSnapshotSize() => (uint)Marshal.SizeOf<DiagnosticsSnapshot>();
 }
 "@
 
@@ -188,19 +287,33 @@ public static unsafe class $typeName
         throw "GameInput native probe 指標大小不符：native=$($probe.PointerSize), process=$([IntPtr]::Size)。"
     }
 
-    if ($probe.ShimInfoSize -eq 0 -or
-        $probe.RuntimeProbeInfoSize -eq 0 -or
-        $probe.DeviceInfoSize -eq 0 -or
-        $probe.GamepadStateSize -eq 0 -or
-        $probe.DiagnosticsSnapshotSize -eq 0) {
-        throw 'GameInput native probe 回報的 struct size 不完整。'
+    $expectedSizes = @{
+        PointerSize = [uint32]$smokeType.GetMethod('GetPointerSize').Invoke($null, @())
+        ShimInfoSize = [uint32]$smokeType.GetMethod('GetShimInfoSize').Invoke($null, @())
+        RuntimeProbeInfoSize = [uint32]$smokeType.GetMethod('GetRuntimeProbeInfoSize').Invoke($null, @())
+        DeviceInfoSize = [uint32]$smokeType.GetMethod('GetDeviceInfoSize').Invoke($null, @())
+        GamepadStateSize = [uint32]$smokeType.GetMethod('GetGamepadStateSize').Invoke($null, @())
+        DiagnosticsSnapshotSize = [uint32]$smokeType.GetMethod('GetDiagnosticsSnapshotSize').Invoke($null, @())
     }
 
-    Write-Host ("GameInput native probe smoke 通過：hr=0x{0:X8}, abi={1}, api=0x{2:X8}, pointer={3}, finalHr=0x{4:X8}, initHr=0x{5:X8}" -f `
+    foreach ($name in $expectedSizes.Keys) {
+        $actual = [uint32]$probe.$name
+        $expected = $expectedSizes[$name]
+        if ($actual -ne $expected) {
+            throw "GameInput native probe ABI size mismatch: $name native=$actual, managed=$expected。"
+        }
+    }
+
+    Write-Host ("GameInput native probe smoke 通過：hr=0x{0:X8}, abi={1}, api=0x{2:X8}, pointer={3}, shimInfoSize={4}, runtimeProbeInfoSize={5}, deviceInfoSize={6}, gamepadStateSize={7}, diagnosticsSnapshotSize={8}, finalHr=0x{9:X8}, initHr=0x{10:X8}" -f `
         (ConvertTo-UInt32HexValue -Value $hr),
         $probe.AbiVersion,
         $probe.GameInputApiVersion,
         $probe.PointerSize,
+        $probe.ShimInfoSize,
+        $probe.RuntimeProbeInfoSize,
+        $probe.DeviceInfoSize,
+        $probe.GamepadStateSize,
+        $probe.DiagnosticsSnapshotSize,
         (ConvertTo-UInt32HexValue -Value $probe.FinalHResult),
         (ConvertTo-UInt32HexValue -Value $probe.InitializeHResult))
 }
