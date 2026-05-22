@@ -86,3 +86,5 @@ dotnet test --project tests/InputBox.Tests/InputBox.Tests.csproj
 ```
 
 修改 shim ABI、執行階段載入或發佈打包時，還要做 Release 發佈 / ZIP 試跑，確認單檔發佈、redist、授權聲明與禁止項目仍符合工作流程。
+
+若變更涉及 GameInput 實體硬體行為，還應依 `docs/engineering/gameinput-hardware-verification.md` 執行手動抽測。建議觸發時機包含修改 shim、斷線偵測、rumble、升級 `Microsoft.GameInput` 或正式發佈前；這不是日常 PR 必跑項目，也不是 CI 關卡。
