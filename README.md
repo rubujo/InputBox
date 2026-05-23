@@ -50,25 +50,27 @@
   - **XInput**：系統原生支援，無需額外安裝。
   - **GameInput**：系統需具備 **GameInput 執行階段**。
     - 多數 Windows 11 系統已內建 GameInput 執行階段；若系統未提供或載入失敗，本應用程式會自動退避至 **XInput** 相容模式。
-    - **可轉散發元件（選用）**：正式發佈 ZIP 會隨附微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) 套件提供的 `redist/GameInputRedist.msi`，供需要者手動安裝；本應用程式不會自動執行該安裝程式。
+    - **可轉散發套件（選用）**：正式發佈 ZIP 檔會隨附微軟 [Microsoft.GameInput](https://www.nuget.org/packages/Microsoft.GameInput) 套件提供的 `redist/GameInputRedist.msi`，供需要者手動安裝；本應用程式不會自動執行該安裝程式。
 
-## Steam Deck／SteamOS 3 使用說明 🎮
+## Steam Deck／SteamOS 3 已知限制 🎮
 
-目前版本已針對 **Wine／Proton** 與 **SteamOS 3 的遊戲模式（Gamescope）** 加入相容性調整。整體原則是：**Steam Deck 桌面模式盡量保留完整功能；只有遊戲模式（Gamescope）會套用保守限制。**
+**Windows 11 仍是正式支援平台。** Steam Deck／SteamOS 3 僅保留 **Wine／Proton／Gamescope** 盡力支援範圍內的相容性與故障排除資訊；本專案不承諾原生 Linux 桌面版本，也不承諾 Steam Deck 桌面模式可完成控制器導向的核心輸入流程。
 
-本支援屬於 **best-effort compatibility**：專案會保留既有 Wine／Proton／Gamescope 偵測、Steam 虛擬鍵盤喚起與 Gamescope 畫面恢復機制，但不承諾原生 Linux 桌面版本。現階段仍以 Windows 11 + WinForms 作為主要技術路線；未來只有在實機回報、既有功能回歸或相容性保護失效時，才會繼續投入 Steam Deck 相容性修補。
+既有 Wine／Proton／Gamescope 偵測、Steam 虛擬鍵盤喚起與 Gamescope 畫面恢復機制會保留。桌面模式主要適合設定、片語管理與手動測試；實際要用控制器搭配 Steam 螢幕鍵盤輸入時，遊戲模式才是較接近的使用情境，但仍屬實驗性盡力支援。
 
 - **Steam Deck 桌面模式（KDE Plasma）**：
-  - 不套用 Gamescope 專用限制。
-  - 高風險快速鍵與返回行為維持可用。
-  - 若執行於 Wine／Proton，開啟螢幕鍵盤時會優先嘗試使用 **Steam 虛擬鍵盤**。
+  - 不套用 Gamescope 專用限制，但不承諾控制器導向的核心輸入流程可用。
+  - Wine／Wayland 環境下不承諾全域快速鍵、返回前景視窗或跨視窗焦點恢復可用。
+  - 不承諾桌面模式有可由控制器可靠操作的中文螢幕鍵盤；建議用於設定、片語管理或手動測試。
 - **Steam Deck 遊戲模式（Gamescope）**：
+  - 遊戲模式是較接近「控制器 + Steam 螢幕鍵盤」的 Steam Deck 情境，但仍為實驗性盡力支援。
   - 以無邊框全螢幕模式運行，由 Gamescope 合成器接管視窗佈局與焦點管理；視窗還原（`SW_RESTORE`）、智慧邊界定位等 Windows 視窗行為會自動略過，避免干擾合成器的全螢幕表面。
   - 開啟螢幕鍵盤時會優先使用 **Steam 虛擬鍵盤**。
   - 部分功能因 Gamescope 環境限制，行為會與 Windows 桌面有所不同：
     - **視窗透明度**：Gamescope 合成器不支援 Win32 層級視窗透明度，調整不透明度無效。
     - **音效提示**：Gamescope 音訊沙盒限制，應用程式層級音效無法播放。
     - **A11y 廣播功能**：Gamescope 與 Wine／Proton 環境中無可用的螢幕閱讀器，廣播無作用。
+    - **剪貼簿、焦點與 Steam 螢幕鍵盤**：跨 Wine／Proton 視窗、Steam 螢幕鍵盤狀態與 Gamescope 焦點切換可能不穩定，必要時請重新啟動應用程式。
     - **`LT`／`RT` 的控制器快捷功能**：仍可能與 Steam 虛擬鍵盤的保留按鍵衝突。
   - 若 Gamescope 畫面變黑或應用程式失去焦點，可使用下列方式嘗試恢復；請僅在確有需要時使用，頻繁或不必要地觸發可能造成副作用，若恢復後行為仍不正常，建議直接重新啟動應用程式：
     - **控制器救援組合鍵**：按住 **LB + RB**，再按下**上側鍵（Y／△／X）**，觸發視窗算繪表面重建。
@@ -76,7 +78,7 @@
 - **注意事項**：
   - 本專案目前的 Linux 相容性調整，重點在於 **Steam Deck／SteamOS 3 + Wine／Proton** 的實際使用情境。
   - 目前沒有計畫為 Steam Deck 支援而遷移到 WPF、WinUI 3、Avalonia 或 .NET MAUI；現有 WinForms 架構仍最貼近本專案需要的 Win32、TabTip、全域快速鍵、前景視窗恢復與控制器 API。
-  - 即使在桌面模式下可保留完整功能，螢幕鍵盤、輸入法候選窗與焦點恢復行為仍可能受桌面環境設定影響。
+  - 桌面模式不再作為 Steam Deck 的核心支援目標；請優先把它用於設定、片語庫準備與故障排除。
   - 若應用程式在遊戲模式下出現難以解釋的異常行為，建議直接重新啟動應用程式，而非持續嘗試各種恢復操作。
 
 ## 三、使用方式 📖
@@ -589,6 +591,6 @@ Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
 
 - [.NET Runtime](https://github.com/dotnet/runtime)：由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/dotnet/runtime/graphs/contributors) 開發並採用 [**MIT License**](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT) 授權，作為本應用程式之底層執行環境，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [Windows Forms（WinForms）](https://github.com/dotnet/winforms)：由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/dotnet/winforms/graphs/contributors) 開發並採用 [**MIT License**](https://github.com/dotnet/winforms/blob/main/LICENSE.TXT) 授權，提供桌面視窗圖形介面基礎架構，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/winforms/blob/main/THIRD-PARTY-NOTICES.TXT)。
-- [Microsoft GameInput Redistributable](https://www.nuget.org/packages/Microsoft.GameInput)：由 Microsoft 提供，作為選用的 GameInput 執行階段可轉散發元件。正式發佈 ZIP 會隨附 `redist/GameInputRedist.msi` 供使用者手動安裝；本應用程式不會自動安裝，且該 redist 依 Microsoft.GameInput 授權條款散布，不屬於本專案 CC0 授權範圍。
+- [Microsoft GameInput Redistributable](https://www.nuget.org/packages/Microsoft.GameInput)：由 Microsoft 提供，作為選用的 GameInput 執行階段可轉散發套件。正式發佈 ZIP 檔會隨附 `redist/GameInputRedist.msi` 供使用者手動安裝；本應用程式不會自動安裝，且該可轉散發安裝程式依 [Microsoft.GameInput 授權條款](https://www.nuget.org/packages/Microsoft.GameInput/3.4.218/License) 散布，不屬於本專案 CC0 授權範圍。
 
-本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）、Microsoft GameInput 授權／Notice，以及各元件完整授權文字。
+本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）、[Microsoft GameInput 授權聲明](https://www.nuget.org/packages/Microsoft.GameInput/3.4.218/License)，以及各元件完整授權文字。

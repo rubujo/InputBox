@@ -15,8 +15,8 @@
 
 ## Steam Deck／Wine／Proton 支援邊界
 
-- **支援層級**：Steam Deck、SteamOS 3、Wine、Proton 與 Gamescope 僅屬於 best-effort compatibility；本專案不承諾原生 Linux 桌面應用程式支援。
+- **支援層級**：Steam Deck、SteamOS 3、Wine、Proton 與 Gamescope 僅屬於盡力支援的相容性範圍；本專案不承諾原生 Linux 桌面應用程式支援。
 - **現有相容性保留**：應保留既有 Wine／Proton／Gamescope 偵測、Steam 虛擬鍵盤喚起、Gamescope 畫面恢復機制與遊戲模式保守視窗行為。
-- **桌面模式與遊戲模式分流**：Steam Deck 桌面模式 (KDE Plasma) 應盡量維持 Windows 桌面功能；Gamescope 遊戲模式可套用保守限制，避免干擾合成器控管的全螢幕表面。
-- **投入原則**：僅在實機回報、既有功能回歸或相容性保護失效時繼續修補；不為了擴大 Steam Deck 支援而主動遷移至 WPF、WinUI 3、Avalonia 或 .NET MAUI。
-- **UI 技術方向**：現階段維持 WinForms 為最佳選擇，因核心功能依賴 Win32、TabTip、全域快速鍵、前景視窗恢復、XInput 與 GameInput。
+- **桌面模式與遊戲模式分流**：Steam Deck 桌面模式 (KDE Plasma) 不承諾控制器導向螢幕鍵盤、全域快速鍵、返回前景視窗或跨視窗焦點恢復可用；僅適合設定、片語管理與手動測試。Gamescope 遊戲模式可套用保守限制，避免干擾合成器控管的全螢幕表面。
+- **投入原則**：僅在實機回報、既有功能回歸或相容性保護失效時繼續修補；Steam Deck 修補優先集中在 Gamescope 遊戲模式的焦點、黑畫面、Steam 虛擬鍵盤、片語庫作業流程與環境快照日誌，不為了擴大 Steam Deck 支援而主動遷移至 WPF、WinUI 3、Avalonia 或 .NET MAUI。
+- **使用者介面技術方向**：現階段維持 WinForms 為最佳選擇，因核心功能依賴 Win32、TabTip、全域快速鍵、前景視窗恢復、XInput 與 GameInput。
