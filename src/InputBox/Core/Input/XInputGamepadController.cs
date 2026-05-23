@@ -1771,22 +1771,12 @@ internal sealed partial class XInputGamepadController : IGamepadController
             wasUp = previousState.Has(XInput.GamepadButton.DpadUp),
             wasDown = previousState.Has(XInput.GamepadButton.DpadDown);
 
-        // 右向映射在筆電環境較容易受正偏噪聲影響，
-        // 這裡對「已在右向」時使用更高的退出門檻，避免進入後黏滯在 DPadRight。
-        int rightExitThreshold = Math.Max(
-                config.ThumbDeadzoneExit,
-                (int)(config.ThumbDeadzoneEnter * 0.75f)),
-            thresholdNegative = wasLeft ?
-                config.ThumbDeadzoneExit :
-                config.ThumbDeadzoneEnter,
-            thresholdPositive = wasRight ?
-                rightExitThreshold :
-                config.ThumbDeadzoneEnter,
-            horizontalDirection = correctedLeftThumbX < -thresholdNegative ?
-                -1 :
-                correctedLeftThumbX > thresholdPositive ?
-                    1 :
-                    0;
+        int horizontalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
+            correctedLeftThumbX,
+            wasLeft,
+            wasRight,
+            config.ThumbDeadzoneEnter,
+            config.ThumbDeadzoneExit);
 
         if (horizontalDirection < 0 &&
             !GamepadMappedDirectionGuard.IsSuppressed(suppressedDirections, MappedGamepadDirection.Left))
@@ -2291,8 +2281,10 @@ internal sealed partial class XInputGamepadController : IGamepadController
         LSClickPressed = null;
         RSClickPressed = null;
         LeftShoulderPressed = null;
+        LeftShoulderReleased = null;
         LeftShoulderRepeat = null;
         RightShoulderPressed = null;
+        RightShoulderReleased = null;
         RightShoulderRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;

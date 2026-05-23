@@ -190,4 +190,48 @@ public class GamepadDeadzoneHysteresisTests
 
         Assert.Equal(-1, result);
     }
+
+    // ── 對稱性（硬體平等原則）守門 ───────────────────────────────────────────
+
+    /// <summary>
+    /// 對稱性守門（int）：在同樣的 |axisValue| 下，正向進入與負向進入必須使用同一組
+    /// enterThreshold；正向退出與負向退出必須使用同一組 exitThreshold。確保不會出現
+    /// 為單一方向（如右向）做差別補償的回歸。
+    /// </summary>
+    [Fact]
+    public void ResolveDirection_Int_SymmetricThresholds_AcrossPositiveAndNegative()
+    {
+        const int enter = 8000, exit = 6000;
+
+        // 進入：±enter 邊界一致
+        Assert.Equal(1, GamepadDeadzoneHysteresis.ResolveDirection(enter + 1, false, false, enter, exit));
+        Assert.Equal(-1, GamepadDeadzoneHysteresis.ResolveDirection(-(enter + 1), false, false, enter, exit));
+        Assert.Equal(0, GamepadDeadzoneHysteresis.ResolveDirection(enter, false, false, enter, exit));
+        Assert.Equal(0, GamepadDeadzoneHysteresis.ResolveDirection(-enter, false, false, enter, exit));
+
+        // 退出（已持有方向）：±exit 邊界一致
+        Assert.Equal(1, GamepadDeadzoneHysteresis.ResolveDirection(exit + 1, false, true, enter, exit));
+        Assert.Equal(-1, GamepadDeadzoneHysteresis.ResolveDirection(-(exit + 1), true, false, enter, exit));
+        Assert.Equal(0, GamepadDeadzoneHysteresis.ResolveDirection(exit, false, true, enter, exit));
+        Assert.Equal(0, GamepadDeadzoneHysteresis.ResolveDirection(-exit, true, false, enter, exit));
+    }
+
+    /// <summary>
+    /// 對稱性守門（float）：浮點數多載亦須維持 ±方向對稱;確保 GameInput 與 XInput
+    /// 兩個後端在 deadzone 行為上完全等效，不為單一方向加入差別補償。
+    /// </summary>
+    [Fact]
+    public void ResolveDirection_Float_SymmetricThresholds_AcrossPositiveAndNegative()
+    {
+        const float enter = 0.8f, exit = 0.6f;
+
+        Assert.Equal(1, GamepadDeadzoneHysteresis.ResolveDirection(0.85f, false, false, enter, exit));
+        Assert.Equal(-1, GamepadDeadzoneHysteresis.ResolveDirection(-0.85f, false, false, enter, exit));
+
+        Assert.Equal(1, GamepadDeadzoneHysteresis.ResolveDirection(0.65f, false, true, enter, exit));
+        Assert.Equal(-1, GamepadDeadzoneHysteresis.ResolveDirection(-0.65f, true, false, enter, exit));
+
+        Assert.Equal(0, GamepadDeadzoneHysteresis.ResolveDirection(0.55f, false, true, enter, exit));
+        Assert.Equal(0, GamepadDeadzoneHysteresis.ResolveDirection(-0.55f, true, false, enter, exit));
+    }
 }

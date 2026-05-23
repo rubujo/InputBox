@@ -301,6 +301,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private bool _lastHealthGhostActive;
 
     /// <summary>
+    /// 上一次機制健康度輸出的 mapGuard 活躍狀態
+    /// </summary>
+    private bool _lastHealthMapGuardActive;
+
+    /// <summary>
     /// 連發風暴診斷輸出間隔（每 N 次輸出一次）
     /// </summary>
     private const int RepeatStormLogInterval = 30;
@@ -2140,10 +2145,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         bool staleActive = _directionalStaleFrameCounter > 0,
             ghostActive = _directionalGhostFrameCounter > 0,
+            mapGuardActive = _suppressedMappedDirections != MappedGamepadDirection.None,
             stateChanged = _repeatDirection != _lastHealthDpadDirection ||
                 _rsRepeatDirection != _lastHealthRsDirection ||
                 staleActive != _lastHealthStaleActive ||
-                ghostActive != _lastHealthGhostActive;
+                ghostActive != _lastHealthGhostActive ||
+                mapGuardActive != _lastHealthMapGuardActive;
 
         _mechanismHealthLogCounter++;
 
@@ -2152,13 +2159,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _mechanismHealthLogCounter >= MechanismHealthLogIntervalFrames)
         {
             LoggerService.LogInfo(
-                $"Gamepad.MechanismHealth source=GameInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftX:F4} ly={correctedLeftY:F4} rx={correctedRightX:F4} ry={correctedRightY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter}");
+                $"Gamepad.MechanismHealth source=GameInput stage=bias_deadzone_hysteresis_repeat dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={correctedLeftX:F4} ly={correctedLeftY:F4} rx={correctedRightX:F4} ry={correctedRightY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4} enter={config.ThumbDeadzoneEnter} exit={config.ThumbDeadzoneExit} stale={_directionalStaleFrameCounter} ghost={_directionalGhostFrameCounter} mapGuard={_suppressedMappedDirections}");
 
             _mechanismHealthLogCounter = 0;
             _lastHealthDpadDirection = _repeatDirection;
             _lastHealthRsDirection = _rsRepeatDirection;
             _lastHealthStaleActive = staleActive;
             _lastHealthGhostActive = ghostActive;
+            _lastHealthMapGuardActive = mapGuardActive;
         }
 
         _wasMechanismEngaged = true;
@@ -2178,6 +2186,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _lastHealthRsDirection = 0;
         _lastHealthStaleActive = false;
         _lastHealthGhostActive = false;
+        _lastHealthMapGuardActive = false;
 #endif
     }
 
@@ -3087,8 +3096,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         LSClickPressed = null;
         RSClickPressed = null;
         LeftShoulderPressed = null;
+        LeftShoulderReleased = null;
         LeftShoulderRepeat = null;
         RightShoulderPressed = null;
+        RightShoulderReleased = null;
         RightShoulderRepeat = null;
         LeftTriggerPressed = null;
         RightTriggerPressed = null;
