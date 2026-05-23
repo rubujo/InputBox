@@ -243,6 +243,82 @@ public sealed class GamepadControllerPauseTests
     }
 
     /// <summary>
+    /// XInput 控制器在 ClearAllEvents 後，必須一併清除 LeftShoulderReleased 與
+    /// RightShoulderReleased 兩個事件訂閱，避免處置後仍殘留呼叫鏈造成事件洩漏。
+    /// </summary>
+    [Fact]
+    public void ClearAllEvents_XInputController_ClearsShoulderReleasedSubscriptions()
+    {
+        using var controller = new XInputGamepadController(new StubInputContext());
+
+        controller.LeftShoulderReleased += static () => { };
+        controller.RightShoulderReleased += static () => { };
+
+        Assert.NotNull(GetEventDelegate(controller, "LeftShoulderReleased"));
+        Assert.NotNull(GetEventDelegate(controller, "RightShoulderReleased"));
+
+        InvokeClearAllEvents(controller);
+
+        Assert.Null(GetEventDelegate(controller, "LeftShoulderReleased"));
+        Assert.Null(GetEventDelegate(controller, "RightShoulderReleased"));
+    }
+
+    /// <summary>
+    /// GameInput 控制器在 ClearAllEvents 後，必須一併清除 LeftShoulderReleased 與
+    /// RightShoulderReleased 兩個事件訂閱，與 XInput 行為對齊，避免不同後端產生
+    /// 事件殘留差異。
+    /// </summary>
+    [Fact]
+    public void ClearAllEvents_GameInputController_ClearsShoulderReleasedSubscriptions()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        controller.LeftShoulderReleased += static () => { };
+        controller.RightShoulderReleased += static () => { };
+
+        Assert.NotNull(GetEventDelegate(controller, "LeftShoulderReleased"));
+        Assert.NotNull(GetEventDelegate(controller, "RightShoulderReleased"));
+
+        InvokeClearAllEvents(controller);
+
+        Assert.Null(GetEventDelegate(controller, "LeftShoulderReleased"));
+        Assert.Null(GetEventDelegate(controller, "RightShoulderReleased"));
+    }
+
+    /// <summary>
+    /// 透過反射呼叫控制器的 private ClearAllEvents 方法。
+    /// </summary>
+    /// <param name="controller">目標控制器實例。</param>
+    private static void InvokeClearAllEvents(object controller)
+    {
+        MethodInfo method = controller.GetType().GetMethod(
+            "ClearAllEvents",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 ClearAllEvents 方法。");
+
+        method.Invoke(controller, []);
+    }
+
+    /// <summary>
+    /// 透過反射讀取 field-like event 的 backing delegate，用於驗證事件訂閱是否已清除。
+    /// </summary>
+    /// <param name="target">事件所屬物件。</param>
+    /// <param name="eventName">事件名稱（與 backing field 同名）。</param>
+    /// <returns>backing delegate；若為 null 表示無訂閱。</returns>
+    private static Delegate? GetEventDelegate(object target, string eventName)
+    {
+        FieldInfo field = target.GetType().GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"找不到事件 backing field：{eventName}");
+
+        return field.GetValue(target) as Delegate;
+    }
+
+    /// <summary>
     /// 建立 GameInput 狀態快照，供反射測試用。
     /// </summary>
     /// <param name="state">原始 GameInput 狀態。</param>
