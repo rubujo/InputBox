@@ -160,6 +160,7 @@ jobs:
         msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj `
           /p:Configuration=Release `
           /p:Platform=x64 `
+          /p:PlatformToolset=v143 `
           /p:GameInputPackageVersion=$env:GAMEINPUT_VERSION `
           /m
 
