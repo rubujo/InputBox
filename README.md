@@ -508,7 +508,7 @@ HOST_LC_ALL=<locale> %command%
 請開啟終端機或命令提示字元，並切換至原始碼目錄（即 `src\InputBox` 資料夾下），執行以下指令：
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true
 ```
 
 **參數說明：**
@@ -516,6 +516,7 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 - `-r win-x64`：指定目標執行階段為 Windows 64 位元作業系統。
 - `--self-contained true`：啟用獨立式部署。這會將底層的 .NET 執行階段與應用程式一併打包，使用者**無需在電腦上預先安裝任何 .NET 環境**即可直接執行。
 - `-p:PublishSingleFile=true`：啟用單一檔案發佈。會將應用程式本身及其所有依賴的函式庫全部打包進單一個 `.exe` 執行檔中，讓資料夾保持乾淨，方便使用者複製或分享。
+- `-p:IncludeNativeLibrariesForSelfExtract=true`：讓 .NET host 在執行階段自動將 bundle 中的原生程式庫（例如 `InputBox.GameInput.Native.dll`）自解壓後載入。**win-x64 單一檔案發佈時此參數為必要項**，省略將導致 MSBuild 建置錯誤。
 - `-p:PublishReadyToRun=true`：啟用 ReadyToRun 預先編譯。這會在建置時提前將部分程式碼編譯為原生機器碼，減少執行時即時編譯的負擔，能**顯著縮短應用程式的冷啟動時間**，讓喚出輸入框的反應更迅速。
 
 發佈完成後，編譯好的單一執行檔會生成在以下路徑：
