@@ -36,7 +36,7 @@ internal sealed class GameInput : IDisposable
             handle.IsInvalid)
         {
             handle.Dispose();
-            Marshal.ThrowExceptionForHR(hr);
+            Marshal.ThrowExceptionForHR(hr < 0 ? hr : unchecked((int)0x80004005));
         }
 
         try
