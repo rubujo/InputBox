@@ -181,6 +181,23 @@ jobs:
         -p:PublishReadyToRun=true
         -o out
 
+    - name: 驗證單檔發佈輸出
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $exePath = Join-Path "${{ env.PUBLISH_DIR }}" "${{ env.EXE_NAME }}"
+        $nativeShimPath = Join-Path "${{ env.PUBLISH_DIR }}" "${{ env.NATIVE_SHIM_NAME }}"
+
+        if (-not (Test-Path $exePath)) {
+            Write-Error "找不到單檔發佈執行檔：$exePath"
+        }
+
+        if (Test-Path $nativeShimPath) {
+            Write-Error "單檔發佈輸出不應包含可見的 GameInput native shim sidecar：$nativeShimPath"
+        }
+
+        Write-Host "單檔發佈輸出驗證通過：GameInput native shim 已由 MSBuild bundle guard 驗證，且未留下 sidecar DLL。"
+
     - name: 自動產生第三方套件授權聲明（nuget-license）
       shell: pwsh
       run: |

@@ -69,7 +69,9 @@ DLL 載入規則必須維持保守：
 ## 建置與發佈
 
 - 原生 shim 由 `InputBox.GameInput.Native.vcxproj` 建置。
-- `src/InputBox/InputBox.csproj` 會把 Release shim 以原生程式庫形式納入單檔發佈。
+- `src/InputBox/InputBox.csproj` 會在 `win-x64` 發佈時把 Release shim 加入 `ResolvedFileToPublish`，並以 `AssetType=native` 納入 self-contained single-file bundle。
+- `InputBox.GameInput.Native.dll` 不應以 `NativeLibrary` item 發佈；該 item 不會保證進入 .NET single-file 的 `FilesToBundle` 清單。
+- `PublishSingleFile=true` 時必須同時設定 `IncludeNativeLibrariesForSelfExtract=true`，讓 bundled native shim 在執行階段由 .NET host 自解壓後載入。
 - CI 與 release 在原生 shim 建置後必須執行 `tools/Validate-GameInputNativeShim.ps1`，確認 `GameInputNativeMethods` 使用的 `InputBoxGameInput*` exports 全部存在。
 - 同一支驗證腳本也會呼叫 `InputBoxGameInputProbeRuntime` 做無硬體 smoke test；GameInput runtime 初始化可成功或失敗，但 probe 必須可安全回報 ABI，且 native 回報的指標大小與跨 ABI 結構大小必須與受控端 mirror 相符。
 - 若 GameInput runtime 可用，驗證腳本會再執行 native lifecycle stress smoke，反覆建立 context、註冊/解除回呼、重新整理裝置與銷毀 context。runtime 不可用時此壓力測試可略過，但 export/probe 驗證仍必須通過。
