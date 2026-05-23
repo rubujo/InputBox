@@ -1149,6 +1149,18 @@ namespace
 
 extern "C"
 {
+    /**
+     * @brief 探測 GameInput runtime 是否可用,不建立持久 context。
+     *
+     * 啟動期供 managed 層分類 LoadLibrary、GetProcAddress、GameInputInitialize 的
+     * 失敗來源;呼叫後立即釋放暫時建立的 IGameInput 與 module 控制代碼,不會留下
+     * callback 註冊。
+     *
+     * @param[out] info 回傳的 runtime probe 資訊(ABI 版本、模組種類、嘗試路徑等);
+     *                  不可為 nullptr。
+     * @return Native HRESULT;S_OK 表示 runtime 可用,失敗時 info 仍會包含
+     *         可供日誌觀察的部分欄位。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputProbeRuntime(
         InputBoxGameInputRuntimeProbeInfo* info) noexcept
     {
@@ -1182,6 +1194,16 @@ extern "C"
         return hr;
     }
 
+    /**
+     * @brief 建立 GameInput shim context;成功時透過 out 指標傳回原生 context。
+     *
+     * 內部呼叫 LoadGameInput 取得 IGameInput 與 module handle,並儲存於新配置的
+     * InputBoxGameInputContext 中。Managed 端應將回傳的指標包裝為
+     * SafeGameInputContextHandle,確保在 GC/Dispose 時呼叫 InputBoxGameInputDestroy。
+     *
+     * @param[out] context 回傳新建立的 context 指標;失敗時設為 nullptr。
+     * @return Native HRESULT;失敗時呼叫端應走退避 XInput 路徑。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputCreate(
         InputBoxGameInputContext** context) noexcept
     {
@@ -1218,6 +1240,15 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 釋放 GameInput shim context 與所有附屬資源。
+     *
+     * 釋放順序:先停止所有 callback(避免回呼觀察到半銷毀的原生狀態)→ 清空裝置
+     * 與 callback 清單 → 重置 IGameInput → FreeLibrary 卸載已載入的 module →
+     * delete context。通常由 SafeGameInputContextHandle::ReleaseHandle 呼叫。
+     *
+     * @param context 由 InputBoxGameInputCreate 建立的 context;nullptr 為合法輸入。
+     */
     __declspec(dllexport) void __stdcall InputBoxGameInputDestroy(
         InputBoxGameInputContext* context) noexcept
     {
@@ -1259,6 +1290,17 @@ extern "C"
         delete context;
     }
 
+    /**
+     * @brief 取得 shim 自身與已載入 GameInput runtime 的版本與 ABI 資訊。
+     *
+     * 回傳的結構包含 shim ABI 版本、GAMEINPUT_API_VERSION、pointer size、所有跨邊界
+     * struct 的 size,以及實際載入的 GameInput module kind 與路徑。Managed 端必須以
+     * Marshal.SizeOf<T>() 比對 struct size,不符即視為 shim 載錯並退避 XInput。
+     *
+     * @param context 已建立的 context;允許 nullptr,此時僅回傳 shim 本身資訊。
+     * @param[out] info 回傳的 shim/runtime 資訊結構;不可為 nullptr。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputGetShimInfo(
         InputBoxGameInputContext* context,
         InputBoxGameInputShimInfo* info) noexcept
@@ -1282,6 +1324,17 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 取得 shim 累積的診斷快照(missing reading、stale/backward timestamp、
+     *        device unavailable refresh 等計數)。
+     *
+     * 此快照僅供日誌、測試或未來診斷儀表使用,不可直接影響 edge detection、
+     * Pause/Resume neutral gate 或任何 UI 命令。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param[out] snapshot 回傳的診斷計數結構;不可為 nullptr。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputGetDiagnosticsSnapshot(
         InputBoxGameInputContext* context,
         InputBoxGameInputDiagnosticsSnapshot* snapshot) noexcept
@@ -1306,6 +1359,13 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 設定 IGameInput::SetFocusPolicy,控制應用程式失去焦點時是否仍接收輸入。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param policy GameInputFocusPolicy 位元旗標(以 uint32_t 跨 ABI 傳遞)。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputSetFocusPolicy(
         InputBoxGameInputContext* context,
         uint32_t policy) noexcept
@@ -1327,6 +1387,16 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 強制 shim 對 GameInput runtime 進行裝置重新列舉,並更新內部快取清單。
+     *
+     * 使用 GameInputBlockingEnumeration 取得目前所有已連線 gamepad 的同步快照,
+     * 暫時註冊一個列舉用的 callback,完成後立即解除。整個流程持有 exclusive lock,
+     * 避免與 polling 端讀取裝置清單競態。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @return Native HRESULT;發生例外時回傳 E_FAIL。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputRefreshDevices(
         InputBoxGameInputContext* context) noexcept
     {
@@ -1390,6 +1460,12 @@ extern "C"
         }
     }
 
+    /**
+     * @brief 回傳 shim 目前所知的裝置總數(以 RefreshDevices 結果為準)。
+     *
+     * @param context 已建立的 context;nullptr 時回傳 0。
+     * @return 裝置數;以 int32_t 跨 ABI 傳遞。
+     */
     __declspec(dllexport) int32_t __stdcall InputBoxGameInputGetDeviceCount(
         InputBoxGameInputContext* context) noexcept
     {
@@ -1403,6 +1479,18 @@ extern "C"
         return static_cast<int32_t>(context->devices.size());
     }
 
+    /**
+     * @brief 依索引取得單一裝置的中繼資訊(VID/PID、displayName、capabilities、
+     *        支援馬達等)。
+     *
+     * 索引以與 InputBoxGameInputGetDeviceCount 同一回合的計數為準;不要與下一次
+     * RefreshDevices 之間共用。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param index 裝置索引(0-based);超出範圍會回傳 E_INVALIDARG。
+     * @param[out] info 回傳的裝置資訊結構;不可為 nullptr。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputGetDeviceInfo(
         InputBoxGameInputContext* context,
         int32_t index,
@@ -1427,6 +1515,17 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 依穩定 deviceId 查詢目前裝置狀態旗標。
+     *
+     * 若裝置目前未連線會額外更新 deviceUnavailableRefreshCount 診斷計數,但不會
+     * 自動觸發重列舉(由 managed 端 polling 邏輯依連續缺幀數決定)。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param deviceId 穩定裝置識別字串(UTF-8);可為 nullptr,此時依 shim 規則選擇預設裝置。
+     * @param[out] status 回傳 GameInputDeviceStatus 旗標;不可為 nullptr。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputGetDeviceStatus(
         InputBoxGameInputContext* context,
         const char* deviceId,
@@ -1469,6 +1568,19 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 同步讀取指定裝置目前的 gamepad reading 快照。
+     *
+     * 流程:取得裝置 → 檢查 GameInputDeviceConnected → GetCurrentReading →
+     * 抽取 GameInputGamepadState 並填入 InputBoxGameInputGamepadState(含 timestamp
+     * 與診斷 metadata)。途中任何失敗都會更新對應的 read result 診斷計數。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param deviceId 穩定裝置識別字串(UTF-8);可為 nullptr。
+     * @param[out] state 回傳的 gamepad 狀態快照;不可為 nullptr,內容會先被清零。
+     * @return Native HRESULT;InputBoxGameInputNoReading 代表暫無可用 reading;
+     *         ERROR_DEVICE_NOT_CONNECTED 代表裝置已斷線。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputReadGamepadState(
         InputBoxGameInputContext* context,
         const char* deviceId,
@@ -1542,6 +1654,22 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 註冊 reading callback;GameInput runtime 在推送新 gamepad reading 時
+     *        通知 managed 端喚醒 MTA polling thread。
+     *
+     * 註冊本身不持有 context lock 以避免 GameInput 在註冊期間呼叫回呼時造成死結;
+     * 但會在 token 發布前重新檢查 context 是否仍存活,避免 destroy 與註冊競態。
+     * callback 僅可用於要求重新整理或喚醒診斷路徑,不得直接觸發 UI 或輸入命令。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param deviceId 穩定裝置識別字串(UTF-8);nullptr 表示訂閱全部裝置。
+     * @param kind 必須為 GameInputKindGamepad。
+     * @param callback Managed 端建立、需 keep-alive 的回呼函式指標。
+     * @param callbackContext 回呼時傳回的 user context(通常為 GCHandle)。
+     * @param[out] callbackToken 回傳的回呼識別 token,用於 InputBoxGameInputUnregisterCallback。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputRegisterReadingCallback(
         InputBoxGameInputContext* context,
         const char* deviceId,
@@ -1622,6 +1750,23 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 註冊 device callback;裝置連線/斷線/狀態變更時通知 managed 端排程
+     *        裝置重列舉。
+     *
+     * 與 RegisterReadingCallback 相同的鎖規則:註冊期間不持有 context lock,
+     * 並在 token 發布前重新檢查 context 是否仍存活。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param deviceId 穩定裝置識別字串(UTF-8);nullptr 表示訂閱全部裝置。
+     * @param kind 必須為 GameInputKindGamepad。
+     * @param statusFilter 關注的 GameInputDeviceStatus 旗標。
+     * @param enumerationKind GameInputEnumerationKind(Blocking / Async 等)。
+     * @param callback Managed 端建立、需 keep-alive 的回呼函式指標。
+     * @param callbackContext 回呼時傳回的 user context(通常為 GCHandle)。
+     * @param[out] callbackToken 回傳的回呼識別 token。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputRegisterDeviceCallback(
         InputBoxGameInputContext* context,
         const char* deviceId,
@@ -1705,6 +1850,17 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 註銷先前以 RegisterReadingCallback 或 RegisterDeviceCallback 取得的
+     *        callback token。
+     *
+     * 流程:標記 registration 為非 active(讓正在執行的回呼盡快返回) → StopCallback
+     * → UnregisterCallback → 從 context 移除註冊紀錄。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param callbackToken 先前回傳的 callback token(非 0)。
+     * @return Native HRESULT;找不到對應註冊時回傳 HRESULT_FROM_WIN32(ERROR_NOT_FOUND)。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputUnregisterCallback(
         InputBoxGameInputContext* context,
         uint64_t callbackToken) noexcept
@@ -1744,6 +1900,20 @@ extern "C"
         return S_OK;
     }
 
+    /**
+     * @brief 套用震動參數到指定裝置;四個馬達強度均為 [0.0, 1.0] 正規化值。
+     *
+     * 不支援的馬達會被 GameInput runtime 忽略(例如 PC 控制器多半無 trigger 馬達);
+     * 由 managed 端依 GameInputRumbleMotors 旗標決定是否傳遞非零值。
+     *
+     * @param context 已建立的 context;不可為 nullptr。
+     * @param deviceId 穩定裝置識別字串(UTF-8);可為 nullptr。
+     * @param lowFrequency 低頻主馬達強度。
+     * @param highFrequency 高頻主馬達強度。
+     * @param leftTrigger 左扳機馬達強度(不支援時忽略)。
+     * @param rightTrigger 右扳機馬達強度(不支援時忽略)。
+     * @return Native HRESULT。
+     */
     __declspec(dllexport) HRESULT __stdcall InputBoxGameInputSetRumbleState(
         InputBoxGameInputContext* context,
         const char* deviceId,

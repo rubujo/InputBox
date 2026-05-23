@@ -517,48 +517,108 @@ internal sealed class SafeGameInputContextHandle : SafeHandle
 }
 
 /// <summary>
-/// GameInput native shim P/Invoke 宣告。
+/// GameInput native shim P/Invoke 宣告。集中對應 <c>InputBox.GameInput.Native</c>
+/// shim 匯出的 C ABI；所有方法均在 MTA 背景輪詢執行緒呼叫，回傳值為 native HRESULT。
 /// </summary>
 internal static partial class GameInputNativeMethods
 {
+    /// <summary>
+    /// Native shim DLL 名稱；由 .NET DllImport 依 <see cref="DllImportSearchPath"/>
+    /// 規則於應用程式目錄與使用者目錄中搜尋。
+    /// </summary>
     private const string NativeLibraryName = "InputBox.GameInput.Native";
 
+    /// <summary>
+    /// 探測 GameInput runtime 載入狀態，不建立持久 context。供啟動期分類
+    /// LoadLibrary、GetProcAddress、GameInputInitialize 的失敗來源使用。
+    /// </summary>
+    /// <param name="info">回傳的探測資訊（ABI 版本、模組種類、嘗試/實際載入路徑等）。</param>
+    /// <returns>Native HRESULT；<c>S_OK</c> 表示 runtime 可用。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputProbeRuntime")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int ProbeRuntime(out GameInputNativeRuntimeProbeInfo info);
 
+    /// <summary>
+    /// 建立 GameInput shim context；成功時將原生指標包裝為 <see cref="SafeGameInputContextHandle"/>，
+    /// 由 SafeHandle 在 finalize/dispose 時呼叫對應的 <see cref="Destroy"/>。
+    /// </summary>
+    /// <param name="context">回傳的 context SafeHandle；失敗時為 invalid handle。</param>
+    /// <returns>Native HRESULT；失敗時呼叫端應走退避 XInput 路徑。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputCreate")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int Create(out SafeGameInputContextHandle context);
 
+    /// <summary>
+    /// 釋放 native context；通常由 <see cref="SafeGameInputContextHandle.ReleaseHandle"/>
+    /// 自動呼叫，不應由業務程式碼直接呼叫。
+    /// </summary>
+    /// <param name="context">原生 context 指標。</param>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputDestroy")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern void Destroy(nint context);
 
+    /// <summary>
+    /// 取得 shim 自身與已載入 GameInput runtime 的版本資訊，包含 ABI 版本、跨邊界 struct 大小、
+    /// 已載入的模組種類與路徑，供 managed layer 用 <see cref="Marshal.SizeOf{T}()"/> 驗證 ABI。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="info">回傳的 shim/runtime 版本資訊結構。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetShimInfo")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int GetShimInfo(
         SafeGameInputContextHandle context,
         out GameInputNativeShimInfo info);
 
+    /// <summary>
+    /// 取得 shim 內部累積的診斷快照（字串截斷旗標、timestamp stale、missing reading、
+    /// device zombie refresh 等計數），僅供日誌與測試使用，不可改變按鍵語意。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="snapshot">回傳的診斷計數快照。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetDiagnosticsSnapshot")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int GetDiagnosticsSnapshot(
         SafeGameInputContextHandle context,
         out GameInputNativeDiagnosticsSnapshot snapshot);
 
+    /// <summary>
+    /// 設定 <c>IGameInput::SetFocusPolicy</c>，控制應用程式失去焦點時是否仍接收輸入。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="policy"><c>GameInputFocusPolicy</c> 位元旗標。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputSetFocusPolicy")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int SetFocusPolicy(SafeGameInputContextHandle context, uint policy);
 
+    /// <summary>
+    /// 強制 shim 對 GameInput runtime 進行裝置重新列舉；用於連線/斷線回呼觀察到變更後的補抓。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputRefreshDevices")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int RefreshDevices(SafeGameInputContextHandle context);
 
+    /// <summary>
+    /// 回傳 shim 目前所知的裝置總數（含已連線與暫存中尚未確認斷線的裝置）。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <returns>裝置數；負值代表錯誤。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetDeviceCount")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int GetDeviceCount(SafeGameInputContextHandle context);
 
+    /// <summary>
+    /// 依索引取得單一裝置的中繼資訊（VID/PID、displayName、capabilities、支援馬達等），
+    /// 索引以 <see cref="GetDeviceCount"/> 同一回合的計數為準。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="index">裝置索引（0-based）。</param>
+    /// <param name="info">回傳的裝置資訊結構。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetDeviceInfo")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int GetDeviceInfo(
@@ -566,6 +626,13 @@ internal static partial class GameInputNativeMethods
         int index,
         out GameInputNativeDeviceInfo info);
 
+    /// <summary>
+    /// 依穩定 deviceId 查詢目前裝置狀態旗標（Connected / Synced / Wireless 等）。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="deviceId">穩定裝置識別字串（UTF-8）。</param>
+    /// <param name="status">回傳的 <c>GameInputDeviceStatus</c> 旗標。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputGetDeviceStatus")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int GetDeviceStatus(
@@ -573,6 +640,13 @@ internal static partial class GameInputNativeMethods
         [MarshalAs(UnmanagedType.LPUTF8Str)] string deviceId,
         out uint status);
 
+    /// <summary>
+    /// 同步讀取指定裝置目前 gamepad reading 快照；用於 polling 與 Resume 預同步。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="deviceId">穩定裝置識別字串（UTF-8）。</param>
+    /// <param name="state">回傳的 gamepad 狀態快照。</param>
+    /// <returns>Native HRESULT；<c>InputBoxGameInputNoReading</c> 代表暫無 reading。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputReadGamepadState")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int ReadGamepadState(
@@ -580,6 +654,17 @@ internal static partial class GameInputNativeMethods
         [MarshalAs(UnmanagedType.LPUTF8Str)] string deviceId,
         out GameInputGamepadState state);
 
+    /// <summary>
+    /// 註冊 reading callback；shim 會在 GameInput runtime 推送新 reading 時喚醒輪詢執行緒。
+    /// callback 僅供 wake-up 與診斷快照，不得直接觸發 UI 或輸入命令。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="deviceId">穩定裝置識別字串；傳 <c>null</c> 表示訂閱全部裝置。</param>
+    /// <param name="kind">輸入種類過濾（<c>GameInputKind</c> 位元旗標）。</param>
+    /// <param name="callback">由 managed 端建立、需 keep-alive 的 delegate。</param>
+    /// <param name="callbackContext">回呼時傳回的 user context（通常為 GCHandle）。</param>
+    /// <param name="callbackToken">回傳的回呼識別 token，用於 <see cref="UnregisterCallback"/>。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputRegisterReadingCallback")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int RegisterReadingCallback(
@@ -590,6 +675,18 @@ internal static partial class GameInputNativeMethods
         nint callbackContext,
         out ulong callbackToken);
 
+    /// <summary>
+    /// 註冊 device callback；shim 會在裝置連線/斷線/狀態變更時通知 managed 端進行重列舉。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="deviceId">穩定裝置識別字串；傳 <c>null</c> 表示訂閱全部裝置。</param>
+    /// <param name="kind">輸入種類過濾（<c>GameInputKind</c> 位元旗標）。</param>
+    /// <param name="statusFilter">關注的狀態變更旗標（<c>GameInputDeviceStatus</c>）。</param>
+    /// <param name="enumerationKind">列舉模式（<c>GameInputEnumerationKind</c>）。</param>
+    /// <param name="callback">由 managed 端建立、需 keep-alive 的 delegate。</param>
+    /// <param name="callbackContext">回呼時傳回的 user context（通常為 GCHandle）。</param>
+    /// <param name="callbackToken">回傳的回呼識別 token，用於 <see cref="UnregisterCallback"/>。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputRegisterDeviceCallback")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int RegisterDeviceCallback(
@@ -602,12 +699,30 @@ internal static partial class GameInputNativeMethods
         nint callbackContext,
         out ulong callbackToken);
 
+    /// <summary>
+    /// 註銷先前由 <see cref="RegisterReadingCallback"/> 或 <see cref="RegisterDeviceCallback"/>
+    /// 取得的 callback token；shim 會停止對應的 callback 並讓 managed delegate 可被 GC。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="callbackToken">先前回傳的 callback token。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputUnregisterCallback")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int UnregisterCallback(
         SafeGameInputContextHandle context,
         ulong callbackToken);
 
+    /// <summary>
+    /// 套用震動參數到指定裝置；四個馬達強度均為 <c>[0.0, 1.0]</c> 正規化值，
+    /// 不支援的馬達會被 GameInput runtime 忽略。
+    /// </summary>
+    /// <param name="context">已建立的 GameInput context。</param>
+    /// <param name="deviceId">穩定裝置識別字串（UTF-8）。</param>
+    /// <param name="lowFrequency">低頻主馬達強度。</param>
+    /// <param name="highFrequency">高頻主馬達強度。</param>
+    /// <param name="leftTrigger">左扳機馬達強度（不支援時忽略）。</param>
+    /// <param name="rightTrigger">右扳機馬達強度（不支援時忽略）。</param>
+    /// <returns>Native HRESULT。</returns>
     [DllImport(NativeLibraryName, EntryPoint = "InputBoxGameInputSetRumbleState")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.UserDirectories)]
     internal static extern int SetRumbleState(
@@ -619,11 +734,26 @@ internal static partial class GameInputNativeMethods
         float rightTrigger);
 }
 
+/// <summary>
+/// Reading callback delegate：shim 在 GameInput runtime 推送新 gamepad reading 時呼叫，
+/// 通常僅用於喚醒 MTA 背景輪詢執行緒；正式輸入命令仍由 60 FPS polling 消費。
+/// </summary>
+/// <param name="callbackContext">註冊時傳入的 user context（通常為 GCHandle）。</param>
+/// <param name="state">推送的 gamepad 狀態（POD）。</param>
 [UnmanagedFunctionPointer(CallingConvention.StdCall)]
 internal delegate void GameInputNativeReadingCallback(
     nint callbackContext,
     ref GameInputGamepadState state);
 
+/// <summary>
+/// Device callback delegate：shim 在裝置連線/斷線/狀態變更時呼叫,通知 managed 端
+/// 安排裝置重列舉;callback 內僅可記錄旗標或排入工作佇列,不得直接觸發 UI 或輸入。
+/// </summary>
+/// <param name="callbackContext">註冊時傳入的 user context（通常為 GCHandle）。</param>
+/// <param name="deviceId">穩定裝置識別字串的 UTF-8 指標（由 shim 持有）。</param>
+/// <param name="timestamp">事件時戳（<c>QueryPerformanceCounter</c> 等價單位）。</param>
+/// <param name="currentStatus">目前的 <c>GameInputDeviceStatus</c> 旗標。</param>
+/// <param name="previousStatus">事件前的 <c>GameInputDeviceStatus</c> 旗標。</param>
 [UnmanagedFunctionPointer(CallingConvention.StdCall)]
 internal delegate void GameInputNativeDeviceCallback(
     nint callbackContext,
