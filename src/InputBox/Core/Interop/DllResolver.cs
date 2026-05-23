@@ -20,6 +20,7 @@ internal class DllResolver
 
     /// <summary>
     /// 快取的自有 GameInput native shim handle，用於避免重複載入。
+    /// 目前設計假設同一個行程只會解析並載入單一版本／位置的 InputBox.GameInput.Native。
     /// </summary>
     private static volatile nint _cachedGameInputShimHandle = IntPtr.Zero;
 
@@ -90,6 +91,7 @@ internal class DllResolver
 
     /// <summary>
     /// 解析自有 GameInput native shim。
+    /// 首次成功載入後，後續不同 assembly/searchPath 的解析都會重用同一個 handle。
     /// </summary>
     /// <param name="libraryName">要求載入的 library 名稱。</param>
     /// <param name="assembly">觸發載入的組件。</param>
@@ -104,6 +106,7 @@ internal class DllResolver
         {
             if (_cachedGameInputShimHandle != IntPtr.Zero)
             {
+                // Native shim 視為 process-wide singleton，避免重複載入造成匯出狀態分裂。
                 return _cachedGameInputShimHandle;
             }
 

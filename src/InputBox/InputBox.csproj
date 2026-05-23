@@ -65,18 +65,23 @@
                       Properties="Configuration=$(Configuration);Platform=x64;GameInputPackageRoot=$(PkgMicrosoft_GameInput)\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <NativeLibrary Include="$(GameInputNativeShimPath)"
-                   Condition="Exists('$(GameInputNativeShimPath)')"
-                   CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
-
   <Target Name="CopyGameInputNativeShimToBuildOutput"
           AfterTargets="Build"
           Condition="Exists('$(GameInputNativeShimPath)') and '$(TargetDir)' != ''">
     <Copy SourceFiles="$(GameInputNativeShimPath)"
           DestinationFolder="$(TargetDir)"
           SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="IncludeGameInputNativeShimForPublish"
+          BeforeTargets="ComputeFilesToPublish"
+          Condition="'$(OS)' == 'Windows_NT' and Exists('$(VCTargetsPath)\Microsoft.Cpp.Default.props')">
+    <Error Condition="!Exists('$(GameInputNativeShimPath)')"
+           Text="GameInput native shim not found at '$(GameInputNativeShimPath)'. Build $(GameInputNativeShimProject) before publish." />
+    <ItemGroup>
+      <NativeLibrary Include="$(GameInputNativeShimPath)"
+                     CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 
   <ItemGroup>
