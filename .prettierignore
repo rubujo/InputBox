@@ -5,3 +5,4 @@ TestResults/
 .playwright/
 playwright-report/
 test-results/
+artifacts/

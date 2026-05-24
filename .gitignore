@@ -30,6 +30,7 @@ playwright-report/
 test-results/
 TestResults/
 .tmp-snapshots/
+artifacts/
 **/bin/
 **/obj/
 

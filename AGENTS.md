@@ -1,8 +1,42 @@
-# InputBox gh-pages - OpenAI Codex 工作區指引
+# InputBox gh-pages - Agent 工作區總入口
 
-本檔案供 OpenAI Codex、GitHub Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具於 `gh-pages` 分支中使用。開始任何修改前，應先讀取 `.agents/skills/inputbox-web-dev/SKILL.md`，再依任務需要載入 `docs/engineering/` 下的對應網頁規範。
+本檔案是 InputBox `gh-pages` 分支的 repo root agent 指引入口，供 Codex CLI、GitHub Copilot CLI、Antigravity CLI 與其他支援 `AGENTS.md` 的工具使用。Claude Code 與其他工具專屬入口檔只保留薄相容層，不維護第二份完整規範。開始任何修改前，應先讀取 `.agents/skills/inputbox-web-dev/SKILL.md`，再依任務需要載入 `docs/engineering/` 下的對應網頁規範。
 
-## 0. 權威來源
+## 0. Agent 支援結構
+
+### 0.1 單一權威鏈
+
+本分支採用「共同入口 + 網頁技能 + 原子化工程規範」三層結構：
+
+1. `AGENTS.md`：跨工具共同入口，描述載入順序、安全紅線與任務索引。
+2. `.agents/skills/inputbox-web-dev/SKILL.md`：`gh-pages` 分支唯一權威技能，封裝零 JS、零圖片、零 Inline CSS、A11y、多語系與 Git 驗證要求。
+3. `docs/engineering/`：原子化細節規範；任務涉及哪個領域，就讀取對應文件。
+
+工具專屬入口檔只能導向這條權威鏈，不得複製完整規範：
+
+- `CLAUDE.md`：Claude Code 專案記憶入口，使用 `@AGENTS.md` 匯入本檔。
+- `GEMINI.md`：Antigravity CLI / Gemini 相容 context 入口，導向本檔與 `inputbox-web-dev`。
+- `.github/copilot-instructions.md`：GitHub Copilot CLI 與 Copilot repository-wide instructions 入口，導向本檔。
+
+### 0.2 官方文件查核（2026-05-24）
+
+本結構依下列官方資料調整：
+
+- Codex CLI：OpenAI Codex 文件指出 Codex 會在工作前讀取 `AGENTS.md`，並由全域到 repo root 再到目前目錄建立 instruction chain。來源：[Custom instructions with AGENTS.md](https://developers.openai.com/codex/guides/agents-md)。
+- Claude Code：Claude Code 文件指出 Claude Code 讀取 `CLAUDE.md` 而不是 `AGENTS.md`；若 repo 已有 `AGENTS.md`，應建立匯入它的 `CLAUDE.md`，避免重複維護。來源：[How Claude remembers your project](https://code.claude.com/docs/en/memory)。
+- GitHub Copilot CLI：GitHub 文件指出 Copilot CLI 支援 `.github/copilot-instructions.md`、`.github/instructions/**/*.instructions.md` 與 `AGENTS.md`；root `AGENTS.md` 會被視為 primary instructions。來源：[Adding custom instructions for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions)。
+- Antigravity CLI：Google Antigravity 遷移文件指出 Antigravity CLI 讀取與 Gemini CLI 相同的 context files，workspace 會讀 `GEMINI.md` 與 `AGENTS.md`，workspace skills 使用 `.agents/skills`；Rules 文件指出 workspace rules 位於 `.agents/rules`。來源：[Migrating from Gemini CLI](https://antigravity.google/docs/gcli-migration)、[Rules and Workflows](https://antigravity.google/docs/rules-workflows)。
+
+### 0.3 支援矩陣
+
+| 工具               | 主要入口                                        | 本分支策略                                                                                                                                                                              |
+| ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex CLI          | `AGENTS.md`                                     | 直接使用本檔，不建立 `CODEX.md` 或另一份 Codex 專屬規範。                                                                                                                               |
+| Claude Code        | `CLAUDE.md`                                     | `CLAUDE.md` 僅用 `@AGENTS.md` 匯入共同規範，並保留少量 Claude 專屬說明。                                                                                                                |
+| GitHub Copilot CLI | `.github/copilot-instructions.md` + `AGENTS.md` | 兩者都存在，但 `.github/copilot-instructions.md` 只做導向，避免和本檔衝突。                                                                                                             |
+| Antigravity CLI    | `AGENTS.md` + `GEMINI.md` + `.agents/skills`    | `AGENTS.md` 是共同規範，`GEMINI.md` 是薄相容層，`inputbox-web-dev` 留在 `.agents/skills`。若日後需要 Antigravity workspace rules，新增於 `.agents/rules`，不要使用舊的 `.agent/rules`。 |
+
+### 0.4 權威來源
 
 本分支的共同規範以下列來源為準：
 
@@ -15,15 +49,6 @@
 - `docs/engineering/web-git.md`
 
 若本檔與上述文件有衝突，以上述文件為準。
-
-## 0.1 多工具檔案策略
-
-本專案採用下列入口分工：
-
-- `AGENTS.md`：共用的主要 agent 指引入口，供 Codex、Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具使用。
-- `CLAUDE.md`：Claude Code 相容入口，內容應導向本檔，不應維護第二套完整規範。
-- `GEMINI.md`：Gemini CLI 相容入口，內容應導向本檔，不應維護第二套完整規範。
-- `.github/copilot-instructions.md`：提供 Visual Studio GitHub Copilot Chat 與其他仍依賴 Copilot repository instructions 的客戶端使用。
 
 若多個入口檔同時存在，應避免互相矛盾；細節規範始終以 `.agents/skills/inputbox-web-dev/SKILL.md` 與 `docs/engineering/` 為準。
 
