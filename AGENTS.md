@@ -1,33 +1,54 @@
-# InputBox - OpenAI Codex 工作區指引
+# InputBox - Agent 工作區總入口
 
-本檔案供 OpenAI Codex、GitHub Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具使用。開始任何修改前，應先讀取 `.agents/skills/inputbox-dev/SKILL.md`，再依任務需要載入 `docs/engineering/` 下的對應規範。
+本檔案是 InputBox 的 repo root agent 指引入口，供 Codex CLI、GitHub Copilot CLI、Antigravity CLI 與其他支援 `AGENTS.md` 的工具使用。Claude Code 與其他工具專屬入口檔只保留薄相容層，不維護第二份完整規範。開始任何修改前，應先讀取 `.agents/skills/inputbox-dev/SKILL.md`，再依任務需要載入 `docs/engineering/` 下的對應規範。
 
-## 0. 是否需要建立 Codex 專屬 Skill
+## 0. Agent 支援結構
 
-目前 **不建議另建一份 Codex 專屬 Skill**，原因如下：
+### 0.1 單一權威鏈
+
+本專案採用「共用入口 + 專案技能 + 原子化工程規範」三層結構：
+
+1. `AGENTS.md`：跨工具的共同入口，描述載入順序、安全紅線與任務索引。
+2. `.agents/skills/inputbox-dev/SKILL.md`：InputBox 專案唯一權威技能，封裝工程規範、A11y、在地化、測試與 Git 提交要求。
+3. `docs/engineering/`：原子化細節規範；任務涉及哪個領域，就讀取對應文件。
+
+工具專屬入口檔只能導向這條權威鏈，不得複製完整規範：
+
+- `CLAUDE.md`：Claude Code 專案記憶入口，使用 `@AGENTS.md` 匯入本檔。
+- `GEMINI.md`：Antigravity CLI / Gemini 相容 context 入口，導向本檔與 `inputbox-dev`。
+- `.github/copilot-instructions.md`：GitHub Copilot CLI 與 Copilot repository-wide instructions 入口，導向本檔。
+
+### 0.2 官方文件查核（2026-05-24）
+
+本結構依下列官方資料調整：
+
+- Codex CLI：OpenAI Codex 文件指出 Codex 會在工作前讀取 `AGENTS.md`，並由全域到 repo root 再到目前目錄建立 instruction chain。來源：[Custom instructions with AGENTS.md](https://developers.openai.com/codex/guides/agents-md)。
+- Claude Code：Claude Code 文件指出 project instructions 可放在 `./CLAUDE.md` 或 `./.claude/CLAUDE.md`，且 `CLAUDE.md` 可用 `@path/to/import` 匯入其他檔案。來源：[How Claude remembers your project](https://code.claude.com/docs/en/memory)。
+- GitHub Copilot CLI：GitHub 文件指出 Copilot CLI 支援 `.github/copilot-instructions.md`、`.github/instructions/**/*.instructions.md` 與 `AGENTS.md`；root `AGENTS.md` 會被視為 primary instructions。來源：[Adding custom instructions for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions)。
+- Antigravity CLI：Google Antigravity 遷移文件指出 Antigravity CLI 讀取與 Gemini CLI 相同的 context files，workspace 會讀 `GEMINI.md` 與 `AGENTS.md`，workspace skills 使用 `.agents/skills`；Antigravity Rules 目前預設放在 `.agents/rules`。來源：[Migrating from Gemini CLI](https://antigravity.google/docs/gcli-migration)、[Rules and Workflows](https://antigravity.google/docs/rules-workflows)。
+
+### 0.3 支援矩陣
+
+| 工具 | 主要入口 | 本 repo 策略 |
+|---|---|---|
+| Codex CLI | `AGENTS.md` | 直接使用本檔，不建立 `CODEX.md` 或另一份 Codex 專屬規範。 |
+| Claude Code | `CLAUDE.md` | `CLAUDE.md` 僅用 `@AGENTS.md` 匯入共同規範，並保留少量 Claude 專屬說明。 |
+| GitHub Copilot CLI | `.github/copilot-instructions.md` + `AGENTS.md` | 兩者都存在，但 `.github/copilot-instructions.md` 只做導向，避免和本檔衝突。 |
+| Antigravity CLI | `AGENTS.md` + `GEMINI.md` + `.agents/skills` | `AGENTS.md` 是共同規範，`GEMINI.md` 是薄相容層，`inputbox-dev` 留在 `.agents/skills`。若日後需要 Antigravity workspace rules，新增於 `.agents/rules`，不要使用舊的 `.agent/rules`。 |
+
+### 0.4 是否需要建立工具專屬 Skill
+
+目前不建議為 Codex CLI、Claude Code、Copilot CLI 或 Antigravity CLI 各自建立重複技能，原因如下：
 
 - 專案已存在可重用的 `inputbox-dev` 技能，內容已涵蓋安全紅線、工程規範、A11y、在地化、測試與 Git 提交要求。
-- 若再建立一份僅服務 Codex 的 Skill，會與既有技能形成雙份維護，長期更容易漂移。
-- 對 Codex 而言，較合理的做法是：
-  - 以本檔作為 repo 根目錄入口說明。
-  - 以 `inputbox-dev` 作為唯一權威技能。
-  - 以 `docs/engineering/` 作為原子化規範來源。
+- 多份工具專屬技能會與 `.agents/skills/inputbox-dev/SKILL.md` 形成雙份維護，長期更容易漂移。
+- 若未來需要工具專屬能力，應只新增薄包裝或工具設定，實際工程規範仍回到 `inputbox-dev` 與 `docs/engineering/`。
 
-只有在下列情況，才建議另外建立新 Skill：
+只有在下列情況，才建議新增獨立 skill 或 rules：
 
-- 需要封裝 **Codex 專屬工作流程**，例如固定的審查指令碼、專用驗證命令、或跨專案共用的 Codex 操作模板。
-- 需要把 `inputbox-dev` 拆分為可獨立安裝、可跨 repo 復用的技能模組。
-
-## 0.1 多工具檔案策略
-
-本專案採用下列入口分工：
-
-- `AGENTS.md`：共用的主要 agent 指引入口，供 Codex、Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具使用。
-- `CLAUDE.md`：Claude Code 相容入口，內容應導向本檔，不應維護第二套完整規範。
-- `GEMINI.md`：Gemini CLI 相容入口，內容應導向本檔，不應維護第二套完整規範。
-- `.github/copilot-instructions.md`：提供 Visual Studio GitHub Copilot Chat 與其他仍依賴 Copilot repository instructions 的客戶端使用。
-
-若多個入口檔同時存在，應避免互相矛盾；細節規範始終以 `.agents/skills/inputbox-dev/SKILL.md` 與 `docs/engineering/` 為準。
+- 需要封裝可被多工具重用的固定工作流程，例如審查指令碼、專用驗證命令或跨專案模板。
+- 需要將 `inputbox-dev` 拆分為可獨立安裝、可跨 repo 復用的技能模組。
+- Antigravity 需要 workspace rule 的啟用模式、glob 或 model-decision 設定；此時應放在 `.agents/rules`，並保持只引用共同規範。
 
 ## 1. 必讀規範索引
 
