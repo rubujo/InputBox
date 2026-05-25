@@ -54,14 +54,14 @@ public sealed class GamepadControllerFactoryTests
     }
 
     /// <summary>
-    /// 使用者設定為 GameInput 但 shim 或 runtime 初始化失敗時，應退避為 XInput 並保留原始例外。
+    /// 使用者設定為 GameInput 但 runtime 初始化失敗時，應退避為 XInput 並保留原始例外。
     /// </summary>
     [Fact]
     public async Task CreateAsync_GameInputFactoryThrows_ReturnsXInputFallback()
     {
         using var context = new StubInputContext();
         using var xInputController = new StubGamepadController("XInput");
-        InvalidOperationException failure = new("Native shim unavailable.");
+        InvalidOperationException failure = new("GameInput runtime unavailable.");
 
         GamepadControllerCreationResult result = await GamepadControllerFactory.CreateAsync(
             AppSettings.GamepadProvider.GameInput,

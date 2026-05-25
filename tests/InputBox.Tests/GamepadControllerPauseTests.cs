@@ -1,6 +1,8 @@
 ﻿using InputBox.Core.Configuration;
 using InputBox.Core.Input;
 using InputBox.Core.Interop;
+using InputWeave.GameInput;
+using InputWeave.GameInput.Interop;
 using System.Reflection;
 using Xunit;
 
@@ -87,8 +89,8 @@ public sealed class GamepadControllerPauseTests
         SetPrivateField(controller, "_rtRepeatCounter", 6);
         SetPrivateField(controller, "_currentRTRepeatInterval", 1);
         SetPrivateField(controller, "_rsRepeatDirection", 1);
-        SetPrivateField(controller, "_repeatDirection", GameInputGamepadButtons.DPadRight);
-        SetPrivateField(controller, "_previousProcessedButtons", GameInputGamepadButtons.DPadRight);
+        SetPrivateField(controller, "_repeatDirection", GameInputGamepadButtons.GameInputGamepadDPadRight);
+        SetPrivateField(controller, "_previousProcessedButtons", GameInputGamepadButtons.GameInputGamepadDPadRight);
         SetPrivateField(controller, "_hasPreviousState", true);
 
         controller.Pause();
@@ -128,7 +130,7 @@ public sealed class GamepadControllerPauseTests
         SetPrivateField(controller, "_requireNeutralBeforeInput", true);
 
         AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
-        GamepadStateSnapshot idleState = CreateGameInputSnapshot(new GameInputGamepadState());
+        GamepadReadingSnapshot idleState = CreateGameInputSnapshot(new GameInputGamepadState());
 
         _ = primeMethod.Invoke(controller, [idleState, config]);
 
@@ -238,7 +240,7 @@ public sealed class GamepadControllerPauseTests
             BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("找不到 GameInputGamepadController.IsConnectedStatus。");
 
-        Assert.True((bool)method.Invoke(null, [GameInputDeviceStatus.Connected])!);
+        Assert.True((bool)method.Invoke(null, [GameInputDeviceStatus.GameInputDeviceConnected])!);
         Assert.False((bool)method.Invoke(null, [(GameInputDeviceStatus)0])!);
     }
 
@@ -323,14 +325,9 @@ public sealed class GamepadControllerPauseTests
     /// </summary>
     /// <param name="state">原始 GameInput 狀態。</param>
     /// <returns>包裝後的快照物件。</returns>
-    private static GamepadStateSnapshot CreateGameInputSnapshot(GameInputGamepadState state)
+    private static GamepadReadingSnapshot CreateGameInputSnapshot(GameInputGamepadState state)
     {
-        return (GamepadStateSnapshot)Activator.CreateInstance(
-            typeof(GamepadStateSnapshot),
-            BindingFlags.Instance | BindingFlags.NonPublic,
-            binder: null,
-            args: [state],
-            culture: null)!;
+        return new GamepadReadingSnapshot(0, state);
     }
 
     /// <summary>

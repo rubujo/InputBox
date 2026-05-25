@@ -3,6 +3,8 @@ using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Services;
 using InputBox.Resources;
+using InputWeave.GameInput;
+using InputWeave.GameInput.Interop;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
@@ -42,7 +44,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// GameInput 實體
     /// </summary>
-    private GameInput? _gameInput;
+    private GameInputClient? _gameInput;
 
     /// <summary>
     /// 目前使用的 GameInput 設備
@@ -65,14 +67,27 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private long _readingCallbackObservedTicks;
 
     /// <summary>
+    /// 保護 GameInput runtime / reading 診斷計數器。
+    /// </summary>
+    private readonly Lock _gameInputDiagnosticsLock = new();
+
+    private ulong _missingReadingCount;
+    private ulong _repeatedTimestampCount;
+    private ulong _backwardTimestampCount;
+    private ulong _deviceUnavailableRefreshCount;
+    private ulong _lastReadingTimestamp;
+    private int _lastReadHResult;
+    private uint _lastReadDeviceStatus;
+
+    /// <summary>
     /// 儲存 GameInput 讀取回呼註冊憑證
     /// </summary>
-    private GameInput.GameInputCallbackRegistration? _readingCallbackReg;
+    private GameInputCallbackRegistration? _readingCallbackReg;
 
     /// <summary>
     /// 安全的事件佇列，用於暫存兩次 Timer Tick 之間的所有硬體輸入
     /// </summary>
-    private readonly ConcurrentQueue<GamepadStateSnapshot> _readingQueue = new();
+    private readonly ConcurrentQueue<GamepadReadingSnapshot> _readingQueue = new();
 
     /// <summary>
     /// 保護設備存取的鎖
@@ -82,7 +97,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// GameInput 設備回呼註冊憑證
     /// </summary>
-    private GameInput.GameInputCallbackRegistration? _deviceCallbackReg;
+    private GameInputCallbackRegistration? _deviceCallbackReg;
 
     /// <summary>
     /// 所有目前連接的設備清單（用於多控制器自動切換）
@@ -110,9 +125,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private Task? _taskPolling;
 
     /// <summary>
-    /// 前一次的 GamepadStateSnapshot
+    /// 前一次的 GamepadReadingSnapshot
     /// </summary>
-    private GamepadStateSnapshot? _previousState;
+    private GamepadReadingSnapshot? _previousState;
 
     /// <summary>
     /// 前一次「包含搖桿模擬方向鍵」的最終按鍵狀態
@@ -833,7 +848,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 _readingCallbackReg = _gameInput.RegisterReadingCallback(
                     _device,
-                    GameInputKind.Gamepad,
+                    GameInputKind.GameInputKindGamepad,
                     (reading) =>
                     {
                         if (!_isPaused &&
@@ -867,11 +882,22 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             if (_gameInput == null)
             {
-                _gameInput = GameInput.Create();
-                _gameInput.SetFocusPolicy(GameInputFocusPolicy.Default);
+                if (!GameInputRuntime.TryProbe(out GameInputRuntimeProbeInfo initialProbeInfo) ||
+                    !initialProbeInfo.IsAvailable)
+                {
+                    int hResult = initialProbeInfo.HResult < 0 ?
+                        initialProbeInfo.HResult :
+                        unchecked((int)0x80004005);
 
-                GameInputShimInfo shimInfo = _gameInput.ShimInfo;
-                LoggerService.LogInfo($"GameInputShim abi={shimInfo.AbiVersion} api={shimInfo.GameInputApiVersion} moduleKind={shimInfo.LoadedModuleKind} modulePath={shimInfo.LoadedModulePath}");
+                    throw new DllNotFoundException(
+                        $"GameInput runtime is unavailable. hresult=0x{hResult:X8} win32={initialProbeInfo.Win32Error}");
+                }
+
+                _gameInput = GameInputClient.Create();
+                _gameInput.SetFocusPolicy(GameInputFocusPolicy.GameInputDefaultFocusPolicy);
+
+                GameInputRuntimeInfo runtimeInfo = GameInputRuntime.GetInfo();
+                LoggerService.LogInfo($"GameInputRuntime/InputWeave loader={runtimeInfo.LoaderPolicy} available={runtimeInfo.IsAvailable} moduleKind={runtimeInfo.LoadedModuleKind} modulePath={runtimeInfo.LoadedModulePath} version={runtimeInfo.FileVersion}");
                 LogGameInputDiagnosticsSnapshot("init");
 
                 // 初始化時先直接列舉一次，再註冊非阻塞裝置回呼。
@@ -887,10 +913,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 // 使用 None 避免在註冊當下再次為現有裝置執行同步枚舉，
                 // 讓啟動成本只落在一次直接列舉上。
                 _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
-                    null,
-                    GameInputKind.Gamepad,
-                    GameInputDeviceStatus.Connected,
-                    GameInputEnumerationKind.None,
+                    null!,
+                    GameInputKind.GameInputKindGamepad,
+                    GameInputDeviceStatus.GameInputDeviceConnected,
+                    GameInputEnumerationKind.GameInputNoEnumeration,
                     (_, _, _, _) =>
                     {
                         _needsRefresh = true;
@@ -907,10 +933,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             LoggerService.LogException(ex, "GameInput 在背景執行緒初始化失敗");
 
-            if (GameInput.TryProbeRuntime(out GameInputRuntimeProbeInfo probeInfo))
+            if (TryProbeGameInputRuntime(out GameInputRuntimeProbeInfo probeInfo))
             {
+                string candidateSummary = string.Join(
+                    ";",
+                    probeInfo.Candidates.Select(candidate =>
+                        $"{candidate.ModuleKind}:exists={candidate.Exists}:loadHr=0x{unchecked((uint)candidate.LoadHResult):X8}:procHr=0x{unchecked((uint)candidate.GetProcAddressHResult):X8}:win32={candidate.Win32Error}:path={candidate.ModulePath}"));
+
                 LoggerService.LogInfo(
-                    $"GameInputProbe finalHr=0x{probeInfo.FinalHResult:X8} loadHr=0x{probeInfo.LoadLibraryHResult:X8} procHr=0x{probeInfo.GetProcAddressHResult:X8} initHr=0x{probeInfo.InitializeHResult:X8} loadWin32={probeInfo.LoadLibraryWin32Error} procWin32={probeInfo.GetProcAddressWin32Error} initWin32={probeInfo.InitializeWin32Error} attemptedKind={probeInfo.AttemptedModuleKind} loadedKind={probeInfo.LoadedModuleKind} attemptedPath={probeInfo.AttemptedModulePath} loadedPath={probeInfo.LoadedModulePath}");
+                    $"GameInputProbe/InputWeave available={probeInfo.IsAvailable} hr=0x{unchecked((uint)probeInfo.HResult):X8} win32={probeInfo.Win32Error} selectedKind={probeInfo.SelectedModuleKind} selectedPath={probeInfo.SelectedModulePath} selectedVersion={probeInfo.SelectedFileVersion} candidates={candidateSummary}");
             }
 
             Debug.WriteLine($"GameInput 在背景執行緒初始化失敗：{ex.Message}");
@@ -996,29 +1027,34 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 以低噪音方式記錄 GameInput shim 診斷快照。
+    /// 以低噪音方式記錄 GameInput 診斷快照。
     /// </summary>
     /// <param name="reason">診斷觸發原因。</param>
     private void LogGameInputDiagnosticsSnapshot(string reason)
-        => LogGameInputDiagnosticsSnapshot(_gameInput, reason);
-
-    /// <summary>
-    /// 以低噪音方式記錄指定 GameInput context 的 native 診斷快照。
-    /// </summary>
-    /// <param name="gameInput">GameInput context。</param>
-    /// <param name="reason">診斷觸發原因。</param>
-    private static void LogGameInputDiagnosticsSnapshot(GameInput? gameInput, string reason)
     {
-        if (gameInput == null)
-        {
-            return;
-        }
-
         try
         {
-            GameInputDiagnosticsSnapshot snapshot = gameInput.GetDiagnosticsSnapshot();
+            ulong missingReadingCount;
+            ulong repeatedTimestampCount;
+            ulong backwardTimestampCount;
+            ulong deviceUnavailableRefreshCount;
+            ulong lastReadingTimestamp;
+            int lastReadHResult;
+            uint lastReadDeviceStatus;
+
+            lock (_gameInputDiagnosticsLock)
+            {
+                missingReadingCount = _missingReadingCount;
+                repeatedTimestampCount = _repeatedTimestampCount;
+                backwardTimestampCount = _backwardTimestampCount;
+                deviceUnavailableRefreshCount = _deviceUnavailableRefreshCount;
+                lastReadingTimestamp = _lastReadingTimestamp;
+                lastReadHResult = _lastReadHResult;
+                lastReadDeviceStatus = _lastReadDeviceStatus;
+            }
+
             LoggerService.LogInfo(
-                $"GameInputDiag reason={reason} missingReadings={snapshot.MissingReadingCount} repeatedTimestamps={snapshot.RepeatedTimestampCount} backwardTimestamps={snapshot.BackwardTimestampCount} deviceUnavailableRefreshes={snapshot.DeviceUnavailableRefreshCount} lastTimestamp={snapshot.LastReadingTimestamp} lastReadHr=0x{unchecked((uint)snapshot.LastReadHResult):X8} lastDeviceStatus=0x{snapshot.LastReadDeviceStatus:X8}");
+                $"GameInputDiag reason={reason} missingReadings={missingReadingCount} repeatedTimestamps={repeatedTimestampCount} backwardTimestamps={backwardTimestampCount} deviceUnavailableRefreshes={deviceUnavailableRefreshCount} lastTimestamp={lastReadingTimestamp} lastReadHr=0x{unchecked((uint)lastReadHResult):X8} lastDeviceStatus=0x{lastReadDeviceStatus:X8}");
         }
         catch (Exception ex)
         {
@@ -1027,11 +1063,137 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
+    /// 安全呼叫 InputWeave runtime probe。
+    /// </summary>
+    /// <param name="probeInfo">GameInput runtime probe 結果。</param>
+    /// <returns>若 probe 呼叫成功則回傳 true。</returns>
+    private static bool TryProbeGameInputRuntime(out GameInputRuntimeProbeInfo probeInfo)
+    {
+        try
+        {
+            _ = GameInputRuntime.TryProbe(out probeInfo);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GameInput] Runtime probe 失敗（已忽略）：{ex.Message}");
+            probeInfo = default;
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 記錄成功讀取的 GameInput snapshot 診斷資料。
+    /// </summary>
+    private void RecordSuccessfulReading(GamepadReadingSnapshot snapshot, GameInputDevice device)
+    {
+        lock (_gameInputDiagnosticsLock)
+        {
+            if (_lastReadingTimestamp != 0)
+            {
+                if (snapshot.Timestamp == _lastReadingTimestamp)
+                {
+                    _repeatedTimestampCount++;
+                }
+                else if (snapshot.Timestamp < _lastReadingTimestamp)
+                {
+                    _backwardTimestampCount++;
+                }
+            }
+
+            _lastReadingTimestamp = snapshot.Timestamp;
+            _lastReadHResult = 0;
+            _lastReadDeviceStatus = TryGetDeviceStatusValue(device);
+        }
+    }
+
+    /// <summary>
+    /// 記錄讀不到目前 GameInput reading 的診斷資料。
+    /// </summary>
+    private void RecordMissingReading(Exception? ex, GameInputDevice device)
+    {
+        lock (_gameInputDiagnosticsLock)
+        {
+            _missingReadingCount++;
+            _lastReadHResult = ex == null ? unchecked((int)0x80070490) : GetErrorCode(ex);
+            _lastReadDeviceStatus = TryGetDeviceStatusValue(device);
+        }
+    }
+
+    /// <summary>
+    /// 記錄 GameInput 讀取例外診斷資料。
+    /// </summary>
+    private void RecordReadFailure(Exception ex)
+    {
+        lock (_gameInputDiagnosticsLock)
+        {
+            _lastReadHResult = GetErrorCode(ex);
+        }
+    }
+
+    /// <summary>
+    /// 記錄 GameInput 裝置狀態診斷資料。
+    /// </summary>
+    private void RecordDeviceStatus(GameInputDeviceStatus status)
+    {
+        lock (_gameInputDiagnosticsLock)
+        {
+            _lastReadDeviceStatus = Convert.ToUInt32(status);
+
+            if ((status & GameInputDeviceStatus.GameInputDeviceConnected) == 0)
+            {
+                _deviceUnavailableRefreshCount++;
+            }
+        }
+    }
+
+    private static int GetErrorCode(Exception ex)
+        => ex is GameInputException gameInputEx && gameInputEx.NativeErrorCode != 0 ?
+            gameInputEx.NativeErrorCode :
+            ex.HResult;
+
+    private static uint TryGetDeviceStatusValue(GameInputDevice device)
+    {
+        try
+        {
+            return Convert.ToUInt32(device.Status);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GameInput] 讀取裝置狀態診斷失敗（已忽略）：{ex.Message}");
+
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 取得 InputBox 用於跨列舉追蹤的穩定裝置識別。
+    /// </summary>
+    private static string GetStableDeviceId(GameInputDeviceInfoSnapshot snapshot)
+    {
+        if (!string.IsNullOrWhiteSpace(snapshot.PnpPath))
+        {
+            return snapshot.PnpPath;
+        }
+
+        string displayName = GetDisplayName(snapshot);
+
+        return $"VID_{snapshot.VendorId:X4} PID_{snapshot.ProductId:X4} {displayName}".Trim();
+    }
+
+    private static string GetDisplayName(GameInputDeviceInfoSnapshot snapshot)
+        => string.IsNullOrWhiteSpace(snapshot.DisplayName) ?
+            "Unknown Gamepad" :
+            snapshot.DisplayName;
+
+    /// <summary>
     /// 輪詢
     /// </summary>
     private void Poll()
     {
-        GameInput? gameInput = _gameInput;
+        GameInputClient? gameInput = _gameInput;
 
         if (gameInput == null)
         {
@@ -1099,9 +1261,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         try
         {
-            GameInputDeviceStatus status = dev.GetDeviceStatus();
+            GameInputDeviceStatus status = dev.Status;
+            RecordDeviceStatus(status);
 
-            if ((status & GameInputDeviceStatus.Connected) == 0)
+            if ((status & GameInputDeviceStatus.GameInputDeviceConnected) == 0)
             {
                 Debug.WriteLine("[GameInput] 目前裝置狀態已非 Connected，立即重新整理裝置清單。");
                 LogGameInputDiagnosticsSnapshot("device-status-non-connected");
@@ -1110,11 +1273,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 return;
             }
 
-            using GameInputReading? reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, dev);
-            GamepadStateSnapshot? currentSnapshot = reading?.GetGamepadState();
+            GamepadReadingSnapshot? currentSnapshot = gameInput.GetCurrentGamepad(dev);
 
             if (currentSnapshot == null)
             {
+                RecordMissingReading(null, dev);
+
                 if (HandleMissingCurrentReading())
                 {
                     return;
@@ -1123,6 +1287,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             else
             {
                 _missingReadingFrameCounter = 0;
+                RecordSuccessfulReading(currentSnapshot, dev);
 
                 if (!_hasPreviousState ||
                     _previousState == null ||
@@ -1134,6 +1299,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
         catch (Exception ex)
         {
+            RecordReadFailure(ex);
             Debug.WriteLine($"[GameInput] 讀取目前狀態失敗，稍後重新整理裝置：{ex.Message}");
 
             if (HandleMissingCurrentReading())
@@ -1146,9 +1312,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 分離「邊緣偵測」與「狀態維持」。
         bool hasNewState = false;
 
-        GamepadStateSnapshot? latestSnapshot = null;
+        GamepadReadingSnapshot? latestSnapshot = null;
 
-        while (_readingQueue.TryDequeue(out GamepadStateSnapshot? state))
+        while (_readingQueue.TryDequeue(out GamepadReadingSnapshot? state))
         {
             if (state == null)
             {
@@ -1191,8 +1357,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             UpdateCalibrationSnapshot(_previousState, config, true);
 
-            short correctedThumbLX = GetCorrectedLeftThumbShort(_previousState.LeftThumbstickX, _leftStickBiasX),
-                correctedThumbLY = GetCorrectedLeftThumbShort(_previousState.LeftThumbstickY, _leftStickBiasY);
+            short correctedThumbLX = GetCorrectedLeftThumbShort(_previousState.State.LeftThumbstickX, _leftStickBiasX),
+                correctedThumbLY = GetCorrectedLeftThumbShort(_previousState.State.LeftThumbstickY, _leftStickBiasY);
 
             UpdateMappedDirectionSuppression(correctedThumbLX, correctedThumbLY, config);
 
@@ -1308,7 +1474,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 評估方向幽靈重入狀態：處理「狀態有變化但方向持續誤判」情境。
     /// </summary>
     private void EvaluateDirectionalGhostState(
-        GamepadStateSnapshot state,
+        GamepadReadingSnapshot state,
         AppSettings.GamepadConfigSnapshot config)
     {
         if (!HasActiveDirectionalRepeat())
@@ -1332,7 +1498,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             return;
         }
 
-        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.LeftThumbstickX:F4} ly={state.LeftThumbstickY:F4} rx={state.RightThumbstickX:F4} ry={state.RightThumbstickY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4}");
+        LoggerService.LogInfo($"Gamepad.AntiStuckTriggered source=GameInput reason=ghost_reentry ghostFrames={_directionalGhostFrameCounter} dpadDir={_repeatDirection?.ToString() ?? "None"} rsDir={_rsRepeatDirection} lx={state.State.LeftThumbstickX:F4} ly={state.State.LeftThumbstickY:F4} rx={state.State.RightThumbstickX:F4} ry={state.State.RightThumbstickY:F4} biasLx={_leftStickBiasX:F4} biasLy={_leftStickBiasY:F4} biasRx={_rightStickBiasX:F4} biasRy={_rightStickBiasY:F4}");
 
         ResetDirectionalRepeatState();
     }
@@ -1343,28 +1509,28 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="currentState">目前的遊戲控制器狀態快照</param>
     /// <param name="config">遊戲控制器設定快照</param>
     private void ProcessEdgeTransitions(
-        GamepadStateSnapshot currentState,
+        GamepadReadingSnapshot currentState,
         AppSettings.GamepadConfigSnapshot config)
     {
-        GameInputGamepadButtons currentButtons = currentState.Buttons;
+        GameInputGamepadButtons currentButtons = currentState.State.Buttons;
 
         // 將搖桿原始值 clamp 至物理合法範圍 [-1.0, 1.0]。
         // Log 顯示，在裝置受到物理撞擊時，GameInput 可能回報超出正常範圍的值
         // （如 ly = -1.0514, -1.0630），這些值會干擾 bias 學習並造成假方向觸發。
         // clamp 不影響正常操作（GameInput 已校正值接近但不超過 ±1.0）。
-        float clampedLX = Math.Clamp(currentState.LeftThumbstickX, -1.0f, 1.0f),
-            clampedLY = Math.Clamp(currentState.LeftThumbstickY, -1.0f, 1.0f),
-            clampedRX = Math.Clamp(currentState.RightThumbstickX, -1.0f, 1.0f),
-            clampedRY = Math.Clamp(currentState.RightThumbstickY, -1.0f, 1.0f);
+        float clampedLX = Math.Clamp(currentState.State.LeftThumbstickX, -1.0f, 1.0f),
+            clampedLY = Math.Clamp(currentState.State.LeftThumbstickY, -1.0f, 1.0f),
+            clampedRX = Math.Clamp(currentState.State.RightThumbstickX, -1.0f, 1.0f),
+            clampedRY = Math.Clamp(currentState.State.RightThumbstickY, -1.0f, 1.0f);
 
         // D-Pad 按下時，左搖桿因機械耦合會產生 ±0.15~0.25 的偏移，
         // 低於 LeftStickBiasLearningThreshold（0.28），會被 EMA 誤學成中立位置。
         // 在 D-Pad 作動期間暫停左搖桿 bias 學習以防止污染；右搖桿不受影響。
         bool isDPadActive = (currentButtons & (
-            GameInputGamepadButtons.DPadLeft |
-            GameInputGamepadButtons.DPadRight |
-            GameInputGamepadButtons.DPadUp |
-            GameInputGamepadButtons.DPadDown)) != 0;
+            GameInputGamepadButtons.GameInputGamepadDPadLeft |
+            GameInputGamepadButtons.GameInputGamepadDPadRight |
+            GameInputGamepadButtons.GameInputGamepadDPadUp |
+            GameInputGamepadButtons.GameInputGamepadDPadDown)) != 0;
 
         UpdateStickBias(
             clampedLX,
@@ -1416,13 +1582,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _hasPreviousState = true;
 
             bool hasActiveSignal = GamepadSignalEvaluator.IsActive(
-                hasButtons: currentState.Buttons != 0,
-                leftTrigger: currentState.LeftTrigger,
-                rightTrigger: currentState.RightTrigger,
-                leftThumbX: currentState.LeftThumbstickX - _leftStickBiasX,
-                leftThumbY: currentState.LeftThumbstickY - _leftStickBiasY,
+                hasButtons: currentState.State.Buttons != 0,
+                leftTrigger: currentState.State.LeftTrigger,
+                rightTrigger: currentState.State.RightTrigger,
+                leftThumbX: currentState.State.LeftThumbstickX - _leftStickBiasX,
+                leftThumbY: currentState.State.LeftThumbstickY - _leftStickBiasY,
                 rightThumbX: correctedRightThumbX,
-                rightThumbY: Math.Clamp(currentState.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY,
+                rightThumbY: Math.Clamp(currentState.State.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY,
                 threshold: config.ThumbDeadzoneExit / 32768f);
 
             if (hasActiveSignal)
@@ -1447,33 +1613,33 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     /// <param name="state">目前的遊戲控制器狀態快照</param>
     /// <returns>若狀態為閒置，則回傳 true；否則回傳 false。</returns>
-    private bool IsStateIdle(GamepadStateSnapshot state)
+    private bool IsStateIdle(GamepadReadingSnapshot state)
     {
         return _previousState != null &&
-            state.Buttons == 0 &&
-            _previousState.Buttons == 0 &&
+            state.State.Buttons == 0 &&
+            _previousState.State.Buttons == 0 &&
             GamepadSignalEvaluator.IsIdle(
                 hasButtons: false,
-                leftTrigger: state.LeftTrigger,
-                rightTrigger: state.RightTrigger,
-                leftThumbX: state.LeftThumbstickX,
-                leftThumbY: state.LeftThumbstickY,
-                rightThumbX: state.RightThumbstickX,
-                rightThumbY: state.RightThumbstickY,
+                leftTrigger: state.State.LeftTrigger,
+                rightTrigger: state.State.RightTrigger,
+                leftThumbX: state.State.LeftThumbstickX,
+                leftThumbY: state.State.LeftThumbstickY,
+                rightThumbX: state.State.RightThumbstickX,
+                rightThumbY: state.State.RightThumbstickY,
                 threshold: AppSettings.GameInputIdleThreshold);
     }
 
     /// <summary>
     /// 比較兩個快照的可操作輸入值；GameInput timestamp 僅供診斷，不應讓 edge detection 誤判為新輸入。
     /// </summary>
-    private static bool HasSameInputValues(GamepadStateSnapshot current, GamepadStateSnapshot previous)
-        => current.Buttons == previous.Buttons &&
-            current.LeftTrigger.Equals(previous.LeftTrigger) &&
-            current.RightTrigger.Equals(previous.RightTrigger) &&
-            current.LeftThumbstickX.Equals(previous.LeftThumbstickX) &&
-            current.LeftThumbstickY.Equals(previous.LeftThumbstickY) &&
-            current.RightThumbstickX.Equals(previous.RightThumbstickX) &&
-            current.RightThumbstickY.Equals(previous.RightThumbstickY);
+    private static bool HasSameInputValues(GamepadReadingSnapshot current, GamepadReadingSnapshot previous)
+        => current.State.Buttons == previous.State.Buttons &&
+            current.State.LeftTrigger.Equals(previous.State.LeftTrigger) &&
+            current.State.RightTrigger.Equals(previous.State.RightTrigger) &&
+            current.State.LeftThumbstickX.Equals(previous.State.LeftThumbstickX) &&
+            current.State.LeftThumbstickY.Equals(previous.State.LeftThumbstickY) &&
+            current.State.RightThumbstickX.Equals(previous.State.RightThumbstickX) &&
+            current.State.RightThumbstickY.Equals(previous.State.RightThumbstickY);
 
     /// <summary>
     /// 是否存在方向連發狀態（D-Pad 或 RS）
@@ -1491,16 +1657,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="config">遊戲控制器設定快照</param>
     /// <returns>若符合條件，則回傳 true；否則回傳 false。</returns>
     private bool ShouldForceReleaseDirectionalRepeat(
-        GamepadStateSnapshot state,
+        GamepadReadingSnapshot state,
         AppSettings.GamepadConfigSnapshot config)
     {
         const GameInputGamepadButtons directionalFlags =
-            GameInputGamepadButtons.DPadLeft |
-            GameInputGamepadButtons.DPadRight |
-            GameInputGamepadButtons.DPadUp |
-            GameInputGamepadButtons.DPadDown;
+            GameInputGamepadButtons.GameInputGamepadDPadLeft |
+            GameInputGamepadButtons.GameInputGamepadDPadRight |
+            GameInputGamepadButtons.GameInputGamepadDPadUp |
+            GameInputGamepadButtons.GameInputGamepadDPadDown;
 
-        if ((state.Buttons & directionalFlags) != 0)
+        if ((state.State.Buttons & directionalFlags) != 0)
         {
             return false;
         }
@@ -1512,9 +1678,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             softCenterThreshold = MathF.Min(
                 enterThreshold,
                 exitThreshold + MathF.Max(0.02f, (enterThreshold - exitThreshold) * 0.5f)),
-            correctedLeftX = state.LeftThumbstickX - _leftStickBiasX,
-            correctedLeftY = state.LeftThumbstickY - _leftStickBiasY,
-            correctedRightX = state.RightThumbstickX - _rightStickBiasX;
+            correctedLeftX = state.State.LeftThumbstickX - _leftStickBiasX,
+            correctedLeftY = state.State.LeftThumbstickY - _leftStickBiasY,
+            correctedRightX = state.State.RightThumbstickX - _rightStickBiasX;
 
         bool leftStickNearCenter =
                 MathF.Abs(correctedLeftX) <= softCenterThreshold &&
@@ -1533,10 +1699,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         MappedGamepadDirection suppressedDirection = _repeatDirection switch
         {
-            GameInputGamepadButtons.DPadLeft => MappedGamepadDirection.Left,
-            GameInputGamepadButtons.DPadRight => MappedGamepadDirection.Right,
-            GameInputGamepadButtons.DPadUp => MappedGamepadDirection.Up,
-            GameInputGamepadButtons.DPadDown => MappedGamepadDirection.Down,
+            GameInputGamepadButtons.GameInputGamepadDPadLeft => MappedGamepadDirection.Left,
+            GameInputGamepadButtons.GameInputGamepadDPadRight => MappedGamepadDirection.Right,
+            GameInputGamepadButtons.GameInputGamepadDPadUp => MappedGamepadDirection.Up,
+            GameInputGamepadButtons.GameInputGamepadDPadDown => MappedGamepadDirection.Down,
             _ => MappedGamepadDirection.None,
         };
 
@@ -1552,10 +1718,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _directionalGhostFrameCounter = 0;
 
         _previousProcessedButtons &= ~(
-            GameInputGamepadButtons.DPadLeft |
-            GameInputGamepadButtons.DPadRight |
-            GameInputGamepadButtons.DPadUp |
-            GameInputGamepadButtons.DPadDown);
+            GameInputGamepadButtons.GameInputGamepadDPadLeft |
+            GameInputGamepadButtons.GameInputGamepadDPadRight |
+            GameInputGamepadButtons.GameInputGamepadDPadUp |
+            GameInputGamepadButtons.GameInputGamepadDPadDown);
 
         if (suppressedDirection != MappedGamepadDirection.None)
         {
@@ -1602,7 +1768,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// </summary>
     private void TryFindDevice()
     {
-        GameInput? gameInput = _gameInput;
+        GameInputClient? gameInput = _gameInput;
 
         if (gameInput == null)
         {
@@ -1617,7 +1783,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _needsRefresh = false;
 
             // 執行一次完整的列舉。
-            IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(GameInputKind.Gamepad);
+            IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(
+                GameInputKind.GameInputKindGamepad,
+                GameInputDeviceStatus.GameInputDeviceConnected);
 
             // 1. 釋放清單中已不再存在或已非 Connected 的舊裝置代理（Zero-allocation 替換 LINQ Any）。
             for (int i = _allDevices.Count - 1; i >= 0; i--)
@@ -1626,7 +1794,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 try
                 {
-                    GameInputDeviceInfo oldInfo = oldDev.GetDeviceInfo();
+                    GameInputDeviceInfoSnapshot oldInfo = oldDev.GetDeviceInfoSnapshot();
+                    string oldDeviceId = GetStableDeviceId(oldInfo);
 
                     bool stillExists = IsDeviceConnected(oldDev);
 
@@ -1643,7 +1812,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                                 continue;
                             }
 
-                            if (candidate.GetDeviceInfo().DeviceId.Equals(oldInfo.DeviceId))
+                            if (GetStableDeviceId(candidate.GetDeviceInfoSnapshot()).Equals(oldDeviceId, StringComparison.Ordinal))
                             {
                                 stillExists = true;
 
@@ -1704,13 +1873,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         continue;
                     }
 
-                    GameInputDeviceInfo newInfo = newDev.GetDeviceInfo();
+                    GameInputDeviceInfoSnapshot newInfo = newDev.GetDeviceInfoSnapshot();
+                    string newDeviceId = GetStableDeviceId(newInfo);
 
                     bool alreadyTracked = false;
 
                     for (int j = 0; j < _allDevices.Count; j++)
                     {
-                        if (_allDevices[j].GetDeviceInfo().DeviceId.Equals(newInfo.DeviceId))
+                        if (GetStableDeviceId(_allDevices[j].GetDeviceInfoSnapshot()).Equals(newDeviceId, StringComparison.Ordinal))
                         {
                             alreadyTracked = true;
 
@@ -1786,7 +1956,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         try
         {
-            return IsConnectedStatus(device.GetDeviceStatus());
+            return IsConnectedStatus(device.Status);
         }
         catch (Exception ex)
         {
@@ -1802,7 +1972,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="status">GameInput 裝置狀態旗標。</param>
     /// <returns>若包含 Connected 則回傳 true。</returns>
     private static bool IsConnectedStatus(GameInputDeviceStatus status)
-        => (status & GameInputDeviceStatus.Connected) != 0;
+        => (status & GameInputDeviceStatus.GameInputDeviceConnected) != 0;
 
     /// <summary>
     /// 掃描目前是否有其他正在活動的裝置，若有則切換
@@ -1810,7 +1980,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <returns>若有切換至其他裝置，則回傳 true；否則回傳 false。</returns>
     private bool ScanForActiveDevice()
     {
-        GameInput? gameInput = _gameInput;
+        GameInputClient? gameInput = _gameInput;
 
         if (gameInput == null)
         {
@@ -1833,21 +2003,19 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 try
                 {
                     // 檢查其他控制器的活動狀態。
-                    using GameInputReading? reading = gameInput.GetCurrentReading(GameInputKind.Gamepad, otherDev);
-
-                    GamepadStateSnapshot? state = reading?.GetGamepadState();
+                    GamepadReadingSnapshot? state = gameInput.GetCurrentGamepad(otherDev);
 
                     if (state != null)
                     {
                         // 若其他控制器有明顯的動作（按下任何按鈕、推動搖桿或按板機），則切換過去。
                         if (GamepadSignalEvaluator.IsActive(
-                            hasButtons: state.Buttons != 0,
-                            leftTrigger: state.LeftTrigger,
-                            rightTrigger: state.RightTrigger,
-                            leftThumbX: state.LeftThumbstickX,
-                            leftThumbY: state.LeftThumbstickY,
-                            rightThumbX: state.RightThumbstickX,
-                            rightThumbY: state.RightThumbstickY,
+                            hasButtons: state.State.Buttons != 0,
+                            leftTrigger: state.State.LeftTrigger,
+                            rightTrigger: state.State.RightTrigger,
+                            leftThumbX: state.State.LeftThumbstickX,
+                            leftThumbY: state.State.LeftThumbstickY,
+                            rightThumbX: state.State.RightThumbstickX,
+                            rightThumbY: state.State.RightThumbstickY,
                             threshold: AppSettings.GameInputActiveThreshold))
                         {
                             // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
@@ -1890,16 +2058,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="state">目前的控制器狀態快照。</param>
     /// <param name="config">目前的遊戲控制器設定快照。</param>
     private void PrimeResumeStateFromSnapshot(
-        GamepadStateSnapshot state,
+        GamepadReadingSnapshot state,
         AppSettings.GamepadConfigSnapshot config)
     {
         _previousState = state;
 
-        GameInputGamepadButtons currentButtons = state.Buttons;
-        short correctedThumbLX = GetCorrectedLeftThumbShort(state.LeftThumbstickX, _leftStickBiasX),
-            correctedThumbLY = GetCorrectedLeftThumbShort(state.LeftThumbstickY, _leftStickBiasY);
-        float correctedRightThumbX = Math.Clamp(state.RightThumbstickX, -1.0f, 1.0f) - _rightStickBiasX,
-            correctedRightThumbY = Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY;
+        GameInputGamepadButtons currentButtons = state.State.Buttons;
+        short correctedThumbLX = GetCorrectedLeftThumbShort(state.State.LeftThumbstickX, _leftStickBiasX),
+            correctedThumbLY = GetCorrectedLeftThumbShort(state.State.LeftThumbstickY, _leftStickBiasY);
+        float correctedRightThumbX = Math.Clamp(state.State.RightThumbstickX, -1.0f, 1.0f) - _rightStickBiasX,
+            correctedRightThumbY = Math.Clamp(state.State.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY;
 
         UpdateMappedDirectionSuppression(correctedThumbLX, correctedThumbLY, config);
         ApplyStickToButtons(ref currentButtons, correctedThumbLX, correctedThumbLY, config);
@@ -1907,20 +2075,20 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _previousProcessedButtons = currentButtons;
         _hasPreviousState = true;
 
-        IsLeftShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.LeftShoulder);
-        IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
-        IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.View);
-        IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.B);
-        IsXHeld = currentButtons.HasFlag(GameInputGamepadButtons.X);
-        IsLeftTriggerHeld = state.LeftTrigger > AppSettings.GameInputTriggerThreshold;
-        IsRightTriggerHeld = state.RightTrigger > AppSettings.GameInputTriggerThreshold;
+        IsLeftShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadLeftShoulder);
+        IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadRightShoulder);
+        IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadView);
+        IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadB);
+        IsXHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadX);
+        IsLeftTriggerHeld = state.State.LeftTrigger > AppSettings.GameInputTriggerThreshold;
+        IsRightTriggerHeld = state.State.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         _requireNeutralBeforeInput = GamepadSignalEvaluator.IsActive(
-            hasButtons: state.Buttons != 0,
-            leftTrigger: state.LeftTrigger,
-            rightTrigger: state.RightTrigger,
-            leftThumbX: state.LeftThumbstickX - _leftStickBiasX,
-            leftThumbY: state.LeftThumbstickY - _leftStickBiasY,
+            hasButtons: state.State.Buttons != 0,
+            leftTrigger: state.State.LeftTrigger,
+            rightTrigger: state.State.RightTrigger,
+            leftThumbX: state.State.LeftThumbstickX - _leftStickBiasX,
+            leftThumbY: state.State.LeftThumbstickY - _leftStickBiasY,
             rightThumbX: correctedRightThumbX,
             rightThumbY: correctedRightThumbY,
             threshold: config.ThumbDeadzoneExit / 32768f);
@@ -1946,22 +2114,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         try
         {
-            GameInputDeviceInfo info = dev.GetDeviceInfo();
+            GameInputDeviceInfoSnapshot info = dev.GetDeviceInfoSnapshot();
 
             // 更新震動支援狀態。
-            _supportsRumble = info.SupportedRumbleMotors != GameInputRumbleMotors.None;
+            _supportsRumble = info.SupportedRumbleMotors != 0;
             uint supportedMotorBits = Convert.ToUInt32(info.SupportedRumbleMotors);
             int supportedMotorCount = BitOperations.PopCount(supportedMotorBits);
             _rumbleThermalWeight = Math.Clamp(supportedMotorCount, 1, 4);
 
             // 更新裝置名稱與穩定識別資訊。Auto 判斷改以 VID/PID 與 GameInput
             // 原始顯示名稱作為穩定線索。
-            string displayName = info.GetDisplayName();
-
-            if (string.IsNullOrWhiteSpace(displayName))
-            {
-                displayName = "Unknown Gamepad";
-            }
+            string displayName = GetDisplayName(info);
 
             _cachedDeviceName = displayName;
             _cachedDeviceIdentity = $"VID_{info.VendorId:X4} PID_{info.ProductId:X4} {displayName}".Trim();
@@ -1989,15 +2152,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         try
         {
-            using GameInputReading? reading = _gameInput.GetCurrentReading(GameInputKind.Gamepad, _device);
-
-            GamepadStateSnapshot? state = reading?.GetGamepadState();
+            GamepadReadingSnapshot? state = _gameInput.GetCurrentGamepad(_device);
 
             if (state != null)
             {
                 _previousState = state;
 
-                GameInputGamepadButtons currentButtons = state.Buttons;
+                GameInputGamepadButtons currentButtons = state.State.Buttons;
 
                 // Bias warm-up：以初始讀值連續執行 50 次 EMA，
                 // 使偏移估計在第一幀即接近真實值（收斂率 ≈ 99%），
@@ -2007,7 +2168,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 for (int i = 0; i < 50; i++)
                 {
                     // 暖機時不存在 D-Pad 操作情境，閘門固定傳 false。
-                    UpdateStickBias(state.LeftThumbstickX, state.LeftThumbstickY, state.RightThumbstickX, state.RightThumbstickY, isDPadActive: false);
+                    UpdateStickBias(state.State.LeftThumbstickX, state.State.LeftThumbstickY, state.State.RightThumbstickX, state.State.RightThumbstickY, isDPadActive: false);
                 }
 
                 // 取得快照以確保初始化時死區校驗一致。
@@ -2111,14 +2272,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="state">遊戲控制器狀態快照</param>
     /// <param name="config">遊戲控制器設定快照</param>
     private void EmitMechanismHealthLog(
-        GamepadStateSnapshot state,
+        GamepadReadingSnapshot state,
         AppSettings.GamepadConfigSnapshot config)
     {
 #if DEBUG
-        float correctedLeftX = state.LeftThumbstickX - _leftStickBiasX,
-            correctedLeftY = state.LeftThumbstickY - _leftStickBiasY,
-            correctedRightX = state.RightThumbstickX - _rightStickBiasX,
-            correctedRightY = Math.Clamp(state.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY,
+        float correctedLeftX = state.State.LeftThumbstickX - _leftStickBiasX,
+            correctedLeftY = state.State.LeftThumbstickY - _leftStickBiasY,
+            correctedRightX = state.State.RightThumbstickX - _rightStickBiasX,
+            correctedRightY = Math.Clamp(state.State.RightThumbstickY, -1.0f, 1.0f) - _rightStickBiasY,
             exitThreshold = config.ThumbDeadzoneExit / 32768f;
 
         bool hasSignificantInput =
@@ -2234,13 +2395,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         AppSettings.GamepadConfigSnapshot config)
     {
         bool wasLeft = _hasPreviousState &&
-                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadLeft),
+                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadLeft),
             wasRight = _hasPreviousState &&
-                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadRight),
+                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadRight),
             wasUp = _hasPreviousState &&
-                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadUp),
+                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadUp),
             wasDown = _hasPreviousState &&
-                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.DPadDown);
+                _previousProcessedButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadDown);
 
         int horizontalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
             thumbLX,
@@ -2252,12 +2413,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         if (horizontalDirection < 0 &&
             !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Left))
         {
-            currentButtons |= GameInputGamepadButtons.DPadLeft;
+            currentButtons |= GameInputGamepadButtons.GameInputGamepadDPadLeft;
         }
         else if (horizontalDirection > 0 &&
             !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Right))
         {
-            currentButtons |= GameInputGamepadButtons.DPadRight;
+            currentButtons |= GameInputGamepadButtons.GameInputGamepadDPadRight;
         }
 
         int verticalDirection = GamepadDeadzoneHysteresis.ResolveDirection(
@@ -2270,12 +2431,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         if (verticalDirection < 0 &&
             !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Down))
         {
-            currentButtons |= GameInputGamepadButtons.DPadDown;
+            currentButtons |= GameInputGamepadButtons.GameInputGamepadDPadDown;
         }
         else if (verticalDirection > 0 &&
             !GamepadMappedDirectionGuard.IsSuppressed(_suppressedMappedDirections, MappedGamepadDirection.Up))
         {
-            currentButtons |= GameInputGamepadButtons.DPadUp;
+            currentButtons |= GameInputGamepadButtons.GameInputGamepadDPadUp;
         }
     }
 
@@ -2288,7 +2449,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="config">遊戲控制器設定快照</param>
     private void DetectRisingEdge(
         GameInputGamepadButtons currentButtons,
-        GamepadStateSnapshot currentState,
+        GamepadReadingSnapshot currentState,
         float correctedRightThumbX,
         AppSettings.GamepadConfigSnapshot config)
     {
@@ -2328,32 +2489,32 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         // 更新按住狀態（使用 GameInput 原生旗標）。
-        IsLeftShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.LeftShoulder);
-        IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.RightShoulder);
-        IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.View);
-        IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.B);
-        IsXHeld = currentButtons.HasFlag(GameInputGamepadButtons.X);
-        IsLeftTriggerHeld = currentState.LeftTrigger > AppSettings.GameInputTriggerThreshold;
-        IsRightTriggerHeld = currentState.RightTrigger > AppSettings.GameInputTriggerThreshold;
+        IsLeftShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadLeftShoulder);
+        IsRightShoulderHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadRightShoulder);
+        IsBackHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadView);
+        IsBHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadB);
+        IsXHeld = currentButtons.HasFlag(GameInputGamepadButtons.GameInputGamepadX);
+        IsLeftTriggerHeld = currentState.State.LeftTrigger > AppSettings.GameInputTriggerThreshold;
+        IsRightTriggerHeld = currentState.State.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         // 偵測按下事件。
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadUp, UpPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadDown, DownPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadLeft, LeftPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.DPadRight, RightPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.LeftShoulder, LeftShoulderPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.RightShoulder, RightShoulderPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Menu, StartPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.View, BackPressed);
-        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.View, BackReleased);
-        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.LeftShoulder, LeftShoulderReleased);
-        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.RightShoulder, RightShoulderReleased);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.A, APressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.B, BPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.X, XPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.Y, YPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.LeftThumbstick, LSClickPressed);
-        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.RightThumbstick, RSClickPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadDPadUp, UpPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadDPadDown, DownPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadDPadLeft, LeftPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadDPadRight, RightPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadLeftShoulder, LeftShoulderPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadRightShoulder, RightShoulderPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadMenu, StartPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadView, BackPressed);
+        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadView, BackReleased);
+        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadLeftShoulder, LeftShoulderReleased);
+        DetectReleased(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadRightShoulder, RightShoulderReleased);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadA, APressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadB, BPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadX, XPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadY, YPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadLeftThumbstick, LSClickPressed);
+        DetectRising(currentButtons, prevButtons, GameInputGamepadButtons.GameInputGamepadRightThumbstick, RSClickPressed);
 
         // 處理右搖桿（RS）虛擬按鍵偵測（使用 Hysteresis 邏輯以對抗漂移）。
         float enterThreshold = config.ThumbDeadzoneEnter / 32768f,
@@ -2386,7 +2547,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool prevLtDown = _hasPreviousState &&
-            _previousState!.LeftTrigger > AppSettings.GameInputTriggerThreshold;
+            _previousState!.State.LeftTrigger > AppSettings.GameInputTriggerThreshold;
 
         if (IsLeftTriggerHeld &&
             !prevLtDown)
@@ -2395,7 +2556,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool prevRtDown = _hasPreviousState &&
-            _previousState!.RightTrigger > AppSettings.GameInputTriggerThreshold;
+            _previousState!.State.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         if (IsRightTriggerHeld &&
             !prevRtDown)
@@ -2419,10 +2580,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 #endif
 
         GameInputGamepadButtons? currentDir =
-            buttons.HasFlag(GameInputGamepadButtons.DPadLeft) ? GameInputGamepadButtons.DPadLeft :
-            buttons.HasFlag(GameInputGamepadButtons.DPadRight) ? GameInputGamepadButtons.DPadRight :
-            buttons.HasFlag(GameInputGamepadButtons.DPadUp) ? GameInputGamepadButtons.DPadUp :
-            buttons.HasFlag(GameInputGamepadButtons.DPadDown) ? GameInputGamepadButtons.DPadDown :
+            buttons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadLeft) ? GameInputGamepadButtons.GameInputGamepadDPadLeft :
+            buttons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadRight) ? GameInputGamepadButtons.GameInputGamepadDPadRight :
+            buttons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadUp) ? GameInputGamepadButtons.GameInputGamepadDPadUp :
+            buttons.HasFlag(GameInputGamepadButtons.GameInputGamepadDPadDown) ? GameInputGamepadButtons.GameInputGamepadDPadDown :
             null;
 
         if (GamepadRepeatStateMachine.AdvanceDirectionRepeat(
@@ -2433,11 +2594,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 config.RepeatInitialDelayFrames,
                 config.RepeatIntervalFrames))
         {
-            if (currentDir == GameInputGamepadButtons.DPadLeft)
+            if (currentDir == GameInputGamepadButtons.GameInputGamepadDPadLeft)
             {
                 LeftRepeat?.Invoke();
             }
-            else if (currentDir == GameInputGamepadButtons.DPadRight)
+            else if (currentDir == GameInputGamepadButtons.GameInputGamepadDPadRight)
             {
                 RightRepeat?.Invoke();
 
@@ -2445,11 +2606,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 emittedDpadRightRepeat = true;
 #endif
             }
-            else if (currentDir == GameInputGamepadButtons.DPadUp)
+            else if (currentDir == GameInputGamepadButtons.GameInputGamepadDPadUp)
             {
                 UpRepeat?.Invoke();
             }
-            else if (currentDir == GameInputGamepadButtons.DPadDown)
+            else if (currentDir == GameInputGamepadButtons.GameInputGamepadDPadDown)
             {
                 DownRepeat?.Invoke();
             }
@@ -2534,7 +2695,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 LoggerService.LogInfo($"Gamepad.RightRepeatStorm source=GameInput kind=DPad count={_dpadRightRepeatDiagnosticCounter} dpadDir={_repeatDirection?.ToString() ?? "None"}");
             }
         }
-        else if (currentDir != GameInputGamepadButtons.DPadRight)
+        else if (currentDir != GameInputGamepadButtons.GameInputGamepadDPadRight)
         {
             _dpadRightRepeatDiagnosticCounter = 0;
         }
@@ -2785,14 +2946,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// 更新供校準視覺化使用的診斷快照。
     /// </summary>
     private void UpdateCalibrationSnapshot(
-        GamepadStateSnapshot? state,
+        GamepadReadingSnapshot? state,
         AppSettings.GamepadConfigSnapshot config,
         bool isConnected)
     {
-        float rawLeftX = state?.LeftThumbstickX ?? 0f,
-            rawLeftY = state?.LeftThumbstickY ?? 0f,
-            rawRightX = state?.RightThumbstickX ?? 0f,
-            rawRightY = state?.RightThumbstickY ?? 0f;
+        float rawLeftX = state?.State.LeftThumbstickX ?? 0f,
+            rawLeftY = state?.State.LeftThumbstickY ?? 0f,
+            rawRightX = state?.State.RightThumbstickX ?? 0f,
+            rawRightY = state?.State.RightThumbstickY ?? 0f;
 
         _currentCalibrationSnapshot = new GamepadCalibrationSnapshot
         {
@@ -2993,10 +3154,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private Task DisposeResourcesAsync()
     {
         // 捕獲目前實例以供背景執行緒釋放。
-        GameInput? gameInput = _gameInput;
+        GameInputClient? gameInput = _gameInput;
         GameInputDevice? dev = _device;
-        GameInput.GameInputCallbackRegistration? deviceCallbackReg = _deviceCallbackReg;
-        GameInput.GameInputCallbackRegistration? readingCallbackReg = _readingCallbackReg;
+        GameInputCallbackRegistration? deviceCallbackReg = _deviceCallbackReg;
+        GameInputCallbackRegistration? readingCallbackReg = _readingCallbackReg;
         List<GameInputDevice> devicesToDispose;
 
         lock (_deviceLock)
@@ -3045,7 +3206,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     d.Dispose();
                 }
 
-                LogGameInputDiagnosticsSnapshot(gameInput, "dispose");
+                LogGameInputDiagnosticsSnapshot("dispose");
                 gameInput?.Dispose();
             }
             catch (Exception ex)

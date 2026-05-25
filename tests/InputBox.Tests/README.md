@@ -20,12 +20,12 @@
 | `FloatingPointFormatConverterTests` | `FloatingPointFormatConverter` 字串轉換 | 16 |
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載），含正負方向對稱性守門（硬體平等原則） | 14 |
-| `GamepadControllerFactoryTests` | 控制器後端建立策略，驗證 XInput 預設路徑、GameInput 成功路徑，以及 shim/runtime 不可用時退避至 XInput | 3 |
+| `GamepadControllerFactoryTests` | 控制器後端建立策略，驗證 XInput 預設路徑、GameInput 成功路徑，以及 GameInput runtime 不可用時退避至 XInput | 3 |
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意、GameInput missing reading 斷線重列舉、裝置狀態過濾、震動停止安全性、`ClearAllEvents` 肩鍵釋放訂閱清除與原生對話框切換時的殘留輸入回歸保護 | 10 |
-| `GameInputPrimitivesTests` | 自有 GameInput shim 受控資料模型，涵蓋官方 v3 gamepad button 位元、timestamp 診斷欄位、edge detection timestamp 忽略、runtime probe／ABI size 診斷、Gamepad-only 邊界、P/Invoke export 宣告清單與擴充 device info / capabilities 轉換 | 10 |
+| `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` gamepad API 的 surface 守門、官方 v3 gamepad button 位元、snapshot edge detection、穩定裝置識別與 rumble 參數保留 | 7 |
 | `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 14 |
 | `GamepadEventBinderTests` | `GamepadEventBinder` 的 LB / RB / LT / RT 與肩鍵放開事件綁定回歸保護 | 1 |
-| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆寫優先權、shim 保留 VID/PID 時的 Sony/Nintendo 判斷，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 25 |
+| `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆寫優先權、GameInput 裝置識別保留 VID/PID 時的 Sony/Nintendo 判斷，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 25 |
 | `GamepadShoulderShortcutArbiterTests` | `GamepadShoulderShortcutArbiter` 的肩鍵單按、連發、修飾鍵與雙肩鍵組合仲裁回歸保護 | 4 |
 | `GamepadMappedDirectionGuardTests` | `GamepadMappedDirectionGuard` 全方向幽靈保護的封鎖／解除節奏 | 2 |
 | `GamepadRepeatSettingsTests` | `GamepadRepeatSettings` 預設值與 `Validate()` | 7 |
@@ -45,7 +45,7 @@
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **386** |
+| **合計** | | **383** |
 
 ## 二、執行方式 🚀
 

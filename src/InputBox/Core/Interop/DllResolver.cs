@@ -19,13 +19,7 @@ internal class DllResolver
     private static volatile nint _cachedHandle = IntPtr.Zero;
 
     /// <summary>
-    /// 快取的自有 GameInput native shim handle，用於避免重複載入。
-    /// 目前設計假設同一個行程只會解析並載入單一版本／位置的 InputBox.GameInput.Native。
-    /// </summary>
-    private static volatile nint _cachedGameInputShimHandle = IntPtr.Zero;
-
-    /// <summary>
-    /// 自訂的 native 載入解析器，用於覆寫 XInput 與自有 GameInput shim 的載入邏輯。
+    /// 自訂的 native 載入解析器，用於覆寫 XInput 的載入邏輯。
     /// </summary>
     /// <param name="libraryName">開啟端要求載入的 DLL 名稱</param>
     /// <param name="assembly">觸發載入的組件。</param>
@@ -36,12 +30,6 @@ internal class DllResolver
         Assembly assembly,
         DllImportSearchPath? searchPath)
     {
-        if (libraryName.Equals("InputBox.GameInput.Native", StringComparison.OrdinalIgnoreCase) ||
-            libraryName.Equals("InputBox.GameInput.Native.dll", StringComparison.OrdinalIgnoreCase))
-        {
-            return ResolveGameInputShim(libraryName, assembly, searchPath);
-        }
-
         // 僅攔截 xinput1_4.dll，其餘 DLL 交由系統處理。
         if (!libraryName.Equals("xinput1_4.dll", StringComparison.OrdinalIgnoreCase))
         {
@@ -83,39 +71,6 @@ internal class DllResolver
 
                     return handle;
                 }
-            }
-
-            return IntPtr.Zero;
-        }
-    }
-
-    /// <summary>
-    /// 解析自有 GameInput native shim。
-    /// 首次成功載入後，後續不同 assembly/searchPath 的解析都會重用同一個 handle。
-    /// </summary>
-    /// <param name="libraryName">要求載入的 library 名稱。</param>
-    /// <param name="assembly">觸發載入的組件。</param>
-    /// <param name="searchPath">DllImportSearchPath 設定。</param>
-    /// <returns>成功載入時回傳 DLL handle；否則回傳 IntPtr.Zero。</returns>
-    private static nint ResolveGameInputShim(
-        string libraryName,
-        Assembly assembly,
-        DllImportSearchPath? searchPath)
-    {
-        lock (ResolverLock)
-        {
-            if (_cachedGameInputShimHandle != IntPtr.Zero)
-            {
-                // Native shim 視為 process-wide singleton，避免重複載入造成匯出狀態分裂。
-                return _cachedGameInputShimHandle;
-            }
-
-            if (NativeLibrary.TryLoad(libraryName, assembly, searchPath, out nint handle) ||
-                NativeLibrary.TryLoad($"{libraryName}.dll", assembly, searchPath, out handle))
-            {
-                _cachedGameInputShimHandle = handle;
-
-                return handle;
             }
 
             return IntPtr.Zero;

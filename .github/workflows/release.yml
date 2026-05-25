@@ -30,7 +30,6 @@ jobs:
       DOTNET_NOLOGO: '1'
       PUBLISH_DIR: "./src/InputBox/out"
       EXE_NAME: 'InputBox.exe'
-      NATIVE_SHIM_NAME: 'InputBox.GameInput.Native.dll'
       SHA256_HASH: ''
       GAMEINPUT_REDIST_SHA256: ''
       ZIP_FILENAME: ''
@@ -72,11 +71,26 @@ jobs:
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         # Release 觸發頻率遠低於 cache TTL（7 天），不快取以避免無效寫入。
 
-    - name: 安裝 MSBuild（Native Shim）
-      uses: microsoft/setup-msbuild@v3
+    - name: 驗證 repo-local InputWeave.GameInput nupkg
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $packagePath = ".\eng\nuget\InputWeave.GameInput.0.0.1.nupkg"
+        $expected = "64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805"
+
+        if (-not (Test-Path $packagePath)) {
+            Write-Error "找不到 repo-local InputWeave.GameInput nupkg：$packagePath"
+        }
+
+        $actual = (Get-FileHash $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -ne $expected) {
+            Write-Error "InputWeave.GameInput nupkg SHA256 不符。Expected=$expected Actual=$actual"
+        }
+
+        Write-Host "InputWeave.GameInput nupkg SHA256 驗證通過：$actual"
 
     - name: 還原 NuGet 套件
-      run: dotnet restore ./src/InputBox/InputBox.csproj
+      run: dotnet restore ./src/InputBox/InputBox.csproj --force-evaluate
 
     - name: 讀取 Microsoft.GameInput 版本
       shell: pwsh
@@ -154,23 +168,6 @@ jobs:
             }
         }
 
-    - name: 建置 GameInput Native Shim
-      shell: pwsh
-      run: |
-        msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj `
-          /p:Configuration=Release `
-          /p:Platform=x64 `
-          /p:PlatformToolset=v143 `
-          /p:GameInputPackageVersion=$env:GAMEINPUT_VERSION `
-          /m
-
-    - name: 驗證 GameInput Native Shim exports / probe / lifecycle
-      shell: pwsh
-      run: |
-        .\tools\Validate-GameInputNativeShim.ps1 `
-          -NativeShimPath ".\src\InputBox.GameInput.Native\bin\x64\Release\InputBox.GameInput.Native.dll" `
-          -ManagedSourcePath ".\src\InputBox\Core\Input\GameInputNative.cs"
-
     - name: 執行專案發佈（Publish）
       working-directory: ./src/InputBox
       run: >
@@ -186,17 +183,24 @@ jobs:
       run: |
         $ErrorActionPreference = 'Stop'
         $exePath = Join-Path "${{ env.PUBLISH_DIR }}" "${{ env.EXE_NAME }}"
-        $nativeShimPath = Join-Path "${{ env.PUBLISH_DIR }}" "${{ env.NATIVE_SHIM_NAME }}"
 
         if (-not (Test-Path $exePath)) {
             Write-Error "找不到單檔發佈執行檔：$exePath"
         }
 
-        if (Test-Path $nativeShimPath) {
-            Write-Error "單檔發佈輸出不應包含可見的 GameInput native shim sidecar：$nativeShimPath"
+        $forbiddenNames = @(
+            "InputBox.GameInput.Native.dll",
+            "gameinput.dll"
+        )
+        $publishFiles = Get-ChildItem -LiteralPath "${{ env.PUBLISH_DIR }}" -Recurse -File
+        foreach ($name in $forbiddenNames) {
+            $match = $publishFiles | Where-Object { $_.Name.Equals($name, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
+            if ($match) {
+                Write-Error "單檔發佈輸出不應包含可見的 GameInput sidecar：$($match.FullName)"
+            }
         }
 
-        Write-Host "單檔發佈輸出驗證通過：GameInput native shim 已由 MSBuild bundle guard 驗證，且未留下 sidecar DLL。"
+        Write-Host "單檔發佈輸出驗證通過：未留下 InputBox.GameInput.Native.dll 或 gameinput.dll sidecar。"
 
     - name: 自動產生第三方套件授權聲明（nuget-license）
       shell: pwsh
@@ -213,6 +217,26 @@ jobs:
         } else {
             Write-Warning "⚠️ 未產生 ThirdPartyNotices.txt，可能是因為專案目前沒有依賴任何第三方套件。"
         }
+
+    - name: 補寫 InputWeave.GameInput 授權聲明
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $noticePath = "ThirdPartyNotices.txt"
+
+        if (-not (Test-Path $noticePath)) {
+            New-Item -ItemType File -Path $noticePath -Force | Out-Null
+        }
+
+        Add-Content -Path $noticePath -Encoding utf8 -Value ''
+        Add-Content -Path $noticePath -Encoding utf8 -Value '## InputWeave.GameInput'
+        Add-Content -Path $noticePath -Encoding utf8 -Value ''
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package: InputWeave.GameInput 0.0.1'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Source: https://github.com/rubujo/InputWeave.GameInput'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package commit: 664a9d3e96458a49688ff2255a36f6e073977065'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package file: eng/nuget/InputWeave.GameInput.0.0.1.nupkg'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- SHA256: 64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- License: CC0-1.0; see InputWeave.GameInput_LICENSE.txt in this Licenses directory.'
 
     - name: 產生執行檔的雜湊值（SHA256）
       shell: pwsh
@@ -262,6 +286,7 @@ jobs:
         if (Test-Path "ThirdPartyNotices.txt") {
             Copy-Item -Path "ThirdPartyNotices.txt" -Destination $licensesDir
         }
+        Copy-Item -Path ".\eng\nuget\InputWeave.GameInput_LICENSE.txt" -Destination (Join-Path $licensesDir "InputWeave.GameInput_LICENSE.txt")
 
         # 3. 動態抓取 .NET 官方授權檔案（含最相近 Tag／分支 Fallback）。
         Write-Host "=== 開始動態下載 .NET 官方授權檔案 ==="
@@ -464,6 +489,7 @@ jobs:
                 'InputBox/LICENSE',
                 'InputBox/README.md',
                 'InputBox/Licenses/ThirdPartyNotices.txt',
+                'InputBox/Licenses/InputWeave.GameInput_LICENSE.txt',
                 'InputBox/Licenses/Microsoft.GameInput_LICENSE.txt',
                 'InputBox/Licenses/Microsoft.GameInput_NOTICE.txt',
                 'InputBox/redist/GameInputRedist.msi',
@@ -480,12 +506,27 @@ jobs:
                 'UsbVendorsLibrary_LICENSE.txt',
                 'usb_ids_LICENSE.txt',
                 'gameinput.dll',
-                '${{ env.NATIVE_SHIM_NAME }}'
+                'InputBox.GameInput.Native.dll'
             )
             foreach ($pattern in $forbiddenPatterns) {
                 if ($entries | Where-Object { $_ -like "*$pattern" }) {
                     Write-Error "ZIP 包含禁止項目：$pattern"
                 }
+            }
+
+            $thirdParty = $zip.GetEntry('InputBox/Licenses/ThirdPartyNotices.txt')
+            if ($null -eq $thirdParty) {
+                Write-Error "ZIP 缺少 ThirdPartyNotices.txt，無法驗證 InputWeave.GameInput 聲明。"
+            }
+
+            $reader = [System.IO.StreamReader]::new($thirdParty.Open())
+            try {
+                $thirdPartyText = $reader.ReadToEnd()
+                if ($thirdPartyText -notmatch 'InputWeave\.GameInput') {
+                    Write-Error "ThirdPartyNotices.txt 缺少 InputWeave.GameInput 聲明。"
+                }
+            } finally {
+                $reader.Dispose()
             }
         } finally {
             $zip.Dispose()

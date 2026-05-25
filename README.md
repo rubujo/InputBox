@@ -516,7 +516,7 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 - `-r win-x64`：指定目標執行階段為 Windows 64 位元作業系統。
 - `--self-contained true`：啟用獨立式部署。這會將底層的 .NET 執行階段與應用程式一併打包，使用者**無需在電腦上預先安裝任何 .NET 環境**即可直接執行。
 - `-p:PublishSingleFile=true`：啟用單一檔案發佈。會將應用程式本身及其所有依賴的函式庫全部打包進單一個 `.exe` 執行檔中，讓資料夾保持乾淨，方便使用者複製或分享。
-- `-p:IncludeNativeLibrariesForSelfExtract=true`：讓 .NET host 在執行階段自動將 bundle 中的原生程式庫（例如 `InputBox.GameInput.Native.dll`）自解壓後載入。**win-x64 單一檔案發佈時此參數為必要項**，省略將導致 MSBuild 建置錯誤。
+- `-p:IncludeNativeLibrariesForSelfExtract=true`：讓 .NET host 在執行階段自動將 bundle 中需要自解壓的原生程式庫載入。GameInput 後端直接使用 `InputWeave.GameInput` gamepad API 載入系統或 redist runtime；發佈檔不包含可見的 `InputBox.GameInput.Native.dll` sidecar。
 - `-p:PublishReadyToRun=true`：啟用 ReadyToRun 預先編譯。這會在建置時提前將部分程式碼編譯為原生機器碼，減少執行時即時編譯的負擔，能**顯著縮短應用程式的冷啟動時間**，讓喚出輸入框的反應更迅速。
 
 發佈完成後，編譯好的單一執行檔會生成在以下路徑：
@@ -592,6 +592,7 @@ Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
 
 - [.NET Runtime](https://github.com/dotnet/runtime)：由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/dotnet/runtime/graphs/contributors) 開發並採用 [**MIT License**](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT) 授權，作為本應用程式之底層執行環境，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT)。
 - [Windows Forms（WinForms）](https://github.com/dotnet/winforms)：由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/dotnet/winforms/graphs/contributors) 開發並採用 [**MIT License**](https://github.com/dotnet/winforms/blob/main/LICENSE.TXT) 授權，提供桌面視窗圖形介面基礎架構，相關第三方聲明請參閱 [**THIRD-PARTY-NOTICES**](https://github.com/dotnet/winforms/blob/main/THIRD-PARTY-NOTICES.TXT)。
+- [InputWeave.GameInput 0.0.1](https://github.com/rubujo/InputWeave.GameInput)：由 InputWeave contributors 開發並採用 [**CC0-1.0**](https://creativecommons.org/publicdomain/zero/1.0/) 授權，提供 GameInput managed runtime/client/device/reading/rumble API。套件固定於 repo-local `eng/nuget/InputWeave.GameInput.0.0.1.nupkg`，package commit `664a9d3e96458a49688ff2255a36f6e073977065`，nupkg SHA256：`64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805`。
 - [Microsoft GameInput Redistributable](https://www.nuget.org/packages/Microsoft.GameInput)：由 Microsoft 提供，作為選用的 GameInput 執行階段可轉散發套件。正式發佈 ZIP 檔會隨附 `redist/GameInputRedist.msi` 供使用者手動安裝；本應用程式不會自動安裝。手動安裝 `redist/GameInputRedist.msi` 即表示使用者需遵守 [Microsoft.GameInput 授權條款](https://www.nuget.org/packages/Microsoft.GameInput/3.4.218/License)；相關授權與 NOTICE 檔案位於 `Licenses/Microsoft.GameInput_LICENSE.txt` 與 `Licenses/Microsoft.GameInput_NOTICE.txt`，且該可轉散發安裝程式不屬於本專案 CC0 授權範圍。
 
-本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）、`Microsoft.GameInput_LICENSE.txt`、`Microsoft.GameInput_NOTICE.txt`，以及各元件完整授權文字；[Microsoft.GameInput 3.4.218 線上授權頁](https://www.nuget.org/packages/Microsoft.GameInput/3.4.218/License) 另可於 NuGet 查閱。
+本專案的詳細條款與免責聲明，請參閱隨附之 [**LICENSE**](LICENSE) 文件；發佈檔 `Licenses/` 資料夾內含 `ThirdPartyNotices.txt`（NuGet 套件授權聲明清單）、`InputWeave.GameInput_LICENSE.txt`、`Microsoft.GameInput_LICENSE.txt`、`Microsoft.GameInput_NOTICE.txt`，以及各元件完整授權文字；[Microsoft.GameInput 3.4.218 線上授權頁](https://www.nuget.org/packages/Microsoft.GameInput/3.4.218/License) 另可於 NuGet 查閱。
