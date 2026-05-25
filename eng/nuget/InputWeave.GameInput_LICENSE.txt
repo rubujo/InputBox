@@ -1,0 +1,16 @@
+InputWeave.GameInput 0.0.1
+===========================
+
+Source: https://github.com/rubujo/InputWeave.GameInput
+Package commit: 664a9d3e96458a49688ff2255a36f6e073977065
+Package file: eng/nuget/InputWeave.GameInput.0.0.1.nupkg
+Package SHA256: 64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805
+Package license expression: CC0-1.0
+
+InputWeave.GameInput is distributed under the Creative Commons CC0 1.0
+Universal public domain dedication. To the extent possible under law, the
+authors have dedicated all copyright and related rights in this package to
+the public domain worldwide.
+
+SPDX-License-Identifier: CC0-1.0
+License text: https://creativecommons.org/publicdomain/zero/1.0/legalcode

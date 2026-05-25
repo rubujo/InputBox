@@ -15,9 +15,6 @@
     <AssemblyTitle>輸入框 InputBox</AssemblyTitle>
     <Company>垃圾桶 rubujo</Company>
     <Copyright>在法律允許的最大範圍內，作者已放棄所有著作權及相關權利（CC0 1.0）</Copyright>
-    <GameInputNativeShimProject>..\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj</GameInputNativeShimProject>
-    <GameInputNativeShimPath>..\InputBox.GameInput.Native\bin\x64\$(Configuration)\InputBox.GameInput.Native.dll</GameInputNativeShimPath>
-    <GameInputNativeShimFileName>InputBox.GameInput.Native.dll</GameInputNativeShimFileName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -55,57 +52,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="InputWeave.GameInput" Version="0.0.1" />
     <PackageReference Include="Microsoft.GameInput" Version="3.4.218" GeneratePathProperty="true" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="$(GameInputNativeShimProject)"
-                      Condition="'$(OS)' == 'Windows_NT' and Exists('$(VCTargetsPath)\Microsoft.Cpp.Default.props')"
-                      ReferenceOutputAssembly="false"
-                      SkipGetTargetFrameworkProperties="true"
-                      Properties="Configuration=$(Configuration);Platform=x64;GameInputPackageRoot=$(PkgMicrosoft_GameInput)\" />
-  </ItemGroup>
-
-  <Target Name="CopyGameInputNativeShimToBuildOutput"
-          AfterTargets="Build"
-          Condition="Exists('$(GameInputNativeShimPath)') and '$(TargetDir)' != ''">
-    <Copy SourceFiles="$(GameInputNativeShimPath)"
-          DestinationFolder="$(TargetDir)"
-          SkipUnchangedFiles="true" />
-  </Target>
-
-  <Target Name="RequireGameInputNativeShimSelfExtract"
-          BeforeTargets="ComputeResolvedFilesToPublishList"
-          Condition="'$(RuntimeIdentifier)' == 'win-x64' and '$(PublishSingleFile)' == 'true'">
-    <Error Condition="'$(IncludeNativeLibrariesForSelfExtract)' != 'true'"
-           Text="InputBox.GameInput.Native.dll must be bundled as a native library. Set IncludeNativeLibrariesForSelfExtract=true for win-x64 single-file publish." />
-  </Target>
-
-  <Target Name="IncludeGameInputNativeShimForPublish"
-          BeforeTargets="ComputeResolvedFilesToPublishList"
-          Condition="'$(OS)' == 'Windows_NT' and '$(RuntimeIdentifier)' == 'win-x64'">
-    <Error Condition="!Exists('$(GameInputNativeShimPath)')"
-           Text="GameInput native shim not found at '$(GameInputNativeShimPath)'. Build $(GameInputNativeShimProject) before publish." />
-    <ItemGroup>
-      <ResolvedFileToPublish Include="$(GameInputNativeShimPath)">
-        <RelativePath>$(GameInputNativeShimFileName)</RelativePath>
-        <AssetType>native</AssetType>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </ResolvedFileToPublish>
-    </ItemGroup>
-  </Target>
-
-  <Target Name="VerifyGameInputNativeShimSingleFileBundle"
-          AfterTargets="PrepareForBundle"
-          BeforeTargets="GenerateSingleFileBundle"
-          Condition="'$(RuntimeIdentifier)' == 'win-x64' and '$(PublishSingleFile)' == 'true'">
-    <ItemGroup>
-      <_GameInputNativeShimBundleItem Include="@(FilesToBundle)"
-                                      Condition="'%(FilesToBundle.RelativePath)' == '$(GameInputNativeShimFileName)' and '%(FilesToBundle.AssetType)' == 'native'" />
-    </ItemGroup>
-    <Error Condition="'@(_GameInputNativeShimBundleItem)' == ''"
-           Text="GameInput native shim was not included in the single-file bundle as a native asset." />
-  </Target>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

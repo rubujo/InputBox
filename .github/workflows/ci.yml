@@ -36,7 +36,9 @@ jobs:
             - 'src/**'
             - 'tests/**'
             - 'tools/**'
+            - 'eng/nuget/**'
             - '.github/workflows/**'
+            - 'NuGet.config'
             - 'global.json'
             - '*.sln'
             - '*.slnx'
@@ -88,49 +90,30 @@ jobs:
         # 同時涵蓋主專案、測試專案與工具清單，確保 NuGet 套件快取完整。
         cache-dependency-path: |
           **/*.csproj
+          NuGet.config
+          eng/nuget/*.sha256
           .config/dotnet-tools.json
 
-    - name: 安裝 MSBuild（Native Shim）
-      uses: microsoft/setup-msbuild@v3
-
-    - name: 還原主專案 NuGet 套件（Native Shim）
-      run: dotnet restore ./src/InputBox/InputBox.csproj
-
-    - name: 讀取 Microsoft.GameInput 版本（Native Shim）
+    - name: 驗證 repo-local InputWeave.GameInput nupkg
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
-        [xml]$project = Get-Content -LiteralPath "./src/InputBox/InputBox.csproj" -Raw
-        $packageRefs = @($project.Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'Microsoft.GameInput' })
+        $packagePath = ".\eng\nuget\InputWeave.GameInput.0.0.1.nupkg"
+        $expected = "64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805"
 
-        if ($packageRefs.Count -ne 1) {
-          Write-Error "InputBox.csproj 必須剛好包含一個 Microsoft.GameInput PackageReference；目前找到 $($packageRefs.Count) 個。"
+        if (-not (Test-Path $packagePath)) {
+          Write-Error "找不到 repo-local InputWeave.GameInput nupkg：$packagePath"
         }
 
-        $version = [string]$packageRefs[0].Version
-        if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?$') {
-          Write-Error "Microsoft.GameInput Version 必須是明確穩定版本：$version"
+        $actual = (Get-FileHash $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -ne $expected) {
+          Write-Error "InputWeave.GameInput nupkg SHA256 不符。Expected=$expected Actual=$actual"
         }
 
-        "GAMEINPUT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        Write-Host "Microsoft.GameInput version: $version"
+        Write-Host "InputWeave.GameInput nupkg SHA256 驗證通過：$actual"
 
-    - name: 建置 GameInput Native Shim
-      shell: pwsh
-      run: |
-        msbuild .\src\InputBox.GameInput.Native\InputBox.GameInput.Native.vcxproj `
-          /p:Configuration=Release `
-          /p:Platform=x64 `
-          /p:PlatformToolset=v143 `
-          /p:GameInputPackageVersion=$env:GAMEINPUT_VERSION `
-          /m
-
-    - name: 驗證 GameInput Native Shim exports / probe / lifecycle
-      shell: pwsh
-      run: |
-        .\tools\Validate-GameInputNativeShim.ps1 `
-          -NativeShimPath ".\src\InputBox.GameInput.Native\bin\x64\Release\InputBox.GameInput.Native.dll" `
-          -ManagedSourcePath ".\src\InputBox\Core\Input\GameInputNative.cs"
+    - name: 還原主專案 NuGet 套件
+      run: dotnet restore ./src/InputBox/InputBox.csproj --force-evaluate
 
     - name: 建置應用程式與測試專案（Build App + Tests）
       working-directory: ./tests/InputBox.Tests

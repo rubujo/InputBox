@@ -55,7 +55,7 @@ public sealed class GamepadFaceButtonProfileTests
     }
 
     /// <summary>
-    /// Auto 模式即使只取得自有 shim 保留的 Sony VID/PID，也應解析為 PlayStation 國際配置。
+    /// Auto 模式即使只取得 GameInput 裝置識別保留的 Sony VID/PID，也應解析為 PlayStation 國際配置。
     /// </summary>
     [Fact]
     public void ResolveEffectiveLayout_AutoWithSonyVidIdentity_ReturnsPlayStationCrossConfirm()
@@ -70,7 +70,7 @@ public sealed class GamepadFaceButtonProfileTests
     }
 
     /// <summary>
-    /// Auto 模式即使只取得自有 shim 保留的 Nintendo VID/PID，也應解析為 Nintendo 配置。
+    /// Auto 模式即使只取得 GameInput 裝置識別保留的 Nintendo VID/PID，也應解析為 Nintendo 配置。
     /// </summary>
     [Fact]
     public void ResolveEffectiveLayout_AutoWithNintendoVidIdentity_ReturnsNintendo()

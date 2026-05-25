@@ -9,6 +9,12 @@
   <Folder Name="/方案項目/.claude/skills/inputbox-dev/">
     <File Path=".claude/skills/inputbox-dev/SKILL.md" />
   </Folder>
+  <Folder Name="/方案項目/eng/" />
+  <Folder Name="/方案項目/eng/nuget/">
+    <File Path="eng/nuget/InputWeave.GameInput.0.0.1.nupkg" />
+    <File Path="eng/nuget/InputWeave.GameInput.0.0.1.nupkg.sha256" />
+    <File Path="eng/nuget/InputWeave.GameInput_LICENSE.txt" />
+  </Folder>
   <Folder Name="/方案項目/.github/" />
   <Folder Name="/方案項目/.github/workflows/">
     <File Path=".github/workflows/ci.yml" />
@@ -19,9 +25,11 @@
     <File Path="docs/engineering/a11y-safety.md" />
     <File Path="docs/engineering/core-engineering.md" />
     <File Path="docs/engineering/environment.md" />
+    <File Path="docs/engineering/gameinput-hardware-verification.md" />
     <File Path="docs/engineering/gamepad-api.md" />
     <File Path="docs/engineering/git-commit-safety.md" />
     <File Path="docs/engineering/localization.md" />
+    <File Path="docs/engineering/testing.md" />
   </Folder>
   <Folder Name="/方案項目/">
     <File Path=".editorconfig" />
@@ -31,9 +39,9 @@
     <File Path="CLAUDE.md" />
     <File Path="ENGINEERING_GUIDELINES.md" />
     <File Path="LICENSE" />
+    <File Path="NuGet.config" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="src/InputBox.GameInput.Native/InputBox.GameInput.Native.vcxproj" Id="3e85c875-5e9d-4c7d-9b87-0d5b3eb3da53" />
   <Project Path="src/InputBox/InputBox.csproj" />
   <Project Path="tests/InputBox.Tests/InputBox.Tests.csproj" />
 </Solution>
