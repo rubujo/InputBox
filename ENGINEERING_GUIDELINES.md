@@ -1,6 +1,6 @@
 # InputBox 工程規範目錄 (Engineering Standards)
 
-為了提升 AI Agent (Gemini & Copilot) 的檢索效率與 Context 管理，本專案已將工程規範拆解為原子化的技能模組。
+為了提升 Codex CLI、Claude Code、GitHub Copilot CLI 與 Antigravity CLI 的檢索效率與 context 管理，本專案已將工程規範拆解為共同入口、project skill 與原子化工程文件。
 
 ## 核心規範檔案
 - [環境與編碼 (Environment)](docs/engineering/environment.md)
@@ -10,9 +10,11 @@
 - [在地化與術語表 (Localization)](docs/engineering/localization.md)
 - [Git 提交規範與安全性紅線 (Git/Safety)](docs/engineering/git-commit-safety.md)（包含 Conventional Commits、GPG 簽章提交、main-first 分支守門與合規紅線）
 
-## AI 技能位置
-- **Gemini CLI**: `.agents/skills/inputbox-dev/`（目前共用）
-- **GitHub Copilot / Others**: `.agents/skills/inputbox-dev/`
+## Agent 規範位置
+
+- **共同入口**：`AGENTS.md`
+- **權威技能**：`.agents/skills/inputbox-dev/SKILL.md`
+- **Claude Code 橋接**：`CLAUDE.md` 與 `.claude/skills/inputbox-dev/SKILL.md`
 
 ---
 *註：若需人工閱讀，建議從上方清單選取對應主題。*
