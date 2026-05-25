@@ -1,6 +1,6 @@
 # InputBox 網頁工程規範目錄 (Web Engineering Standards)
 
-本文件是 `gh-pages` 分支的工程規範索引。對 AI Agent 而言，repo 根目錄 `AGENTS.md` 為主要入口，實際細節則以下列原子化模組為準。
+本文件是 `gh-pages` 分支的工程規範索引。對 Codex CLI、Claude Code、GitHub Copilot CLI 與 Antigravity CLI 而言，repo 根目錄 `AGENTS.md` 為共同入口，實際細節則以下列原子化模組為準。
 
 ## 核心規範檔案
 
@@ -15,17 +15,12 @@
 - HTML 開發以 `.editorconfig` + Prettier 為標準格式來源。
 - 修改網頁、文件或設定檔後，必須立即格式化檔案，再進行測試與提交。
 
-## AI 技能位置
+## Agent 規範位置
 
-- **Gemini CLI / GitHub Copilot 共用技能**：`.agents/skills/inputbox-web-dev/SKILL.md`
-- 若需擴充技能內容，請以此共用技能為單一來源，避免多份規範漂移。
-
-## 多工具入口策略
-
-- `AGENTS.md`：共用的主要 agent 指引入口，供 Codex、Copilot Agent、VS Code GitHub Copilot Chat 與其他支援 `AGENTS.md` 的工具使用。
-- `CLAUDE.md`：Claude Code 相容入口，內容應導向 `AGENTS.md`，不應維護第二套完整規範。
-- `GEMINI.md`：Gemini CLI 相容入口，內容應導向 `AGENTS.md`，不應維護第二套完整規範。
-- `.github/copilot-instructions.md`：提供 Visual Studio GitHub Copilot Chat 與其他仍依賴 Copilot repository instructions 的客戶端使用。
+- **共同入口**：`AGENTS.md`
+- **權威技能**：`.agents/skills/inputbox-web-dev/SKILL.md`
+- **Claude Code 橋接**：`CLAUDE.md` 與 `.claude/skills/inputbox-web-dev/SKILL.md`
+- 若需擴充技能內容，請以 `.agents/skills/inputbox-web-dev/SKILL.md` 為單一來源，避免多份規範漂移。
 
 ---
 

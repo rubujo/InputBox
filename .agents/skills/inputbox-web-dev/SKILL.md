@@ -1,23 +1,25 @@
 ---
 name: inputbox-web-dev
-description: InputBox 專案網頁開發工程規範技能。當任務涉及修改 index.html、調整 CSS 樣式、同步網頁多語系或優化網頁 A11y 時，載入此技能。
+description: InputBox gh-pages 分支的權威網頁工程技能。當修改 index.html、CSS、網頁多語系、A11y、測試或 Git 工作流時，請使用此技能。
 ---
 
-# InputBox 網頁工程規範指引 (Web Guidelines)
+# InputBox 網頁工程規範指引
 
-本技能提供 InputBox `gh-pages` 分支的權威網頁開發標準。本專案嚴格執行「零 JS／零圖片／零 Inline CSS」政策，並致力於達成 WCAG 2.2 AAA 無障礙標準。
+本技能提供 InputBox `gh-pages` 分支的權威網頁開發標準。`AGENTS.md` 只負責載入順序與索引；詳細 web engineering 規範以本技能和 `docs/engineering/` 為準。Claude Code 若透過 `.claude/skills/inputbox-web-dev/SKILL.md` 進入，也必須回到本技能與對應工程文件。
 
-## 核心規範索引 (References)
+本分支嚴格執行「零 JS／零圖片／零 Inline CSS」政策，並致力於達成 WCAG 2.2 AAA 無障礙標準。
+
+## 核心規範索引
 
 請根據任務性質載入相關檔案：
 
-1.  **網頁架構 (零 JS／零圖片)**：`docs/engineering/web-architecture.md`
-2.  **多語系機制 (Radio Hack/術語表)**：`docs/engineering/web-localization.md`
-3.  **A11y 無障礙與視覺安全 (AAA)**：`docs/engineering/web-a11y-safety.md`
-4.  **排版與標籤規範 (CJK/kbd)**：`docs/engineering/web-style-typography.md`
-5.  **Git 提交與驗證規範**：`docs/engineering/web-git.md`
+1. **網頁架構（零 JS／零圖片）**：`docs/engineering/web-architecture.md`
+2. **多語系機制（Radio Hack／術語表）**：`docs/engineering/web-localization.md`
+3. **A11y 無障礙與視覺安全（AAA）**：`docs/engineering/web-a11y-safety.md`
+4. **排版與標籤規範（CJK／kbd）**：`docs/engineering/web-style-typography.md`
+5. **Git 提交與驗證規範**：`docs/engineering/web-git.md`
 
-## 工作流程指令 (Workflow Mandates)
+## 工作流程指令
 
 - **互動開發**：絕對禁止使用 JavaScript。所有顯隱切換透過 `body:has(:checked)` 達成；凡使用 `:has()` 的規則，必須以 `@supports selector(body:has())` 包裹，並提供 `@supports not selector()` 退化方案。
 - **主題切換**：使用 `name="theme"` Radio Hack（`#theme-sys`／`#theme-light`／`#theme-dark`），以 `body:has()` 覆蓋 `:root` CSS 自訂屬性達成三段模式切換；語系切換使用 `name="lang"`。
