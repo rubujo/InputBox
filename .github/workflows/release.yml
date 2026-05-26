@@ -71,7 +71,7 @@ jobs:
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         # Release 觸發頻率遠低於 cache TTL（7 天），不快取以避免無效寫入。
 
-    - name: 驗證 repo-local InputWeave.GameInput nupkg
+    - name: 驗證本儲存庫 InputWeave.GameInput NuGet 套件
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
@@ -79,15 +79,15 @@ jobs:
         $expected = "64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805"
 
         if (-not (Test-Path $packagePath)) {
-            Write-Error "找不到 repo-local InputWeave.GameInput nupkg：$packagePath"
+            Write-Error "找不到本儲存庫 InputWeave.GameInput NuGet 套件：$packagePath"
         }
 
         $actual = (Get-FileHash $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actual -ne $expected) {
-            Write-Error "InputWeave.GameInput nupkg SHA256 不符。Expected=$expected Actual=$actual"
+            Write-Error "InputWeave.GameInput 套件 SHA256 不符。Expected=$expected Actual=$actual"
         }
 
-        Write-Host "InputWeave.GameInput nupkg SHA256 驗證通過：$actual"
+        Write-Host "InputWeave.GameInput 套件 SHA256 驗證通過：$actual"
 
     - name: 還原 NuGet 套件
       run: dotnet restore ./src/InputBox/InputBox.csproj --force-evaluate
@@ -231,13 +231,14 @@ jobs:
         Add-Content -Path $noticePath -Encoding utf8 -Value ''
         Add-Content -Path $noticePath -Encoding utf8 -Value '## InputWeave.GameInput'
         Add-Content -Path $noticePath -Encoding utf8 -Value ''
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package: InputWeave.GameInput 0.0.1'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Source: https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Contributors: https://github.com/rubujo/InputWeave.GameInput/graphs/contributors'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package commit: https://github.com/rubujo/InputWeave.GameInput/commit/664a9d3e96458a49688ff2255a36f6e073977065'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package file: eng/nuget/InputWeave.GameInput.0.0.1.nupkg'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 套件：InputWeave.GameInput 0.0.1'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 來源：https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 作者：https://github.com/rubujo'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 貢獻者：https://github.com/rubujo/InputWeave.GameInput/graphs/contributors'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 封裝來源：https://github.com/rubujo/InputWeave.GameInput/commit/664a9d3e96458a49688ff2255a36f6e073977065'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 套件檔案：eng/nuget/InputWeave.GameInput.0.0.1.nupkg'
         Add-Content -Path $noticePath -Encoding utf8 -Value '- SHA256: 64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- License: CC0-1.0; see InputWeave.GameInput_LICENSE.txt in this Licenses directory and https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE.'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 授權：Creative Commons CC0 1.0 Universal（SPDX：CC0-1.0）；詳見本 Licenses 目錄中的 InputWeave.GameInput_LICENSE.txt 與 https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE。'
 
     - name: 產生執行檔的雜湊值（SHA256）
       shell: pwsh
