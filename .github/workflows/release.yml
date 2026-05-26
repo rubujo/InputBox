@@ -232,11 +232,12 @@ jobs:
         Add-Content -Path $noticePath -Encoding utf8 -Value '## InputWeave.GameInput'
         Add-Content -Path $noticePath -Encoding utf8 -Value ''
         Add-Content -Path $noticePath -Encoding utf8 -Value '- Package: InputWeave.GameInput 0.0.1'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Source: https://github.com/rubujo/InputWeave.GameInput'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package commit: 664a9d3e96458a49688ff2255a36f6e073977065'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Source: https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Contributors: https://github.com/rubujo/InputWeave.GameInput/graphs/contributors'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- Package commit: https://github.com/rubujo/InputWeave.GameInput/commit/664a9d3e96458a49688ff2255a36f6e073977065'
         Add-Content -Path $noticePath -Encoding utf8 -Value '- Package file: eng/nuget/InputWeave.GameInput.0.0.1.nupkg'
         Add-Content -Path $noticePath -Encoding utf8 -Value '- SHA256: 64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- License: CC0-1.0; see InputWeave.GameInput_LICENSE.txt in this Licenses directory.'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- License: CC0-1.0; see InputWeave.GameInput_LICENSE.txt in this Licenses directory and https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE.'
 
     - name: 產生執行檔的雜湊值（SHA256）
       shell: pwsh
