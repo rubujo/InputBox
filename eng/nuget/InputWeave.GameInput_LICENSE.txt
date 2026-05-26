@@ -1,18 +1,18 @@
 InputWeave.GameInput 0.0.1
 ===========================
 
-Source: https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065
-Contributors: https://github.com/rubujo/InputWeave.GameInput/graphs/contributors
-Package commit: https://github.com/rubujo/InputWeave.GameInput/commit/664a9d3e96458a49688ff2255a36f6e073977065
-Package file: eng/nuget/InputWeave.GameInput.0.0.1.nupkg
-Package SHA256: 64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805
-Package license expression: CC0-1.0
-Package license file: https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE
+來源: https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065
+作者: https://github.com/rubujo
+貢獻者: https://github.com/rubujo/InputWeave.GameInput/graphs/contributors
+封裝來源: https://github.com/rubujo/InputWeave.GameInput/commit/664a9d3e96458a49688ff2255a36f6e073977065
+套件檔案: eng/nuget/InputWeave.GameInput.0.0.1.nupkg
+套件 SHA256: 64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805
+授權名稱: Creative Commons CC0 1.0 Universal
+授權識別碼 (SPDX): CC0-1.0
+授權檔案: https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE
 
-InputWeave.GameInput is distributed under the Creative Commons CC0 1.0
-Universal public domain dedication. To the extent possible under law, the
-authors have dedicated all copyright and related rights in this package to
-the public domain worldwide.
+InputWeave.GameInput 採用 Creative Commons CC0 1.0 Universal 公眾領域貢獻宣告。
+在法律允許的最大範圍內，作者已將此套件的著作權與相關權利貢獻至全球公眾領域。
 
 SPDX-License-Identifier: CC0-1.0
-License text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+授權全文: https://creativecommons.org/publicdomain/zero/1.0/legalcode

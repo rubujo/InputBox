@@ -94,7 +94,7 @@ jobs:
           eng/nuget/*.sha256
           .config/dotnet-tools.json
 
-    - name: 驗證 repo-local InputWeave.GameInput nupkg
+    - name: 驗證本儲存庫 InputWeave.GameInput NuGet 套件
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
@@ -102,15 +102,15 @@ jobs:
         $expected = "64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805"
 
         if (-not (Test-Path $packagePath)) {
-          Write-Error "找不到 repo-local InputWeave.GameInput nupkg：$packagePath"
+          Write-Error "找不到本儲存庫 InputWeave.GameInput NuGet 套件：$packagePath"
         }
 
         $actual = (Get-FileHash $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actual -ne $expected) {
-          Write-Error "InputWeave.GameInput nupkg SHA256 不符。Expected=$expected Actual=$actual"
+          Write-Error "InputWeave.GameInput 套件 SHA256 不符。Expected=$expected Actual=$actual"
         }
 
-        Write-Host "InputWeave.GameInput nupkg SHA256 驗證通過：$actual"
+        Write-Host "InputWeave.GameInput 套件 SHA256 驗證通過：$actual"
 
     - name: 還原主專案 NuGet 套件
       run: dotnet restore ./src/InputBox/InputBox.csproj --force-evaluate
