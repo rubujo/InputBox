@@ -99,12 +99,17 @@ jobs:
       run: |
         $ErrorActionPreference = 'Stop'
         $packagePath = ".\eng\nuget\InputWeave.GameInput.0.0.1.nupkg"
-        $expected = "64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805"
+        $checksumPath = ".\eng\nuget\InputWeave.GameInput.0.0.1.nupkg.sha256"
 
         if (-not (Test-Path $packagePath)) {
           Write-Error "找不到本儲存庫 InputWeave.GameInput NuGet 套件：$packagePath"
         }
 
+        if (-not (Test-Path $checksumPath)) {
+          Write-Error "找不到本儲存庫 InputWeave.GameInput 套件 SHA256 檔案：$checksumPath"
+        }
+
+        $expected = ((Get-Content -LiteralPath $checksumPath -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
         $actual = (Get-FileHash $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actual -ne $expected) {
           Write-Error "InputWeave.GameInput 套件 SHA256 不符。Expected=$expected Actual=$actual"

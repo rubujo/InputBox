@@ -1071,9 +1071,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         try
         {
-            _ = GameInputRuntime.TryProbe(out probeInfo);
-
-            return true;
+            return GameInputRuntime.TryProbe(out probeInfo);
         }
         catch (Exception ex)
         {
