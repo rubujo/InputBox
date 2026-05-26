@@ -109,7 +109,7 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 
 ### 4. 第三方測試函式庫與授權 📦
 
-本測試專案會使用第三方函式庫作為測試框架、Coverage 與 WinForms UI 冒煙測試用途。
+本測試專案會使用第三方函式庫作為測試框架、Coverage、WinForms UI 冒煙測試與 GameInput API surface 守門用途。
 
 > 下列名稱已對齊 [InputBox.Tests.csproj](InputBox.Tests.csproj) 中的 NuGet 套件名稱；若 GitHub 原始碼儲存庫名稱不同，會另外標示為「原始碼儲存庫」。
 
@@ -121,6 +121,7 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 - Microsoft.Testing.Extensions.CodeCoverage：原始碼儲存庫為 [microsoft/codecoverage](https://github.com/microsoft/codecoverage)，由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/microsoft/codecoverage/graphs/contributors) 開發並採用 [MIT License](https://github.com/microsoft/codecoverage/blob/main/LICENSE) 授權，用於測試覆蓋率收集。
 - FlaUI.Core：原始碼儲存庫為 [FlaUI/FlaUI](https://github.com/FlaUI/FlaUI)，由 [Roman Baeriswyl](https://github.com/Roemer) 及其 [貢獻者](https://github.com/FlaUI/FlaUI/graphs/contributors) 開發並採用 [MIT License](https://github.com/FlaUI/FlaUI/blob/main/LICENSE.txt) 授權，作為 Windows UI 自動化核心函式庫。
 - FlaUI.UIA3：原始碼儲存庫為 [FlaUI/FlaUI](https://github.com/FlaUI/FlaUI)，由 [Roman Baeriswyl](https://github.com/Roemer) 及其 [貢獻者](https://github.com/FlaUI/FlaUI/graphs/contributors) 開發並採用 [MIT License](https://github.com/FlaUI/FlaUI/blob/main/LICENSE.txt) 授權，作為 UIA3 後端，用於 WinForms UI 冒煙測試。
+- InputWeave.GameInput 0.0.1：原始碼儲存庫固定於 [rubujo/InputWeave.GameInput package commit](https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065)，由 [InputWeave contributors](https://github.com/rubujo/InputWeave.GameInput/graphs/contributors) 開發並採用 [CC0-1.0](https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE) 授權，作為 GameInput direct usage 與 rumble 型別守門測試依賴；nupkg 固定於 [../../eng/nuget/InputWeave.GameInput.0.0.1.nupkg](../../eng/nuget/InputWeave.GameInput.0.0.1.nupkg)，SHA256 為 `64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805`。
 
 本測試專案的相關說明詳見本文件；主專案授權與完整聲明仍以 [../../README.md](../../README.md) 及 [../../LICENSE](../../LICENSE) 為準。
 
