@@ -115,7 +115,24 @@ jobs:
           Write-Error "InputWeave.GameInput 套件 SHA256 不符。Expected=$expected Actual=$actual"
         }
 
+        $expectedCommit = "72697db594b8f1863bd3fbf5db75ff69b40e3364"
+        $inspectDir = Join-Path $env:RUNNER_TEMP "inputweave-gameinput-package"
+        if (Test-Path $inspectDir) {
+          Remove-Item -LiteralPath $inspectDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Path $inspectDir | Out-Null
+        Expand-Archive -Path $packagePath -DestinationPath $inspectDir -Force
+        $nuspecPath = Get-ChildItem -LiteralPath $inspectDir -Filter "*.nuspec" -File | Select-Object -First 1
+        if ($null -eq $nuspecPath) {
+          Write-Error "InputWeave.GameInput 套件缺少 nuspec。"
+        }
+        $nuspecText = Get-Content -LiteralPath $nuspecPath.FullName -Raw
+        if ($nuspecText -notmatch "commit=`"$expectedCommit`"") {
+          Write-Error "InputWeave.GameInput 套件封裝來源 commit 不符；必須為 $expectedCommit。"
+        }
+
         Write-Host "InputWeave.GameInput 套件 SHA256 驗證通過：$actual"
+        Write-Host "InputWeave.GameInput 套件封裝來源 commit 驗證通過：$expectedCommit"
 
     - name: 還原主專案 NuGet 套件
       run: dotnet restore ./src/InputBox/InputBox.csproj --force-evaluate

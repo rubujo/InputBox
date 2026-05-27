@@ -22,7 +22,7 @@
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載），含正負方向對稱性守門（硬體平等原則） | 14 |
 | `GamepadControllerFactoryTests` | 控制器後端建立策略，驗證 XInput 預設路徑、GameInput 成功路徑，以及 GameInput 執行階段不可用時退避至 XInput | 3 |
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意、GameInput 讀取缺失斷線重列舉、裝置狀態過濾、震動停止安全性、`ClearAllEvents` 肩鍵釋放訂閱清除與原生對話框切換時的殘留輸入回歸保護 | 10 |
-| `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` 遊戲控制器介面的守門、官方 v3 按鍵位元、快照邊緣偵測、穩定裝置識別與震動參數保留 | 7 |
+| `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` 遊戲控制器介面的守門、callback function pointer marshaling、官方 v3 按鍵位元、快照邊緣偵測、穩定裝置識別與震動參數保留 | 8 |
 | `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 14 |
 | `GamepadEventBinderTests` | `GamepadEventBinder` 的 LB / RB / LT / RT 與肩鍵放開事件綁定回歸保護 | 1 |
 | `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆寫優先權、GameInput 裝置識別保留 VID/PID 時的 Sony/Nintendo 判斷，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 25 |
@@ -45,7 +45,7 @@
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **383** |
+| **合計** | | **384** |
 
 ## 二、執行方式 🚀
 
@@ -121,7 +121,7 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 - Microsoft.Testing.Extensions.CodeCoverage：原始碼儲存庫為 [microsoft/codecoverage](https://github.com/microsoft/codecoverage)，由 [Microsoft](https://github.com/microsoft) 及其 [貢獻者](https://github.com/microsoft/codecoverage/graphs/contributors) 開發並採用 [MIT License](https://github.com/microsoft/codecoverage/blob/main/LICENSE) 授權，用於測試覆蓋率收集。
 - FlaUI.Core：原始碼儲存庫為 [FlaUI/FlaUI](https://github.com/FlaUI/FlaUI)，由 [Roman Baeriswyl](https://github.com/Roemer) 及其 [貢獻者](https://github.com/FlaUI/FlaUI/graphs/contributors) 開發並採用 [MIT License](https://github.com/FlaUI/FlaUI/blob/main/LICENSE.txt) 授權，作為 Windows UI 自動化核心函式庫。
 - FlaUI.UIA3：原始碼儲存庫為 [FlaUI/FlaUI](https://github.com/FlaUI/FlaUI)，由 [Roman Baeriswyl](https://github.com/Roemer) 及其 [貢獻者](https://github.com/FlaUI/FlaUI/graphs/contributors) 開發並採用 [MIT License](https://github.com/FlaUI/FlaUI/blob/main/LICENSE.txt) 授權，作為 UIA3 後端，用於 WinForms UI 冒煙測試。
-- InputWeave.GameInput 0.0.1：原始碼儲存庫固定於 [rubujo/InputWeave.GameInput 封裝來源](https://github.com/rubujo/InputWeave.GameInput/tree/664a9d3e96458a49688ff2255a36f6e073977065)，由 [rubujo](https://github.com/rubujo) 及其 [貢獻者](https://github.com/rubujo/InputWeave.GameInput/graphs/contributors) 開發並採用 [CC0 1.0 Universal](https://github.com/rubujo/InputWeave.GameInput/blob/664a9d3e96458a49688ff2255a36f6e073977065/LICENSE) 授權，作為 GameInput 直接使用與震動型別守門測試依賴；套件固定於 [../../eng/nuget/InputWeave.GameInput.0.0.1.nupkg](../../eng/nuget/InputWeave.GameInput.0.0.1.nupkg)，SHA256 為 `64d9ef502853130d4af8df7cc1c2777a67808ef668e41c22fc6b526b83ed2805`。
+- InputWeave.GameInput 0.0.1：原始碼儲存庫固定於 [rubujo/InputWeave.GameInput 封裝來源](https://github.com/rubujo/InputWeave.GameInput/tree/72697db594b8f1863bd3fbf5db75ff69b40e3364)，由 [rubujo](https://github.com/rubujo) 及其 [貢獻者](https://github.com/rubujo/InputWeave.GameInput/graphs/contributors) 開發並採用 [CC0 1.0 Universal](https://github.com/rubujo/InputWeave.GameInput/blob/72697db594b8f1863bd3fbf5db75ff69b40e3364/LICENSE) 授權，作為 GameInput 直接使用與震動型別守門測試依賴；套件固定於 [../../eng/nuget/InputWeave.GameInput.0.0.1.nupkg](../../eng/nuget/InputWeave.GameInput.0.0.1.nupkg)，SHA256 為 `451b9d65143eafea130ec3492f12a991b29c62d53509e74b856894848f329f5e`。
 
 本測試專案的相關說明詳見本文件；主專案授權與完整聲明仍以 [../../README.md](../../README.md) 及 [../../LICENSE](../../LICENSE) 為準。
 
