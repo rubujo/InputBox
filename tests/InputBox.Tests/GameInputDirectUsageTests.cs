@@ -138,7 +138,7 @@ public sealed class GameInputDirectUsageTests
     /// GameInput lifecycle 診斷應維持 Info，只有可行動的讀取或裝置狀態異常才升級為 Warning。
     /// </summary>
     [Fact]
-    public void ShouldWarnGameInputDiagnostics_OnlyActionableReasons_ReturnTrue()
+    public void ShouldWarnGameInputDiagnostics_ReturnsExpectedValues()
     {
         MethodInfo method = typeof(GameInputGamepadController).GetMethod(
             "ShouldWarnGameInputDiagnostics",

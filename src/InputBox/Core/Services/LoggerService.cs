@@ -78,6 +78,16 @@ internal static class LoggerService
     private const string LogLevelEnvironmentVariableName = "INPUTBOX_LOG_LEVEL";
 
     /// <summary>
+    /// 目前建置是否為 Debug；此值在程序生命週期內不會改變。
+    /// </summary>
+    private static readonly bool _isDebugBuild = IsDebugBuild();
+
+    /// <summary>
+    /// 目前程序是否執行於測試主機；此值在程序生命週期內不會改變。
+    /// </summary>
+    private static readonly bool _isRunningUnderTestHost = IsRunningUnderTestHost();
+
+    /// <summary>
     /// 記錄例外錯誤
     /// </summary>
     /// <param name="ex">例外物件</param>
@@ -186,8 +196,8 @@ internal static class LoggerService
     /// <returns>最低寫入等級。</returns>
     private static LogLevel GetMinimumLogLevel()
         => ResolveMinimumLogLevel(
-            IsRunningUnderTestHost(),
-            IsDebugBuild(),
+            _isRunningUnderTestHost,
+            _isDebugBuild,
             Environment.GetEnvironmentVariable(LogLevelEnvironmentVariableName));
 
     /// <summary>
@@ -298,7 +308,7 @@ internal static class LoggerService
             return overrideLogFileName.Trim();
         }
 
-        return IsRunningUnderTestHost() ? TestLogFileName : LogFileName;
+        return _isRunningUnderTestHost ? TestLogFileName : LogFileName;
     }
 
     /// <summary>
