@@ -2,6 +2,7 @@
 using InputWeave.GameInput;
 using InputWeave.GameInput.Interop;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -28,6 +29,18 @@ public sealed class GameInputDirectUsageTests
         Assert.NotNull(typeof(GameInputDevice).GetProperty(nameof(GameInputDevice.Status)));
         Assert.NotNull(typeof(GameInputDevice).GetMethod(nameof(GameInputDevice.GetDeviceInfoSnapshot), Type.EmptyTypes));
         Assert.NotNull(typeof(GameInputDevice).GetMethod(nameof(GameInputDevice.SetRumbleState), [typeof(GameInputRumbleParams).MakeByRefType()]));
+    }
+
+    /// <summary>
+    /// InputWeave 的 GameInput callback 參數必須以 unmanaged function pointer 傳遞，避免退回 _Delegate COM marshaling。
+    /// </summary>
+    [Fact]
+    public void GameInputCallbackParameters_AreFunctionPointers()
+    {
+        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterReadingCallback), typeof(GameInputReadingCallback));
+        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterDeviceCallback), typeof(GameInputDeviceCallback));
+        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterSystemButtonCallback), typeof(GameInputSystemButtonCallback));
+        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterKeyboardLayoutCallback), typeof(GameInputKeyboardLayoutCallback));
     }
 
     /// <summary>
@@ -164,6 +177,17 @@ public sealed class GameInputDirectUsageTests
         Assert.Equal(0.2f, rumble.HighFrequency);
         Assert.Equal(0.3f, rumble.LeftTrigger);
         Assert.Equal(0.4f, rumble.RightTrigger);
+    }
+
+    private static void AssertCallbackParameterIsFunctionPointer(string methodName, Type callbackType)
+    {
+        MethodInfo method = typeof(IGameInput).GetMethod(methodName)
+            ?? throw new InvalidOperationException($"找不到 IGameInput.{methodName}。");
+        ParameterInfo callbackParameter = method.GetParameters().Single(parameter => parameter.ParameterType == callbackType);
+        MarshalAsAttribute? marshalAs = callbackParameter.GetCustomAttribute<MarshalAsAttribute>();
+
+        Assert.NotNull(marshalAs);
+        Assert.Equal(UnmanagedType.FunctionPtr, marshalAs.Value);
     }
 
     private static GameInputDeviceInfoSnapshot CreateDeviceInfoSnapshot(
