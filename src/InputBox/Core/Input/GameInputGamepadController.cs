@@ -861,7 +861,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
             catch (Exception ex)
             {
-                LoggerService.LogException(ex, "GameInput 註冊 ReadingCallback 失敗");
+                LoggerService.LogWarning($"GameInput 註冊 ReadingCallback 失敗 exception={ex.GetType().Name} message={ex.Message}");
 
                 Debug.WriteLine($"GameInput 註冊 ReadingCallback 失敗：{ex.Message}");
             }
@@ -940,8 +940,17 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     probeInfo.Candidates.Select(candidate =>
                         $"{candidate.ModuleKind}:exists={candidate.Exists}:loadHr=0x{unchecked((uint)candidate.LoadHResult):X8}:procHr=0x{unchecked((uint)candidate.GetProcAddressHResult):X8}:win32={candidate.Win32Error}:path={candidate.ModulePath}"));
 
-                LoggerService.LogInfo(
-                    $"GameInputProbe/InputWeave available={probeInfo.IsAvailable} hr=0x{unchecked((uint)probeInfo.HResult):X8} win32={probeInfo.Win32Error} selectedKind={probeInfo.SelectedModuleKind} selectedPath={probeInfo.SelectedModulePath} selectedVersion={probeInfo.SelectedFileVersion} candidates={candidateSummary}");
+                string probeMessage =
+                    $"GameInputProbe/InputWeave available={probeInfo.IsAvailable} hr=0x{unchecked((uint)probeInfo.HResult):X8} win32={probeInfo.Win32Error} selectedKind={probeInfo.SelectedModuleKind} selectedPath={probeInfo.SelectedModulePath} selectedVersion={probeInfo.SelectedFileVersion} candidates={candidateSummary}";
+
+                if (probeInfo.IsAvailable)
+                {
+                    LoggerService.LogInfo(probeMessage);
+                }
+                else
+                {
+                    LoggerService.LogWarning(probeMessage);
+                }
             }
 
             Debug.WriteLine($"GameInput 在背景執行緒初始化失敗：{ex.Message}");
@@ -1053,14 +1062,32 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 lastReadDeviceStatus = _lastReadDeviceStatus;
             }
 
-            LoggerService.LogInfo(
-                $"GameInputDiag reason={reason} missingReadings={missingReadingCount} repeatedTimestamps={repeatedTimestampCount} backwardTimestamps={backwardTimestampCount} deviceUnavailableRefreshes={deviceUnavailableRefreshCount} lastTimestamp={lastReadingTimestamp} lastReadHr=0x{unchecked((uint)lastReadHResult):X8} lastDeviceStatus=0x{lastReadDeviceStatus:X8}");
+            string message =
+                $"GameInputDiag reason={reason} missingReadings={missingReadingCount} repeatedTimestamps={repeatedTimestampCount} backwardTimestamps={backwardTimestampCount} deviceUnavailableRefreshes={deviceUnavailableRefreshCount} lastTimestamp={lastReadingTimestamp} lastReadHr=0x{unchecked((uint)lastReadHResult):X8} lastDeviceStatus=0x{lastReadDeviceStatus:X8}";
+
+            if (ShouldWarnGameInputDiagnostics(reason))
+            {
+                LoggerService.LogWarning(message);
+            }
+            else
+            {
+                LoggerService.LogInfo(message);
+            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[GameInput] 讀取診斷快照失敗（{reason}，已忽略）：{ex.Message}");
         }
     }
+
+    /// <summary>
+    /// 判斷 GameInput 診斷原因是否應進入 Release 預設日誌。
+    /// </summary>
+    /// <param name="reason">診斷觸發原因。</param>
+    /// <returns>若應記為 Warning 則為 true。</returns>
+    private static bool ShouldWarnGameInputDiagnostics(string reason)
+        => string.Equals(reason, "missing-reading-threshold", StringComparison.Ordinal) ||
+            string.Equals(reason, "device-status-non-connected", StringComparison.Ordinal);
 
     /// <summary>
     /// 安全呼叫 InputWeave runtime probe。
@@ -2908,23 +2935,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch (Exception innerEx)
                 {
-#if DEBUG
-                    LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=cancel-stop exception={innerEx.GetType().Name} message={innerEx.Message}");
-#endif
+                    LoggerService.LogWarning($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=cancel-stop exception={innerEx.GetType().Name} message={innerEx.Message}");
                     Debug.WriteLine($"[GameInput] 取消後強制停止馬達失敗（已忽略）：{innerEx.Message}");
                 }
             }
-#if DEBUG
             catch (Exception ex)
             {
-                LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=start outcome=failed exception={ex.GetType().Name} message={ex.Message}");
+                LoggerService.LogWarning($"VibrationDiag source=GameInput stage=api action=start outcome=failed exception={ex.GetType().Name} message={ex.Message}");
             }
-#else
-            catch (Exception)
-            {
-
-            }
-#endif
         },
         ct);
     }
@@ -3122,9 +3140,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
                 catch (Exception bgEx)
                 {
-#if DEBUG
-                    LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop-bg exception={bgEx.GetType().Name} message={bgEx.Message}");
-#endif
+                    LoggerService.LogWarning($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop-bg exception={bgEx.GetType().Name} message={bgEx.Message}");
                     Debug.WriteLine($"[GameInput] 背景停止馬達失敗（已忽略）：{bgEx.Message}");
                 }
             });
@@ -3137,9 +3153,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
             catch (Exception ex)
             {
-#if DEBUG
-                LoggerService.LogInfo($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop exception={ex.GetType().Name} message={ex.Message}");
-#endif
+                LoggerService.LogWarning($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop exception={ex.GetType().Name} message={ex.Message}");
                 Debug.WriteLine($"GameInput 停止震動失敗：{ex.Message}");
             }
         }

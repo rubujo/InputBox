@@ -179,6 +179,7 @@ internal static class FeedbackService
         }
         catch (Exception ex)
         {
+            LoggerService.LogWarning($"VibrationDiag source=FeedbackService stage=dispatch outcome=failed controller={controller.GetType().Name} priority={priority} exception={ex.GetType().Name} message={ex.Message}");
             Debug.WriteLine($"[震動] 控制器震動失敗（已忽略）：{ex.Message}");
         }
     }

@@ -26,6 +26,10 @@ public sealed class LoggerServiceTestCollection;
 [Collection(LoggerServiceTestRequirements.CollectionName)]
 public sealed class LoggerServiceTests : IDisposable
 {
+    private readonly List<string> _temporaryLogPaths = [];
+    private readonly string? _originalLogFileName;
+    private readonly string? _originalLogLevel;
+
     /// <summary>
     /// 正式執行時的主要日誌檔路徑，用於驗證測試不會污染使用者平常檢視的記錄。
     /// </summary>
@@ -51,6 +55,12 @@ public sealed class LoggerServiceTests : IDisposable
     /// </summary>
     public LoggerServiceTests()
     {
+        _originalLogFileName = Environment.GetEnvironmentVariable("INPUTBOX_LOG_FILE_NAME");
+        _originalLogLevel = Environment.GetEnvironmentVariable("INPUTBOX_LOG_LEVEL");
+
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_FILE_NAME", null);
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_LEVEL", null);
+
         Directory.CreateDirectory(LoggerService.LogDirectory);
 
         BackupIfExists(MainLogPath, MainLogBackupPath);
@@ -62,6 +72,14 @@ public sealed class LoggerServiceTests : IDisposable
     /// </summary>
     public void Dispose()
     {
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_FILE_NAME", _originalLogFileName);
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_LEVEL", _originalLogLevel);
+
+        foreach (string temporaryLogPath in _temporaryLogPaths)
+        {
+            DeleteIfExists(temporaryLogPath);
+        }
+
         RestoreOrDelete(MainLogPath, MainLogBackupPath);
         RestoreOrDelete(TestLogPath, TestLogBackupPath);
     }
@@ -96,6 +114,132 @@ public sealed class LoggerServiceTests : IDisposable
     }
 
     /// <summary>
+    /// Release 且非測試主機時，預設日誌門檻應為 Warning，避免一般診斷污染正式日誌。
+    /// </summary>
+    [Fact]
+    public void ResolveMinimumLogLevel_ReleaseNonTestHost_ReturnsWarning()
+    {
+        Assert.Equal(
+            LoggerService.LogLevel.Warning,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: false,
+                isDebugBuild: false,
+                overrideValue: null));
+    }
+
+    /// <summary>
+    /// Debug 或測試主機應保留 Info 診斷，方便開發與回歸測試追蹤問題。
+    /// </summary>
+    [Fact]
+    public void ResolveMinimumLogLevel_DebugOrTestHost_ReturnsInfo()
+    {
+        Assert.Equal(
+            LoggerService.LogLevel.Info,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: false,
+                isDebugBuild: true,
+                overrideValue: null));
+        Assert.Equal(
+            LoggerService.LogLevel.Info,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: true,
+                isDebugBuild: false,
+                overrideValue: null));
+    }
+
+    /// <summary>
+    /// 有效的 INPUTBOX_LOG_LEVEL 應覆寫建置組態預設門檻，方便使用者臨時開啟診斷。
+    /// </summary>
+    [Fact]
+    public void ResolveMinimumLogLevel_ValidOverride_ReturnsOverride()
+    {
+        Assert.Equal(
+            LoggerService.LogLevel.Info,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: false,
+                isDebugBuild: false,
+                overrideValue: "Info"));
+        Assert.Equal(
+            LoggerService.LogLevel.Error,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: true,
+                isDebugBuild: true,
+                overrideValue: "error"));
+    }
+
+    /// <summary>
+    /// 無效的 INPUTBOX_LOG_LEVEL 不應改變預設門檻，避免拼錯值導致正式日誌過度輸出。
+    /// </summary>
+    [Fact]
+    public void ResolveMinimumLogLevel_InvalidOverride_ReturnsDefault()
+    {
+        Assert.Equal(
+            LoggerService.LogLevel.Warning,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: false,
+                isDebugBuild: false,
+                overrideValue: "Verbose"));
+        Assert.Equal(
+            LoggerService.LogLevel.Warning,
+            LoggerService.ResolveMinimumLogLevelForTests(
+                isRunningUnderTestHost: false,
+                isDebugBuild: false,
+                overrideValue: "3"));
+    }
+
+    /// <summary>
+    /// Warning 門檻下，Info 診斷不應寫入檔案。
+    /// </summary>
+    [Fact]
+    public void LogInfo_WhenMinimumLevelIsWarning_DoesNotWrite()
+    {
+        string logPath = UseTemporaryLogFile();
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_LEVEL", "Warning");
+
+        LoggerService.LogInfo("logger-info-marker");
+
+        Assert.False(File.Exists(logPath));
+    }
+
+    /// <summary>
+    /// Warning 門檻下，Warning、Error 與例外都應寫入檔案。
+    /// </summary>
+    [Fact]
+    public void LogWarningErrorAndException_WhenMinimumLevelIsWarning_Write()
+    {
+        string logPath = UseTemporaryLogFile();
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_LEVEL", "Warning");
+
+        LoggerService.LogWarning("logger-warning-marker");
+        LoggerService.LogError("logger-error-marker");
+        LoggerService.LogException(new InvalidOperationException("logger-exception-marker"), "LoggerServiceTests");
+
+        string content = File.ReadAllText(logPath);
+        Assert.Contains("[WARNING]", content);
+        Assert.Contains("logger-warning-marker", content);
+        Assert.Contains("[ERROR]", content);
+        Assert.Contains("logger-error-marker", content);
+        Assert.Contains("[EXCEPTION]", content);
+        Assert.Contains("logger-exception-marker", content);
+    }
+
+    /// <summary>
+    /// 使用 INPUTBOX_LOG_LEVEL=Info 時，Info 診斷應可臨時寫入檔案。
+    /// </summary>
+    [Fact]
+    public void LogInfo_WhenEnvironmentOverrideIsInfo_Writes()
+    {
+        string logPath = UseTemporaryLogFile();
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_LEVEL", "Info");
+
+        LoggerService.LogInfo("logger-info-override-marker");
+
+        string content = File.ReadAllText(logPath);
+        Assert.Contains("[INFO]", content);
+        Assert.Contains("logger-info-override-marker", content);
+    }
+
+    /// <summary>
     /// 若目標檔案存在則先備份到測試專用路徑。
     /// </summary>
     /// <param name="sourcePath">原始日誌檔路徑。</param>
@@ -114,6 +258,35 @@ public sealed class LoggerServiceTests : IDisposable
                 File.Move(sourcePath, backupPath, overwrite: true);
             }
         });
+    }
+
+    /// <summary>
+    /// 刪除檔案（若存在）。
+    /// </summary>
+    /// <param name="path">檔案路徑。</param>
+    private static void DeleteIfExists(string path)
+    {
+        RetryFileOperation(() =>
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 使用本測試專屬暫存日誌檔。
+    /// </summary>
+    /// <returns>暫存日誌檔完整路徑。</returns>
+    private string UseTemporaryLogFile()
+    {
+        string logFileName = $"InputBox.logger-test-{Guid.NewGuid():N}.log";
+        string logPath = Path.Combine(LoggerService.LogDirectory, logFileName);
+        _temporaryLogPaths.Add(logPath);
+        Environment.SetEnvironmentVariable("INPUTBOX_LOG_FILE_NAME", logFileName);
+
+        return logPath;
     }
 
     /// <summary>
