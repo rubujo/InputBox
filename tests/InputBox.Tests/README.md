@@ -22,7 +22,7 @@
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載），含正負方向對稱性守門（硬體平等原則） | 14 |
 | `GamepadControllerFactoryTests` | 控制器後端建立策略，驗證 XInput 預設路徑、GameInput 成功路徑，以及 GameInput 執行階段不可用時退避至 XInput | 3 |
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意、GameInput 讀取缺失斷線重列舉、裝置狀態過濾、震動停止安全性、`ClearAllEvents` 肩鍵釋放訂閱清除與原生對話框切換時的殘留輸入回歸保護 | 10 |
-| `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` 遊戲控制器介面的守門、callback function pointer marshaling、官方 v3 按鍵位元、快照邊緣偵測、穩定裝置識別與震動參數保留 | 8 |
+| `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` 遊戲控制器介面的守門、callback function pointer marshaling、官方 v3 按鍵位元、快照邊緣偵測、Release 日誌邊界、穩定裝置識別與震動參數保留 | 9 |
 | `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 14 |
 | `GamepadEventBinderTests` | `GamepadEventBinder` 的 LB / RB / LT / RT 與肩鍵放開事件綁定回歸保護 | 1 |
 | `GamepadFaceButtonProfileTests` | `GamepadFaceButtonProfile` 的 Auto 解析、手動覆寫優先權、GameInput 裝置識別保留 VID/PID 時的 Sony/Nintendo 判斷，以及 Xbox / PlayStation / Nintendo 模式的按鍵標示、助記詞同步、資源化字串、主畫面說明文字、目前生效配置顯示、標題列提示、選單勾選邏輯與 PlayStation ○/× 確認模式回歸保護 | 25 |
@@ -35,7 +35,7 @@
 | `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消、生命週期資源保護與已連線控制器提示同步 | 5 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD 與 5 筆翻頁導覽 | 15 |
-| `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流與正式日誌隔離保護 | 1 |
+| `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流、Release-like 日誌門檻、環境變數覆寫與正式日誌隔離保護 | 8 |
 | `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、設定中的控制器子選單、控制器校準視覺化對話框、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框、程式內確認重啟後主視窗保持前景，以及基本複製流程的 UI 冒煙測試 | 11 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出、併發暫存檔誤刪，以及持久化失敗時的記憶體復原回歸保護 | 39 |
 | `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護 | 3 |
@@ -45,7 +45,7 @@
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **384** |
+| **合計** | | **392** |
 
 ## 二、執行方式 🚀
 

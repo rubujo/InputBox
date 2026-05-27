@@ -24,6 +24,7 @@
 - **GameInput 發佈驗證**：CI 與 release 不再建置舊版 `InputBox.GameInput.Native` 原生專案；發佈輸出與 ZIP 必須確認不包含 `InputBox.GameInput.Native.dll` 或 `gameinput.dll` sidecar。GameInput runtime 不可用時，仍必須走既有初始化失敗並退避 XInput 路徑。
 - **GameInput 手動硬體驗證**：自動驗證通過後，若正式發佈或變更內容涉及 GameInput 硬體行為，仍應依 `docs/engineering/gameinput-hardware-verification.md` 抽測實體控制器。此矩陣不是 CI 關卡，也不是每個 PR 的必跑項目。
 - **GameInput runtime probe**：必須保留 InputWeave 的 runtime probe 診斷，回報 loader policy、HRESULT / Win32 error、候選與實際選取的 module kind/path/version；此資訊只供 log 與測試，不可影響按鍵語意。
+- **GameInput Release 日誌邊界**：正常 `GameInputRuntime/InputWeave`、`GameInputDiag reason=init/stop-polling/dispose` 與 repeated timestamp 計數只屬於 `Info` 診斷；只有 runtime 不可用、callback 註冊失敗、missing reading 門檻、裝置狀態非 connected、讀取例外或震動 API 失敗才可在 Release 預設門檻下輸出。
 - **GameInput DLL 載入安全**：GameInput runtime 載入策略由 InputWeave 負責，InputBox 不得自行從工作目錄、目前目錄或未限定搜尋路徑載入 `gameinput.dll`。
 - **GameInput 同步**：InputBox 仍必須在背景 MTA polling thread 建立、存取與釋放 InputWeave `GameInputClient` / `GameInputDevice` / callback registration；callback 只能設定喚醒或重新整理訊號，不得直接觸發 managed UI 命令。
 - **GameInput 診斷 metadata 邊界**：runtime probe、timestamp stale counters、missing reading counters、device unavailable refresh counters 只能進入 log、測試或未來診斷快照，不可直接改變 edge detection、Pause/Resume neutral gate 或任何 UI 命令。

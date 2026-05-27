@@ -1831,19 +1831,15 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             uint stopResult = XInput.XInputSetState(_userIndex, in stopVibration);
 
-#if DEBUG
             if (stopResult != 0)
             {
-                LoggerService.LogInfo(
+                LoggerService.LogWarning(
                     $"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=sync-stop result={stopResult} userIndex={_userIndex}");
             }
-#endif
         }
         catch (Exception ex)
         {
-#if DEBUG
-            LoggerService.LogInfo($"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=sync-stop exception={ex.GetType().Name} message={ex.Message}");
-#endif
+            LoggerService.LogWarning($"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=sync-stop exception={ex.GetType().Name} message={ex.Message}");
             Debug.WriteLine($"[XInput] StopVibration 失敗（已忽略）：{ex.Message}");
         }
     }
@@ -1961,15 +1957,15 @@ internal sealed partial class XInputGamepadController : IGamepadController
 
             uint startResult = XInput.XInputSetState(userIndex, in vibration);
 
-#if DEBUG
             if (startResult != 0)
             {
-                LoggerService.LogInfo(
+                LoggerService.LogWarning(
                     $"VibrationDiag source=XInput stage=api action=start outcome=failed result={startResult} userIndex={userIndex} strength={safeStrength} durationMs={safeDurationMs} priority={priority}");
 
                 return;
             }
 
+#if DEBUG
             bool shouldLogApiSuccess = priority != VibrationPriority.Ambient ||
                 Interlocked.Increment(ref _vibrationDiagSampleCounter) % 20 == 0;
 
@@ -1977,11 +1973,6 @@ internal sealed partial class XInputGamepadController : IGamepadController
             {
                 LoggerService.LogInfo(
                     $"VibrationDiag source=XInput stage=api action=start outcome=ok result={startResult} userIndex={userIndex} strength={safeStrength} durationMs={safeDurationMs} priority={priority}");
-            }
-#else
-            if (startResult != 0)
-            {
-                return;
             }
 #endif
 
@@ -1998,13 +1989,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
                     XInput.XInputVibration stop = default;
                     uint stopResult = XInput.XInputSetState(userIndex, in stop);
 
-#if DEBUG
                     if (stopResult != 0)
                     {
-                        LoggerService.LogInfo(
+                        LoggerService.LogWarning(
                             $"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=external-cancel result={stopResult} userIndex={userIndex}");
                     }
-#endif
                 }
 
                 return;
@@ -2019,13 +2008,11 @@ internal sealed partial class XInputGamepadController : IGamepadController
             XInput.XInputVibration stopVibration = default;
             uint stopFinalResult = XInput.XInputSetState(userIndex, in stopVibration);
 
-#if DEBUG
             if (stopFinalResult != 0)
             {
-                LoggerService.LogInfo(
+                LoggerService.LogWarning(
                     $"VibrationDiag source=XInput stage=api action=stop outcome=failed reason=normal-finish result={stopFinalResult} userIndex={userIndex}");
             }
-#endif
         }, ct);
     }
 

@@ -14,6 +14,27 @@ namespace InputBox.Core.Services;
 internal static class LoggerService
 {
     /// <summary>
+    /// 可寫入檔案的日誌等級。
+    /// </summary>
+    internal enum LogLevel
+    {
+        /// <summary>
+        /// 一般診斷資訊。
+        /// </summary>
+        Info = 0,
+
+        /// <summary>
+        /// 使用者或維護者需要注意的非致命異常。
+        /// </summary>
+        Warning = 1,
+
+        /// <summary>
+        /// 失敗或例外。
+        /// </summary>
+        Error = 2
+    }
+
+    /// <summary>
     /// 記錄鎖定物件（使用 C# 13 System.Threading.Lock）
     /// </summary>
     private static readonly Lock _logLock = new();
@@ -52,6 +73,11 @@ internal static class LoggerService
     private const int MaxBackupFiles = 5;
 
     /// <summary>
+    /// 日誌等級覆寫環境變數名稱。
+    /// </summary>
+    private const string LogLevelEnvironmentVariableName = "INPUTBOX_LOG_LEVEL";
+
+    /// <summary>
     /// 記錄例外錯誤
     /// </summary>
     /// <param name="ex">例外物件</param>
@@ -59,6 +85,11 @@ internal static class LoggerService
     public static void LogException(Exception? ex, string context = "")
     {
         if (ex == null)
+        {
+            return;
+        }
+
+        if (!ShouldWrite(LogLevel.Error))
         {
             return;
         }
@@ -102,15 +133,111 @@ internal static class LoggerService
     /// </summary>
     /// <param name="message">訊息內容</param>
     public static void LogInfo(string message)
+        => LogMessage(LogLevel.Info, "INFO", message);
+
+    /// <summary>
+    /// 記錄警告。
+    /// </summary>
+    /// <param name="message">訊息內容。</param>
+    public static void LogWarning(string message)
+        => LogMessage(LogLevel.Warning, "WARNING", message);
+
+    /// <summary>
+    /// 記錄錯誤。
+    /// </summary>
+    /// <param name="message">訊息內容。</param>
+    public static void LogError(string message)
+        => LogMessage(LogLevel.Error, "ERROR", message);
+
+    /// <summary>
+    /// 記錄單行訊息。
+    /// </summary>
+    /// <param name="level">日誌等級。</param>
+    /// <param name="levelName">輸出等級名稱。</param>
+    /// <param name="message">訊息內容。</param>
+    private static void LogMessage(LogLevel level, string levelName, string message)
     {
         if (string.IsNullOrWhiteSpace(message))
         {
             return;
         }
 
-        string logEntry = $"[INFO] {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} - {message}{Environment.NewLine}";
+        if (!ShouldWrite(level))
+        {
+            return;
+        }
+
+        string logEntry = $"[{levelName}] {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} - {message}{Environment.NewLine}";
 
         WriteToFile(logEntry);
+    }
+
+    /// <summary>
+    /// 判斷目前等級是否應寫入。
+    /// </summary>
+    /// <param name="level">欲寫入的日誌等級。</param>
+    /// <returns>若應寫入則為 true。</returns>
+    private static bool ShouldWrite(LogLevel level)
+        => level >= GetMinimumLogLevel();
+
+    /// <summary>
+    /// 取得目前有效的最低日誌等級。
+    /// </summary>
+    /// <returns>最低寫入等級。</returns>
+    private static LogLevel GetMinimumLogLevel()
+        => ResolveMinimumLogLevel(
+            IsRunningUnderTestHost(),
+            IsDebugBuild(),
+            Environment.GetEnvironmentVariable(LogLevelEnvironmentVariableName));
+
+    /// <summary>
+    /// 供測試驗證門檻解析邏輯。
+    /// </summary>
+    /// <param name="isRunningUnderTestHost">是否為測試主機。</param>
+    /// <param name="isDebugBuild">是否為 Debug 建置。</param>
+    /// <param name="overrideValue">環境變數覆寫值。</param>
+    /// <returns>解析後最低寫入等級。</returns>
+    internal static LogLevel ResolveMinimumLogLevelForTests(
+        bool isRunningUnderTestHost,
+        bool isDebugBuild,
+        string? overrideValue)
+        => ResolveMinimumLogLevel(isRunningUnderTestHost, isDebugBuild, overrideValue);
+
+    /// <summary>
+    /// 解析最低日誌等級。
+    /// </summary>
+    /// <param name="isRunningUnderTestHost">是否為測試主機。</param>
+    /// <param name="isDebugBuild">是否為 Debug 建置。</param>
+    /// <param name="overrideValue">環境變數覆寫值。</param>
+    /// <returns>最低寫入等級。</returns>
+    private static LogLevel ResolveMinimumLogLevel(
+        bool isRunningUnderTestHost,
+        bool isDebugBuild,
+        string? overrideValue)
+    {
+        if (!string.IsNullOrWhiteSpace(overrideValue) &&
+            Enum.TryParse(overrideValue.Trim(), ignoreCase: true, out LogLevel overrideLevel) &&
+            Enum.IsDefined(typeof(LogLevel), overrideLevel))
+        {
+            return overrideLevel;
+        }
+
+        return isRunningUnderTestHost || isDebugBuild ?
+            LogLevel.Info :
+            LogLevel.Warning;
+    }
+
+    /// <summary>
+    /// 判斷目前是否為 Debug 建置。
+    /// </summary>
+    /// <returns>若為 Debug 建置則為 true。</returns>
+    private static bool IsDebugBuild()
+    {
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
     }
 
     /// <summary>

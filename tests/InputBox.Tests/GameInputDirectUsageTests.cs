@@ -135,6 +135,24 @@ public sealed class GameInputDirectUsageTests
     }
 
     /// <summary>
+    /// GameInput lifecycle 診斷應維持 Info，只有可行動的讀取或裝置狀態異常才升級為 Warning。
+    /// </summary>
+    [Fact]
+    public void ShouldWarnGameInputDiagnostics_OnlyActionableReasons_ReturnTrue()
+    {
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "ShouldWarnGameInputDiagnostics",
+            BindingFlags.Static | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.ShouldWarnGameInputDiagnostics。");
+
+        Assert.False((bool)method.Invoke(null, ["init"])!);
+        Assert.False((bool)method.Invoke(null, ["stop-polling"])!);
+        Assert.False((bool)method.Invoke(null, ["dispose"])!);
+        Assert.True((bool)method.Invoke(null, ["missing-reading-threshold"])!);
+        Assert.True((bool)method.Invoke(null, ["device-status-non-connected"])!);
+    }
+
+    /// <summary>
     /// InputBox 的穩定裝置識別 helper 應優先使用 PnP path，缺失時退回 VID/PID 與顯示名稱。
     /// </summary>
     [Fact]

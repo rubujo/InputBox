@@ -105,7 +105,7 @@ internal static class Program
                 // 則不允許 fallback 啟動新視窗，避免破壞單實例預期。
                 if (!fallbackPermitted)
                 {
-                    LoggerService.LogInfo($"SingleInstance.FallbackSuppressed pid={Environment.ProcessId} reason=foreground_blocked");
+                    LoggerService.LogWarning($"SingleInstance.FallbackSuppressed pid={Environment.ProcessId} reason=foreground_blocked detail={activationDiagnostic}");
 
                     return;
                 }
