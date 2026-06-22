@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: 簽出原始碼（Checkout）
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2
 
@@ -78,7 +78,7 @@ jobs:
 
     steps:
     - name: 簽出原始碼（Checkout）
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: 安裝 .NET 環境
       uses: actions/setup-dotnet@v5
@@ -223,7 +223,7 @@ jobs:
 
     steps:
     - name: 簽出原始碼（Checkout）
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: 安裝 .NET 環境
       uses: actions/setup-dotnet@v5
