@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 檢出原始碼
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # 部署靜態網頁不需要完整歷史記錄。
           fetch-depth: 1
