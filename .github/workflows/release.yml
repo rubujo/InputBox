@@ -36,7 +36,7 @@ jobs:
 
     steps:
     - name: 簽出原始碼（Checkout）
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         # 發版僅需目前 tag 對應提交，避免抓取完整歷史紀錄。
         fetch-depth: 1
