@@ -3132,6 +3132,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // GameInput 的 COM 物件建立於 MTA 背景執行緒，若在 STA（如 UI 執行緒）直接存取會引發 InvalidCastException (E_NOINTERFACE)。
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
         {
+            // 阻塞等待背景 MTA 執行緒完成歸零指令，確保呼叫端（Pause/Dispose 等）
+            // 取得的「同步停止」保證與馬達實際歸零時序一致。
             Task.Run(() =>
             {
                 try
@@ -3143,7 +3145,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     LoggerService.LogWarning($"VibrationDiag source=GameInput stage=api action=stop outcome=failed reason=sync-stop-bg exception={bgEx.GetType().Name} message={bgEx.Message}");
                     Debug.WriteLine($"[GameInput] 背景停止馬達失敗（已忽略）：{bgEx.Message}");
                 }
-            });
+            }).GetAwaiter().GetResult();
         }
         else
         {
