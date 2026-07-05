@@ -492,10 +492,12 @@ internal sealed class PhraseService
                         continue;
                     }
 
-                    bool isManagedTempFile = IsManagedPhraseTempFile(fullTargetPath, tempPathForCleanup);
+                    if (!IsManagedPhraseTempFile(fullTargetPath, tempPathForCleanup))
+                    {
+                        continue;
+                    }
 
-                    if (!isManagedTempFile &&
-                        utcNow - File.GetLastWriteTimeUtc(tempPathForCleanup) < PhraseTempCleanupGracePeriod)
+                    if (utcNow - File.GetLastWriteTimeUtc(tempPathForCleanup) < PhraseTempCleanupGracePeriod)
                     {
                         continue;
                     }
