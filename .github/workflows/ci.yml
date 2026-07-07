@@ -232,6 +232,8 @@ jobs:
         cache: true
         cache-dependency-path: |
           **/*.csproj
+          NuGet.config
+          eng/nuget/*.sha256
           .config/dotnet-tools.json
 
     - name: 下載建置產出（來自 build-check）
