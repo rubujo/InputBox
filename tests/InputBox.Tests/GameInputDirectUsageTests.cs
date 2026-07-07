@@ -32,15 +32,15 @@ public sealed class GameInputDirectUsageTests
     }
 
     /// <summary>
-    /// InputWeave 的 GameInput callback 參數必須以 unmanaged function pointer 傳遞，避免退回 _Delegate COM marshaling。
+    /// InputWeave 的 GameInput callback 參數必須使用原生 function pointer 路徑，避免退回 _Delegate COM marshaling。
     /// </summary>
     [Fact]
     public void GameInputCallbackParameters_AreFunctionPointers()
     {
-        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterReadingCallback), typeof(GameInputReadingCallback));
-        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterDeviceCallback), typeof(GameInputDeviceCallback));
-        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterSystemButtonCallback), typeof(GameInputSystemButtonCallback));
-        AssertCallbackParameterIsFunctionPointer(nameof(IGameInput.RegisterKeyboardLayoutCallback), typeof(GameInputKeyboardLayoutCallback));
+        AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterReadingCallback");
+        AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterDeviceCallback");
+        AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterSystemButtonCallback");
+        AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterKeyboardLayoutCallback");
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public sealed class GameInputDirectUsageTests
             RightThumbstickY = 0.6f
         };
 
-        GamepadReadingSnapshot snapshot = new(987654321, state);
+        GamepadReadingSnapshot snapshot = CreateGamepadReadingSnapshot(987654321, state);
 
         Assert.Equal(987654321ul, snapshot.Timestamp);
         Assert.Equal(state.Buttons, snapshot.State.Buttons);
@@ -106,8 +106,8 @@ public sealed class GameInputDirectUsageTests
             RightThumbstickX = -0.5f,
             RightThumbstickY = 0.6f
         };
-        GamepadReadingSnapshot first = new(1, state);
-        GamepadReadingSnapshot second = new(2, state);
+        GamepadReadingSnapshot first = CreateGamepadReadingSnapshot(1, state);
+        GamepadReadingSnapshot second = CreateGamepadReadingSnapshot(2, state);
 
         Assert.True((bool)method.Invoke(null, [second, first])!);
     }
@@ -122,11 +122,11 @@ public sealed class GameInputDirectUsageTests
             "HasSameInputValues",
             BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("找不到 GameInputGamepadController.HasSameInputValues。");
-        GamepadReadingSnapshot previous = new(1, new GameInputGamepadState
+        GamepadReadingSnapshot previous = CreateGamepadReadingSnapshot(1, new GameInputGamepadState
         {
             Buttons = GameInputGamepadButtons.GameInputGamepadA
         });
-        GamepadReadingSnapshot current = new(2, new GameInputGamepadState
+        GamepadReadingSnapshot current = CreateGamepadReadingSnapshot(2, new GameInputGamepadState
         {
             Buttons = GameInputGamepadButtons.GameInputGamepadB
         });
@@ -197,11 +197,19 @@ public sealed class GameInputDirectUsageTests
         Assert.Equal(0.4f, rumble.RightTrigger);
     }
 
-    private static void AssertCallbackParameterIsFunctionPointer(string methodName, Type callbackType)
+    private static void AssertCallbackParameterUsesNativeFunctionPointerBridge(string methodName)
     {
-        MethodInfo method = typeof(IGameInput).GetMethod(methodName)
+        Type gameInputType = typeof(GameInputClient).Assembly.GetType("InputWeave.GameInput.Interop.IGameInput")
+            ?? throw new InvalidOperationException("找不到 InputWeave.GameInput.Interop.IGameInput。");
+        MethodInfo method = gameInputType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException($"找不到 IGameInput.{methodName}。");
-        ParameterInfo callbackParameter = method.GetParameters().Single(parameter => parameter.ParameterType == callbackType);
+        ParameterInfo callbackParameter = method.GetParameters().Single(parameter => parameter.Name == "callbackFunc");
+
+        if (callbackParameter.ParameterType == typeof(IntPtr))
+        {
+            return;
+        }
+
         MarshalAsAttribute? marshalAs = callbackParameter.GetCustomAttribute<MarshalAsAttribute>();
 
         Assert.NotNull(marshalAs);
@@ -236,6 +244,24 @@ public sealed class GameInputDirectUsageTests
             Array.Empty<GameInputForceFeedbackMotorInfo>(),
             Array.Empty<GameInputRawDeviceReportInfo>(),
             Array.Empty<GameInputRawDeviceReportInfo>());
+    }
+
+    /// <summary>
+    /// 透過 InputWeave 內部建構子建立 GamepadReadingSnapshot，避免測試依賴已移除的 public constructor。
+    /// </summary>
+    /// <param name="timestamp">GameInput 時間戳記。</param>
+    /// <param name="state">Gamepad 狀態。</param>
+    /// <returns>包裝後的快照物件。</returns>
+    private static GamepadReadingSnapshot CreateGamepadReadingSnapshot(ulong timestamp, GameInputGamepadState state)
+    {
+        ConstructorInfo ctor = typeof(GamepadReadingSnapshot).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            types: [typeof(ulong), typeof(GameInputGamepadState)],
+            modifiers: null)
+            ?? throw new InvalidOperationException("找不到 GamepadReadingSnapshot 內部建構子。");
+
+        return (GamepadReadingSnapshot)ctor.Invoke([timestamp, state]);
     }
 
     private static T CreateInstance<T>(params object?[] args)

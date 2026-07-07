@@ -1300,7 +1300,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             GamepadReadingSnapshot? currentSnapshot = gameInput.GetCurrentGamepad(dev);
 
-            if (currentSnapshot == null)
+            if (!currentSnapshot.HasValue)
             {
                 RecordMissingReading(null, dev);
 
@@ -1311,14 +1311,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
             else
             {
+                GamepadReadingSnapshot snapshot = currentSnapshot.Value;
                 _missingReadingFrameCounter = 0;
-                RecordSuccessfulReading(currentSnapshot, dev);
+                RecordSuccessfulReading(snapshot, dev);
 
                 if (!_hasPreviousState ||
-                    _previousState == null ||
-                    !HasSameInputValues(currentSnapshot, _previousState))
+                    !_previousState.HasValue ||
+                    !HasSameInputValues(snapshot, _previousState.Value))
                 {
-                    _readingQueue.Enqueue(currentSnapshot);
+                    _readingQueue.Enqueue(snapshot);
                 }
             }
         }
@@ -1337,15 +1338,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 分離「邊緣偵測」與「狀態維持」。
         bool hasNewState = false;
 
-        GamepadReadingSnapshot? latestSnapshot = null;
+        GamepadReadingSnapshot latestSnapshot = default;
 
-        while (_readingQueue.TryDequeue(out GamepadReadingSnapshot? state))
+        while (_readingQueue.TryDequeue(out GamepadReadingSnapshot state))
         {
-            if (state == null)
-            {
-                continue;
-            }
-
             hasNewState = true;
 
             _reconnectCounter = 0;
@@ -1360,8 +1356,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         // 處理基於時間的邏輯（連發與閒置偵測）。
-        if (hasNewState &&
-            latestSnapshot != null)
+        if (hasNewState)
         {
             _directionalStaleFrameCounter = 0;
             _isConnected = true;
@@ -1378,17 +1373,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             EmitMechanismHealthLog(latestSnapshot, config);
         }
         else if (_hasPreviousState &&
-            _previousState != null)
+            _previousState.HasValue)
         {
-            UpdateCalibrationSnapshot(_previousState, config, true);
+            GamepadReadingSnapshot previousState = _previousState.Value;
+            UpdateCalibrationSnapshot(previousState, config, true);
 
-            short correctedThumbLX = GetCorrectedLeftThumbShort(_previousState.State.LeftThumbstickX, _leftStickBiasX),
-                correctedThumbLY = GetCorrectedLeftThumbShort(_previousState.State.LeftThumbstickY, _leftStickBiasY);
+            short correctedThumbLX = GetCorrectedLeftThumbShort(previousState.State.LeftThumbstickX, _leftStickBiasX),
+                correctedThumbLY = GetCorrectedLeftThumbShort(previousState.State.LeftThumbstickY, _leftStickBiasY);
 
             UpdateMappedDirectionSuppression(correctedThumbLX, correctedThumbLY, config);
 
             // 如果這 16ms 內沒有任何新狀態，判定閒置或維持按住。
-            if (IsStateIdle(_previousState))
+            if (IsStateIdle(previousState))
             {
                 _reconnectCounter++;
 
@@ -1410,7 +1406,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 if (HasActiveDirectionalRepeat())
                 {
-                    if (ShouldForceReleaseDirectionalRepeat(_previousState, config))
+                    if (ShouldForceReleaseDirectionalRepeat(previousState, config))
                     {
                         _directionalStaleFrameCounter++;
 
@@ -1434,9 +1430,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 // 玩家按住按鍵不放且硬體無新事件時，繼續執行連發計時。
                 HandleRepeat(_previousProcessedButtons, config);
 
-                EvaluateDirectionalGhostState(_previousState, config);
+                EvaluateDirectionalGhostState(previousState, config);
 
-                EmitMechanismHealthLog(_previousState, config);
+                EmitMechanismHealthLog(previousState, config);
             }
         }
         else
@@ -1640,9 +1636,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <returns>若狀態為閒置，則回傳 true；否則回傳 false。</returns>
     private bool IsStateIdle(GamepadReadingSnapshot state)
     {
-        return _previousState != null &&
+        return _previousState.HasValue &&
             state.State.Buttons == 0 &&
-            _previousState.State.Buttons == 0 &&
+            _previousState.Value.State.Buttons == 0 &&
             GamepadSignalEvaluator.IsIdle(
                 hasButtons: false,
                 leftTrigger: state.State.LeftTrigger,
@@ -2030,17 +2026,19 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     // 檢查其他控制器的活動狀態。
                     GamepadReadingSnapshot? state = gameInput.GetCurrentGamepad(otherDev);
 
-                    if (state != null)
+                    if (state.HasValue)
                     {
+                        GamepadReadingSnapshot snapshot = state.Value;
+
                         // 若其他控制器有明顯的動作（按下任何按鈕、推動搖桿或按板機），則切換過去。
                         if (GamepadSignalEvaluator.IsActive(
-                            hasButtons: state.State.Buttons != 0,
-                            leftTrigger: state.State.LeftTrigger,
-                            rightTrigger: state.State.RightTrigger,
-                            leftThumbX: state.State.LeftThumbstickX,
-                            leftThumbY: state.State.LeftThumbstickY,
-                            rightThumbX: state.State.RightThumbstickX,
-                            rightThumbY: state.State.RightThumbstickY,
+                            hasButtons: snapshot.State.Buttons != 0,
+                            leftTrigger: snapshot.State.LeftTrigger,
+                            rightTrigger: snapshot.State.RightTrigger,
+                            leftThumbX: snapshot.State.LeftThumbstickX,
+                            leftThumbY: snapshot.State.LeftThumbstickY,
+                            rightThumbX: snapshot.State.RightThumbstickX,
+                            rightThumbY: snapshot.State.RightThumbstickY,
                             threshold: AppSettings.GameInputActiveThreshold))
                         {
                             // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
@@ -2179,11 +2177,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             GamepadReadingSnapshot? state = _gameInput.GetCurrentGamepad(_device);
 
-            if (state != null)
+            if (state.HasValue)
             {
-                _previousState = state;
+                GamepadReadingSnapshot snapshot = state.Value;
+                _previousState = snapshot;
 
-                GameInputGamepadButtons currentButtons = state.State.Buttons;
+                GameInputGamepadButtons currentButtons = snapshot.State.Buttons;
 
                 // Bias warm-up：以初始讀值連續執行 50 次 EMA，
                 // 使偏移估計在第一幀即接近真實值（收斂率 ≈ 99%），
@@ -2193,13 +2192,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 for (int i = 0; i < 50; i++)
                 {
                     // 暖機時不存在 D-Pad 操作情境，閘門固定傳 false。
-                    UpdateStickBias(state.State.LeftThumbstickX, state.State.LeftThumbstickY, state.State.RightThumbstickX, state.State.RightThumbstickY, isDPadActive: false);
+                    UpdateStickBias(snapshot.State.LeftThumbstickX, snapshot.State.LeftThumbstickY, snapshot.State.RightThumbstickX, snapshot.State.RightThumbstickY, isDPadActive: false);
                 }
 
                 // 取得快照以確保初始化時死區校驗一致。
                 AppSettings.GamepadConfigSnapshot config = AppSettings.Current.GamepadSettings;
 
-                PrimeResumeStateFromSnapshot(state, config);
+                PrimeResumeStateFromSnapshot(snapshot, config);
             }
             else
             {
@@ -2572,7 +2571,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool prevLtDown = _hasPreviousState &&
-            _previousState!.State.LeftTrigger > AppSettings.GameInputTriggerThreshold;
+            _previousState.HasValue &&
+            _previousState.Value.State.LeftTrigger > AppSettings.GameInputTriggerThreshold;
 
         if (IsLeftTriggerHeld &&
             !prevLtDown)
@@ -2581,7 +2581,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         }
 
         bool prevRtDown = _hasPreviousState &&
-            _previousState!.State.RightTrigger > AppSettings.GameInputTriggerThreshold;
+            _previousState.HasValue &&
+            _previousState.Value.State.RightTrigger > AppSettings.GameInputTriggerThreshold;
 
         if (IsRightTriggerHeld &&
             !prevRtDown)

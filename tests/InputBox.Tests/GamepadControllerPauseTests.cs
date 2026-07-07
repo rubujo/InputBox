@@ -327,7 +327,14 @@ public sealed class GamepadControllerPauseTests
     /// <returns>包裝後的快照物件。</returns>
     private static GamepadReadingSnapshot CreateGameInputSnapshot(GameInputGamepadState state)
     {
-        return new GamepadReadingSnapshot(0, state);
+        ConstructorInfo ctor = typeof(GamepadReadingSnapshot).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            types: [typeof(ulong), typeof(GameInputGamepadState)],
+            modifiers: null)
+            ?? throw new InvalidOperationException("找不到 GamepadReadingSnapshot 內部建構子。");
+
+        return (GamepadReadingSnapshot)ctor.Invoke([0ul, state]);
     }
 
     /// <summary>
