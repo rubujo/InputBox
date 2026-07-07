@@ -92,7 +92,7 @@ jobs:
             Write-Error "InputWeave.GameInput 套件 SHA256 不符。Expected=$expected Actual=$actual"
         }
 
-        $expectedCommit = "8892dc34141923d386357e7d4704969d66061df1"
+        $expectedCommit = "64161e3f06ff98c76d516ab3f28710ab77539bf1"
         $inspectDir = Join-Path $env:RUNNER_TEMP "inputweave-gameinput-package"
         if (Test-Path $inspectDir) {
             Remove-Item -LiteralPath $inspectDir -Recurse -Force
@@ -254,13 +254,13 @@ jobs:
         Add-Content -Path $noticePath -Encoding utf8 -Value '## InputWeave.GameInput'
         Add-Content -Path $noticePath -Encoding utf8 -Value ''
         Add-Content -Path $noticePath -Encoding utf8 -Value '- 套件：InputWeave.GameInput 0.0.1'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- 來源：https://github.com/rubujo/InputWeave.GameInput/tree/8892dc34141923d386357e7d4704969d66061df1'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 來源：https://github.com/rubujo/InputWeave.GameInput/tree/64161e3f06ff98c76d516ab3f28710ab77539bf1'
         Add-Content -Path $noticePath -Encoding utf8 -Value '- 作者：https://github.com/rubujo'
         Add-Content -Path $noticePath -Encoding utf8 -Value '- 貢獻者：https://github.com/rubujo/InputWeave.GameInput/graphs/contributors'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- 封裝來源：https://github.com/rubujo/InputWeave.GameInput/commit/8892dc34141923d386357e7d4704969d66061df1'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 封裝來源：https://github.com/rubujo/InputWeave.GameInput/commit/64161e3f06ff98c76d516ab3f28710ab77539bf1'
         Add-Content -Path $noticePath -Encoding utf8 -Value '- 套件檔案：eng/nuget/InputWeave.GameInput.0.0.1.nupkg'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- SHA256: 448fd3f511195d164d6ead29195bccd58e4df2f286469bd9cf679627c9d62328'
-        Add-Content -Path $noticePath -Encoding utf8 -Value '- 授權：Creative Commons CC0 1.0 Universal（SPDX：CC0-1.0）；詳見本 Licenses 目錄中的 InputWeave.GameInput_LICENSE.txt 與 https://github.com/rubujo/InputWeave.GameInput/blob/8892dc34141923d386357e7d4704969d66061df1/LICENSE。'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- SHA256: ab21052ad9fc66e23522109f3bc4b2dd8cafb7f9438a8a338ebfd3f2d662b9f3'
+        Add-Content -Path $noticePath -Encoding utf8 -Value '- 授權：Creative Commons CC0 1.0 Universal（SPDX：CC0-1.0）；詳見本 Licenses 目錄中的 InputWeave.GameInput_LICENSE.txt 與 https://github.com/rubujo/InputWeave.GameInput/blob/64161e3f06ff98c76d516ab3f28710ab77539bf1/LICENSE。'
 
     - name: 產生執行檔的雜湊值（SHA256）
       shell: pwsh

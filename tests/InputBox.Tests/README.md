@@ -93,15 +93,17 @@ Remove-Item Env:INPUTBOX_RUN_UI_TESTS -ErrorAction SilentlyContinue
 
 因此 `dotnet test` 會使用 Microsoft Testing Platform。Coverage 也應搭配 `Microsoft.Testing.Extensions.CodeCoverage`，不要改成 `coverlet.collector`。
 
-### 2. PhraseService / InputHistoryService 測試的資料隔離
+### 2. PhraseService 測試的資料隔離
 
-`PhraseService` 與 `InputHistoryService` 的方法會寫入使用者的 `%AppData%\InputBox\` 目錄下的 JSON 檔案。
-為了避免測試污染真實資料，這些測試類別採用以下策略：
+`PhraseService` 會讀寫使用者的 `%AppData%\InputBox\phrases.json`。
+為了避免測試污染真實資料，相關測試類別採用以下策略：
 
 - **建構子**：若檔案存在，複製至 `phrases.json.testbackup`
 - **Dispose**：測試結束後自動還原備份（或刪除測試產生的檔案）
 
 xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dispose()` 在每個測試後自動呼叫，確保各測試之間完全隔離。
+
+`InputHistoryService` 是記憶體內歷程服務，不會讀寫使用者資料目錄，因此不需要檔案備份／還原。
 
 ### 3. 維護規則
 
