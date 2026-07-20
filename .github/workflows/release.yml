@@ -65,7 +65,7 @@ jobs:
         Write-Host "版本標籤來源驗證通過。"
 
     - name: 安裝 .NET 環境
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         # 使用 GitHub Actions 語法來讀取 env 變數。
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
