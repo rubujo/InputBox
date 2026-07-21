@@ -81,7 +81,7 @@ jobs:
       uses: actions/checkout@v7
 
     - name: 安裝 .NET 環境
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         # 使用 GitHub Actions 語法來讀取 env 變數。
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
@@ -226,7 +226,7 @@ jobs:
       uses: actions/checkout@v7
 
     - name: 安裝 .NET 環境
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '${{ env.DOTNET_MAJOR_VERSION }}.x'
         cache: true
