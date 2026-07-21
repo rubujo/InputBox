@@ -53,7 +53,7 @@
 
   <ItemGroup>
     <PackageReference Include="InputWeave.GameInput" Version="0.0.1" />
-    <PackageReference Include="Microsoft.GameInput" Version="3.4.218" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.GameInput" Version="3.4.259" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
