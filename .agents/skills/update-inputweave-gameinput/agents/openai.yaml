@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update InputWeave.GameInput"
+  short_description: "同步 InputWeave 套件、驗證資料與 gh-pages"
+  default_prompt: "Use $update-inputweave-gameinput to update the bundled InputWeave.GameInput release asset and synchronize dev and gh-pages metadata."

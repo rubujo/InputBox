@@ -18,6 +18,7 @@ description: InputBox 專案的權威工程技能。修改程式碼、UI、控�
 | UI、WinForms、DPI、版面、視覺回饋、螢幕報讀 | `docs/engineering/a11y-safety.md` |
 | 控制器輸入、XInput、GameInput、按鍵映射 | `docs/engineering/gamepad-api.md` |
 | GameInput 套件、硬體路徑、連線、callback、rumble、redist 或正式發佈驗證 | `docs/engineering/gameinput-hardware-verification.md` |
+| 更新 InputWeave.GameInput release 資產、雜湊、授權或 gh-pages 第三方資訊 | `.agents/skills/update-inputweave-gameinput/SKILL.md` |
 | 使用者可見文字、`.resx`、術語、助記鍵 | `docs/engineering/localization.md` |
 | 測試、xUnit v3、冒煙測試、覆蓋率 | `docs/engineering/testing.md` |
 | Git 工作流、輸入或輸出邏輯、剪貼簿、快速鍵、控制器映射、安全與合規 | `docs/engineering/git-commit-safety.md` |
