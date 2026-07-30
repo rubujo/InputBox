@@ -11,6 +11,8 @@
 
 不要新增重複的 root instructions、舊版相容入口，或工具專屬的完整規範副本。細節規則只在一個權威位置維護，其他入口只引用該位置。
 
+專用跨工具工作流 skill 應將權威內容放在 `.agents/skills/<skill-name>/SKILL.md`。若 Claude Code 也需自動發現該 skill，只在 `.claude/skills/<skill-name>/SKILL.md` 新增最小橋接並指回權威檔案，不得複製完整流程。
+
 ## 支援矩陣
 
 | 工具 | 入口 | Skill 路徑 | Repo 策略 |
