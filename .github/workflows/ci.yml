@@ -115,7 +115,7 @@ jobs:
           Write-Error "InputWeave.GameInput 套件 SHA256 不符。Expected=$expected Actual=$actual"
         }
 
-        $expectedCommit = "07607d07ff11b63160ddb5ff2023c8d60670ca2d"
+        $expectedCommit = "10735bd84239275dcd73d3dd35181f28047c1df7"
         $inspectDir = Join-Path $env:RUNNER_TEMP "inputweave-gameinput-package"
         if (Test-Path $inspectDir) {
           Remove-Item -LiteralPath $inspectDir -Recurse -Force
