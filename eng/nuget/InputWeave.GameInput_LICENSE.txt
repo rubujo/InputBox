@@ -1,15 +1,15 @@
 InputWeave.GameInput 0.0.1
 ===========================
 
-來源: https://github.com/rubujo/InputWeave.GameInput/tree/07607d07ff11b63160ddb5ff2023c8d60670ca2d
+來源: https://github.com/rubujo/InputWeave.GameInput/tree/10735bd84239275dcd73d3dd35181f28047c1df7
 作者: https://github.com/rubujo
 貢獻者: https://github.com/rubujo/InputWeave.GameInput/graphs/contributors
-封裝來源: https://github.com/rubujo/InputWeave.GameInput/commit/07607d07ff11b63160ddb5ff2023c8d60670ca2d
+封裝來源: https://github.com/rubujo/InputWeave.GameInput/commit/10735bd84239275dcd73d3dd35181f28047c1df7
 套件檔案: eng/nuget/InputWeave.GameInput.0.0.1.nupkg
-套件 SHA256: fc02732b6390468ad49f9e639fa9095d91d27557c357b21d50eafa9d8d81cf89
+套件 SHA256: b941811775e0135aca37fe323051b96bebede9f34d597554a9d48f1c6083f3e5
 授權名稱: Creative Commons CC0 1.0 Universal
 授權識別碼 (SPDX): CC0-1.0
-授權檔案: https://github.com/rubujo/InputWeave.GameInput/blob/07607d07ff11b63160ddb5ff2023c8d60670ca2d/LICENSE
+授權檔案: https://github.com/rubujo/InputWeave.GameInput/blob/10735bd84239275dcd73d3dd35181f28047c1df7/LICENSE
 
 InputWeave.GameInput 採用 Creative Commons CC0 1.0 Universal 公眾領域貢獻宣告。
 在法律允許的最大範圍內，作者已將此套件的著作權與相關權利貢獻至全球公眾領域。
