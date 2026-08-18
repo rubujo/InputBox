@@ -142,6 +142,8 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 
 > 為避免 hosted runner 與本機 Agent 因自訂 modal dialog 的偵測不穩而長時間卡住，目前所有 UI 案例皆加上 fail-fast 逾時保護；dialog 案例會在此保護下持續驗證。
 
+> UI 冒煙測試會將 xUnit 測試逾時的 `TestContext.Current.CancellationToken` 傳入共用執行流程，確保 xUnit v3 MTP v2 4.0.0 能在逾時後及時終止測試。
+
 > UI 元素比對一律優先使用資源檔的目前語系字串與 AutomationId，而非寫死繁中或英文標籤，因此 Hosted Runner 的系統語系變動不應成為這組 smoke test 的失敗來源。
 
 ### 6. 目標框架

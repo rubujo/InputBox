@@ -73,7 +73,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void Launch_ShowsPrimaryControls()
     {
-        RunWithFailureArtifacts(nameof(Launch_ShowsPrimaryControls), () =>
+        RunWithFailureArtifacts(nameof(Launch_ShowsPrimaryControls), TestContext.Current.CancellationToken, () =>
         {
             Assert.NotNull(_mainWindow);
 
@@ -98,7 +98,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void ContextMenu_Open_ShowsCoreCommands()
     {
-        RunWithFailureArtifacts(nameof(ContextMenu_Open_ShowsCoreCommands), () =>
+        RunWithFailureArtifacts(nameof(ContextMenu_Open_ShowsCoreCommands), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement privacyModeMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_PrivacyMode);
@@ -123,7 +123,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void HelpDialog_Open_And_CloseSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(HelpDialog_Open_And_CloseSuccessfully), () =>
+        RunWithFailureArtifacts(nameof(HelpDialog_Open_And_CloseSuccessfully), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement helpMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Help);
@@ -159,7 +159,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void MinimizeOnReturn_ConfirmDialog_Open_And_CancelSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(MinimizeOnReturn_ConfirmDialog_Open_And_CancelSuccessfully), () =>
+        RunWithFailureArtifacts(nameof(MinimizeOnReturn_ConfirmDialog_Open_And_CancelSuccessfully), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement minimizeOnReturnMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_MinimizeOnReturn);
@@ -193,7 +193,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void SettingsGamepadSubMenu_Open_ShowsCoreCommands()
     {
-        RunWithFailureArtifacts(nameof(SettingsGamepadSubMenu_Open_ShowsCoreCommands), () =>
+        RunWithFailureArtifacts(nameof(SettingsGamepadSubMenu_Open_ShowsCoreCommands), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
@@ -225,7 +225,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void GamepadCalibrationDialog_Open_And_CloseSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(GamepadCalibrationDialog_Open_And_CloseSuccessfully), () =>
+        RunWithFailureArtifacts(nameof(GamepadCalibrationDialog_Open_And_CloseSuccessfully), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
@@ -266,7 +266,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void PhraseSubMenu_Open_ShowsManagementCommands()
     {
-        RunWithFailureArtifacts(nameof(PhraseSubMenu_Open_ShowsManagementCommands), () =>
+        RunWithFailureArtifacts(nameof(PhraseSubMenu_Open_ShowsManagementCommands), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement phrasesMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Phrases);
@@ -294,7 +294,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void PhraseManagerDialog_Open_And_CloseSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(PhraseManagerDialog_Open_And_CloseSuccessfully), () =>
+        RunWithFailureArtifacts(nameof(PhraseManagerDialog_Open_And_CloseSuccessfully), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement phrasesMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Phrases);
@@ -333,7 +333,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void PhraseEditDialog_Open_And_CancelSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(PhraseEditDialog_Open_And_CancelSuccessfully), () =>
+        RunWithFailureArtifacts(nameof(PhraseEditDialog_Open_And_CancelSuccessfully), TestContext.Current.CancellationToken, () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement phrasesMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Phrases);
@@ -386,7 +386,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void CopyButton_Click_ClearsInput()
     {
-        RunWithFailureArtifacts(nameof(CopyButton_Click_ClearsInput), () =>
+        RunWithFailureArtifacts(nameof(CopyButton_Click_ClearsInput), TestContext.Current.CancellationToken, () =>
         {
             FlaUiTextBox inputTextBox = FindInputBox();
             FlaUiButton copyButton = FindCopyButton();
@@ -417,7 +417,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground()
     {
-        RunWithFailureArtifacts(nameof(RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground), () =>
+        RunWithFailureArtifacts(nameof(RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground), TestContext.Current.CancellationToken, () =>
         {
             Assert.NotNull(_application);
             Assert.NotNull(_mainWindow);
@@ -1174,9 +1174,12 @@ public sealed class MainFormUiSmokeTests : IDisposable
     /// 在測試失敗時擷取桌面畫面與診斷文字，方便 GitHub Actions 回傳 Artifact。
     /// </summary>
     /// <param name="testName">目前執行中的測試名稱。</param>
+    /// <param name="cancellationToken">xUnit 測試逾時所提供的取消權杖。</param>
     /// <param name="testAction">實際要執行的測試邏輯。</param>
-    private void RunWithFailureArtifacts(string testName, Action testAction)
+    private void RunWithFailureArtifacts(string testName, CancellationToken cancellationToken, Action testAction)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
             MarkStep($"{testName}: started");
