@@ -150,7 +150,7 @@ internal sealed class WindowFocusService
         {
             // 第一段：先用低侵入方式切換，避免不必要的執行緒附加。
             // 僅在視窗確實處於最小化狀態時才呼叫 SW_RESTORE，
-            // 避免對全螢幕（Xbox 達陣全螢幕）或最大化視窗呼叫後造成畫面跟版。
+            // 避免對全螢幕（例如 Xbox 模式）或最大化視窗呼叫後造成畫面跟版。
             if (User32.IsIconic(targetHwnd))
             {
                 _ = User32.ShowWindow(targetHwnd, User32.ShowWindowCommand.Restore);
