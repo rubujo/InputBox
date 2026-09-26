@@ -1,6 +1,6 @@
 ---
 name: inputbox-dev
-description: Claude Code 對 InputBox 工程技能的橋接。當修改 InputBox 程式碼、UI、控制器邏輯、在地化、測試或 Git 工作流時使用。
+description: 修改 InputBox 程式碼、UI、控制器邏輯、在地化、測試、工程規範或 Git 工作流時使用，負責載入對應的工程規範；一般只讀問答不需啟用。本檔為 Claude Code 橋接，權威內容在 .agents/skills/inputbox-dev/SKILL.md。
 ---
 
 # InputBox Claude Code Skill Bridge

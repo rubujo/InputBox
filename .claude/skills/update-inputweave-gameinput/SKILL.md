@@ -1,6 +1,6 @@
 ---
 name: update-inputweave-gameinput
-description: Claude Code 對 InputWeave.GameInput 更新技能的橋接。更新 InputBox 內嵌套件、來源 commit、雜湊、授權、CI 或 gh-pages 第三方資訊時使用。
+description: 更新或重新封裝 InputBox 內嵌的 InputWeave.GameInput 套件，並同步來源 commit、SHA-256、授權、CI、release workflow 與 gh-pages 第三方資訊時使用。本檔為 Claude Code 橋接，權威流程在 .agents/skills/update-inputweave-gameinput/SKILL.md。
 ---
 
 # InputWeave.GameInput Claude Code Skill Bridge
