@@ -1223,26 +1223,53 @@ public partial class MainForm : Form
         // 為下一個重啟後的執行個體建立一次性前景啟用請求，降低焦點跳回前一個視窗的機率。
         RestartActivationCoordinator.Shared.RequestActivationOnNextLaunch();
 
-        // 由目前前景執行個體主動授權新的重啟程序可呼叫 SetForegroundWindow，
-        // 提升 Hosted Runner 與桌面自動化環境下的前景恢復成功率。
-        _ = User32.AllowSetForegroundWindow(User32.AllowSetForegroundWindowAnyProcess);
-
         // 在正式結束前同步停止所有控制器震動，防止程序關閉後馬達持續空轉。
         FeedbackService.EmergencyStopAllActiveControllers();
 
-        Program.ReleaseMutex();
+        List<MainForm> mainForms = [.. Application.OpenForms.OfType<MainForm>()];
 
-        // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
-        // 從而釋放全域的 SystemEvents 鉤子，防止重啟時發生靜態資源洩漏。
-        foreach (Form form in Application.OpenForms.Cast<Form>().ToList())
+        // 新執行個體會在舊視窗關閉前啟動，因此先解除全域快速鍵，
+        // 避免新舊執行個體短暫並存時，新執行個體註冊同一組快速鍵失敗。
+        foreach (MainForm mainForm in mainForms)
         {
-            if (form is MainForm mainForm)
+            if (mainForm.IsHandleCreated)
             {
-                mainForm.Close();
+                GlobalHotKeyService.UnregisterShowInputHotkey(mainForm.Handle);
             }
         }
 
-        Application.Restart();
+        Program.ReleaseMutex();
+
+        // AllowSetForegroundWindow 只有在呼叫端仍為前景程序（或收到最後一次輸入）時才有效；
+        // 以控制器觸發重啟不會產生 Windows 輸入事件，因此必須趁目前視窗仍在前景時，
+        // 先啟動新執行個體，再只授權該程序呼叫 SetForegroundWindow，而不開放給所有程序。
+        bool launched = RestartProcessLauncher.TryStart(
+            RestartProcessLauncher.CreateStartInfo(
+                Application.ExecutablePath,
+                Environment.GetCommandLineArgs()),
+            out int newProcessId);
+
+        _ = User32.AllowSetForegroundWindow(
+            launched ?
+                newProcessId :
+                User32.AllowSetForegroundWindowAnyProcess);
+
+        // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
+        // 從而釋放全域的 SystemEvents 鉤子，防止重啟時發生靜態資源洩漏。
+        foreach (MainForm mainForm in mainForms)
+        {
+            mainForm.Close();
+        }
+
+        if (launched)
+        {
+            Application.Exit();
+        }
+        else
+        {
+            // 無法自行啟動新執行個體時，退回 WinForms 內建的重啟流程。
+            Application.Restart();
+        }
 
         Environment.Exit(0);
     }

@@ -25,7 +25,8 @@
   - **主題還原**：還原預設配色時應將屬性設為 `Color.Empty`，由 .NET 10 主題引擎自動判斷 (禁：硬式編碼 `SystemColors.Control`)。
 - **程式內重啟與前景恢復**：
   - **單次啟用標記**：若為本程式主動要求重新啟動，舊執行個體必須先寫入具短時效的一次性啟用標記，供新執行個體在首次顯示時消費；標記必須於讀取後立即清除，避免重複生效。
-  - **前景授權交接**：呼叫 `Application.Restart()` 前，應先透過 `AllowSetForegroundWindow(...)` 授權新執行個體搶回前景，降低焦點落回前一個視窗的機率。
+  - **前景授權交接**：由 `RestartProcessLauncher` 自行啟動新執行個體（取代 `Application.Restart()`），並在舊視窗關閉前以 `AllowSetForegroundWindow(新程序 PID)` 只授權該程序搶回前景；不得使用 `ASFW_ANY` 開放給所有程序，僅在無法啟動新程序而退回 `Application.Restart()` 時例外。授權必須在舊視窗仍位於前景時完成，因為控制器操作不會產生 Windows 輸入事件。
+  - **獨占資源先釋放**：新執行個體會在舊視窗關閉前啟動，因此舊執行個體必須先解除全域快速鍵並釋放單一執行個體 Mutex，避免新執行個體註冊失敗。
   - **新執行個體恢復流程**：新視窗啟動後應先走較強的前景還原路徑（例如 `WindowFocusService.RestoreWindowAsync(...)`），再以有限次數重試 `ShowWindow`、`BringWindowToTop`、`SetForegroundWindow`、`Activate()` 與輸入框 `Focus()`；不可只做單次 `Activate()` 後就假設成功。
   - **避免錯誤回切**：當重啟是由程式內設定變更觸發時，舊執行個體應避免再把「前一個外部視窗」覆寫為目前狀態，以免新執行個體恢復焦點時誤切回錯誤目標。
 - **格式與診斷紀律**：
