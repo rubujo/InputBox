@@ -1,6 +1,6 @@
 ---
 name: inputbox-web-dev
-description: Claude Code 對 InputBox gh-pages 網站工程技能的橋接。當修改 index.html、CSS、多語系、A11y、測試或 Git 工作流時使用。
+description: 修改 InputBox gh-pages 網站的 index.html、CSS、七語系內容、A11y、Playwright 測試或 Git 工作流時使用。本檔為 Claude Code 橋接，權威內容在 .agents/skills/inputbox-web-dev/SKILL.md。
 ---
 
 # InputBox gh-pages Claude Code Skill Bridge

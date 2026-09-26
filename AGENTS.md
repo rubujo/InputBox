@@ -9,7 +9,7 @@
 ### 0.1 官方依據查核日期：2026-05-25
 
 - Codex CLI：OpenAI 文件定義 `AGENTS.md` 為 custom instructions 檔，repo skills 位於 `.agents/skills`。
-- Claude Code：Anthropic 文件定義 project memory 位於 `CLAUDE.md` 或 `.claude/CLAUDE.md`，`CLAUDE.md` 可匯入 `AGENTS.md`，project skills 位於 `.claude/skills`。
+- Claude Code（2026-09-27 重新查核）：Anthropic 文件定義 project memory 位於 `CLAUDE.md` 或 `.claude/CLAUDE.md`；Claude Code 雖可直接讀取 `AGENTS.md`，但只在沒有 `CLAUDE.md` 時生效且部分工作階段不支援，因此保留 `CLAUDE.md` 的 `@AGENTS.md` 匯入（官方確認不會重複載入）。project skills 只從 `.claude/skills` 探索，skill `description` 應先寫主要使用情境。
 - GitHub Copilot CLI：GitHub 文件定義 root `AGENTS.md` 為 primary instructions，project skills 可位於 `.agents/skills`。
 - Antigravity CLI：Google 文件定義 workspace skills 位於 `.agents/skills`；若未來需要 workspace rules，使用 `.agents/rules`。
 
