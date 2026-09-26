@@ -25,7 +25,11 @@
 ## 官方依據與查核日期
 
 - OpenAI（2026-07-30）：[`AGENTS.md` custom instructions](https://developers.openai.com/codex/guides/agents-md) 與 [Codex skills](https://developers.openai.com/codex/skills)。
-- Claude Code、GitHub Copilot CLI 與 Antigravity CLI 的既有支援策略最後查核於 2026-05-25；若修改對應橋接或支援聲明，須先以各供應商最新官方文件重新查核。
+- Anthropic（2026-09-27）：[記憶與 `AGENTS.md`](https://code.claude.com/docs/en/memory) 與 [Skills](https://code.claude.com/docs/en/skills)。
+  - Claude Code 可直接讀取 `AGENTS.md`，但只在工作目錄以上沒有 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md` 時才會讀取；部分工作階段無法直接讀取。因此保留 `CLAUDE.md` 的 `@AGENTS.md` 匯入，Claude 專屬內容只放在匯入之後；官方確認此寫法不會重複載入。
+  - Claude Code 只從 `.claude/skills/` 探索 project skill，不讀取 `.agents/skills/`，因此橋接 skill 仍屬必要。
+  - Skill 遵循 [Agent Skills](https://agentskills.io) 開放標準；`description` 應先寫主要使用情境（與 `when_to_use` 合計約 1,536 字元後截斷）。跨工具共用的權威 skill 只使用標準欄位（`name`、`description`、`license`、`compatibility`、`metadata`、`allowed-tools`），Claude Code 專屬欄位只可放在 `.claude/skills/` 橋接檔。
+- GitHub Copilot CLI 與 Antigravity CLI 的既有支援策略最後查核於 2026-05-25；若修改對應橋接或支援聲明，須先以各供應商最新官方文件重新查核。
 
 ## Context 維護原則
 
