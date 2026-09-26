@@ -232,7 +232,8 @@ jobs:
         # -i：指定專案檔路徑。
         # -o：指定輸出格式為 Markdown（讓純文字檔內有整齊的表格排版）。
         # -fo：指定輸出的檔案名稱（File Output）。
-        dotnet tool run nuget-license -i ./src/InputBox/InputBox.csproj -o Markdown -fo ThirdPartyNotices.txt -ignore Microsoft.GameInput
+        # -t：一併列出遞移相依套件（例如 InputWeave.GameInput 相依的 Microsoft.Extensions.DependencyInjection.Abstractions），避免隨附的函式庫缺少授權聲明。
+        dotnet tool run nuget-license -i ./src/InputBox/InputBox.csproj -t -o Markdown -fo ThirdPartyNotices.txt -ignore Microsoft.GameInput
 
         if (Test-Path "ThirdPartyNotices.txt") {
             Write-Host "✅ 成功產生專案依賴套件的 ThirdPartyNotices.txt！"
