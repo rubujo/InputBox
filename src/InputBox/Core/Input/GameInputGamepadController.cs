@@ -336,56 +336,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private const int MechanismIdleResetFrames = 120;
 #endif
 
-    // ── 自適應 EMA 係數（Adaptive Exponential Moving Average）────────────────
-    // 設計原則：每個軸保有獨立的「基礎值」與「最大值」。
-    //   • 當估計誤差（rawValue − currentBias）落在 BiasAdaptiveErrorRange 以內時，
-    //     學習率從 Base 線性插值至 Max，誤差越大學習越快（快速收斂）。
-    //   • 當誤差接近 0 時，退回 Base（保守維持），避免把有效輸入誤學成硬體偏移。
-    //   • 不同控制器硬體偏移量不同；此機制讓程式自動適應，無需手動調整。
-
-    /// <summary>
-    /// 左搖桿 X 軸：偏移估計的最低保守學習率（誤差接近 0 時使用）。
-    /// </summary>
-    private const float LeftStickBiasXBaseSmoothing = 0.03f;
-
-    /// <summary>
-    /// 左搖桿 X 軸：偏移估計的最高學習率（誤差達到 BiasAdaptiveErrorRange 時使用）。
-    /// Log 顯示 biasLx 在 D-Pad 操作期間漂移幅度大，Max 值不宜過高以防誤學方向輸入。
-    /// </summary>
-    private const float LeftStickBiasXMaxSmoothing = 0.15f;
-
-    /// <summary>
-    /// 左搖桿 Y 軸：偏移估計的最低保守學習率。
-    /// </summary>
-    private const float LeftStickBiasYBaseSmoothing = 0.03f;
-
-    /// <summary>
-    /// 左搖桿 Y 軸：偏移估計的最高學習率。
-    /// Log 顯示 biasLy 恆在 ±0.009 以內，目標穩定，可略低於 X 軸 Max。
-    /// </summary>
-    private const float LeftStickBiasYMaxSmoothing = 0.12f;
-
-    /// <summary>
-    /// 右搖桿 X 軸：偏移估計的最低保守學習率。
-    /// </summary>
-    private const float RightStickBiasBaseSmoothing = 0.05f;
-
-    /// <summary>
-    /// 右搖桿 X 軸：偏移估計的最高學習率。
-    /// 右搖桿無 D-Pad 閘門，低 Max 可防止快速劃過中立區時累積偏移；
-    /// Warm-up 50 次後收斂率 ≈ 97.2%，起始收斂不受影響。
-    /// </summary>
-    private const float RightStickBiasMaxSmoothing = 0.07f;
-
-    /// <summary>
-    /// 右搖桿 Y 軸：偏移估計的最低保守學習率。
-    /// </summary>
-    private const float RightStickBiasYBaseSmoothing = 0.05f;
-
-    /// <summary>
-    /// 右搖桿 Y 軸：偏移估計的最高學習率。與 RX 相同理由，低 Max 防止壓力測試時逘速掟移。
-    /// </summary>
-    private const float RightStickBiasYMaxSmoothing = 0.07f;
+    // ── 自適應 EMA 偏移補償 ────────────────────────────────────────────────
+    // 平滑係數與公式集中於 GamepadBiasSmoothing，由 XInput 與 GameInput 兩路共用，確保行為一致；
+    // 本類別只保留與輸入數值尺度相關的誤差範圍與學習閾值。
 
     /// <summary>
     /// 觸發全速學習的誤差閾值（偏移誤差達此值時使用最大係數）。
@@ -2237,28 +2190,28 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             float errorX = rawLeftThumbX - _leftStickBiasX;
             _leftStickBiasX += errorX * ComputeAdaptiveBiasSmoothing(
-                errorX, LeftStickBiasXBaseSmoothing, LeftStickBiasXMaxSmoothing);
+                errorX, GamepadBiasSmoothing.LeftStickBiasXBaseSmoothing, GamepadBiasSmoothing.LeftStickBiasXMaxSmoothing);
         }
 
         if (!isDPadActive && MathF.Abs(rawLeftThumbY) <= LeftStickBiasLearningThreshold)
         {
             float errorY = rawLeftThumbY - _leftStickBiasY;
             _leftStickBiasY += errorY * ComputeAdaptiveBiasSmoothing(
-                errorY, LeftStickBiasYBaseSmoothing, LeftStickBiasYMaxSmoothing);
+                errorY, GamepadBiasSmoothing.LeftStickBiasYBaseSmoothing, GamepadBiasSmoothing.LeftStickBiasYMaxSmoothing);
         }
 
         if (MathF.Abs(rawRightThumbX) <= LeftStickBiasLearningThreshold)
         {
             float errorRX = rawRightThumbX - _rightStickBiasX;
             _rightStickBiasX += errorRX * ComputeAdaptiveBiasSmoothing(
-                errorRX, RightStickBiasBaseSmoothing, RightStickBiasMaxSmoothing);
+                errorRX, GamepadBiasSmoothing.RightStickBiasBaseSmoothing, GamepadBiasSmoothing.RightStickBiasMaxSmoothing);
         }
 
         if (MathF.Abs(rawRightThumbY) <= LeftStickBiasLearningThreshold)
         {
             float errorRY = rawRightThumbY - _rightStickBiasY;
             _rightStickBiasY += errorRY * ComputeAdaptiveBiasSmoothing(
-                errorRY, RightStickBiasYBaseSmoothing, RightStickBiasYMaxSmoothing);
+                errorRY, GamepadBiasSmoothing.RightStickBiasYBaseSmoothing, GamepadBiasSmoothing.RightStickBiasYMaxSmoothing);
         }
     }
 
@@ -2275,8 +2228,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         float baseSmoothing,
         float maxSmoothing)
     {
-        float t = Math.Clamp(MathF.Abs(error) / BiasAdaptiveErrorRange, 0f, 1f);
-        return baseSmoothing + (maxSmoothing - baseSmoothing) * t;
+        return GamepadBiasSmoothing.ComputeAdaptiveSmoothing(
+            error,
+            BiasAdaptiveErrorRange,
+            baseSmoothing,
+            maxSmoothing);
     }
 
     /// <summary>

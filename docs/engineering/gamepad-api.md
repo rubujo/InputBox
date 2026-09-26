@@ -47,7 +47,7 @@
 
 ### 4.1 演算法結構
 
-- **自適應 EMA**：學習率公式為 `α = base + (max − base) × clamp(|error| / BiasAdaptiveErrorRange, 0, 1)`，誤差越大學習率越高，越快追蹤到真實偏移。
+- **自適應 EMA**：學習率公式為 `α = base + (max − base) × clamp(|error| / BiasAdaptiveErrorRange, 0, 1)`，誤差越大學習率越高，越快追蹤到真實偏移。平滑係數與公式只在 `GamepadBiasSmoothing` 維護，兩個後端不得各自宣告副本，只能提供與自身數值尺度對應的 `BiasAdaptiveErrorRange`。
 - **四軸追蹤**：必須對左搖桿 X/Y 與右搖桿 X/Y 共四軸分別維護 `_leftStickBiasX/Y`、`_rightStickBiasX/Y`。
 - **右搖桿 Y 軸**：右搖桿 Y 偏移會被學習並**校正用於診斷**（`correctedRightThumbY` 出現於 Health Log 與 Ghost Log），但**不觸發任何導航事件**，亦不納入 `hasSignificantInput` 或 `ShouldForceReleaseDirectionalRepeat` 判斷。
 
@@ -60,7 +60,7 @@ XInput 以 `short` 範圍 (±32767) 運作；GameInput 以 float `[-1.0, 1.0]` �
 |---|---|---|
 | `BiasAdaptiveErrorRange` | `1638f` (≈ 0.05 × 32767) | `0.05f` |
 | `LeftStickBiasLearningThreshold` | `9000` (≈ 0.275 × 32767) | `0.28f` |
-| EMA 平滑係數 | 與 GameInput **完全相同** | 與 XInput **完全相同** |
+| EMA 平滑係數與學習率公式 | 共用 `GamepadBiasSmoothing` | 共用 `GamepadBiasSmoothing` |
 
 ### 4.3 D-Pad 機械耦合防污閘門
 
