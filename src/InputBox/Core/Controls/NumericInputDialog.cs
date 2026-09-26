@@ -1215,11 +1215,7 @@ internal sealed class NumericInputDialog : Form
         try
         {
             bool isDark = this.IsDarkModeActive();
-
-            // 決定警示色。
-            Color alertColor = SystemInformation.HighContrast ?
-                SystemColors.Highlight :
-                (isDark ? Color.Firebrick : Color.DarkOrange);
+            Color alertColor = FlashAlertAnimator.GetAlertColor(isDark, SystemInformation.HighContrast);
 
             void ApplyAlertVisuals(float intensity)
             {
@@ -1230,73 +1226,16 @@ internal sealed class NumericInputDialog : Form
                     return;
                 }
 
-                if (SystemInformation.HighContrast)
-                {
-                    bool isAlert = intensity > 0.5f;
+                (Color back, Color fore) = FlashAlertAnimator.ComputeFrameColors(
+                    intensity,
+                    isDark,
+                    alertColor,
+                    SystemInformation.HighContrast);
 
-                    Color hcBack = isAlert ?
-                            alertColor :
-                            SystemColors.Window,
-                        hcFore = isAlert ?
-                            SystemColors.HighlightText :
-                            SystemColors.WindowText;
-
-                    _nud.UpdateRecursive(hcBack, hcFore);
-                }
-                else
-                {
-                    Color pureBase = isDark ?
-                        Color.White :
-                        Color.Black;
-
-                    int rN = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
-                        gN = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
-                        bN = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
-
-                    Color flashColor = Color.FromArgb(255, rN, gN, bN);
-                    // WCAG 相對亮度精確切換閾值（crossover L≈0.1791），修復 YUV≈128 近似在切換帶（intensity≈0.75）
-                    // 導致文字對比跌破 AA（3.5~4.2:1）的問題。修復後全程 ≥4.64:1 AA；
-                    // 14f bold 大型文字全程 ≥4.5:1 AAA。
-                    static float FLin(int c) { float f = c / 255f; return f <= 0.04045f ? f / 12.92f : MathF.Pow((f + 0.055f) / 1.055f, 2.4f); }
-                    Color flashFore = (0.2126f * FLin(flashColor.R) + 0.7152f * FLin(flashColor.G) + 0.0722f * FLin(flashColor.B)) > 0.1791f
-                        ? Color.Black
-                        : Color.White;
-
-                    _nud.UpdateRecursive(flashColor, flashFore);
-                }
+                _nud.UpdateRecursive(back, fore);
             }
 
-            if (!SystemInformation.UIEffectsEnabled ||
-                !AppSettings.Current.EnableAnimatedVisualAlerts)
-            {
-                await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
-
-                await Task.Delay(800, token);
-
-                return;
-            }
-
-            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
-
-            long startTime = Stopwatch.GetTimestamp();
-
-            while (await timer.WaitForNextTickAsync(token))
-            {
-                long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
-
-                double elapsedMs = (double)elapsedTicks / Stopwatch.Frequency * 1000.0;
-
-                if (elapsedMs >= AppSettings.PhotoSafeFrequencyMs)
-                {
-                    break;
-                }
-
-                double angle = elapsedMs / AppSettings.PhotoSafeFrequencyMs * 2.0 * Math.PI - (Math.PI / 2.0);
-
-                float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
-
-                await this.SafeInvokeAsync(() => ApplyAlertVisuals(intensity));
-            }
+            await FlashAlertAnimator.RunAsync(this, ApplyAlertVisuals, token);
         }
         catch (OperationCanceledException)
         {

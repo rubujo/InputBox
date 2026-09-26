@@ -23,6 +23,7 @@
 | `GamepadControllerFactoryTests` | 控制器後端建立策略，驗證 XInput 預設路徑、GameInput 成功路徑，以及 GameInput 執行階段不可用時退避至 XInput | 3 |
 | `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意、GameInput 讀取缺失斷線重列舉、裝置狀態過濾、震動停止安全性、`ClearAllEvents` 肩鍵釋放訂閱清除與原生對話框切換時的殘留輸入回歸保護 | 10 |
 | `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` 遊戲控制器介面的守門、callback function pointer marshaling、官方 v3 按鍵位元、快照邊緣偵測、Release 日誌邊界、穩定裝置識別與震動參數保留 | 9 |
+| `FlashAlertAnimatorTests` | `FlashAlertAnimator` 共用閃爍警示：主題警示色、純淨底色至警示色的插值、整個脈衝過程文字對比 ≥4.5:1、高對比模式半強度切換，以及 1Hz 單次正弦脈衝強度 | 7 |
 | `GamepadBiasSmoothingTests` | `GamepadBiasSmoothing` 自適應 EMA 學習率公式：零誤差用基礎值、超出範圍用最大值，以及 XInput 與 GameInput 不同數值尺度下結果一致 | 5 |
 | `GamepadCalibrationVisualizerMapperTests` | `GamepadCalibrationVisualizerMapper` 對校準視覺化座標限制、死區半徑換算、D-Pad 導覽防誤觸，以及雙搖桿狀態／控制器連線文案格式化的回歸保護 | 14 |
 | `GamepadEventBinderTests` | `GamepadEventBinder` 的 LB / RB / LT / RT 與肩鍵放開事件綁定回歸保護 | 1 |
@@ -48,7 +49,7 @@
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度的回歸保護 | 16 |
-| **合計** | | **416** |
+| **合計** | | **423** |
 
 ## 二、執行方式 🚀
 
