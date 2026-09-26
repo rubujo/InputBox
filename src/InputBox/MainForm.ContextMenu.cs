@@ -8,6 +8,7 @@ using InputBox.Core.Services;
 using InputBox.Core.Utilities;
 using InputBox.Resources;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Media;
 
 namespace InputBox;
@@ -134,6 +135,158 @@ public partial class MainForm
             },
             RestartMenuAccessibleDescription);
 
+        InitializeToggleMenuItems();
+
+        ToolStripMenuItem tsmiHotkeySettings = CreateHotkeySettingsMenu();
+        ToolStripMenuItem tsmiSettings = CreateSettingsMenu();
+
+        // 清除歷程。
+        // 清空目前只保存在記憶體中的輸入歷程資料。
+        ToolStripMenuItem tsmiClearHistory = new(ControlExtensions.GetMnemonicText(Strings.Menu_ClearHistory, 'C'))
+        {
+            Name = "TsmiClearHistory",
+            AccessibleName = Strings.Menu_ClearHistory,
+            AccessibleDescription = Strings.Menu_ClearHistory_Desc
+        };
+        tsmiClearHistory.Click += (s, e) =>
+        {
+            try
+            {
+                _historyService?.Clear();
+
+                // 清除後主動將焦點拉回輸入框，確保使用者能直接開始輸入。
+                TBInput.Focus();
+
+                FeedbackService.PlaySound(SystemSounds.Asterisk);
+
+                AnnounceA11y(Strings.Msg_InputCleared);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiClearHistory.Click 失敗：{ex.Message}");
+            }
+        };
+
+        // 離開。
+        // 關閉主視窗並結束整個應用程式流程。
+        ToolStripMenuItem tsmiExit = new(ControlExtensions.GetMnemonicText(Strings.Menu_Exit, 'X'))
+        {
+            AccessibleName = Strings.Menu_Exit,
+            AccessibleDescription = Strings.A11y_Menu_Exit_Desc
+        };
+        tsmiExit.Click += (s, e) =>
+        {
+            try
+            {
+                Close();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiExit.Click 失敗：{ex.Message}");
+            }
+        };
+
+        // 說明（WCAG 3.3.5）。
+        // 顯示鍵盤與遊戲控制器操作對照的說明對話框。
+        ToolStripMenuItem tsmiHelp = new(ControlExtensions.GetMnemonicText(Strings.Menu_Help, 'H'))
+        {
+            AccessibleName = Strings.Menu_Help,
+            AccessibleDescription = Strings.Menu_Help_Desc
+        };
+        tsmiHelp.Click += (s, e) =>
+        {
+            try
+            {
+                ShowHelpDialog();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiHelp.Click 失敗：{ex.Message}");
+            }
+        };
+
+        // 使用共享快取取得選單字型。
+        _cmsInput.Font = GetSharedA11yFont(DeviceDpi);
+        _cmsInput.Opened += (s, e) => EnsureContextMenuReadyForKeyboard(_cmsInput);
+        _cmsInput.PreviewKeyDown += ContextMenu_PreviewKeyDown;
+        _cmsInput.KeyDown += ContextMenu_KeyDown;
+        _cmsInput.Closed += (s, e) => RestorePhraseSubMenuAutoClose();
+        _cmsInput.Closing += (s, e) =>
+        {
+            try
+            {
+                if (ShouldSuppressPhraseMenuClose(e.CloseReason))
+                {
+                    e.Cancel = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] _cmsInput.Closing 失敗：{ex.Message}");
+            }
+        };
+
+        InitializePhrasesMenu();
+
+        if (SystemHelper.IsRunningOnGamescope())
+        {
+            _tsmiRecoverGamescopeSurface = new ToolStripMenuItem(Strings.Menu_RecoverGamescopeSurface)
+            {
+                AccessibleName = Strings.Menu_RecoverGamescopeSurface,
+                AccessibleDescription = Strings.Menu_RecoverGamescopeSurface_Desc
+            };
+            _tsmiRecoverGamescopeSurface.Click += (s, e) =>
+            {
+                try
+                {
+                    RecoverGamescopeMainSurface();
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.LogException(ex, "tsmiRecoverGamescopeSurface.Click 失敗");
+
+                    Debug.WriteLine($"[選單] tsmiRecoverGamescopeSurface.Click 失敗：{ex.Message}");
+                }
+            };
+        }
+
+        _cmsInput.Items.Add(_tsmiPrivacyMode);
+        _cmsInput.Items.Add(_tsmiA11yInterrupt);
+        _cmsInput.Items.Add(_tsmiAnimatedVisualAlerts);
+        _cmsInput.Items.Add(_tsmiMinimizeOnReturn);
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(_tsmiPhrases);
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(tsmiHotkeySettings);
+        _cmsInput.Items.Add(tsmiSettings);
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(tsmiClearHistory);
+        if (_tsmiRecoverGamescopeSurface != null)
+        {
+            _cmsInput.Items.Add(new ToolStripSeparator());
+            _cmsInput.Items.Add(_tsmiRecoverGamescopeSurface);
+        }
+
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(tsmiHelp);
+        _cmsInput.Items.Add(new ToolStripSeparator());
+        _cmsInput.Items.Add(tsmiExit);
+
+        // 綁定選單至容器控制項，確保 TBInput 能保留其原始的 Windows 右鍵選單（剪下、複製、貼上）。
+        PInputHost.ContextMenuStrip = _cmsInput;
+        TLPHost.ContextMenuStrip = _cmsInput;
+    }
+
+    /// <summary>
+    /// 建立右鍵選單頂層的切換項目：隱私模式、允許中斷廣播、動畫式視覺警示與返回時最小化
+    /// </summary>
+    [MemberNotNull(
+        nameof(_tsmiPrivacyMode),
+        nameof(_tsmiA11yInterrupt),
+        nameof(_tsmiAnimatedVisualAlerts),
+        nameof(_tsmiMinimizeOnReturn))]
+    private void InitializeToggleMenuItems()
+    {
         // 隱私模式。
         _tsmiPrivacyMode = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_PrivacyMode, 'P'))
         {
@@ -298,7 +451,14 @@ public partial class MainForm
                 Debug.WriteLine($"[選單] _tsmiMinimizeOnReturn.CheckedChanged 失敗：{ex.Message}");
             }
         };
+    }
 
+    /// <summary>
+    /// 建立右鍵選單的「快速鍵設定」子選單
+    /// </summary>
+    /// <returns>快速鍵設定子選單項目。</returns>
+    private ToolStripMenuItem CreateHotkeySettingsMenu()
+    {
         // 快速鍵設定子選單。
         // 提供修飾鍵與主按鍵擷取等快速鍵相關設定入口。
         ToolStripMenuItem tsmiHotkeySettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_HotkeySettings, 'T'))
@@ -465,6 +625,15 @@ public partial class MainForm
         };
         tsmiHotkeySettings.DropDownItems.Add(tsmiCaptureKey);
 
+        return tsmiHotkeySettings;
+    }
+
+    /// <summary>
+    /// 建立右鍵選單的「進階設定」子選單，並組裝視窗、回饋、遊戲控制器與資料夾等項目
+    /// </summary>
+    /// <returns>進階設定子選單項目。</returns>
+    private ToolStripMenuItem CreateSettingsMenu()
+    {
         // 進階設定子選單。
         // 匯整視窗、回饋、遊戲控制器與資料夾等進階功能入口。
         ToolStripMenuItem tsmiSettings = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings, 'S'))
@@ -486,6 +655,131 @@ public partial class MainForm
             }
         };
 
+        tsmiSettings.DropDownItems.Add(CreateWindowOperationsMenu());
+        tsmiSettings.DropDownItems.Add(CreateFeedbackMenu());
+        tsmiSettings.DropDownItems.Add(CreateGamepadSettingsMenu());
+        tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
+
+        // 歷程容量（需重啟）。
+        // 控制記憶體中保留的輸入歷程筆數上限。
+        ToolStripMenuItem tsmiCap = new(string.Empty)
+        {
+            AccessibleName = Strings.Settings_HistoryCapacity,
+            Tag = new MenuMetadata(Strings.Settings_HistoryCapacity, 'H', 1, 1000)
+        };
+        tsmiCap.Click += (s, e) =>
+        {
+            try
+            {
+                int? val = AskForValue(Strings.Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity, 100, 1, 1000);
+
+                if (val.HasValue &&
+                    val != AppSettings.Current.HistoryCapacity)
+                {
+                    AppSettings.Current.HistoryCapacity = val.Value;
+                    AppSettings.Save();
+
+                    RefreshMenu();
+
+                    AskForRestart();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, "歷程容量設定失敗");
+
+                Debug.WriteLine($"[選單] tsmiCap.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiSettings.DropDownItems.Add(tsmiCap);
+
+        tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
+
+        // 開啟資料夾。
+        // 開啟應用程式設定與資料檔所在的資料夾。
+        ToolStripMenuItem tsmiOpenDataFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenDataFolder, 'O'))
+        {
+            AccessibleName = Strings.Menu_OpenDataFolder,
+            AccessibleDescription = Strings.Menu_OpenDataFolder_Desc
+        };
+        tsmiOpenDataFolder.Click += (s, e) =>
+        {
+            try
+            {
+                if (Directory.Exists(AppSettings.ConfigDirectory))
+                {
+                    Process.Start(new ProcessStartInfo(AppSettings.ConfigDirectory)
+                    {
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    AnnounceA11y(Strings.Msg_FolderNotFound);
+
+                    GamepadMessageBox.Show(
+                        this,
+                        Strings.Msg_FolderNotFound,
+                        Strings.Wrn_Title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning,
+                        gamepad: _gamepadController);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiOpenDataFolder.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiSettings.DropDownItems.Add(tsmiOpenDataFolder);
+
+        // 開啟日誌資料夾。
+        // 開啟本機例外與診斷紀錄所在的日誌目錄。
+        ToolStripMenuItem tsmiOpenLogFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenLogFolder, 'L'))
+        {
+            AccessibleName = Strings.Menu_OpenLogFolder,
+            AccessibleDescription = Strings.Menu_OpenLogFolder_Desc
+        };
+        tsmiOpenLogFolder.Click += (s, e) =>
+        {
+            try
+            {
+                if (Directory.Exists(LoggerService.LogDirectory))
+                {
+                    Process.Start(new ProcessStartInfo(LoggerService.LogDirectory)
+                    {
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    AnnounceA11y(Strings.Msg_FolderNotFound);
+
+                    GamepadMessageBox.Show(
+                        this,
+                        Strings.Msg_FolderNotFound,
+                        Strings.Wrn_Title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning,
+                        gamepad: _gamepadController);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[選單] tsmiOpenLogFolder.Click 失敗：{ex.Message}");
+            }
+        };
+        tsmiSettings.DropDownItems.Add(tsmiOpenLogFolder);
+
+        return tsmiSettings;
+    }
+
+    /// <summary>
+    /// 建立「進階設定」中的「視窗與操作」子選單
+    /// </summary>
+    /// <returns>視窗與操作子選單項目。</returns>
+    private ToolStripMenuItem CreateWindowOperationsMenu()
+    {
         // 視窗與操作。
         // 包含視窗還原、剪貼簿重試與切換緩衝等系統互動參數。
         ToolStripMenuItem tsmiWinOps = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Window, 'W'))
@@ -615,58 +909,6 @@ public partial class MainForm
 
         tsmiWinOps.DropDownItems.Add(new ToolStripSeparator());
 
-        // 新增數值設定選單項目。
-        // parent: 父選單項目。label: 標籤文字。mnemonic: 助記鍵字母。
-        // getter: 取得目前值。setter: 設定新值。defValue: 預設值。min/max: 值域。
-        // a11yHint: 選填的無障礙播報補充說明。
-        void AddNumericItem(
-            ToolStripMenuItem parent,
-            string label,
-            char mnemonic,
-            Func<int> getter,
-            Action<int> setter,
-            int defValue,
-            int min,
-            int max,
-            string? a11yHint = null)
-        {
-            ToolStripMenuItem item = new(string.Empty)
-            {
-                AccessibleName = label,
-                // 將範圍資訊與補充說明封裝至 Metadata，支援動態 A11y 描述生成。
-                Tag = new MenuMetadata(label, mnemonic, min, max, a11yHint),
-            };
-
-            item.Click += (s, e) =>
-            {
-                try
-                {
-                    int? val = AskForValue(label, getter(), defValue, min, max);
-
-                    if (val.HasValue)
-                    {
-                        setter(val.Value);
-
-                        AppSettings.Save();
-
-                        RefreshMenu();
-                    }
-
-                    // 焦點還原。
-                    // 當數值輸入對話框關閉後，將焦點精確還原至原選單項，最佳化螢幕閱讀器導覽流暢度。
-                    _lastFocusedMenuItem?.Select();
-                }
-                catch (Exception ex)
-                {
-                    LoggerService.LogException(ex, $"數值設定 [{label}] 失敗");
-
-                    Debug.WriteLine($"[選單] {label} 設定失敗：{ex.Message}");
-                }
-            };
-
-            parent.DropDownItems.Add(item);
-        }
-
         AddNumericItem(
             tsmiWinOps,
             Strings.Settings_WindowRestoreDelay,
@@ -728,8 +970,75 @@ public partial class MainForm
         };
         tsmiWinOps.DropDownItems.Add(tsmiResetWinOps);
 
-        tsmiSettings.DropDownItems.Add(tsmiWinOps);
+        return tsmiWinOps;
+    }
 
+    /// <summary>
+    /// 新增數值設定選單項目；點選後以數值輸入對話框調整並立即儲存
+    /// </summary>
+    /// <param name="parent">父選單項目。</param>
+    /// <param name="label">標籤文字。</param>
+    /// <param name="mnemonic">助記鍵字母。</param>
+    /// <param name="getter">取得目前值。</param>
+    /// <param name="setter">設定新值。</param>
+    /// <param name="defValue">預設值。</param>
+    /// <param name="min">最小值。</param>
+    /// <param name="max">最大值。</param>
+    /// <param name="a11yHint">選填的無障礙播報補充說明。</param>
+    private void AddNumericItem(
+        ToolStripMenuItem parent,
+        string label,
+        char mnemonic,
+        Func<int> getter,
+        Action<int> setter,
+        int defValue,
+        int min,
+        int max,
+        string? a11yHint = null)
+    {
+        ToolStripMenuItem item = new(string.Empty)
+        {
+            AccessibleName = label,
+            // 將範圍資訊與補充說明封裝至 Metadata，支援動態 A11y 描述生成。
+            Tag = new MenuMetadata(label, mnemonic, min, max, a11yHint),
+        };
+
+        item.Click += (s, e) =>
+        {
+            try
+            {
+                int? val = AskForValue(label, getter(), defValue, min, max);
+
+                if (val.HasValue)
+                {
+                    setter(val.Value);
+
+                    AppSettings.Save();
+
+                    RefreshMenu();
+                }
+
+                // 焦點還原。
+                // 當數值輸入對話框關閉後，將焦點精確還原至原選單項，最佳化螢幕閱讀器導覽流暢度。
+                _lastFocusedMenuItem?.Select();
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogException(ex, $"數值設定 [{label}] 失敗");
+
+                Debug.WriteLine($"[選單] {label} 設定失敗：{ex.Message}");
+            }
+        };
+
+        parent.DropDownItems.Add(item);
+    }
+
+    /// <summary>
+    /// 建立「進階設定」中的「回饋」子選單
+    /// </summary>
+    /// <returns>回饋子選單項目。</returns>
+    private ToolStripMenuItem CreateFeedbackMenu()
+    {
         // 回饋。
         // 集中管理震動開關與強度等回饋設定。
         ToolStripMenuItem tsmiFeedback = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Feedback, 'F'))
@@ -874,8 +1183,15 @@ public partial class MainForm
         };
         tsmiFeedback.DropDownItems.Add(tsmiResetFeedback);
 
-        tsmiSettings.DropDownItems.Add(tsmiFeedback);
+        return tsmiFeedback;
+    }
 
+    /// <summary>
+    /// 建立「進階設定」中的「遊戲控制器」子選單
+    /// </summary>
+    /// <returns>遊戲控制器子選單項目。</returns>
+    private ToolStripMenuItem CreateGamepadSettingsMenu()
+    {
         //　控制器。
         // 提供遊戲控制器輸入 API、死區、重複輸入與校正狀態重設等設定。
         ToolStripMenuItem tsmiGamepad = new(ControlExtensions.GetMnemonicText(Strings.Menu_Settings_Gamepad, 'G'))
@@ -1234,206 +1550,15 @@ public partial class MainForm
         };
         tsmiGamepad.DropDownItems.Add(tsmiResetGamepad);
 
-        tsmiSettings.DropDownItems.Add(tsmiGamepad);
-        tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
+        return tsmiGamepad;
+    }
 
-        // 歷程容量（需重啟）。
-        // 控制記憶體中保留的輸入歷程筆數上限。
-        ToolStripMenuItem tsmiCap = new(string.Empty)
-        {
-            AccessibleName = Strings.Settings_HistoryCapacity,
-            Tag = new MenuMetadata(Strings.Settings_HistoryCapacity, 'H', 1, 1000)
-        };
-        tsmiCap.Click += (s, e) =>
-        {
-            try
-            {
-                int? val = AskForValue(Strings.Settings_HistoryCapacity, AppSettings.Current.HistoryCapacity, 100, 1, 1000);
-
-                if (val.HasValue &&
-                    val != AppSettings.Current.HistoryCapacity)
-                {
-                    AppSettings.Current.HistoryCapacity = val.Value;
-                    AppSettings.Save();
-
-                    RefreshMenu();
-
-                    AskForRestart();
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerService.LogException(ex, "歷程容量設定失敗");
-
-                Debug.WriteLine($"[選單] tsmiCap.Click 失敗：{ex.Message}");
-            }
-        };
-        tsmiSettings.DropDownItems.Add(tsmiCap);
-
-        tsmiSettings.DropDownItems.Add(new ToolStripSeparator());
-
-        // 開啟資料夾。
-        // 開啟應用程式設定與資料檔所在的資料夾。
-        ToolStripMenuItem tsmiOpenDataFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenDataFolder, 'O'))
-        {
-            AccessibleName = Strings.Menu_OpenDataFolder,
-            AccessibleDescription = Strings.Menu_OpenDataFolder_Desc
-        };
-        tsmiOpenDataFolder.Click += (s, e) =>
-        {
-            try
-            {
-                if (Directory.Exists(AppSettings.ConfigDirectory))
-                {
-                    Process.Start(new ProcessStartInfo(AppSettings.ConfigDirectory)
-                    {
-                        UseShellExecute = true
-                    });
-                }
-                else
-                {
-                    AnnounceA11y(Strings.Msg_FolderNotFound);
-
-                    GamepadMessageBox.Show(
-                        this,
-                        Strings.Msg_FolderNotFound,
-                        Strings.Wrn_Title,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning,
-                        gamepad: _gamepadController);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[選單] tsmiOpenDataFolder.Click 失敗：{ex.Message}");
-            }
-        };
-        tsmiSettings.DropDownItems.Add(tsmiOpenDataFolder);
-
-        // 開啟日誌資料夾。
-        // 開啟本機例外與診斷紀錄所在的日誌目錄。
-        ToolStripMenuItem tsmiOpenLogFolder = new(ControlExtensions.GetMnemonicText(Strings.Menu_OpenLogFolder, 'L'))
-        {
-            AccessibleName = Strings.Menu_OpenLogFolder,
-            AccessibleDescription = Strings.Menu_OpenLogFolder_Desc
-        };
-        tsmiOpenLogFolder.Click += (s, e) =>
-        {
-            try
-            {
-                if (Directory.Exists(LoggerService.LogDirectory))
-                {
-                    Process.Start(new ProcessStartInfo(LoggerService.LogDirectory)
-                    {
-                        UseShellExecute = true
-                    });
-                }
-                else
-                {
-                    AnnounceA11y(Strings.Msg_FolderNotFound);
-
-                    GamepadMessageBox.Show(
-                        this,
-                        Strings.Msg_FolderNotFound,
-                        Strings.Wrn_Title,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning,
-                        gamepad: _gamepadController);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[選單] tsmiOpenLogFolder.Click 失敗：{ex.Message}");
-            }
-        };
-        tsmiSettings.DropDownItems.Add(tsmiOpenLogFolder);
-
-        // 清除歷程。
-        // 清空目前只保存在記憶體中的輸入歷程資料。
-        ToolStripMenuItem tsmiClearHistory = new(ControlExtensions.GetMnemonicText(Strings.Menu_ClearHistory, 'C'))
-        {
-            Name = "TsmiClearHistory",
-            AccessibleName = Strings.Menu_ClearHistory,
-            AccessibleDescription = Strings.Menu_ClearHistory_Desc
-        };
-        tsmiClearHistory.Click += (s, e) =>
-        {
-            try
-            {
-                _historyService?.Clear();
-
-                // 清除後主動將焦點拉回輸入框，確保使用者能直接開始輸入。
-                TBInput.Focus();
-
-                FeedbackService.PlaySound(SystemSounds.Asterisk);
-
-                AnnounceA11y(Strings.Msg_InputCleared);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[選單] tsmiClearHistory.Click 失敗：{ex.Message}");
-            }
-        };
-
-        // 離開。
-        // 關閉主視窗並結束整個應用程式流程。
-        ToolStripMenuItem tsmiExit = new(ControlExtensions.GetMnemonicText(Strings.Menu_Exit, 'X'))
-        {
-            AccessibleName = Strings.Menu_Exit,
-            AccessibleDescription = Strings.A11y_Menu_Exit_Desc
-        };
-        tsmiExit.Click += (s, e) =>
-        {
-            try
-            {
-                Close();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[選單] tsmiExit.Click 失敗：{ex.Message}");
-            }
-        };
-
-        // 說明（WCAG 3.3.5）。
-        // 顯示鍵盤與遊戲控制器操作對照的說明對話框。
-        ToolStripMenuItem tsmiHelp = new(ControlExtensions.GetMnemonicText(Strings.Menu_Help, 'H'))
-        {
-            AccessibleName = Strings.Menu_Help,
-            AccessibleDescription = Strings.Menu_Help_Desc
-        };
-        tsmiHelp.Click += (s, e) =>
-        {
-            try
-            {
-                ShowHelpDialog();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[選單] tsmiHelp.Click 失敗：{ex.Message}");
-            }
-        };
-
-        // 使用共享快取取得選單字型。
-        _cmsInput.Font = GetSharedA11yFont(DeviceDpi);
-        _cmsInput.Opened += (s, e) => EnsureContextMenuReadyForKeyboard(_cmsInput);
-        _cmsInput.PreviewKeyDown += ContextMenu_PreviewKeyDown;
-        _cmsInput.KeyDown += ContextMenu_KeyDown;
-        _cmsInput.Closed += (s, e) => RestorePhraseSubMenuAutoClose();
-        _cmsInput.Closing += (s, e) =>
-        {
-            try
-            {
-                if (ShouldSuppressPhraseMenuClose(e.CloseReason))
-                {
-                    e.Cancel = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[選單] _cmsInput.Closing 失敗：{ex.Message}");
-            }
-        };
-
+    /// <summary>
+    /// 建立右鍵選單的「片語」子選單；項目會在每次展開前依目前片語重建
+    /// </summary>
+    [MemberNotNull(nameof(_tsmiPhrases))]
+    private void InitializePhrasesMenu()
+    {
         // 片語子選單。
         _tsmiPhrases = new ToolStripMenuItem(ControlExtensions.GetMnemonicText(Strings.Menu_Phrases, 'F'))
         {
@@ -1501,54 +1626,6 @@ public partial class MainForm
                 Debug.WriteLine($"[選單] _tsmiPhrases.DropDown.Closing 失敗：{ex.Message}");
             }
         };
-
-        if (SystemHelper.IsRunningOnGamescope())
-        {
-            _tsmiRecoverGamescopeSurface = new ToolStripMenuItem(Strings.Menu_RecoverGamescopeSurface)
-            {
-                AccessibleName = Strings.Menu_RecoverGamescopeSurface,
-                AccessibleDescription = Strings.Menu_RecoverGamescopeSurface_Desc
-            };
-            _tsmiRecoverGamescopeSurface.Click += (s, e) =>
-            {
-                try
-                {
-                    RecoverGamescopeMainSurface();
-                }
-                catch (Exception ex)
-                {
-                    LoggerService.LogException(ex, "tsmiRecoverGamescopeSurface.Click 失敗");
-
-                    Debug.WriteLine($"[選單] tsmiRecoverGamescopeSurface.Click 失敗：{ex.Message}");
-                }
-            };
-        }
-
-        _cmsInput.Items.Add(_tsmiPrivacyMode);
-        _cmsInput.Items.Add(_tsmiA11yInterrupt);
-        _cmsInput.Items.Add(_tsmiAnimatedVisualAlerts);
-        _cmsInput.Items.Add(_tsmiMinimizeOnReturn);
-        _cmsInput.Items.Add(new ToolStripSeparator());
-        _cmsInput.Items.Add(_tsmiPhrases);
-        _cmsInput.Items.Add(new ToolStripSeparator());
-        _cmsInput.Items.Add(tsmiHotkeySettings);
-        _cmsInput.Items.Add(tsmiSettings);
-        _cmsInput.Items.Add(new ToolStripSeparator());
-        _cmsInput.Items.Add(tsmiClearHistory);
-        if (_tsmiRecoverGamescopeSurface != null)
-        {
-            _cmsInput.Items.Add(new ToolStripSeparator());
-            _cmsInput.Items.Add(_tsmiRecoverGamescopeSurface);
-        }
-
-        _cmsInput.Items.Add(new ToolStripSeparator());
-        _cmsInput.Items.Add(tsmiHelp);
-        _cmsInput.Items.Add(new ToolStripSeparator());
-        _cmsInput.Items.Add(tsmiExit);
-
-        // 綁定選單至容器控制項，確保 TBInput 能保留其原始的 Windows 右鍵選單（剪下、複製、貼上）。
-        PInputHost.ContextMenuStrip = _cmsInput;
-        TLPHost.ContextMenuStrip = _cmsInput;
     }
 
     /// <summary>
