@@ -1895,7 +1895,7 @@ internal sealed partial class XInputGamepadController : IGamepadController
             out ushort safeStrength,
             out int safeDurationMs,
             out VibrationLimiterDebugInfo limiterDiagnostics,
-            thermalCostMultiplier: 2.0);
+            thermalCostMultiplier: VibrationSafetyLimiter.GetMotorThermalCostMultiplier(2));
 
 #if DEBUG
         bool enableDebugDiagnostics =

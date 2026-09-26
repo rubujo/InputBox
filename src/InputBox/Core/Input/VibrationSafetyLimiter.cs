@@ -54,7 +54,12 @@ internal enum VibrationLimiterFlags
     /// <summary>
     /// 因可感知體驗保底而回補。
     /// </summary>
-    ScaledByPerceptibilityFloor = 1 << 8
+    ScaledByPerceptibilityFloor = 1 << 8,
+
+    /// <summary>
+    /// 單次請求超出剩餘熱預算，已降低強度以符合預算。
+    /// </summary>
+    ScaledByThermalOverflow = 1 << 9
 }
 
 /// <summary>
@@ -100,6 +105,16 @@ internal sealed class VibrationSafetyLimiter
     /// </summary>
     private const int AmbientPerceptibleFloorDurationMs = 35;
 
+    /// <summary>
+    /// 熱成本倍率的基準馬達數量（雙主馬達控制器，例如 XInput）。
+    /// </summary>
+    private const int ReferenceMotorCount = 2;
+
+    /// <summary>
+    /// 熱負載溢出判斷相對於硬上限的容許倍率。
+    /// </summary>
+    private const double ThermalOverflowTolerance = 1.05;
+
     private readonly Lock _lock = new();
     private readonly Queue<(long EndMs, int DurationMs)> _acceptedDurations = new();
 
@@ -138,6 +153,20 @@ internal sealed class VibrationSafetyLimiter
         _thermalHardBudget = Math.Max(thermalHardBudget, _thermalSoftBudget + 1.0);
         _thermalTauMs = Math.Max(thermalTauMs, 100.0);
         _ambientCooldownMs = Math.Max(ambientCooldownMs, 0);
+    }
+
+    /// <summary>
+    /// 依控制器回報的震動馬達數量取得正規化的熱成本倍率。
+    /// </summary>
+    /// <remarks>
+    /// 以雙主馬達為基準（倍率 1.0），讓預算與縮放參數在不同後端之間具有相同意義；
+    /// 否則多馬達裝置的單次提示成本可能直接超過硬上限，導致冷啟動狀態下也被拒絕。
+    /// </remarks>
+    /// <param name="motorCount">支援的震動馬達數量；會被限制在 1 到 4 之間。</param>
+    /// <returns>正規化後的熱成本倍率（0.5 到 2.0）。</returns>
+    public static double GetMotorThermalCostMultiplier(int motorCount)
+    {
+        return Math.Clamp(motorCount, 1, 4) / (double)ReferenceMotorCount;
     }
 
     /// <summary>
@@ -415,12 +444,36 @@ internal sealed class VibrationSafetyLimiter
                 }
             }
 
-            double amplitude = candidateStrength / 65535.0;
             double clampedMultiplier = Math.Clamp(thermalCostMultiplier, 0.25, 8.0);
-            double cost = amplitude * amplitude * candidateDuration * clampedMultiplier;
+            double cost = ComputeThermalCost(candidateStrength, candidateDuration, clampedMultiplier);
+            double overflowLimit = _thermalHardBudget * ThermalOverflowTolerance;
+
+            // Normal 優先級單次請求超出剩餘熱預算時，先依剩餘預算降低振幅（熱成本與振幅平方成正比），
+            // 只有降到優先級保底比例以下（代表馬達已接近過熱）才拒絕，避免冷啟動時重要回饋被整個吞掉。
+            if (priority == VibrationPriority.Normal &&
+                _thermalLoad + cost > overflowLimit)
+            {
+                double headroom = overflowLimit - _thermalLoad;
+                double fitScale = headroom > 0.0 ?
+                    Math.Sqrt(headroom / cost) :
+                    0.0;
+
+                if (scale * fitScale >= minScale)
+                {
+                    ushort fittedStrength = (ushort)Math.Max(1, (int)Math.Floor(candidateStrength * fitScale));
+
+                    if (fittedStrength < candidateStrength)
+                    {
+                        candidateStrength = fittedStrength;
+                        cost = ComputeThermalCost(candidateStrength, candidateDuration, clampedMultiplier);
+                        scale *= fitScale;
+                        flags |= VibrationLimiterFlags.ScaledByThermalOverflow;
+                    }
+                }
+            }
 
             if (priority != VibrationPriority.Critical &&
-                _thermalLoad + cost > _thermalHardBudget * 1.05)
+                _thermalLoad + cost > overflowLimit)
             {
                 _ambientCooldownUntilMs = nowMs + _ambientCooldownMs;
                 flags |= VibrationLimiterFlags.BlockedByThermalOverflow;
@@ -452,6 +505,20 @@ internal sealed class VibrationSafetyLimiter
 
             return true;
         }
+    }
+
+    /// <summary>
+    /// 計算單次震動的熱成本（振幅平方 × 持續時間 × 馬達倍率）。
+    /// </summary>
+    /// <param name="strength">震動強度（0 到 65535）。</param>
+    /// <param name="durationMs">持續時間（毫秒）。</param>
+    /// <param name="multiplier">已限制範圍的熱成本倍率。</param>
+    /// <returns>熱成本估值。</returns>
+    private static double ComputeThermalCost(ushort strength, int durationMs, double multiplier)
+    {
+        double amplitude = strength / 65535.0;
+
+        return amplitude * amplitude * durationMs * multiplier;
     }
 
     /// <summary>

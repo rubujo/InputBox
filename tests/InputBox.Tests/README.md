@@ -45,8 +45,8 @@
 | `SystemHelperTests` | `SystemHelper.EvaluateGamescopeEnvironment` 在不同 DISPLAY、XDG_CURRENT_DESKTOP 與 DESKTOP_SESSION 環境變數組合下的 Gamescope 環境偵測回歸保護 | 11 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
-| `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護 | 8 |
-| **合計** | | **397** |
+| `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度的回歸保護 | 16 |
+| **合計** | | **405** |
 
 ## 二、執行方式 🚀
 

@@ -428,9 +428,9 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private bool _supportsRumble = false;
 
     /// <summary>
-    /// 熱負載估算倍率（依支援馬達數量調整，2 馬達約 2.0、4 馬達約 4.0）。
+    /// 熱負載估算倍率（依支援馬達數量正規化，以雙主馬達為 1.0，4 馬達為 2.0）。
     /// </summary>
-    private double _rumbleThermalWeight = 2.0;
+    private double _rumbleThermalWeight = VibrationSafetyLimiter.GetMotorThermalCostMultiplier(2);
 
     /// <summary>
     /// 取得或設定搖桿進入死區閾值
@@ -2130,7 +2130,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _cachedDeviceIdentity = string.Empty;
 
             _supportsRumble = false;
-            _rumbleThermalWeight = 2.0;
+            _rumbleThermalWeight = VibrationSafetyLimiter.GetMotorThermalCostMultiplier(2);
 
             return;
         }
@@ -2143,7 +2143,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _supportsRumble = info.SupportedRumbleMotors != 0;
             uint supportedMotorBits = Convert.ToUInt32(info.SupportedRumbleMotors);
             int supportedMotorCount = BitOperations.PopCount(supportedMotorBits);
-            _rumbleThermalWeight = Math.Clamp(supportedMotorCount, 1, 4);
+            _rumbleThermalWeight = VibrationSafetyLimiter.GetMotorThermalCostMultiplier(supportedMotorCount);
 
             // 更新裝置名稱與穩定識別資訊。Auto 判斷改以 VID/PID 與 GameInput
             // 原始顯示名稱作為穩定線索。
@@ -2158,7 +2158,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _cachedDeviceName = "Unknown Gamepad";
             _cachedDeviceIdentity = _cachedDeviceName;
             _supportsRumble = false;
-            _rumbleThermalWeight = 2.0;
+            _rumbleThermalWeight = VibrationSafetyLimiter.GetMotorThermalCostMultiplier(2);
         }
     }
 
