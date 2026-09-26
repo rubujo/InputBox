@@ -32,12 +32,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private readonly GamepadRepeatSettings _repeatSettings;
 
     /// <summary>
-    /// 目前動態計算的連發間隔幀數（加入生理抖動）
+    /// 目前生效的連發間隔幀數（首次為初始延遲，之後為重複間隔）
     /// </summary>
     private int _currentRepeatInterval;
 
     /// <summary>
-    /// 目前動態計算的右搖桿連發間隔幀數（加入生理抖動）
+    /// 目前生效的右搖桿連發間隔幀數（首次為初始延遲，之後為重複間隔）
     /// </summary>
     private int _currentRSRepeatInterval;
 

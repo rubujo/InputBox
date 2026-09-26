@@ -2,7 +2,7 @@
 
 /// <summary>
 /// 提供基於高斯分佈（常態分佈）的隨機數產生器
-/// 用於系統操作的自然緩衝延遲，改善 A11y 音訊避讓與 UI 執行緒排程穩定性
+/// 用於本程式內部排程的緩衝延遲，改善 A11y 音訊避讓與 UI 執行緒排程穩定性
 /// </summary>
 internal static class GaussianDelayHelper
 {
@@ -30,11 +30,15 @@ internal static class GaussianDelayHelper
     }
 
     /// <summary>
-    /// 產生符合人類反應特徵的毫秒延遲
+    /// 產生加入排程抖動的毫秒延遲
     /// </summary>
+    /// <remarks>
+    /// 僅用於本程式內部的 A11y 廣播避讓時序（<see cref="Services.AnnouncementService"/>），
+    /// 讓連續廣播不會固定落在同一個排程點；不參與任何對其他視窗的輸入或輸出。
+    /// </remarks>
     /// <param name="baseDelay">基礎延遲（毫秒）</param>
     /// <param name="jitterRange">抖動範圍（毫秒）</param>
-    /// <returns>加上生理擾動後的延遲時間</returns>
+    /// <returns>加上排程抖動後的延遲時間</returns>
     public static int NextDelay(
         int baseDelay,
         int jitterRange)
@@ -51,7 +55,7 @@ internal static class GaussianDelayHelper
         double mean = baseDelay + (jitterRange / 2.0),
             sd = jitterRange / 6.0;
 
-        // 若 jitter 過小導致 sd 太低，補上一個極小生理抖動（平均值的 5%）。
+        // 若 jitter 過小導致 sd 太低，補上最小排程抖動（平均值的 5%）。
         sd = Math.Max(sd, mean * 0.05);
 
         double result = NextGaussian(mean, sd);
