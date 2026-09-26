@@ -99,9 +99,16 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 #### C# 編碼慣例 ####
 
 # var 喜好設定
+# 依 Microsoft C# 編碼慣例與 .NET Runtime 程式碼風格：
+# - 型別可由右側直接看出（new、明確轉型）時可使用 var，亦可使用 target-typed new()。
+# - 內建型別、方法回傳值等型別無法由右側直接看出時，一律使用明確型別；不以方法或變數名稱推測型別。
+# - foreach 迴圈變數使用明確型別；LINQ 匿名型別等必要情況除外。
 csharp_style_var_elsewhere = false
 csharp_style_var_for_built_in_types = false
-csharp_style_var_when_type_is_apparent = false
+csharp_style_var_when_type_is_apparent = true
+# IDE0008：型別無法直接看出卻使用 var 時提示改為明確型別；IDE0007（改用 var）不主動提示，保留既有明確型別寫法。
+dotnet_diagnostic.IDE0008.severity = suggestion
+dotnet_diagnostic.IDE0007.severity = silent
 
 # 運算式主體成員
 csharp_style_expression_bodied_accessors = true

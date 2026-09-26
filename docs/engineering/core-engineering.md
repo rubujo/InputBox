@@ -32,5 +32,6 @@
 - **格式與診斷紀律**：
   - **EditorConfig 強制套用**：每次修改任何檔案後，必須遵循專案根目錄 `.editorconfig` 的縮排、編碼、換行與格式設定。
   - **C# 診斷清零**：每次修改 `*.cs` 檔案後，提交或回覆前都必須檢查該檔案的 IDE 與 CS 類型診斷，並修正新增的建議、警告與錯誤。
+  - **`var` 使用原則**：依 [Microsoft C# 編碼慣例](https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions#implicitly-typed-local-variables) 與 [.NET Runtime 程式碼風格](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md)，僅在型別可由右側直接看出（`new`、明確轉型）時使用 `var`，此時亦可使用 target-typed `new()`；內建型別、方法回傳值與 `foreach` 迴圈變數一律使用明確型別，不以方法或變數名稱推測型別；LINQ 匿名型別等必須使用 `var` 的情況除外。對應設定見 `.editorconfig`（IDE0007／IDE0008）。
   - **Release 日誌門檻**：正式版預設只寫入 `Warning` 以上；`Info` 僅供 Debug、測試主機或 `INPUTBOX_LOG_LEVEL=Info` 臨時診斷使用。
   - **可行動診斷原則**：正常 lifecycle、成功 probe、成功或略過震動、一般輪詢健康資料應維持 `Info`；會影響使用者操作、裝置可用性、API 呼叫失敗或資料修復失敗的訊號才可升級為 `Warning` 或 `Error`。
