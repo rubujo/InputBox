@@ -1533,12 +1533,8 @@ public partial class MainForm
 
         try
         {
-            // 決定警示色。
-            // 修正選色邏輯以對齊反轉後的控制項背景。
-            // 淺色模式（黑底）：用 DarkOrange（8.3:1）；深色模式（白底）：用 Firebrick（5.8:1）。
-            Color alertColor = SystemInformation.HighContrast ?
-                SystemColors.Highlight :
-                (TBInput.IsDarkModeActive() ? Color.Firebrick : Color.DarkOrange);
+            bool isDark = TBInput.IsDarkModeActive();
+            Color alertColor = FlashAlertAnimator.GetAlertColor(isDark, SystemInformation.HighContrast);
 
             void ApplyAlertVisuals(float intensity)
             {
@@ -1548,92 +1544,17 @@ public partial class MainForm
                     return;
                 }
 
-                bool isDark = TBInput.IsDarkModeActive();
+                (Color back, Color fore) = FlashAlertAnimator.ComputeFrameColors(
+                    intensity,
+                    isDark,
+                    alertColor,
+                    SystemInformation.HighContrast);
 
-                if (SystemInformation.HighContrast)
-                {
-                    bool isAlert = intensity > 0.5f;
-
-                    Color hcBack = isAlert ?
-                            alertColor :
-                            SystemColors.Window,
-                        hcFore = isAlert ?
-                            SystemColors.HighlightText :
-                            SystemColors.WindowText;
-
-                    // 同步更新背景與前景，確保高對比下文字可讀性。
-                    PInputHost.UpdateRecursive(hcBack, hcFore);
-                }
-                else
-                {
-                    // 閃爍基色改為純淨底色（黑／白），避免與高飽和焦點色（Cyan／RoyalBlue）插值產生髒濁色。
-                    Color pureBase = isDark ?
-                        Color.White :
-                        Color.Black;
-
-                    int rB = (int)(pureBase.R + (alertColor.R - pureBase.R) * intensity),
-                        gB = (int)(pureBase.G + (alertColor.G - pureBase.G) * intensity),
-                        bB = (int)(pureBase.B + (alertColor.B - pureBase.B) * intensity);
-
-                    Color flashColor = Color.FromArgb(255, rB, gB, bB);
-
-                    // WCAG 相對亮度精確切換閾值（crossover L≈0.1791），修復 YUV≈128 近似在切換帶（intensity≈0.75）
-                    // 導致文字對比跌破 AA（3.5~4.2:1）的問題。修復後全程 ≥4.64:1 AA；
-                    // 14f bold 大型文字全程 ≥4.5:1 AAA。
-                    static float FLin(int c)
-                    {
-                        float f = c / 255f;
-
-                        return f <= 0.04045f ? f / 12.92f : MathF.Pow((f + 0.055f) / 1.055f, 2.4f);
-                    }
-
-                    Color flashFore = (0.2126f * FLin(flashColor.R) + 0.7152f * FLin(flashColor.G) + 0.0722f * FLin(flashColor.B)) > 0.1791f ?
-                        Color.Black :
-                        Color.White;
-
-                    // 遞歸背景與前景同步：僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
-                    PInputHost.UpdateRecursive(flashColor, flashFore);
-                }
+                // 僅作用於數據內容區域（PInputHost），按鈕保持其靜態視覺狀態。
+                PInputHost.UpdateRecursive(back, fore);
             }
 
-            // 嚴格遵守光敏性癲癇防護與使用者偏好：
-            // 若使用者在系統層級關閉了動畫效果（UIEffectsEnabled 為 false），
-            // 則不進行循環閃爍，改為一次性的「長脈衝（Static Pulse）」回饋。
-            if (!SystemInformation.UIEffectsEnabled ||
-                !AppSettings.Current.EnableAnimatedVisualAlerts)
-            {
-                await this.SafeInvokeAsync(() => ApplyAlertVisuals(1.0f));
-
-                // 維持一段較長時間（800ms）讓低視能使用者感知狀態，隨後恢復。
-                await Task.Delay(800, token);
-
-                return;
-            }
-
-            int totalDuration = AppSettings.PhotoSafeFrequencyMs;
-
-            using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
-
-            long startTime = Stopwatch.GetTimestamp();
-
-            while (await timer.WaitForNextTickAsync(token))
-            {
-                long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
-
-                double elapsedMs = (double)elapsedTicks / Stopwatch.Frequency * 1000.0;
-
-                if (elapsedMs >= totalDuration)
-                {
-                    break;
-                }
-
-                // 使用 AppSettings.PhotoSafeFrequencyMs 定義的正弦波週期（1Hz）。
-                double angle = elapsedMs / AppSettings.PhotoSafeFrequencyMs * 2.0 * Math.PI - (Math.PI / 2.0);
-
-                float intensity = (float)((Math.Sin(angle) + 1.0) / 2.0);
-
-                await this.SafeInvokeAsync(() => ApplyAlertVisuals(intensity));
-            }
+            await FlashAlertAnimator.RunAsync(this, ApplyAlertVisuals, token);
         }
         catch (OperationCanceledException)
         {
