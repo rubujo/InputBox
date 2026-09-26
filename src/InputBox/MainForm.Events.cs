@@ -118,7 +118,7 @@ public partial class MainForm
             else
             {
                 // 強制還原視窗，避免在 Windows 桌面（平板模式）下自動最大化。
-                // 對「Windows 遊戲：全螢幕體驗」（Xbox 全螢幕體驗）不受影響，一樣會自動最大化。
+                // 對「Xbox 模式」不受影響，一樣會自動最大化。
                 User32.ShowWindow(Handle, User32.ShowWindowCommand.Restore);
 
                 // Restore 後執行位置修正，確保 WINDOWPLACEMENT.rcNormalPosition 夾回工作區範圍內。
