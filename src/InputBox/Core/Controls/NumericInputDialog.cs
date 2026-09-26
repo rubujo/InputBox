@@ -755,28 +755,17 @@ internal sealed class NumericInputDialog : Form
                 return;
             }
 
-            // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點。
-            if (textBox.SelectionLength == 0 ||
-                _rsSelectionAnchor == null ||
-                (textBox.SelectionStart != _rsSelectionAnchor.Value &&
-                 textBox.SelectionStart + textBox.SelectionLength != _rsSelectionAnchor.Value))
-            {
-                _rsSelectionAnchor = textBox.SelectionStart;
-            }
+            // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點，並推算活動邊緣。
+            (int anchor, int caret) = textBox.ResolveSelectionAnchor(_rsSelectionAnchor);
 
-            int anchor = _rsSelectionAnchor.Value;
-
-            // 推算活動邊緣。
-            int caret = (textBox.SelectionStart == anchor) ?
-                (anchor + textBox.SelectionLength) :
-                textBox.SelectionStart;
+            _rsSelectionAnchor = anchor;
 
             int direction = forward ? 1 : -1;
             bool wordGranularity = _gamepadController?.IsLeftShoulderHeld == true ||
                                    _gamepadController?.IsRightShoulderHeld == true;
 
             int newCaret = wordGranularity ?
-                GetWordSelectionCaretTarget(textBox, caret, direction) :
+                textBox.GetWordJumpTarget(caret, direction > 0) :
                 Math.Clamp(caret + direction, 0, textBox.TextLength);
 
             if (newCaret == caret)
@@ -791,8 +780,7 @@ internal sealed class NumericInputDialog : Form
             }
 
             // 使用 Win32 EM_SETSEL 設定選取範圍。
-            User32.SendMessage(textBox.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
-            textBox.ScrollToCaret();
+            textBox.SetSelectionWithActiveEdge(anchor, newCaret);
 
             if (textBox.SelectionLength > 0)
             {
@@ -839,33 +827,6 @@ internal sealed class NumericInputDialog : Form
             .SafeFireAndForget();
 
         FeedbackService.PlaySelectionCue(wordGranularity, _selectionFeedbackBurstLevel);
-    }
-
-    /// <summary>
-    /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
-    /// </summary>
-    /// <param name="textBox">目標 TextBox。</param>
-    /// <param name="caret">目前游標位置（字元索引）。</param>
-    /// <param name="direction">方向；正值為向右，負值為向左。</param>
-    /// <returns>跳轉後的游標目標位置（字元索引）。</returns>
-    private static int GetWordSelectionCaretTarget(TextBox textBox, int caret, int direction)
-    {
-        int originalStart = textBox.SelectionStart;
-        int originalLength = textBox.SelectionLength;
-
-        try
-        {
-            textBox.SelectionStart = Math.Clamp(caret, 0, textBox.TextLength);
-            textBox.SelectionLength = 0;
-            textBox.WordJump(direction > 0);
-
-            return textBox.SelectionStart;
-        }
-        finally
-        {
-            textBox.SelectionStart = originalStart;
-            textBox.SelectionLength = originalLength;
-        }
     }
 
     /// <summary>
