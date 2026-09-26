@@ -1679,25 +1679,16 @@ internal sealed class PhraseEditDialog : Form
             return;
         }
 
-        if (tb.SelectionLength == 0 ||
-            _rsSelectionAnchor == null ||
-            (tb.SelectionStart != _rsSelectionAnchor.Value &&
-             tb.SelectionStart + tb.SelectionLength != _rsSelectionAnchor.Value))
-        {
-            _rsSelectionAnchor = tb.SelectionStart;
-        }
+        (int anchor, int caret) = tb.ResolveSelectionAnchor(_rsSelectionAnchor);
 
-        int anchor = _rsSelectionAnchor.Value,
-            caret = (tb.SelectionStart == anchor) ?
-                (anchor + tb.SelectionLength) :
-                tb.SelectionStart;
+        _rsSelectionAnchor = anchor;
 
         int safeDirection = Math.Sign(direction);
         bool wordGranularity = _gamepadController?.IsLeftShoulderHeld == true ||
                                _gamepadController?.IsRightShoulderHeld == true;
 
         int newCaret = wordGranularity ?
-            GetWordSelectionCaretTarget(tb, caret, safeDirection) :
+            tb.GetWordJumpTarget(caret, safeDirection > 0) :
             Math.Clamp(caret + safeDirection, 0, tb.TextLength);
 
         if (newCaret == caret)
@@ -1712,8 +1703,7 @@ internal sealed class PhraseEditDialog : Form
         }
 
         // 使用 Win32 EM_SETSEL 正確設定選取範圍（含反向選取）。
-        User32.SendMessage(tb.Handle, 0x00B1, anchor, newCaret);
-        tb.ScrollToCaret();
+        tb.SetSelectionWithActiveEdge(anchor, newCaret);
 
         PlaySelectionFeedback(safeDirection, wordGranularity);
     }
@@ -1872,33 +1862,6 @@ internal sealed class PhraseEditDialog : Form
             .SafeFireAndForget();
 
         FeedbackService.PlaySelectionCue(wordGranularity, burstLevel);
-    }
-
-    /// <summary>
-    /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
-    /// </summary>
-    /// <param name="textBox">目標 TextBox。</param>
-    /// <param name="caret">目前游標位置（字元索引）。</param>
-    /// <param name="direction">方向；正值為向右，負值為向左。</param>
-    /// <returns>跳轉後的游標目標位置（字元索引）。</returns>
-    private static int GetWordSelectionCaretTarget(TextBox textBox, int caret, int direction)
-    {
-        int originalStart = textBox.SelectionStart;
-        int originalLength = textBox.SelectionLength;
-
-        try
-        {
-            textBox.SelectionStart = Math.Clamp(caret, 0, textBox.TextLength);
-            textBox.SelectionLength = 0;
-            textBox.WordJump(direction > 0);
-
-            return textBox.SelectionStart;
-        }
-        finally
-        {
-            textBox.SelectionStart = originalStart;
-            textBox.SelectionLength = originalLength;
-        }
     }
 
     /// <summary>

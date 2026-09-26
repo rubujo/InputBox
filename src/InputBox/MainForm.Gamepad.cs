@@ -2,7 +2,6 @@
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Input;
-using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using InputBox.Core.Utilities;
 using InputBox.Resources;
@@ -1631,38 +1630,6 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// 以現有的單字跳轉邏輯推算右搖桿在單字粒度下的選取目標位置。
-    /// </summary>
-    /// <param name="caret">目前游標位置（字元索引）。</param>
-    /// <param name="direction">跳轉方向；正值為向右，負值為向左。</param>
-    /// <returns>跳轉後的游標位置。</returns>
-    private int GetWordSelectionCaretTarget(int caret, int direction)
-    {
-        if (TBInput == null ||
-            TBInput.IsDisposed)
-        {
-            return caret;
-        }
-
-        int originalStart = TBInput.SelectionStart;
-        int originalLength = TBInput.SelectionLength;
-
-        try
-        {
-            TBInput.SelectionStart = Math.Clamp(caret, 0, TBInput.TextLength);
-            TBInput.SelectionLength = 0;
-            TBInput.WordJump(direction > 0);
-
-            return TBInput.SelectionStart;
-        }
-        finally
-        {
-            TBInput.SelectionStart = originalStart;
-            TBInput.SelectionLength = originalLength;
-        }
-    }
-
-    /// <summary>
     /// 取得資源字串；若缺少翻譯則回退到預設文字。
     /// </summary>
     /// <param name="resourceKey">資源字串的鍵名。</param>
@@ -2543,23 +2510,11 @@ public partial class MainForm
             return;
         }
 
-        // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點。
+        // 當目前沒有選取範圍，或是目前的選取範圍與我們的錨點不匹配時，重新設定錨點，並推算目前的活動邊緣（Caret）。
         // 這能確保手動點擊或鍵盤選取後，RS 選取能從正確的位置開始。
-        if (TBInput.SelectionLength == 0 ||
-            _rsSelectionAnchor == null ||
-            (TBInput.SelectionStart != _rsSelectionAnchor.Value &&
-             TBInput.SelectionStart + TBInput.SelectionLength != _rsSelectionAnchor.Value))
-        {
-            _rsSelectionAnchor = TBInput.SelectionStart;
-        }
+        (int anchor, int caret) = TBInput.ResolveSelectionAnchor(_rsSelectionAnchor);
 
-        int anchor = _rsSelectionAnchor.Value;
-
-        // 推算目前的活動邊緣（Caret）。
-        // WinForms SelectionStart 始終為較小的索引，因此若 Start 與錨點一致，則 Caret 在右側；否則 Caret 在左側。
-        int caret = (TBInput.SelectionStart == anchor) ?
-            (anchor + TBInput.SelectionLength) :
-            TBInput.SelectionStart;
+        _rsSelectionAnchor = anchor;
 
         // 防禦性寫法：確保方向永遠只會是 -1、0 或 1，杜絕任何溢出造成的邏輯錯亂。
         int safeDirection = Math.Sign(direction);
@@ -2572,7 +2527,7 @@ public partial class MainForm
         }
 
         int newCaret = wordGranularity ?
-            GetWordSelectionCaretTarget(caret, safeDirection) :
+            TBInput.GetWordJumpTarget(caret, safeDirection > 0) :
             Math.Clamp(caret + safeDirection, 0, TBInput.TextLength);
 
         if (newCaret == caret)
@@ -2582,13 +2537,8 @@ public partial class MainForm
             return;
         }
 
-        // 使用 Win32 EM_SETSEL 設定選取範圍。
-        // wParam 為錨點，lParam 為活動邊緣。這能確保視覺上的游標（Caret）正確跟隨活動邊緣，並支援反向縮減。
-        User32.SendMessage(TBInput.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, newCaret);
-
-        // 確保活動邊緣（Caret）保持在可視範圍內，避免選取延伸到畫面外時
-        // Windows TextBox 在可視邊界處繪製藍色底線 artifact。
-        TBInput.ScrollToCaret();
+        // 以錨點與活動邊緣設定選取範圍，讓視覺游標跟隨活動邊緣並支援反向縮減，並保持活動邊緣可見。
+        TBInput.SetSelectionWithActiveEdge(anchor, newCaret);
 
         // A11y：報讀目前選取的文字內容。
         if (TBInput.SelectionLength > 0)

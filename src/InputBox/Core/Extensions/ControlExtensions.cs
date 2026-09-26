@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Configuration;
+using InputBox.Core.Interop;
 using InputBox.Core.Services;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -737,6 +738,85 @@ public static class ControlExtensions
     public static void ResetThemeRecursive(this Control parent)
     {
         UpdateRecursive(parent, Color.Empty, Color.Empty);
+    }
+
+    /// <summary>
+    /// 在不改變目前選取範圍的前提下，計算從指定游標位置執行單字跳轉後的目標位置
+    /// </summary>
+    /// <param name="textBox">目標文字方塊。</param>
+    /// <param name="caret">起算的游標位置（字元索引）。</param>
+    /// <param name="forward">是否向右跳轉。</param>
+    /// <returns>單字跳轉後的游標位置；文字方塊不可用時回傳原位置。</returns>
+    public static int GetWordJumpTarget(this TextBox textBox, int caret, bool forward)
+    {
+        if (textBox == null ||
+            textBox.IsDisposed)
+        {
+            return caret;
+        }
+
+        int originalStart = textBox.SelectionStart;
+        int originalLength = textBox.SelectionLength;
+
+        try
+        {
+            textBox.SelectionStart = Math.Clamp(caret, 0, textBox.TextLength);
+            textBox.SelectionLength = 0;
+            textBox.WordJump(forward);
+
+            return textBox.SelectionStart;
+        }
+        finally
+        {
+            textBox.SelectionStart = originalStart;
+            textBox.SelectionLength = originalLength;
+        }
+    }
+
+    /// <summary>
+    /// 解析延伸選取時的錨點與目前活動邊緣（游標所在端）
+    /// </summary>
+    /// <remarks>
+    /// 目前沒有選取範圍，或選取範圍兩端都不等於既有錨點（例如使用者以滑鼠或鍵盤改變過選取）時，
+    /// 以目前選取起點重新作為錨點。WinForms 的 <see cref="TextBoxBase.SelectionStart"/> 永遠是較小的索引，
+    /// 因此起點等於錨點時活動邊緣在右側，否則在左側。
+    /// </remarks>
+    /// <param name="textBox">目標文字方塊。</param>
+    /// <param name="currentAnchor">呼叫端保存的既有錨點；尚未建立時為 null。</param>
+    /// <returns>本次應使用的錨點與活動邊緣。</returns>
+    public static (int Anchor, int ActiveEdge) ResolveSelectionAnchor(this TextBox textBox, int? currentAnchor)
+    {
+        int selectionStart = textBox.SelectionStart;
+        int selectionLength = textBox.SelectionLength;
+
+        int anchor = selectionLength == 0 ||
+            currentAnchor == null ||
+            (selectionStart != currentAnchor.Value &&
+             selectionStart + selectionLength != currentAnchor.Value) ?
+                selectionStart :
+                currentAnchor.Value;
+
+        int activeEdge = selectionStart == anchor ?
+            anchor + selectionLength :
+            selectionStart;
+
+        return (anchor, activeEdge);
+    }
+
+    /// <summary>
+    /// 以錨點與活動邊緣設定選取範圍（支援反向選取），並捲動讓活動邊緣保持可見
+    /// </summary>
+    /// <remarks>
+    /// 透過 <c>EM_SETSEL</c> 設定，wParam 為錨點、lParam 為活動邊緣，讓視覺游標跟隨活動邊緣並支援反向縮減；
+    /// 捲動可避免選取延伸到可視範圍外時，TextBox 在邊界繪製選取底線殘影。
+    /// </remarks>
+    /// <param name="textBox">目標文字方塊。</param>
+    /// <param name="anchor">選取錨點。</param>
+    /// <param name="activeEdge">選取活動邊緣。</param>
+    public static void SetSelectionWithActiveEdge(this TextBox textBox, int anchor, int activeEdge)
+    {
+        User32.SendMessage(textBox.Handle, (uint)User32.WindowMessage.EM_SETSEL, anchor, activeEdge);
+        textBox.ScrollToCaret();
     }
 
     /// <summary>
