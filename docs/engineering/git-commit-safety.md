@@ -5,6 +5,11 @@
 - **零模擬/同步**：行為僅止於「複製至剪貼簿」，不模擬輸入至其他視窗。
 - **零自動化**：禁止實作自動化遊戲行為 (如自動連點、自動施法)。
 - **零偵測性**：禁止主動偵測特定第三方應用程式。
+- **前景視窗返回的允許範圍**：`WindowFocusService` 只把焦點還給使用者呼叫 InputBox 前的前景視窗；目標由當下前景視窗捕捉，唯一的程序判斷是排除 InputBox 自己，不依程序名稱、視窗標題或類別辨識任何特定應用程式。
+  - 允許的 Win32 呼叫僅限 `ShowWindow`（且只在視窗最小化時還原）、`BringWindowToTop`、`SetForegroundWindow`、`SetFocus`，以及切換瞬間暫時使用 `AttachThreadInput` 連結執行緒輸入佇列，並必須在 `finally` 中解除。
+  - `AttachThreadInput` 只用於取得切換前景的權限，不送出任何按鍵、滑鼠或視窗訊息，也不讀寫對方程序的記憶體，因此不屬於模擬輸入或修改第三方程式行為。
+  - 不得在此路徑加入 `SendInput`、`keybd_event`、`PostMessage`／`SendMessage` 輸入訊息、剪貼簿自動貼上或任何依應用程式身分分流的邏輯。
+  - 程式內重啟只可對新啟動的 InputBox 程序呼叫 `AllowSetForegroundWindow(PID)`，不得使用 `ASFW_ANY` 開放給所有程序（無法啟動新程序的退回路徑除外）。
 
 ## 2. 外部合規基準與 ToS 驗證 (ToS Verification)
 **代理人必須在變更任何核心輸入/輸出邏輯前，使用網頁抓取工具擷取並分析以下網址的最新內容（例如 Copilot：`fetch_webpage`；Gemini：`web_fetch`），確保設計不違反服務條款：**
