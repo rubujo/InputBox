@@ -12,6 +12,8 @@
   - **令牌隔離**：實作類別內部必須獨立實作 `_vibrationToken` (Interlocked)，**禁止在服務層級共享**，以支援多控制器獨立運行的隔離性。
   - **同步停止**：必須具備同步 `StopVibration()` 方法，支援緊急清理。
   - **連結權杖 (Linked Token)**：震動延遲須結合外部取消權杖與內部覆寫權杖，確保視窗關閉時馬達能立即停止。
+  - **熱成本正規化**：傳給 `VibrationSafetyLimiter` 的熱成本倍率必須透過 `GetMotorThermalCostMultiplier(馬達數)` 取得（以雙主馬達為 1.0），XInput 與 GameInput 共用同一基準；不得直接傳入馬達數量。
+  - **回饋不得冷啟動遺失**：Normal 優先級單次請求超出剩餘熱預算時應先降低強度，只有低於優先級保底比例才可拒絕；新增或調整 `VibrationPatterns` 後，必須通過「所有內建模式冷啟動不被拒絕」測試。
 - **Face 鍵語意路由 (Semantic Face-Button Routing)**：
   - 所有「確認／取消／刪除／選單」行為，必須透過集中化的配置描述（例如 `GamepadFaceButtonProfile`）解析，**禁止**在 Dialog、MessageBox 或主視窗中硬式編碼 `A=確認`、`B=取消`。
   - 實作時應優先使用邏輯語意（例如 south/east/west/north 對應的功能）而非控制器字樣，避免 Nintendo 與 PlayStation 模式下產生顯示正確但功能錯置的回歸。

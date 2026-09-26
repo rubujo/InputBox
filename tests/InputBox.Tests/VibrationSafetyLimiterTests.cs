@@ -1,4 +1,6 @@
-﻿using InputBox.Core.Input;
+﻿using InputBox.Core.Feedback;
+using InputBox.Core.Input;
+using System.Reflection;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -245,5 +247,124 @@ public class VibrationSafetyLimiterTests
 
         Assert.True(accepted);
         Assert.InRange(adjustedStrength, 1, 60_000);
+    }
+
+    /// <summary>
+    /// 馬達數量倍率應以雙主馬達為基準正規化，並限制在 1 到 4 顆馬達的範圍內。
+    /// </summary>
+    [Theory]
+    [InlineData(0, 0.5)]
+    [InlineData(1, 0.5)]
+    [InlineData(2, 1.0)]
+    [InlineData(4, 2.0)]
+    [InlineData(8, 2.0)]
+    public void GetMotorThermalCostMultiplier_NormalizesToDualMotorBaseline(int motorCount, double expected)
+    {
+        Assert.Equal(expected, VibrationSafetyLimiter.GetMotorThermalCostMultiplier(motorCount));
+    }
+
+    /// <summary>
+    /// 回歸保護：限制器剛啟動、尚無熱負載時，所有內建震動模式在各種強度與馬達數量下都必須能送出，
+    /// 且強度不得低於 Normal 優先級保底比例。先前「複製成功」等重要回饋會因單次熱成本超過硬上限而被直接拒絕。
+    /// </summary>
+    [Fact]
+    public void TryApply_AllBuiltInPatternsFromColdState_AreNeverBlocked()
+    {
+        FieldInfo[] patternFields = [.. typeof(VibrationPatterns)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(f => f.FieldType == typeof(VibrationProfile))];
+
+        Assert.NotEmpty(patternFields);
+
+        float[] intensities = [0.3f, 0.7f, 1.0f];
+        int[] motorCounts = [1, 2, 4];
+
+        foreach (FieldInfo field in patternFields)
+        {
+            VibrationProfile pattern = (VibrationProfile)field.GetValue(null)!;
+
+            foreach (float intensity in intensities)
+            {
+                VibrationProfile profile = pattern.ApplyIntensityMultiplier(intensity);
+
+                if (profile.Strength == 0)
+                {
+                    continue;
+                }
+
+                foreach (int motorCount in motorCounts)
+                {
+                    var limiter = new VibrationSafetyLimiter();
+
+                    bool accepted = limiter.TryApplyWithDiagnostics(
+                        profile.Strength,
+                        profile.Duration,
+                        VibrationPriority.Normal,
+                        nowMs: 1,
+                        out ushort adjustedStrength,
+                        out _,
+                        out VibrationLimiterDebugInfo diagnostics,
+                        thermalCostMultiplier: VibrationSafetyLimiter.GetMotorThermalCostMultiplier(motorCount));
+
+                    Assert.True(
+                        accepted,
+                        $"{field.Name} intensity={intensity} motors={motorCount} flags={diagnostics.Flags}");
+                    Assert.True(
+                        adjustedStrength >= (Math.Min((int)profile.Strength, 60_000) * 0.35) - 1,
+                        $"{field.Name} intensity={intensity} motors={motorCount} strength={adjustedStrength}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 單次請求超出剩餘熱預算時，Normal 優先級應降低強度送出並標記 ScaledByThermalOverflow，而不是直接拒絕。
+    /// </summary>
+    [Fact]
+    public void TryApply_Normal_WhenSingleRequestExceedsBudget_ShouldScaleInsteadOfBlock()
+    {
+        var limiter = new VibrationSafetyLimiter();
+
+        bool accepted = limiter.TryApplyWithDiagnostics(
+            60_000,
+            150,
+            VibrationPriority.Normal,
+            nowMs: 1,
+            out ushort adjustedStrength,
+            out _,
+            out VibrationLimiterDebugInfo diagnostics,
+            thermalCostMultiplier: VibrationSafetyLimiter.GetMotorThermalCostMultiplier(4));
+
+        Assert.True(accepted);
+        Assert.True(adjustedStrength < 60_000);
+        Assert.True(diagnostics.Flags.HasFlag(VibrationLimiterFlags.ScaledByThermalOverflow));
+        Assert.True(diagnostics.ThermalLoad <= 180.0 * 1.05);
+    }
+
+    /// <summary>
+    /// 熱負載已超過溢出上限、剩餘預算不足以維持保底強度時，Normal 優先級仍應被拒絕以保護馬達。
+    /// </summary>
+    [Fact]
+    public void TryApply_Normal_WhenAlreadyOverheated_ShouldStillBeBlocked()
+    {
+        var limiter = new VibrationSafetyLimiter(thermalTauMs: 1_000_000);
+
+        // Critical 不受溢出拒絕限制，用來把熱負載推高到溢出上限之上。
+        for (int i = 0; i < 10; i++)
+        {
+            limiter.TryApply(60_000, 200, VibrationPriority.Critical, nowMs: 1 + i, out _, out _);
+        }
+
+        bool accepted = limiter.TryApplyWithDiagnostics(
+            60_000,
+            200,
+            VibrationPriority.Normal,
+            nowMs: 20,
+            out _,
+            out _,
+            out VibrationLimiterDebugInfo diagnostics);
+
+        Assert.False(accepted);
+        Assert.True(diagnostics.Flags.HasFlag(VibrationLimiterFlags.BlockedByThermalOverflow));
     }
 }
