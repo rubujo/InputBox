@@ -439,24 +439,70 @@ public class VibrationSafetyLimiterTests
     }
 
     /// <summary>
-    /// 由不同強度或時長組成的 Critical 序列（例如控制器識別的前後兩段）不是自動連發，不得被降級。
+    /// 不同的 Critical 模式交錯快速出現時，也必須被判定為連發而節流，不得藉由輪流改變強度或時長規避。
     /// </summary>
     [Fact]
-    public void TryApply_DifferentCriticalProfilesInSequence_AreNotDowngraded()
+    public void TryApply_InterleavedCriticalProfiles_AreStillThrottled()
+    {
+        var limiter = new VibrationSafetyLimiter();
+        double multiplier = VibrationSafetyLimiter.GetMotorThermalCostMultiplier(4);
+
+        limiter.TryApplyWithDiagnostics(
+            53_861,
+            200,
+            VibrationPriority.Critical,
+            nowMs: 1,
+            out _,
+            out _,
+            out VibrationLimiterDebugInfo firstDiagnostics,
+            multiplier);
+
+        double firstLoad = firstDiagnostics.ThermalLoad;
+        double maxLoad = firstLoad;
+
+        for (int i = 1; i < 20; i++)
+        {
+            ushort strength = i % 2 == 0 ? (ushort)53_861 : (ushort)49_312;
+
+            limiter.TryApplyWithDiagnostics(
+                strength,
+                200,
+                VibrationPriority.Critical,
+                nowMs: 1 + (i * 150),
+                out _,
+                out _,
+                out VibrationLimiterDebugInfo diagnostics,
+                multiplier);
+
+            Assert.True(diagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat), $"repeat {i}");
+            maxLoad = Math.Max(maxLoad, diagnostics.ThermalLoad);
+        }
+
+        Assert.True(maxLoad <= firstLoad + 0.001, $"maxLoad={maxLoad:F2} firstLoad={firstLoad:F2}");
+    }
+
+    /// <summary>
+    /// 冷啟動時的短 Critical 序列（例如控制器識別的前後兩段），第二段雖被視為連發而降級，仍應以原強度完整送出。
+    /// </summary>
+    [Fact]
+    public void TryApply_CriticalSequenceFromColdState_SecondStepStillDeliveredAtFullStrength()
     {
         var limiter = new VibrationSafetyLimiter();
 
         limiter.TryApply(43_000, 110, VibrationPriority.Critical, nowMs: 1, out _, out _);
 
-        limiter.TryApplyWithDiagnostics(
+        bool accepted = limiter.TryApplyWithDiagnostics(
             55_000,
             130,
             VibrationPriority.Critical,
             nowMs: 150,
-            out _,
-            out _,
+            out ushort adjustedStrength,
+            out int adjustedDurationMs,
             out VibrationLimiterDebugInfo diagnostics);
 
-        Assert.False(diagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat));
+        Assert.True(accepted);
+        Assert.True(diagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat));
+        Assert.Equal(55_000, adjustedStrength);
+        Assert.Equal(130, adjustedDurationMs);
     }
 }

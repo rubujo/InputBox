@@ -1229,7 +1229,7 @@ public partial class MainForm : Form
         List<MainForm> mainForms = [.. Application.OpenForms.OfType<MainForm>()];
 
         // 新執行個體會在舊視窗關閉前啟動，因此先解除全域快速鍵，
-        // 避免新舊執行個體短暫並存時，新執行個體註冊同一組快速鍵失敗。
+        // 避免新執行個體接手後註冊同一組快速鍵失敗。
         foreach (MainForm mainForm in mainForms)
         {
             if (mainForm.IsHandleCreated)
@@ -1238,21 +1238,28 @@ public partial class MainForm : Form
             }
         }
 
-        Program.ReleaseMutex();
-
         // AllowSetForegroundWindow 只有在呼叫端仍為前景程序（或收到最後一次輸入）時才有效；
         // 以控制器觸發重啟不會產生 Windows 輸入事件，因此必須趁目前視窗仍在前景時，
         // 先啟動新執行個體，再只授權該程序呼叫 SetForegroundWindow，而不開放給所有程序。
+        // 新執行個體帶有交接參數，會等待本實例釋放單一執行個體 Mutex 後才接手，
+        // 因此不在啟動前釋放 Mutex，避免另外啟動的執行個體在空窗期搶先取得。
         bool launched = RestartProcessLauncher.TryStart(
             RestartProcessLauncher.CreateStartInfo(
                 Application.ExecutablePath,
-                Environment.GetCommandLineArgs()),
+                Environment.GetCommandLineArgs(),
+                handoffProcessId: Environment.ProcessId),
             out int newProcessId);
 
         _ = User32.AllowSetForegroundWindow(
             launched ?
                 newProcessId :
                 User32.AllowSetForegroundWindowAnyProcess);
+
+        if (!launched)
+        {
+            // 退回 WinForms 內建的重啟流程時，新執行個體不帶交接參數，必須先釋放 Mutex 才能正常啟動。
+            Program.ReleaseMutex();
+        }
 
         // 安全地關閉所有 MainForm 實例，確保它們的 Dispose 與 FormClosing 被正確觸發，
         // 從而釋放全域的 SystemEvents 鉤子，防止重啟時發生靜態資源洩漏。
@@ -1264,6 +1271,10 @@ public partial class MainForm : Form
         if (launched)
         {
             Application.Exit();
+
+            // 所有視窗已關閉，在同一個（持有 Mutex 的）主執行緒上釋放 Mutex，讓等待中的新執行個體接手。
+            // Environment.Exit 不會執行 Main 的 finally 清理，因此必須在此明確釋放。
+            Program.ReleaseMutex();
         }
         else
         {
