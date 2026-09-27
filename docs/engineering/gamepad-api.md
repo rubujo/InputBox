@@ -14,7 +14,7 @@
   - **連結權杖 (Linked Token)**：震動延遲須結合外部取消權杖與內部覆寫權杖，確保視窗關閉時馬達能立即停止。
   - **熱成本正規化**：傳給 `VibrationSafetyLimiter` 的熱成本倍率必須透過 `GetMotorThermalCostMultiplier(馬達數)` 取得（以雙主馬達為 1.0），XInput 與 GameInput 共用同一基準；不得直接傳入馬達數量。
   - **回饋不得冷啟動遺失**：Normal 優先級單次請求超出剩餘熱預算時應先降低強度，只有低於優先級保底比例才可拒絕；新增或調整 `VibrationPatterns` 後，必須通過「所有內建模式冷啟動不被拒絕」測試。
-  - **Critical 連發節流**：相同強度與時長的 Critical 請求在 500ms 內重複出現時，限制器會視為自動連發並降為 Normal；不得在呼叫端以輪流改變強度等方式規避，以免按住方向鍵時不受熱保護地連續驅動馬達。
+  - **Critical 連發節流**：前一個 Critical 請求之後 500ms 內再出現的任何 Critical 請求（不論強度與時長是否相同），限制器都會視為自動連發並降為 Normal 交由熱保護節流，避免連按或按住時不受熱保護地連續以高強度驅動馬達；冷啟動時 Normal 仍完整送出，短序列不受影響。
 - **Face 鍵語意路由 (Semantic Face-Button Routing)**：
   - 所有「確認／取消／刪除／選單」行為，必須透過集中化的配置描述（例如 `GamepadFaceButtonProfile`）解析，**禁止**在 Dialog、MessageBox 或主視窗中硬式編碼 `A=確認`、`B=取消`。
   - 實作時應優先使用邏輯語意（例如 south/east/west/north 對應的功能）而非控制器字樣，避免 Nintendo 與 PlayStation 模式下產生顯示正確但功能錯置的回歸。

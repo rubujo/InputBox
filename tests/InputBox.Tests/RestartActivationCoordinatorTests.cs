@@ -65,4 +65,35 @@ public sealed class RestartActivationCoordinatorTests : IDisposable
         Assert.False(coordinator.ConsumePendingActivationRequest());
         Assert.False(File.Exists(_markerPath));
     }
+
+    /// <summary>
+    /// 查詢待處理的重啟請求時不得消費標記，標記仍須保留給重啟後的新執行個體。
+    /// </summary>
+    [Fact]
+    public void HasPendingActivationRequest_DoesNotConsumeMarker()
+    {
+        RestartActivationCoordinator coordinator = new(_markerPath, TimeSpan.FromSeconds(5));
+
+        coordinator.RequestActivationOnNextLaunch();
+
+        Assert.True(coordinator.HasPendingActivationRequest());
+        Assert.True(coordinator.HasPendingActivationRequest());
+        Assert.True(coordinator.ConsumePendingActivationRequest());
+        Assert.False(coordinator.HasPendingActivationRequest());
+    }
+
+    /// <summary>
+    /// 沒有標記或標記已過期時，不應判定為重啟交接進行中。
+    /// </summary>
+    [Fact]
+    public void HasPendingActivationRequest_WithoutMarkerOrExpired_ReturnsFalse()
+    {
+        RestartActivationCoordinator coordinator = new(_markerPath, TimeSpan.FromSeconds(5));
+
+        Assert.False(coordinator.HasPendingActivationRequest());
+
+        File.WriteAllText(_markerPath, DateTime.UtcNow.AddSeconds(-1).Ticks.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        Assert.False(coordinator.HasPendingActivationRequest());
+    }
 }

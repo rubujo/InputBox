@@ -62,7 +62,7 @@ internal enum VibrationLimiterFlags
     ScaledByThermalOverflow = 1 << 9,
 
     /// <summary>
-    /// 短時間內重複的相同 Critical 請求被視為自動連發，已降為 Normal 交由熱保護節流。
+    /// 短時間內接連出現的 Critical 請求被視為自動連發，已降為 Normal 交由熱保護節流。
     /// </summary>
     DowngradedCriticalRepeat = 1 << 10
 }
@@ -121,11 +121,12 @@ internal sealed class VibrationSafetyLimiter
     private const double ThermalOverflowTolerance = 1.05;
 
     /// <summary>
-    /// 判定相同 Critical 請求為自動連發的時間視窗（毫秒）。
+    /// 判定 Critical 請求為自動連發的時間視窗（毫秒）。
     /// </summary>
     /// <remarks>
-    /// 例如按住方向鍵頂著邊界時，操作失敗回饋約每 150ms 觸發一次；若仍以 Critical 送出，
-    /// 會不受熱保護限制地連續以高強度驅動馬達。視窗會隨每次連發延長，停手超過此時間後才恢復為 Critical。
+    /// 例如在空白輸入框連按 B 時，操作失敗回饋約每 150ms 觸發一次；若仍以 Critical 送出，
+    /// 會不受熱保護限制地連續以高強度驅動馬達。不論 Critical 的強度與時長是否相同都一併判定，
+    /// 避免不同 Critical 模式交錯出現時規避節流。視窗會隨每次連發延長，停手超過此時間後才恢復為 Critical。
     /// </remarks>
     private const int CriticalRepeatWindowMs = 500;
 
@@ -144,8 +145,6 @@ internal sealed class VibrationSafetyLimiter
     private long _lastSampleMs;
     private long _ambientCooldownUntilMs;
     private long _lastCriticalRequestMs = long.MinValue;
-    private ushort _lastCriticalStrength;
-    private int _lastCriticalDurationMs;
 
     /// <summary>
     /// 建立震動保護器。
@@ -319,20 +318,16 @@ internal sealed class VibrationSafetyLimiter
             DecayThermal(nowMs);
             PruneDutyWindow(nowMs);
 
-            // 相同的 Critical 請求在連發視窗內再次出現時視為自動連發，降為 Normal 交由熱保護與占空比節流；
-            // 第一次仍以 Critical 完整送出，強度或時長不同的 Critical 序列（例如控制器識別）不受影響。
+            // 前一個 Critical 請求之後的連發視窗內再次出現 Critical 時視為自動連發，降為 Normal 交由熱保護與占空比節流。
+            // 第一次仍以 Critical 完整送出；冷啟動時 Normal 也會完整送出，因此一般節奏的操作與短序列不受影響。
             bool downgradedCriticalRepeat = false;
 
             if (priority == VibrationPriority.Critical)
             {
                 bool isRepeat = _lastCriticalRequestMs != long.MinValue &&
-                    nowMs - _lastCriticalRequestMs < CriticalRepeatWindowMs &&
-                    _lastCriticalStrength == strength &&
-                    _lastCriticalDurationMs == boundedDurationMs;
+                    nowMs - _lastCriticalRequestMs < CriticalRepeatWindowMs;
 
                 _lastCriticalRequestMs = nowMs;
-                _lastCriticalStrength = strength;
-                _lastCriticalDurationMs = boundedDurationMs;
 
                 if (isRepeat)
                 {
@@ -575,8 +570,6 @@ internal sealed class VibrationSafetyLimiter
             _lastSampleMs = 0;
             _ambientCooldownUntilMs = 0;
             _lastCriticalRequestMs = long.MinValue;
-            _lastCriticalStrength = 0;
-            _lastCriticalDurationMs = 0;
         }
     }
 

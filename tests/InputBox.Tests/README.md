@@ -40,16 +40,17 @@
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流、Release-like 日誌門檻、環境變數覆寫與正式日誌隔離保護 | 8 |
 | `MainFormUiSmokeTests` | `MainForm` 使用 FlaUI 驗證主視窗啟動、右鍵選單主要命令、設定中的控制器子選單、控制器校準視覺化對話框、片語子選單、片語管理視窗、片語編輯視窗、HelpDialog、返回時最小化確認對話框、程式內確認重啟後主視窗保持前景，以及基本複製流程的 UI 冒煙測試 | 11 |
 | `PhraseServiceTests` | `PhraseService` CRUD、匯出／匯入、併發匯出、併發暫存檔誤刪（含 managed 暫存檔寬限期保留），以及持久化失敗時的記憶體復原回歸保護 | 40 |
-| `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護 | 3 |
+| `RestartActivationCoordinatorTests` | `RestartActivationCoordinator` 的一次性重啟前景啟用標記、單次消費與過期清理保護；以及查詢待處理請求不消費標記、無標記或過期時不判定為交接中 | 5 |
 | `RestartPromptStateTests` | 需重啟設定的待處理狀態追蹤、標題列提示，以及右鍵選單依 App 設定／系統變更／兩者同時存在而動態切換文案的回歸保護 | 7 |
-| `RestartProcessLauncherTests` | `RestartProcessLauncher` 重啟啟動資訊：沿用目前執行檔、不透過殼層啟動、只轉送執行檔之後的引數並保留空白與引號（取代 `Application.Restart()` 以便只授權新程序前景的回歸保護） | 4 |
+| `RestartProcessLauncherTests` | `RestartProcessLauncher` 重啟啟動資訊：沿用目前執行檔、不透過殼層啟動、只轉送執行檔之後的引數並保留空白與引號（取代 `Application.Restart()` 以便只授權新程序前景的回歸保護）；以及附加單一執行個體交接參數、連續重啟時取代舊交接參數 | 6 |
 | `RestartRequestDeciderTests` | 手動重啟與設定變更兩種入口的確認策略回歸保護 | 3 |
+| `SingleInstanceHandoffTests` | `SingleInstanceHandoff` 程式內重啟交接：交接參數解析與移除、啟動動作矩陣（正常啟動／等待接手／喚醒既有實例）、喚醒失敗後的 fallback 判斷（前景被阻擋、交接進行中不得多開視窗）；對應 Mutex 提早釋放被搶先取得的競態 | 16 |
 | `SystemHelperTests` | `SystemHelper.EvaluateGamescopeEnvironment` 在不同 DISPLAY、XDG_CURRENT_DESKTOP 與 DESKTOP_SESSION 環境變數組合下的 Gamescope 環境偵測回歸保護 | 11 |
 | `TaskExtensionsTests` | `TaskExtensions` CTS 擴充方法與生命週期連結保護 | 12 |
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
-| `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及相同 Critical 自動連發降級、熱負載不失控的回歸保護 | 19 |
-| **合計** | | **426** |
+| `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
+| **合計** | | **447** |
 
 ## 二、執行方式 🚀
 

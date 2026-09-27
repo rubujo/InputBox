@@ -64,9 +64,32 @@ internal static class Program
                 name: @"Local\InputBox_40A57F4D-4C7E-45FD-9DC7-BE96DC026D66_SingleInstance",
                 out bool createdNew);
 
+            bool isHandoffLaunch = SingleInstanceHandoff.TryGetHandoffProcessId(
+                Environment.GetCommandLineArgs(),
+                out int handoffProcessId);
+
+            SingleInstanceStartupAction startupAction = SingleInstanceHandoff.ResolveStartupAction(createdNew, isHandoffLaunch);
+
+            if (startupAction == SingleInstanceStartupAction.WaitForHandoff)
+            {
+                // 程式內重啟的接手者：舊執行個體會在關閉所有視窗後才釋放 Mutex，
+                // 在此等待並接手，而不是把 Mutex 視為「已有實例」而喚醒後退出。
+                if (TryAcquireMutexForHandoff(handoffProcessId))
+                {
+                    createdNew = true;
+                    startupAction = SingleInstanceStartupAction.Proceed;
+                }
+                else
+                {
+                    LoggerService.LogWarning($"SingleInstance.HandoffTimeout pid={Environment.ProcessId} sourcePid={handoffProcessId} timeoutMs={(int)SingleInstanceHandoff.HandoffWaitTimeout.TotalMilliseconds}");
+
+                    startupAction = SingleInstanceStartupAction.ActivateExisting;
+                }
+            }
+
             Interlocked.Exchange(ref _ownsMutex, createdNew ? 1 : 0);
 
-            if (!createdNew)
+            if (startupAction == SingleInstanceStartupAction.ActivateExisting)
             {
                 LoggerService.LogInfo($"SingleInstance.MutexCheck pid={Environment.ProcessId} createdNew={createdNew}");
 
@@ -101,11 +124,24 @@ internal static class Program
                     return;
                 }
 
+                SingleInstanceFallbackDecision fallbackDecision = SingleInstanceHandoff.ResolveFallback(
+                    fallbackPermitted,
+                    RestartActivationCoordinator.Shared.HasPendingActivationRequest());
+
                 // 收斂策略：若已找到可喚醒視窗但前景切換被系統阻擋，
                 // 則不允許 fallback 啟動新視窗，避免破壞單實例預期。
-                if (!fallbackPermitted)
+                if (fallbackDecision == SingleInstanceFallbackDecision.ExitForegroundBlocked)
                 {
                     LoggerService.LogWarning($"SingleInstance.FallbackSuppressed pid={Environment.ProcessId} reason=foreground_blocked detail={activationDiagnostic}");
+
+                    return;
+                }
+
+                // 程式內重啟交接進行中：舊實例的視窗已關閉、接手的新實例尚未顯示視窗，
+                // 此時若 fallback 啟動會多開一個視窗，由接手的新實例負責顯示即可。
+                if (fallbackDecision == SingleInstanceFallbackDecision.ExitRestartHandoffPending)
+                {
+                    LoggerService.LogInfo($"SingleInstance.FallbackSuppressed pid={Environment.ProcessId} reason=restart_handoff_pending detail={activationDiagnostic}");
 
                     return;
                 }
@@ -187,6 +223,45 @@ internal static class Program
             // 杜絕資源洩漏與 GDI Handle 殘留。
             PerformFinalCleanup();
         }
+    }
+
+    /// <summary>
+    /// 程式內重啟的接手者等待舊執行個體釋放單一執行個體 Mutex 並取得所有權
+    /// </summary>
+    /// <remarks>
+    /// 必須在建立 Mutex 的主執行緒上呼叫，Mutex 的所有權才會屬於之後負責釋放它的同一個執行緒。
+    /// 舊執行個體若未釋放就結束，Mutex 會成為被遺棄狀態，仍視為成功接手。
+    /// </remarks>
+    /// <param name="sourceProcessId">舊執行個體的程序識別碼（僅供診斷記錄）。</param>
+    /// <returns>若在逾時前取得 Mutex 則回傳 true。</returns>
+    private static bool TryAcquireMutexForHandoff(int sourceProcessId)
+    {
+        Mutex? mutex = _mutex;
+
+        if (mutex == null)
+        {
+            return false;
+        }
+
+        long startTimestamp = Stopwatch.GetTimestamp();
+        bool acquired;
+
+        try
+        {
+            acquired = mutex.WaitOne(SingleInstanceHandoff.HandoffWaitTimeout);
+        }
+        catch (AbandonedMutexException)
+        {
+            // 舊執行個體未釋放即結束，所有權已轉移給本執行緒。
+            acquired = true;
+        }
+
+        if (acquired)
+        {
+            LoggerService.LogInfo($"SingleInstance.HandoffAcquired pid={Environment.ProcessId} sourcePid={sourceProcessId} waitMs={(int)Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds}");
+        }
+
+        return acquired;
     }
 
     /// <summary>

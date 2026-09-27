@@ -98,6 +98,34 @@ internal sealed class RestartActivationCoordinator
     }
 
     /// <summary>
+    /// 查詢是否有尚未過期的重啟啟用請求，但不消費標記。
+    /// </summary>
+    /// <remarks>
+    /// 供其他正在啟動的執行個體判斷「目前是否有程式內重啟交接進行中」，
+    /// 標記仍保留給重啟後的新執行個體消費。
+    /// </remarks>
+    /// <returns>若存在且尚未過期的請求則回傳 true。</returns>
+    public bool HasPendingActivationRequest()
+    {
+        try
+        {
+            if (!File.Exists(_markerPath))
+            {
+                return false;
+            }
+
+            string payload = File.ReadAllText(_markerPath).Trim();
+
+            return long.TryParse(payload, NumberStyles.Integer, CultureInfo.InvariantCulture, out long expiryTicks) &&
+                expiryTicks >= DateTime.UtcNow.Ticks;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 清除殘留標記（若存在）。
     /// </summary>
     internal void ClearPendingActivationRequest() => TryDeleteMarkerSilently();

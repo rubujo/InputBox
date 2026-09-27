@@ -62,4 +62,32 @@ public sealed class RestartProcessLauncherTests
         Assert.ThrowsAny<ArgumentException>(
             () => RestartProcessLauncher.CreateStartInfo(" ", ["InputBox.exe"]));
     }
+
+    /// <summary>
+    /// 指定舊執行個體的程序識別碼時，應在轉送的引數之後附加交接參數，讓新執行個體等待接手 Mutex。
+    /// </summary>
+    [Fact]
+    public void CreateStartInfo_WithHandoffProcessId_AppendsHandoffArgument()
+    {
+        ProcessStartInfo startInfo = RestartProcessLauncher.CreateStartInfo(
+            "InputBox.exe",
+            ["InputBox.exe", "--first"],
+            handoffProcessId: 1234);
+
+        Assert.Equal(["--first", "--restart-handoff=1234"], startInfo.ArgumentList);
+    }
+
+    /// <summary>
+    /// 連續重啟時，舊的交接參數不得被重複轉送，只保留本次的交接參數。
+    /// </summary>
+    [Fact]
+    public void CreateStartInfo_WhenAlreadyHandoffLaunch_ReplacesPreviousHandoffArgument()
+    {
+        ProcessStartInfo startInfo = RestartProcessLauncher.CreateStartInfo(
+            "InputBox.exe",
+            ["InputBox.exe", "--restart-handoff=111", "--first"],
+            handoffProcessId: 222);
+
+        Assert.Equal(["--first", "--restart-handoff=222"], startInfo.ArgumentList);
+    }
 }
