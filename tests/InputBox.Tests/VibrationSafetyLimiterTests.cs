@@ -140,11 +140,12 @@ public class VibrationSafetyLimiterTests
             out _,
             thermalCostMultiplier: 4.0);
 
+        // 第二次呼叫刻意落在 Critical 連發視窗之外，避免被視為自動連發而降級。
         bool normalSecond = limiterNormal.TryApply(
             45_000,
             200,
             VibrationPriority.Critical,
-            nowMs: 1,
+            nowMs: 600,
             out ushort normalSecondStrength,
             out _);
 
@@ -152,7 +153,7 @@ public class VibrationSafetyLimiterTests
             45_000,
             200,
             VibrationPriority.Critical,
-            nowMs: 1,
+            nowMs: 600,
             out ushort fourMotorSecondStrength,
             out _,
             thermalCostMultiplier: 4.0);
@@ -349,22 +350,113 @@ public class VibrationSafetyLimiterTests
     {
         var limiter = new VibrationSafetyLimiter(thermalTauMs: 1_000_000);
 
-        // Critical 不受溢出拒絕限制，用來把熱負載推高到溢出上限之上。
+        // Critical 不受溢出拒絕限制，用來把熱負載推高到溢出上限之上；間隔超過連發視窗以免被降級。
         for (int i = 0; i < 10; i++)
         {
-            limiter.TryApply(60_000, 200, VibrationPriority.Critical, nowMs: 1 + i, out _, out _);
+            limiter.TryApply(60_000, 200, VibrationPriority.Critical, nowMs: 1 + (i * 600), out _, out _);
         }
 
         bool accepted = limiter.TryApplyWithDiagnostics(
             60_000,
             200,
             VibrationPriority.Normal,
-            nowMs: 20,
+            nowMs: 6_100,
             out _,
             out _,
             out VibrationLimiterDebugInfo diagnostics);
 
         Assert.False(accepted);
         Assert.True(diagnostics.Flags.HasFlag(VibrationLimiterFlags.BlockedByThermalOverflow));
+    }
+
+    /// <summary>
+    /// 回歸保護：按住方向鍵頂著邊界時，操作失敗回饋（Critical）約每 150ms 自動連發。
+    /// 第一次應以 Critical 完整送出，之後的連發應降為 Normal 交由熱保護節流，熱負載不得持續累積失控。
+    /// 修正前實測 5 秒內連發 25 次會讓熱負載累積到硬上限的 5.7 倍。
+    /// </summary>
+    [Fact]
+    public void TryApply_RepeatedIdenticalCritical_IsDowngradedAndThermalStaysBounded()
+    {
+        var limiter = new VibrationSafetyLimiter();
+        double multiplier = VibrationSafetyLimiter.GetMotorThermalCostMultiplier(4);
+
+        bool first = limiter.TryApplyWithDiagnostics(
+            53_861,
+            200,
+            VibrationPriority.Critical,
+            nowMs: 1,
+            out ushort firstStrength,
+            out _,
+            out VibrationLimiterDebugInfo firstDiagnostics,
+            multiplier);
+
+        Assert.True(first);
+        Assert.Equal(53_861, firstStrength);
+        Assert.False(firstDiagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat));
+
+        double firstLoad = firstDiagnostics.ThermalLoad;
+        double maxLoad = firstLoad;
+
+        for (int i = 1; i < 25; i++)
+        {
+            limiter.TryApplyWithDiagnostics(
+                53_861,
+                200,
+                VibrationPriority.Critical,
+                nowMs: 1 + (i * 150),
+                out _,
+                out _,
+                out VibrationLimiterDebugInfo diagnostics,
+                multiplier);
+
+            Assert.True(diagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat), $"repeat {i}");
+            maxLoad = Math.Max(maxLoad, diagnostics.ThermalLoad);
+        }
+
+        Assert.True(maxLoad <= firstLoad + 0.001, $"maxLoad={maxLoad:F2} firstLoad={firstLoad:F2}");
+    }
+
+    /// <summary>
+    /// 停止連發超過連發視窗後，下一次相同的 Critical 請求應恢復為 Critical，不得被永久降級。
+    /// </summary>
+    [Fact]
+    public void TryApply_CriticalAfterRepeatWindowElapsed_IsNotDowngraded()
+    {
+        var limiter = new VibrationSafetyLimiter();
+
+        limiter.TryApply(53_861, 200, VibrationPriority.Critical, nowMs: 1, out _, out _);
+
+        limiter.TryApplyWithDiagnostics(
+            53_861,
+            200,
+            VibrationPriority.Critical,
+            nowMs: 700,
+            out _,
+            out _,
+            out VibrationLimiterDebugInfo diagnostics);
+
+        Assert.False(diagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat));
+    }
+
+    /// <summary>
+    /// 由不同強度或時長組成的 Critical 序列（例如控制器識別的前後兩段）不是自動連發，不得被降級。
+    /// </summary>
+    [Fact]
+    public void TryApply_DifferentCriticalProfilesInSequence_AreNotDowngraded()
+    {
+        var limiter = new VibrationSafetyLimiter();
+
+        limiter.TryApply(43_000, 110, VibrationPriority.Critical, nowMs: 1, out _, out _);
+
+        limiter.TryApplyWithDiagnostics(
+            55_000,
+            130,
+            VibrationPriority.Critical,
+            nowMs: 150,
+            out _,
+            out _,
+            out VibrationLimiterDebugInfo diagnostics);
+
+        Assert.False(diagnostics.Flags.HasFlag(VibrationLimiterFlags.DowngradedCriticalRepeat));
     }
 }
