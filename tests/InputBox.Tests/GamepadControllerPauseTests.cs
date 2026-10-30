@@ -245,6 +245,59 @@ public sealed class GamepadControllerPauseTests
     }
 
     /// <summary>
+    /// GameInput 控制器在背景裝置探索未完成或無工作時，CheckAndApplyDiscoveryResults 不應改變狀態或丟出例外。
+    /// </summary>
+    [Fact]
+    public void CheckAndApplyDiscoveryResults_WhenNoTask_DoesNotThrow()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "CheckAndApplyDiscoveryResults",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
+
+        method.Invoke(controller, []);
+
+        Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+    }
+
+    /// <summary>
+    /// GameInput 控制器在套用空裝置清單時，應將目前裝置設為 null 並觸發斷線流程。
+    /// </summary>
+    [Fact]
+    public void ApplyDiscoveredDevices_EmptyList_ClearsDeviceAndNotifiesDisconnect()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        bool? connectionEventStatus = null;
+        controller.ConnectionChanged += status => connectionEventStatus = status;
+
+        SetPrivateField(controller, "_isConnected", true);
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "ApplyDiscoveredDevices",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.ApplyDiscoveredDevices。");
+
+        method.Invoke(controller, [Array.Empty<GameInputDevice>()]);
+
+        Assert.Null(GetPrivateField<GameInputDevice?>(controller, "_device"));
+        Assert.False(controller.IsConnected);
+        Assert.Equal(false, connectionEventStatus);
+    }
+
+    /// <summary>
     /// XInput 控制器在 ClearAllEvents 後，必須一併清除 LeftShoulderReleased 與
     /// RightShoulderReleased 兩個事件訂閱，避免處置後仍殘留呼叫鏈造成事件洩漏。
     /// </summary>

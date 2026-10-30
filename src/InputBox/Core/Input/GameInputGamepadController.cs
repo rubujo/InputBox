@@ -115,6 +115,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private int _missingReadingFrameCounter;
 
     /// <summary>
+    /// 目前進行中的背景裝置探索工作
+    /// </summary>
+    private Task<IReadOnlyList<GameInputDevice>>? _deviceDiscoveryTask;
+
+    /// <summary>
+    /// 背景裝置探索工作的取消權杖來源
+    /// </summary>
+    private CancellationTokenSource? _discoveryCts;
+
+    /// <summary>
     /// 輪詢任務的 CancellationTokenSource
     /// </summary>
     private CancellationTokenSource? _ctsPolling;
@@ -736,6 +746,34 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         LogGameInputDiagnosticsSnapshot("stop-polling");
         cts.CancelAndDispose();
+
+        Interlocked.Exchange(ref _discoveryCts, null)?.CancelAndDispose();
+
+        Task<IReadOnlyList<GameInputDevice>>? pendingDiscovery = _deviceDiscoveryTask;
+        _deviceDiscoveryTask = null;
+
+        if (pendingDiscovery != null)
+        {
+            _ = pendingDiscovery.ContinueWith(t =>
+            {
+                if (t.IsCompletedSuccessfully)
+                {
+                    IReadOnlyList<GameInputDevice> devices = t.Result;
+
+                    for (int i = 0; i < devices.Count; i++)
+                    {
+                        try
+                        {
+                            devices[i].Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[GameInput] 取消後清理探索裝置失敗（已忽略）：{ex.Message}");
+                        }
+                    }
+                }
+            }, TaskScheduler.Default);
+        }
     }
 
     /// <summary>
@@ -853,18 +891,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 LoggerService.LogInfo($"GameInputRuntime/InputWeave loader={runtimeInfo.LoaderPolicy} available={runtimeInfo.IsAvailable} moduleKind={runtimeInfo.LoadedModuleKind} modulePath={runtimeInfo.LoadedModulePath} version={runtimeInfo.FileVersion}");
                 LogGameInputDiagnosticsSnapshot("init");
 
-                // 初始化時先直接列舉一次，再註冊非阻塞裝置回呼。
-                // 這樣可避免為了拿到既有裝置名單而付出兩次同步枚舉成本。
-                if (_needsRefresh &&
-                    !cancellationToken.IsCancellationRequested &&
-                    _disposed == 0)
-                {
-                    TryFindDevice();
-                }
-
-                // 註冊裝置變更事件。
-                // 使用 None 避免在註冊當下再次為現有裝置執行同步枚舉，
-                // 讓啟動成本只落在一次直接列舉上。
+                // 註冊裝置變更回呼。
                 _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
                     null!,
                     GameInputKind.GameInputKindGamepad,
@@ -878,6 +905,30 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                             Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
                         }
                     });
+
+                // 初始化時先非同步列舉一次以取得既有連線裝置。
+                if (_needsRefresh &&
+                    !cancellationToken.IsCancellationRequested &&
+                    _disposed == 0)
+                {
+                    try
+                    {
+                        IReadOnlyList<GameInputDevice> initialDevices = await _gameInput.EnumerateDevicesAsync(
+                            GameInputKind.GameInputKindGamepad,
+                            cancellationToken).ConfigureAwait(false);
+
+                        ApplyDiscoveredDevices(initialDevices);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // 取消時正常退出。
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerService.LogException(ex, "GameInput 初次裝置列舉失敗");
+                        Debug.WriteLine($"[GameInput] 初次裝置列舉失敗：{ex.Message}");
+                    }
+                }
             }
 
             // 成功完成初始化，通知 CreateAsync 解除等待
@@ -1189,20 +1240,21 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
         }
 
+        // 先檢查並套用已完成的非同步裝置探索結果。
+        CheckAndApplyDiscoveryResults();
+
         // 裝置清單防抖與掃描邏輯。
         if (_needsRefresh)
         {
-            // 若目前尚未連線任何裝置，直接重掃，不套用 500ms 防抖，
+            // 若目前尚未連線任何裝置，直接啟動探索，不套用 500ms 防抖，
             // 以縮短「未連線 → 新插入」的首段偵測延遲。
             if (_device == null)
             {
                 _reconnectCounter = 0;
 
-                TryFindDevice();
+                StartDeviceDiscovery();
             }
-
-            // 尚未連線時已做過即時重掃，本幀不再進行第二次防抖重掃，避免重複列舉。
-            if (_device != null)
+            else
             {
                 long elapsedTicks = Stopwatch.GetTimestamp() - Interlocked.Read(ref _refreshRequestedTicks),
                     elapsedMs = elapsedTicks / (Stopwatch.Frequency / 1000);
@@ -1211,11 +1263,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 {
                     _reconnectCounter = 0;
 
-                    TryFindDevice();
+                    StartDeviceDiscovery();
                 }
             }
         }
-        else if (_device == null)
+        else if (_device == null && _deviceDiscoveryTask == null)
         {
             _reconnectCounter++;
 
@@ -1223,7 +1275,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 _reconnectCounter = 0;
 
-                TryFindDevice();
+                StartDeviceDiscovery();
             }
         }
 
@@ -1404,7 +1456,67 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _needsRefresh = true;
         Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
 
-        TryFindDevice();
+        bool needsDisconnect = false,
+            needsConnectNotify = false;
+
+        lock (_deviceLock)
+        {
+            GameInputDevice? deadDev = _device;
+
+            if (deadDev != null)
+            {
+                _device = null;
+                _allDevices.Remove(deadDev);
+
+                try
+                {
+                    deadDev.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[GameInput] 釋放斷線裝置代理失敗（已忽略）：{ex.Message}");
+                }
+            }
+
+            // 若快取中還有其他已連線的控制器，立即無縫接手，不需等待探索。
+            for (int i = 0; i < _allDevices.Count; i++)
+            {
+                GameInputDevice candidate = _allDevices[i];
+
+                if (IsDeviceConnected(candidate))
+                {
+                    _device = candidate;
+                    _hasPreviousState = false;
+                    _missingReadingFrameCounter = 0;
+
+                    UpdateDeviceInfo();
+                    InitializeDeviceState();
+                    SetupReadingCallback();
+
+                    needsConnectNotify = true;
+
+                    break;
+                }
+            }
+
+            if (_device == null)
+            {
+                needsDisconnect = true;
+            }
+        }
+
+        if (needsDisconnect)
+        {
+            HandleDisconnect();
+        }
+
+        if (needsConnectNotify)
+        {
+            _isConnected = true;
+            ConnectionChanged?.Invoke(true);
+        }
+
+        StartDeviceDiscovery();
     }
 
     /// <summary>
@@ -1422,7 +1534,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
 
         LogGameInputDiagnosticsSnapshot("missing-reading-threshold");
-        TryFindDevice();
+        StartDeviceDiscovery();
 
         return _device == null;
     }
@@ -1739,27 +1851,116 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 嘗試尋找裝置
+    /// 啟動非同步裝置探索工作。
+    /// <para>探索在背景執行且不持有 <see cref="_deviceLock" />，避免阻塞 60 FPS 輪詢迴圈或導致現有手把輸入遺失。</para>
     /// </summary>
-    private void TryFindDevice()
+    private void StartDeviceDiscovery()
     {
-        GameInputClient? gameInput = _gameInput;
-
-        if (gameInput == null)
+        if (_deviceDiscoveryTask != null ||
+            _disposed != 0 ||
+            _isPaused ||
+            _gameInput == null)
         {
             return;
         }
 
+        _needsRefresh = false;
+
+        CancellationTokenSource? pollingCts = _ctsPolling;
+        CancellationToken pollingToken = pollingCts?.Token ?? CancellationToken.None;
+
+        if (pollingToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        CancellationTokenSource discoveryCts = CancellationTokenSource.CreateLinkedTokenSource(pollingToken);
+        _discoveryCts = discoveryCts;
+
+        try
+        {
+            _deviceDiscoveryTask = _gameInput.EnumerateDevicesAsync(
+                GameInputKind.GameInputKindGamepad,
+                discoveryCts.Token);
+        }
+        catch (Exception ex)
+        {
+            _needsRefresh = true;
+            _deviceDiscoveryTask = null;
+            Interlocked.Exchange(ref _discoveryCts, null)?.Dispose();
+
+            LoggerService.LogException(ex, "GameInput 啟動裝置探索失敗");
+            Debug.WriteLine($"[GameInput] 啟動裝置探索失敗：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 檢查背景裝置探索工作是否完成，並於輪詢執行緒套用結果。
+    /// </summary>
+    private void CheckAndApplyDiscoveryResults()
+    {
+        Task<IReadOnlyList<GameInputDevice>>? task = _deviceDiscoveryTask;
+
+        if (task == null || !task.IsCompleted)
+        {
+            return;
+        }
+
+        _deviceDiscoveryTask = null;
+        Interlocked.Exchange(ref _discoveryCts, null)?.Dispose();
+
+        try
+        {
+            if (task.IsCompletedSuccessfully)
+            {
+                IReadOnlyList<GameInputDevice> discovered = task.Result;
+
+                if (_disposed == 0 &&
+                    !_isPaused &&
+                    _gameInput != null)
+                {
+                    ApplyDiscoveredDevices(discovered);
+                }
+                else
+                {
+                    for (int i = 0; i < discovered.Count; i++)
+                    {
+                        try
+                        {
+                            discovered[i].Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[GameInput] 釋放未套用裝置失敗（已忽略）：{ex.Message}");
+                        }
+                    }
+                }
+            }
+            else if (task.IsFaulted && task.Exception != null)
+            {
+                LoggerService.LogException(task.Exception.GetBaseException(), "GameInput 裝置非同步探索失敗");
+                Debug.WriteLine($"[GameInput] 裝置非同步探索失敗：{task.Exception.GetBaseException().Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "GameInput 套用探索裝置失敗");
+            Debug.WriteLine($"[GameInput] 套用探索裝置失敗：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 套用探索到的裝置清單，更新已追蹤裝置與目前啟動裝置。
+    /// </summary>
+    /// <param name="devices">新探索到的裝置清單。</param>
+    private void ApplyDiscoveredDevices(IReadOnlyList<GameInputDevice> devices)
+    {
         bool needsDisconnect = false,
             needsConnectNotify = false;
 
         lock (_deviceLock)
         {
             _needsRefresh = false;
-
-            // 執行一次完整的列舉。
-            IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(
-                GameInputKind.GameInputKindGamepad);
 
             // 1. 釋放清單中已不再存在或已非 Connected 的舊裝置代理（Zero-allocation 替換 LINQ Any）。
             for (int i = _allDevices.Count - 1; i >= 0; i--)
@@ -1919,6 +2120,35 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _isConnected = true;
             ConnectionChanged?.Invoke(true);
         }
+    }
+
+    /// <summary>
+    /// 同步尋找裝置（僅供需要立即探索的相容路徑使用，平時由背景分階段探索取代）。
+    /// </summary>
+    private void TryFindDevice()
+    {
+        GameInputClient? gameInput = _gameInput;
+
+        if (gameInput == null)
+        {
+            return;
+        }
+
+        IReadOnlyList<GameInputDevice> devices;
+
+        try
+        {
+            devices = gameInput.EnumerateDevices(GameInputKind.GameInputKindGamepad);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.LogException(ex, "GameInput 同步列舉裝置失敗");
+            Debug.WriteLine($"[GameInput] 同步列舉裝置失敗：{ex.Message}");
+
+            return;
+        }
+
+        ApplyDiscoveredDevices(devices);
     }
 
     /// <summary>
@@ -3170,6 +3400,34 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 // 移除裝置註冊回呼。
                 deviceCallbackReg?.Dispose();
                 readingCallbackReg?.Dispose();
+
+                // 若有進行中的背景探索工作，等待其完成並釋放所產生的裝置代理。
+                Task<IReadOnlyList<GameInputDevice>>? discoveryTask = _deviceDiscoveryTask;
+                _deviceDiscoveryTask = null;
+
+                if (discoveryTask != null)
+                {
+                    try
+                    {
+                        IReadOnlyList<GameInputDevice> pending = await discoveryTask.ConfigureAwait(false);
+
+                        for (int i = 0; i < pending.Count; i++)
+                        {
+                            try
+                            {
+                                pending[i].Dispose();
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"[GameInput] 處置時釋放探索裝置失敗（已忽略）：{ex.Message}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[GameInput] 處置時等待探索完成發生例外（已忽略）：{ex.Message}");
+                    }
+                }
 
                 // 釋放所有連線中的裝置代理。
                 foreach (GameInputDevice d in devicesToDispose)
