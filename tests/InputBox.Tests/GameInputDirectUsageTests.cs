@@ -21,12 +21,12 @@ public sealed class GameInputDirectUsageTests
         Assert.NotNull(typeof(GameInputRuntime).GetMethod(nameof(GameInputRuntime.TryProbe), BindingFlags.Public | BindingFlags.Static));
         Assert.NotNull(typeof(GameInputRuntime).GetMethod(nameof(GameInputRuntime.GetInfo), BindingFlags.Public | BindingFlags.Static));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.Create), BindingFlags.Public | BindingFlags.Static));
-        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.SetFocusPolicy), [typeof(GameInputFocusPolicy)]));
-        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.EnumerateDevices), [typeof(GameInputKind), typeof(GameInputDeviceStatus)]));
+        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.EnableBackgroundInput), [typeof(bool)]));
+        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.EnumerateDevices), [typeof(GameInputKind)]));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.GetCurrentGamepad), [typeof(GameInputDevice)]));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.RegisterReadingCallback), [typeof(GameInputDevice), typeof(GameInputKind), typeof(GameInputReadingHandler)]));
-        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.RegisterDeviceCallback), [typeof(GameInputDevice), typeof(GameInputKind), typeof(GameInputDeviceStatus), typeof(GameInputEnumerationKind), typeof(GameInputDeviceHandler)]));
-        Assert.NotNull(typeof(GameInputDevice).GetProperty(nameof(GameInputDevice.Status)));
+        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.RegisterDeviceCallback), [typeof(GameInputDevice), typeof(GameInputKind), typeof(GameInputDeviceEventHandler)]));
+        Assert.NotNull(typeof(GameInputDevice).GetMethod(nameof(GameInputDevice.IsConnected), Type.EmptyTypes));
         Assert.NotNull(typeof(GameInputDevice).GetMethod(nameof(GameInputDevice.GetDeviceInfoSnapshot), Type.EmptyTypes));
         Assert.NotNull(typeof(GameInputDevice).GetMethod(nameof(GameInputDevice.SetRumbleState), [typeof(GameInputRumbleParams).MakeByRefType()]));
     }
@@ -39,8 +39,6 @@ public sealed class GameInputDirectUsageTests
     {
         AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterReadingCallback");
         AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterDeviceCallback");
-        AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterSystemButtonCallback");
-        AssertCallbackParameterUsesNativeFunctionPointerBridge("RegisterKeyboardLayoutCallback");
     }
 
     /// <summary>
@@ -222,7 +220,7 @@ public sealed class GameInputDirectUsageTests
         string displayName,
         string pnpPath)
     {
-        GameInputDeviceInfo nativeInfo = new()
+        GameInputDeviceIdentity identity = new()
         {
             VendorId = vendorId,
             ProductId = productId,
@@ -230,7 +228,7 @@ public sealed class GameInputDirectUsageTests
         };
 
         return CreateInstance<GameInputDeviceInfoSnapshot>(
-            nativeInfo,
+            identity,
             displayName,
             pnpPath,
             null,

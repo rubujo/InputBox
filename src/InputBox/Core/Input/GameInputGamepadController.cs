@@ -847,7 +847,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 }
 
                 _gameInput = GameInputClient.Create();
-                _gameInput.SetFocusPolicy(GameInputFocusPolicy.GameInputDefaultFocusPolicy);
+                _gameInput.EnableBackgroundInput(false);
 
                 GameInputRuntimeInfo runtimeInfo = GameInputRuntime.GetInfo();
                 LoggerService.LogInfo($"GameInputRuntime/InputWeave loader={runtimeInfo.LoaderPolicy} available={runtimeInfo.IsAvailable} moduleKind={runtimeInfo.LoadedModuleKind} modulePath={runtimeInfo.LoadedModulePath} version={runtimeInfo.FileVersion}");
@@ -868,14 +868,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 _deviceCallbackReg = _gameInput.RegisterDeviceCallback(
                     null!,
                     GameInputKind.GameInputKindGamepad,
-                    GameInputDeviceStatus.GameInputDeviceConnected,
-                    GameInputEnumerationKind.GameInputNoEnumeration,
-                    (_, _, _, _) =>
+                    (deviceEvent, _) =>
                     {
-                        _needsRefresh = true;
+                        if (deviceEvent is GameInputDeviceEvent.GameInputDeviceEventConnected or GameInputDeviceEvent.GameInputDeviceEventDisconnected)
+                        {
+                            _needsRefresh = true;
 
-                        // 記錄觸發當下的時間。
-                        Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
+                            // 記錄觸發當下的時間。
+                            Interlocked.Exchange(ref _refreshRequestedTicks, Stopwatch.GetTimestamp());
+                        }
                     });
             }
 
@@ -1114,13 +1115,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <summary>
     /// 記錄 GameInput 裝置狀態診斷資料。
     /// </summary>
-    private void RecordDeviceStatus(GameInputDeviceStatus status)
+    private void RecordDeviceStatus(bool isConnected)
     {
         lock (_gameInputDiagnosticsLock)
         {
-            _lastReadDeviceStatus = Convert.ToUInt32(status);
+            _lastReadDeviceStatus = isConnected ? 1u : 0u;
 
-            if ((status & GameInputDeviceStatus.GameInputDeviceConnected) == 0)
+            if (!isConnected)
             {
                 _deviceUnavailableRefreshCount++;
             }
@@ -1136,7 +1137,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         try
         {
-            return Convert.ToUInt32(device.Status);
+            return device.IsConnected() ? 1u : 0u;
         }
         catch (Exception ex)
         {
@@ -1239,10 +1240,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         try
         {
-            GameInputDeviceStatus status = dev.Status;
-            RecordDeviceStatus(status);
+            bool isConnected = dev.IsConnected();
+            RecordDeviceStatus(isConnected);
 
-            if ((status & GameInputDeviceStatus.GameInputDeviceConnected) == 0)
+            if (!isConnected)
             {
                 Debug.WriteLine("[GameInput] 目前裝置狀態已非 Connected，立即重新整理裝置清單。");
                 LogGameInputDiagnosticsSnapshot("device-status-non-connected");
@@ -1758,8 +1759,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             // 執行一次完整的列舉。
             IReadOnlyList<GameInputDevice> devices = gameInput.EnumerateDevices(
-                GameInputKind.GameInputKindGamepad,
-                GameInputDeviceStatus.GameInputDeviceConnected);
+                GameInputKind.GameInputKindGamepad);
 
             // 1. 釋放清單中已不再存在或已非 Connected 的舊裝置代理（Zero-allocation 替換 LINQ Any）。
             for (int i = _allDevices.Count - 1; i >= 0; i--)
@@ -1930,7 +1930,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         try
         {
-            return IsConnectedStatus(device.Status);
+            return IsConnectedStatus(device.IsConnected());
         }
         catch (Exception ex)
         {
@@ -1941,12 +1941,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     }
 
     /// <summary>
-    /// 判斷 GameInput 裝置狀態是否包含 Connected 旗標。
+    /// 判斷 GameInput 裝置狀態是否連線。
     /// </summary>
-    /// <param name="status">GameInput 裝置狀態旗標。</param>
-    /// <returns>若包含 Connected 則回傳 true。</returns>
-    private static bool IsConnectedStatus(GameInputDeviceStatus status)
-        => (status & GameInputDeviceStatus.GameInputDeviceConnected) != 0;
+    /// <param name="isConnected">GameInput 裝置連線狀態。</param>
+    /// <returns>若連線則回傳 true。</returns>
+    private static bool IsConnectedStatus(bool isConnected)
+        => isConnected;
 
     /// <summary>
     /// 掃描目前是否有其他正在活動的裝置，若有則切換
