@@ -240,8 +240,8 @@ public sealed class GamepadControllerPauseTests
             BindingFlags.Static | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("找不到 GameInputGamepadController.IsConnectedStatus。");
 
-        Assert.True((bool)method.Invoke(null, [GameInputDeviceStatus.GameInputDeviceConnected])!);
-        Assert.False((bool)method.Invoke(null, [(GameInputDeviceStatus)0])!);
+        Assert.True((bool)method.Invoke(null, [true])!);
+        Assert.False((bool)method.Invoke(null, [false])!);
     }
 
     /// <summary>
