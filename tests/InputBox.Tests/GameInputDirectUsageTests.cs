@@ -23,6 +23,7 @@ public sealed class GameInputDirectUsageTests
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.Create), BindingFlags.Public | BindingFlags.Static));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.EnableBackgroundInput), [typeof(bool)]));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.EnumerateDevices), [typeof(GameInputKind)]));
+        Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.EnumerateDevicesAsync), [typeof(GameInputKind), typeof(CancellationToken)]));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.GetCurrentGamepad), [typeof(GameInputDevice)]));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.RegisterReadingCallback), [typeof(GameInputDevice), typeof(GameInputKind), typeof(GameInputReadingHandler)]));
         Assert.NotNull(typeof(GameInputClient).GetMethod(nameof(GameInputClient.RegisterDeviceCallback), [typeof(GameInputDevice), typeof(GameInputKind), typeof(GameInputDeviceEventHandler)]));
