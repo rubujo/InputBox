@@ -451,11 +451,12 @@ public sealed class GamepadControllerPauseTests
         stopPollingMethod.Invoke(controller, []);
 
         Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
-        var pendingCleanups = GetPrivateField<List<Task>>(controller, "_pendingDiscoveryCleanups");
-        Assert.Single(pendingCleanups);
+        List<Task> pendingCleanups = GetPrivateField<List<Task>>(controller, "_pendingDiscoveryCleanups");
+        Task cleanupTask = Assert.Single(pendingCleanups);
+        Assert.NotNull(cleanupTask);
 
         // 呼叫 DisposeResourcesAsync，在 discoveryTcs 未完成前，Dispose 任務不應結束
-        var disposeTask = (Task)disposeResourcesMethod.Invoke(controller, [])!;
+        Task disposeTask = (Task)disposeResourcesMethod.Invoke(controller, [])!;
         Assert.False(disposeTask.IsCompleted);
 
         // 完成探索工作
@@ -492,7 +493,7 @@ public sealed class GamepadControllerPauseTests
         TaskCompletionSource tcs = new();
 
         // 傳入過期世代 2
-        var task = (Task)method.Invoke(controller, [cts.Token, 2, tcs])!;
+        Task task = (Task)method.Invoke(controller, [cts.Token, 2, tcs])!;
         await task;
 
         Assert.Equal(3, GetPrivateField<int>(controller, "_pollingGeneration"));
@@ -649,6 +650,114 @@ public sealed class GamepadControllerPauseTests
 
         Assert.Null(GetEventDelegate(controller, "LeftShoulderReleased"));
         Assert.Null(GetEventDelegate(controller, "RightShoulderReleased"));
+    }
+
+    /// <summary>
+    /// 連續丟失讀取達到重新整理閾值時，HandleMissingCurrentReading 應啟動重新整理並回傳 true，
+    /// 讓輪詢迴圈中斷當前幀的過期狀態評估。
+    /// </summary>
+    [Fact]
+    public void HandleMissingCurrentReading_WhenThresholdReached_ReturnsTrueAndRequestsRefresh()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "HandleMissingCurrentReading",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.HandleMissingCurrentReading。");
+
+        SetPrivateField(controller, "_missingReadingFrameCounter", AppSettings.GamepadReconnectThresholdFrames - 1);
+        SetPrivateField(controller, "_needsRefresh", false);
+
+        bool result = (bool)method.Invoke(controller, [0])!;
+
+        Assert.True(result);
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_missingReadingFrameCounter"));
+    }
+
+    /// <summary>
+    /// 連續丟失讀取未達到重新整理閾值時，HandleMissingCurrentReading 應回傳 false 且不觸發探索。
+    /// </summary>
+    [Fact]
+    public void HandleMissingCurrentReading_BeforeThresholdReached_ReturnsFalse()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "HandleMissingCurrentReading",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.HandleMissingCurrentReading。");
+
+        SetPrivateField(controller, "_missingReadingFrameCounter", 0);
+        SetPrivateField(controller, "_needsRefresh", false);
+
+        bool result = (bool)method.Invoke(controller, [0])!;
+
+        Assert.False(result);
+        Assert.False(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.Equal(1, GetPrivateField<int>(controller, "_missingReadingFrameCounter"));
+    }
+
+    /// <summary>
+    /// DisposeResourcesAsync 在等待進行中的背景探索工作前，應確實取消 _discoveryCts，防止處置延遲等待。
+    /// </summary>
+    [Fact]
+    public async Task DisposeResourcesAsync_WhenDiscoveryTaskInFlight_CancelsDiscoveryCts()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        CancellationTokenSource discoveryCts = new();
+        TaskCompletionSource<IReadOnlyList<GameInputDevice>> discoveryTcs = new();
+
+        SetPrivateField(controller, "_discoveryCts", discoveryCts);
+        SetPrivateField(controller, "_deviceDiscoveryTask", discoveryTcs.Task);
+
+        MethodInfo disposeResourcesMethod = typeof(GameInputGamepadController).GetMethod(
+            "DisposeResourcesAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.DisposeResourcesAsync。");
+
+        Task disposeTask = (Task)disposeResourcesMethod.Invoke(controller, [])!;
+
+        // 驗證 _discoveryCts 已在 lock (_discoveryLock) 內被取消
+        Assert.True(discoveryCts.IsCancellationRequested);
+
+        // 完成探索工作以允許 dispose 完成
+        discoveryTcs.SetResult([]);
+        await disposeTask;
+
+        Assert.True(disposeTask.IsCompletedSuccessfully);
+    }
+
+    /// <summary>
+    /// DisposeDevices 傳入 null 參數時應安全返回，杜絕 NullReferenceException。
+    /// </summary>
+    [Fact]
+    public void DisposeDevices_WhenNull_DoesNotThrow()
+    {
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "DisposeDevices",
+            BindingFlags.Static | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.DisposeDevices。");
+
+        Exception? ex = Record.Exception(() => method.Invoke(null, [null]));
+        Assert.Null(ex);
     }
 
     /// <summary>

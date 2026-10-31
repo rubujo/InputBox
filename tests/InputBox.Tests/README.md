@@ -21,7 +21,7 @@
 | `FormInputStateManagerTests` | `FormInputStateManager` 輸入狀態切換 | 15 |
 | `GamepadDeadzoneHysteresisTests` | `GamepadDeadzoneHysteresis.ResolveDirection`（int / float 多載），含正負方向對稱性守門（硬體平等原則） | 14 |
 | `GamepadControllerFactoryTests` | 控制器後端建立策略，驗證 XInput 預設路徑、GameInput 成功路徑，以及 GameInput 執行階段不可用時退避至 XInput | 3 |
-| `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意、GameInput 讀取缺失斷線重列舉、非同步分階段裝置探索、探索所有權與競態防護、世代分配隔離、過期呼叫者工作保護、探索清理移交追蹤、熱插拔版本防覆蓋與請求共用同步、探索失敗重試保留、裝置狀態過濾、震動停止安全性、`ClearAllEvents` 肩鍵釋放訂閱清除與原生對話框切換時的殘留輸入回歸保護 | 21 |
+| `GamepadControllerPauseTests` | 控制器在 `Pause()` / `Resume()`、連線可用性語意、GameInput 讀取缺失斷線重列舉中斷、探索權杖取消保護、空裝置清單防護、非同步分階段裝置探索、探索所有權與競態防護、世代分配隔離、過期呼叫者工作保護、探索清理移交追蹤、熱插拔版本防覆蓋與請求共用同步、探索失敗重試保留、裝置狀態過濾、震動停止安全性、`ClearAllEvents` 肩鍵釋放訂閱清除與原生對話框切換時的殘留輸入回歸保護 | 25 |
 | `GameInputDirectUsageTests` | `GameInputGamepadController` 直接使用 `InputWeave.GameInput` 遊戲控制器介面的守門、callback function pointer marshaling、官方 v3 按鍵位元、快照邊緣偵測、Release 日誌邊界、穩定裝置識別與震動參數保留 | 9 |
 | `FlashAlertAnimatorTests` | `FlashAlertAnimator` 共用閃爍警示：主題警示色、純淨底色至警示色的插值、整個脈衝過程文字對比 ≥4.5:1、高對比模式半強度切換，以及 1Hz 單次正弦脈衝強度 | 7 |
 | `GamepadBiasSmoothingTests` | `GamepadBiasSmoothing` 自適應 EMA 學習率公式：零誤差用基礎值、超出範圍用最大值，以及 XInput 與 GameInput 不同數值尺度下結果一致 | 5 |
@@ -50,7 +50,7 @@
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
-| **合計** | | **458** |
+| **合計** | | **462** |
 
 ## 二、執行方式 🚀
 
