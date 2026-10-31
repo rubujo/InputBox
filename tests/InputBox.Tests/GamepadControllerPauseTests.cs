@@ -262,8 +262,161 @@ public sealed class GamepadControllerPauseTests
             BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
 
-        method.Invoke(controller, []);
+        method.Invoke(controller, [0]);
 
+        Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+    }
+
+    /// <summary>
+    /// GameInput 控制器在 Pause 後，應保留 _needsRefresh 重新整理標記並遞增版本號，
+    /// 確保原生對話框關閉或恢復輪詢時不會遺失探索需求。
+    /// </summary>
+    [Fact]
+    public void Pause_GameInputController_PreservesNeedsRefreshAndIncrementsVersion()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        SetPrivateField(controller, "_needsRefresh", false);
+        SetPrivateField(controller, "_refreshRequestVersion", 10L);
+
+        CancellationTokenSource discoveryCts = new();
+        SetPrivateField(controller, "_discoveryCts", discoveryCts);
+        SetPrivateField(controller, "_deviceDiscoveryTask", Task.FromResult<IReadOnlyList<GameInputDevice>>([]));
+
+        controller.Pause();
+
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.True(GetPrivateField<long>(controller, "_refreshRequestVersion") > 10L);
+        Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+        Assert.True(discoveryCts.IsCancellationRequested);
+    }
+
+    /// <summary>
+    /// GameInput 控制器在背景探索工作失敗（Faulted）時，CheckAndApplyDiscoveryResults 應重新設定
+    /// _needsRefresh 為 true 並遞增版本號，確保後續輪詢能重新嘗試探索。
+    /// </summary>
+    [Fact]
+    public void CheckAndApplyDiscoveryResults_WhenTaskFaulted_RestoresNeedsRefreshAndIncrementsVersion()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "CheckAndApplyDiscoveryResults",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
+
+        SetPrivateField(controller, "_needsRefresh", false);
+        SetPrivateField(controller, "_refreshRequestVersion", 5L);
+        SetPrivateField(
+            controller,
+            "_deviceDiscoveryTask",
+            Task.FromException<IReadOnlyList<GameInputDevice>>(new InvalidOperationException("測試探索異常")));
+
+        method.Invoke(controller, [0]);
+
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.True(GetPrivateField<long>(controller, "_refreshRequestVersion") > 5L);
+        Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+    }
+
+    /// <summary>
+    /// GameInput 控制器在背景探索期間若收到新的重新整理要求（版本號改變），
+    /// CheckAndApplyDiscoveryResults 不應將 _needsRefresh 重設為 false，避免蓋過新插拔事件。
+    /// </summary>
+    [Fact]
+    public void CheckAndApplyDiscoveryResults_WhenVersionChangedDuringDiscovery_PreservesNeedsRefresh()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "CheckAndApplyDiscoveryResults",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
+
+        SetPrivateField(controller, "_needsRefresh", true);
+        SetPrivateField(controller, "_activeDiscoveryVersion", 1L);
+        SetPrivateField(controller, "_refreshRequestVersion", 2L);
+        SetPrivateField(controller, "_deviceDiscoveryTask", Task.FromResult<IReadOnlyList<GameInputDevice>>([]));
+
+        method.Invoke(controller, [0]);
+
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+    }
+
+    /// <summary>
+    /// GameInput 控制器在背景探索期間若無新的重新整理要求（版本號相同），
+    /// CheckAndApplyDiscoveryResults 應正常將 _needsRefresh 重設為 false。
+    /// </summary>
+    [Fact]
+    public void CheckAndApplyDiscoveryResults_WhenVersionUnchanged_ClearsNeedsRefresh()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "CheckAndApplyDiscoveryResults",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
+
+        SetPrivateField(controller, "_needsRefresh", true);
+        SetPrivateField(controller, "_activeDiscoveryVersion", 3L);
+        SetPrivateField(controller, "_refreshRequestVersion", 3L);
+        SetPrivateField(controller, "_deviceDiscoveryTask", Task.FromResult<IReadOnlyList<GameInputDevice>>([]));
+
+        method.Invoke(controller, [0]);
+
+        Assert.False(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+    }
+
+    /// <summary>
+    /// GameInput 控制器在過期輪詢世代執行時，CheckAndApplyDiscoveryResults 應捨棄探索結果、
+    /// 恢復 _needsRefresh 為 true，且不套用至目前裝置。
+    /// </summary>
+    [Fact]
+    public void CheckAndApplyDiscoveryResults_WhenStaleGeneration_DiscardsResultsAndRestoresNeedsRefresh()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "CheckAndApplyDiscoveryResults",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
+
+        SetPrivateField(controller, "_pollingGeneration", 5);
+        SetPrivateField(controller, "_needsRefresh", false);
+        SetPrivateField(controller, "_refreshRequestVersion", 10L);
+        SetPrivateField(controller, "_deviceDiscoveryTask", Task.FromResult<IReadOnlyList<GameInputDevice>>([]));
+
+        method.Invoke(controller, [4]);
+
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.True(GetPrivateField<long>(controller, "_refreshRequestVersion") > 10L);
         Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
     }
 
