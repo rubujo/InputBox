@@ -763,12 +763,20 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     {
         GameInputGamepadController controller = new(context, repeatSettings);
 
-        // 透過 TCS 等待背景輪詢執行緒完成 GameInput 的初始化。
-        // 這樣既能保證 COM 物件在輪詢執行緒上建立（避免 InvalidCastException 與執行緒綁定問題），
-        // 又能將初始化結果（成功或例外）回傳給呼叫者，達成探測與重用實例的雙重目的，提升 50% 啟動速度。
-        await controller.InitializeAndStartPollingAsync().ConfigureAwait(false);
+        try
+        {
+            // 透過 TCS 等待背景輪詢執行緒完成 GameInput 的初始化。
+            // 這樣既能保證 COM 物件在輪詢執行緒上建立（避免 InvalidCastException 與執行緒綁定問題），
+            // 又能將初始化結果（成功或例外）回傳給呼叫者，達成探測與重用實例的雙重目的，提升 50% 啟動速度。
+            await controller.InitializeAndStartPollingAsync().ConfigureAwait(false);
 
-        return controller;
+            return controller;
+        }
+        catch
+        {
+            await controller.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
     }
 
     /// <summary>
@@ -876,6 +884,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="devices">要釋放的裝置清單。</param>
     private static void DisposeDevices(IReadOnlyList<GameInputDevice> devices)
     {
+        if (devices == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < devices.Count; i++)
         {
             try
@@ -946,7 +959,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         _readingQueue.Clear();
 
-        if (_device != null && _gameInput != null)
+        if (_device != null && _gameInput != null && _disposed == 0)
         {
             try
             {
@@ -1016,7 +1029,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     GameInputKind.GameInputKindGamepad,
                     (deviceEvent, _) =>
                     {
-                        if (deviceEvent is GameInputDeviceEvent.GameInputDeviceEventConnected or GameInputDeviceEvent.GameInputDeviceEventDisconnected)
+                        if (_disposed == 0 &&
+                            deviceEvent is GameInputDeviceEvent.GameInputDeviceEventConnected or GameInputDeviceEvent.GameInputDeviceEventDisconnected)
                         {
                             RequestRefresh();
                         }
@@ -1053,6 +1067,13 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         throw;
                     }
                 }
+            }
+
+            if (cancellationToken.IsCancellationRequested ||
+                pollingGeneration != Volatile.Read(ref _pollingGeneration))
+            {
+                initTcs?.TrySetCanceled(cancellationToken);
+                return;
             }
 
             // 成功完成初始化，通知 CreateAsync 解除等待
@@ -1675,7 +1696,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         LogGameInputDiagnosticsSnapshot("missing-reading-threshold");
         StartDeviceDiscovery(pollingGeneration);
 
-        return _device == null;
+        return true;
     }
 
     /// <summary>
@@ -2424,8 +2445,23 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                             // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
                             ResetHoldStates();
 
+                            // 切換裝置參考前，先嘗試停止舊裝置馬達以防震動殘留。
+                            GameInputDevice? oldDev = _device;
+
                             // 切換裝置參考。
                             _device = otherDev;
+
+                            if (oldDev != null)
+                            {
+                                try
+                                {
+                                    oldDev.SetRumbleState(new GameInputRumbleParams());
+                                }
+                                catch (Exception rumbleEx)
+                                {
+                                    Debug.WriteLine($"[GameInput] 切換裝置時停止舊裝置馬達失敗（已忽略）：{rumbleEx.Message}");
+                                }
+                            }
 
                             UpdateDeviceInfo();
                             InitializeDeviceState();
@@ -3576,6 +3612,15 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             _allDevices.Clear();
         }
 
+        // 若有進行中的背景探索工作，立即發出取消並捕捉工作代理，確保不延遲處置。
+        Task<IReadOnlyList<GameInputDevice>>? discoveryTask;
+        lock (_discoveryLock)
+        {
+            Interlocked.Exchange(ref _discoveryCts, null)?.CancelAndDispose();
+            discoveryTask = _deviceDiscoveryTask;
+            _deviceDiscoveryTask = null;
+        }
+
         _device = null;
         _gameInput = null;
         _deviceCallbackReg = null;
@@ -3609,14 +3654,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                 deviceCallbackReg?.Dispose();
                 readingCallbackReg?.Dispose();
 
-                // 若有進行中的背景探索工作，等待其完成並釋放所產生的裝置代理。
-                Task<IReadOnlyList<GameInputDevice>>? discoveryTask;
-                lock (_discoveryLock)
-                {
-                    discoveryTask = _deviceDiscoveryTask;
-                    _deviceDiscoveryTask = null;
-                }
-
+                // 等待已捕獲的背景探索工作完成並釋放所產生的裝置代理。
                 if (discoveryTask != null)
                 {
                     try
