@@ -390,11 +390,11 @@ public sealed class GamepadControllerPauseTests
     }
 
     /// <summary>
-    /// GameInput 控制器在過期輪詢世代執行時，CheckAndApplyDiscoveryResults 應捨棄探索結果、
-    /// 恢復 _needsRefresh 為 true，且不套用至目前裝置。
+    /// GameInput 控制器在過期輪詢世代執行時，CheckAndApplyDiscoveryResults 應拒絕取走工作，
+    /// 確保新世代進行中的探索工作不被過期呼叫者清空或誤釋放。
     /// </summary>
     [Fact]
-    public void CheckAndApplyDiscoveryResults_WhenStaleGeneration_DiscardsResultsAndRestoresNeedsRefresh()
+    public void CheckAndApplyDiscoveryResults_WhenStaleGeneration_RetainsDiscoveryTaskForCurrentGeneration()
     {
         using var controller = (GameInputGamepadController)Activator.CreateInstance(
             typeof(GameInputGamepadController),
@@ -408,16 +408,64 @@ public sealed class GamepadControllerPauseTests
             BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("找不到 GameInputGamepadController.CheckAndApplyDiscoveryResults。");
 
-        SetPrivateField(controller, "_pollingGeneration", 5);
-        SetPrivateField(controller, "_needsRefresh", false);
-        SetPrivateField(controller, "_refreshRequestVersion", 10L);
-        SetPrivateField(controller, "_deviceDiscoveryTask", Task.FromResult<IReadOnlyList<GameInputDevice>>([]));
+        Task<IReadOnlyList<GameInputDevice>> currentGenTask = Task.FromResult<IReadOnlyList<GameInputDevice>>([]);
 
+        SetPrivateField(controller, "_pollingGeneration", 5);
+        SetPrivateField(controller, "_deviceDiscoveryTask", currentGenTask);
+
+        // 傳入過期世代 4
         method.Invoke(controller, [4]);
 
-        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
-        Assert.True(GetPrivateField<long>(controller, "_refreshRequestVersion") > 10L);
+        // 驗證過期呼叫者被拒絕，新世代的工作未被清空
+        Assert.Same(currentGenTask, GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+    }
+
+    /// <summary>
+    /// StopPolling 應追蹤移交的探索清理工作，確保 DisposeResourcesAsync 完成前等待所有清理結束。
+    /// </summary>
+    [Fact]
+    public async Task StopPolling_TracksPendingDiscoveryCleanup_WaitedBeforeDisposeResourcesCompletes()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        TaskCompletionSource<IReadOnlyList<GameInputDevice>> discoveryTcs = new();
+
+        SetPrivateField(controller, "_deviceDiscoveryTask", discoveryTcs.Task);
+
+        MethodInfo stopPollingMethod = typeof(GameInputGamepadController).GetMethod(
+            "StopPolling",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.StopPolling。");
+
+        MethodInfo disposeResourcesMethod = typeof(GameInputGamepadController).GetMethod(
+            "DisposeResourcesAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.DisposeResourcesAsync。");
+
+        // 呼叫 StopPolling，進行中工作應被移交並加入清理追蹤清單
+        stopPollingMethod.Invoke(controller, []);
+
         Assert.Null(GetPrivateField<Task<IReadOnlyList<GameInputDevice>>?>(controller, "_deviceDiscoveryTask"));
+        var pendingCleanups = GetPrivateField<List<Task>>(controller, "_pendingDiscoveryCleanups");
+        Assert.Single(pendingCleanups);
+
+        // 呼叫 DisposeResourcesAsync，在 discoveryTcs 未完成前，Dispose 任務不應結束
+        var disposeTask = (Task)disposeResourcesMethod.Invoke(controller, [])!;
+        Assert.False(disposeTask.IsCompleted);
+
+        // 完成探索工作
+        discoveryTcs.SetResult([]);
+
+        // 等待 Dispose 完成
+        await disposeTask;
+
+        Assert.True(disposeTask.IsCompletedSuccessfully);
+        Assert.Empty(GetPrivateField<List<Task>>(controller, "_pendingDiscoveryCleanups"));
     }
 
     /// <summary>
