@@ -189,6 +189,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     private long _activeDiscoveryVersion;
 
     /// <summary>
+    /// 追蹤所有已移交停止但尚未完成釋放的背景裝置探索清理工作（包含 Pause 留下的工作）。
+    /// </summary>
+    private readonly List<Task> _pendingDiscoveryCleanups = [];
+
+    /// <summary>
     /// 目前進行中的背景裝置探索工作
     /// </summary>
     private Task<IReadOnlyList<GameInputDevice>>? _deviceDiscoveryTask;
@@ -835,17 +840,33 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 RequestRefresh();
             }
-        }
 
-        if (pendingDiscovery != null)
-        {
-            _ = pendingDiscovery.ContinueWith(t =>
+            if (pendingDiscovery != null)
             {
-                if (t.IsCompletedSuccessfully)
+                Task? cleanupTask = null;
+                cleanupTask = pendingDiscovery.ContinueWith(t =>
                 {
-                    DisposeDevices(t.Result);
-                }
-            }, TaskScheduler.Default);
+                    try
+                    {
+                        if (t.IsCompletedSuccessfully)
+                        {
+                            DisposeDevices(t.Result);
+                        }
+                    }
+                    finally
+                    {
+                        lock (_discoveryLock)
+                        {
+                            if (cleanupTask != null)
+                            {
+                                _pendingDiscoveryCleanups.Remove(cleanupTask);
+                            }
+                        }
+                    }
+                }, TaskScheduler.Default);
+
+                _pendingDiscoveryCleanups.Add(cleanupTask);
+            }
         }
     }
 
@@ -2030,6 +2051,12 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         lock (_discoveryLock)
         {
+            // 在取走工作前拒絕過期呼叫者，避免舊世代的 Poll 清空並誤釋放新世代的探索工作
+            if (pollingGeneration != 0 && pollingGeneration != Volatile.Read(ref _pollingGeneration))
+            {
+                return;
+            }
+
             task = _deviceDiscoveryTask;
 
             if (task == null || !task.IsCompleted)
@@ -3600,6 +3627,31 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"[GameInput] 處置時等待探索完成發生例外（已忽略）：{ex.Message}");
+                    }
+                }
+
+                // 等待所有已移交停止的探索清理工作（包含先前 Pause 留下的工作）完成，
+                // 確保先釋放探索產生的裝置代理，再處置 GameInputClient。
+                while (true)
+                {
+                    Task[] cleanupsToWait;
+                    lock (_discoveryLock)
+                    {
+                        if (_pendingDiscoveryCleanups.Count == 0)
+                        {
+                            break;
+                        }
+
+                        cleanupsToWait = [.. _pendingDiscoveryCleanups];
+                    }
+
+                    try
+                    {
+                        await Task.WhenAll(cleanupsToWait).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[GameInput] 處置時等待探索清理完成發生例外（已忽略）：{ex.Message}");
                     }
                 }
 
