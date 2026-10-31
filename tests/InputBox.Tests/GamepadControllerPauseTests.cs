@@ -421,6 +421,111 @@ public sealed class GamepadControllerPauseTests
     }
 
     /// <summary>
+    /// 若舊輪詢工作傳入過期世代，PollingLoopAsync 應立即放棄並取消 initTcs，且不得竄改目前最新世代編號。
+    /// </summary>
+    [Fact]
+    public async Task PollingLoopAsync_WhenStaleGeneration_AbortsWithoutMutatingPollingGeneration()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "PollingLoopAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.PollingLoopAsync。");
+
+        SetPrivateField(controller, "_pollingGeneration", 3);
+
+        using CancellationTokenSource cts = new();
+        TaskCompletionSource tcs = new();
+
+        // 傳入過期世代 2
+        var task = (Task)method.Invoke(controller, [cts.Token, 2, tcs])!;
+        await task;
+
+        Assert.Equal(3, GetPrivateField<int>(controller, "_pollingGeneration"));
+        Assert.True(tcs.Task.IsCanceled);
+    }
+
+    /// <summary>
+    /// 在已暫停或已處置的狀態下，ApplyDiscoveredDevicesWithLifecycle 應拒絕寫入裝置快取，並標記需要重新整理。
+    /// </summary>
+    [Fact]
+    public void ApplyDiscoveredDevicesWithLifecycle_WhenPaused_DoesNotPolluteDeviceCache()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "ApplyDiscoveredDevicesWithLifecycle",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.ApplyDiscoveredDevicesWithLifecycle。");
+
+        SetPrivateField(controller, "_isPaused", true);
+        SetPrivateField(controller, "_needsRefresh", false);
+        SetPrivateField(controller, "_pollingGeneration", 1);
+
+        method.Invoke(controller, [Array.Empty<GameInputDevice>(), 1L, 1]);
+
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+        Assert.Empty(GetPrivateField<List<GameInputDevice>>(controller, "_allDevices"));
+        Assert.Null(GetPrivateField<GameInputDevice?>(controller, "_device"));
+    }
+
+    /// <summary>
+    /// 若在探索完成結算時有新的重新整理請求發布（版本號已推進），AcknowledgeRefresh 不得清空重新整理標記。
+    /// </summary>
+    [Fact]
+    public void AcknowledgeRefresh_WhenNewVersionPublishedConcurrently_RetainsNeedsDeviceRefresh()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo reqMethod = typeof(GameInputGamepadController).GetMethod(
+            "RequestRefresh",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.RequestRefresh。");
+
+        MethodInfo ackMethod = typeof(GameInputGamepadController).GetMethod(
+            "AcknowledgeRefresh",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.AcknowledgeRefresh。");
+
+        PropertyInfo needsProp = typeof(GameInputGamepadController).GetProperty(
+            "NeedsDeviceRefresh",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.NeedsDeviceRefresh。");
+
+        // 第一次請求，版本號變為 1
+        reqMethod.Invoke(controller, []);
+        long capturedVersion = GetPrivateField<long>(controller, "_refreshRequestVersion");
+        Assert.Equal(1L, capturedVersion);
+
+        // 模擬探索期間又有新設備熱插拔，發布第二個請求，版本號變為 2
+        reqMethod.Invoke(controller, []);
+        Assert.Equal(2L, GetPrivateField<long>(controller, "_refreshRequestVersion"));
+
+        // 探索結算第一版 (1)
+        ackMethod.Invoke(controller, [capturedVersion]);
+
+        // 因為版本 2 尚未處理，重新整理標記必須維持 true
+        Assert.True((bool)needsProp.GetValue(controller)!);
+        Assert.True(GetPrivateField<bool>(controller, "_needsRefresh"));
+    }
+
+    /// <summary>
     /// GameInput 控制器在套用空裝置清單時，應將目前裝置設為 null 並觸發斷線流程。
     /// </summary>
     [Fact]
