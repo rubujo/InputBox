@@ -796,8 +796,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
         TaskCompletionSource tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        CancellationTokenRegistration registration = token.UnsafeRegister(
+            static state => ((TaskCompletionSource)state!).TrySetCanceled(),
+            tcs);
+
+        _ = tcs.Task.ContinueWith(_ => registration.Dispose(), TaskScheduler.Default);
+
         int generation = Interlocked.Increment(ref _pollingGeneration);
-        _taskPolling = Task.Run(() => PollingLoopAsync(token, generation, tcs), token);
+        _taskPolling = Task.Run(() => PollingLoopAsync(token, generation, tcs));
 
         return tcs.Task;
     }
@@ -819,7 +825,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         _ctsPolling = cts;
 
         int generation = Interlocked.Increment(ref _pollingGeneration);
-        _taskPolling = Task.Run(() => PollingLoopAsync(token, generation, null), token);
+        _taskPolling = Task.Run(() => PollingLoopAsync(token, generation, null));
     }
 
     /// <summary>
@@ -893,7 +899,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             try
             {
-                devices[i].Dispose();
+                devices[i]?.Dispose();
             }
             catch (Exception ex)
             {
@@ -924,9 +930,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
             // 重置狀態防止殘留，避免放開按鍵的事件遺失。
             ResetHoldStates();
+            ResetDirectionalRepeatState();
 
-            _rsRepeatCounter = 0;
-            _rsRepeatDirection = 0;
+            _lbRepeatCounter = 0;
+            _currentLBRepeatInterval = 0;
+            _rbRepeatCounter = 0;
+            _currentRBRepeatInterval = 0;
+            _ltRepeatCounter = 0;
+            _currentLTRepeatInterval = 0;
+            _rtRepeatCounter = 0;
+            _currentRTRepeatInterval = 0;
 
             // 連線中斷時清空熱狀態，避免重連後沿用舊熱負載造成過度保守。
             _vibrationSafetyLimiter.Reset();
@@ -940,14 +953,10 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         // 清空事件佇列。
         _readingQueue.Clear();
 
-        if (_device != null)
-        {
-            // 裝置的處置現在主要由 TryFindDevice 邏輯管理。
-            _device = null;
+        _device = null;
 
-            // 更新快取，讓 DeviceName 等屬性反映斷線狀態。
-            UpdateDeviceInfo();
-        }
+        // 更新快取，讓 DeviceName、DeviceIdentity 與震動能力等屬性反映斷線狀態。
+        UpdateDeviceInfo();
     }
 
     /// <summary>
@@ -1645,6 +1654,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
 
                 if (IsDeviceConnected(candidate))
                 {
+                    ResetHoldStates();
+                    ResetDirectionalRepeatState();
+                    _lbRepeatCounter = 0;
+                    _currentLBRepeatInterval = 0;
+                    _rbRepeatCounter = 0;
+                    _currentRBRepeatInterval = 0;
+                    _ltRepeatCounter = 0;
+                    _currentLTRepeatInterval = 0;
+                    _rtRepeatCounter = 0;
+                    _currentRTRepeatInterval = 0;
+                    _vibrationSafetyLimiter.Reset();
+
                     _device = candidate;
                     _hasPreviousState = false;
                     _missingReadingFrameCounter = 0;
@@ -1690,6 +1711,14 @@ internal sealed partial class GameInputGamepadController : IGamepadController
         {
             return false;
         }
+
+        // 連續丟失讀取達重連門檻時，清除過期暫態輸入快照與連發狀態，
+        // 避免在重列舉完成前持續對最後一幀的按鍵狀態執行重複連發。
+        _hasPreviousState = false;
+        _previousState = null;
+        _previousProcessedButtons = 0;
+        ResetDirectionalRepeatState();
+        ResetHoldStates();
 
         RequestRefresh();
 
@@ -2037,6 +2066,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
 
             CancellationTokenSource discoveryCts = CancellationTokenSource.CreateLinkedTokenSource(pollingToken);
+            Interlocked.Exchange(ref _discoveryCts, null)?.CancelAndDispose();
             _discoveryCts = discoveryCts;
             lock (_refreshLock)
             {
@@ -2053,7 +2083,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 RequestRefresh();
                 _deviceDiscoveryTask = null;
-                Interlocked.Exchange(ref _discoveryCts, null)?.Dispose();
+                Interlocked.Exchange(ref _discoveryCts, null)?.CancelAndDispose();
 
                 LoggerService.LogException(ex, "GameInput 啟動裝置探索失敗");
                 Debug.WriteLine($"[GameInput] 啟動裝置探索失敗：{ex.Message}");
@@ -2086,7 +2116,7 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             }
 
             _deviceDiscoveryTask = null;
-            Interlocked.Exchange(ref _discoveryCts, null)?.Dispose();
+            Interlocked.Exchange(ref _discoveryCts, null)?.CancelAndDispose();
             capturedVersion = _activeDiscoveryVersion;
         }
 
@@ -2133,6 +2163,11 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="pollingGeneration">探索工作所屬的輪詢世代。</param>
     private void ApplyDiscoveredDevicesWithLifecycle(IReadOnlyList<GameInputDevice> devices, long capturedVersion, int pollingGeneration)
     {
+        if (devices == null)
+        {
+            return;
+        }
+
         bool needsDisconnect = false,
             needsConnectNotify = false;
         List<GameInputDevice>? staleDevicesToDispose = null;
@@ -2318,6 +2353,18 @@ internal sealed partial class GameInputGamepadController : IGamepadController
             {
                 if (_device == null)
                 {
+                    ResetHoldStates();
+                    ResetDirectionalRepeatState();
+                    _lbRepeatCounter = 0;
+                    _currentLBRepeatInterval = 0;
+                    _rbRepeatCounter = 0;
+                    _currentRBRepeatInterval = 0;
+                    _ltRepeatCounter = 0;
+                    _currentLTRepeatInterval = 0;
+                    _rtRepeatCounter = 0;
+                    _currentRTRepeatInterval = 0;
+                    _vibrationSafetyLimiter.Reset();
+
                     _device = _allDevices[0];
 
                     _hasPreviousState = false;
@@ -2444,6 +2491,16 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                         {
                             // 重置原本的按鍵狀態，避免按住的按鍵殘留給新控制器。
                             ResetHoldStates();
+                            ResetDirectionalRepeatState();
+                            _lbRepeatCounter = 0;
+                            _currentLBRepeatInterval = 0;
+                            _rbRepeatCounter = 0;
+                            _currentRBRepeatInterval = 0;
+                            _ltRepeatCounter = 0;
+                            _currentLTRepeatInterval = 0;
+                            _rtRepeatCounter = 0;
+                            _currentRTRepeatInterval = 0;
+                            _vibrationSafetyLimiter.Reset();
 
                             // 切換裝置參考前，先嘗試停止舊裝置馬達以防震動殘留。
                             GameInputDevice? oldDev = _device;
@@ -3693,14 +3750,42 @@ internal sealed partial class GameInputGamepadController : IGamepadController
                     }
                 }
 
+                if (dev != null && !devicesToDispose.Contains(dev))
+                {
+                    devicesToDispose.Add(dev);
+                }
+
                 // 釋放所有連線中的裝置代理。
                 foreach (GameInputDevice d in devicesToDispose)
                 {
-                    d.Dispose();
+                    try
+                    {
+                        d.SetRumbleState(new GameInputRumbleParams());
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[GameInput] 處置裝置時停止馬達失敗（已忽略）：{ex.Message}");
+                    }
+
+                    try
+                    {
+                        d.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[GameInput] 處置裝置代理失敗（已忽略）：{ex.Message}");
+                    }
                 }
 
-                LogGameInputDiagnosticsSnapshot("dispose");
-                gameInput?.Dispose();
+                try
+                {
+                    LogGameInputDiagnosticsSnapshot("dispose");
+                    gameInput?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[GameInput] 處置 GameInputClient 失敗（已忽略）：{ex.Message}");
+                }
             }
             catch (Exception ex)
             {
