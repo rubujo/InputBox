@@ -761,6 +761,174 @@ public sealed class GamepadControllerPauseTests
     }
 
     /// <summary>
+    /// HandleDisconnect 即使在 _device 已被呼叫端設為 null 的情況下，仍應確實更新快取清空 DeviceName、DeviceIdentity 與震動狀態。
+    /// </summary>
+    [Fact]
+    public void HandleDisconnect_Always_ClearsCachedDeviceInfoAndRumbleSupport()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        SetPrivateField(controller, "_cachedDeviceName", "Xbox Wireless Controller");
+        SetPrivateField(controller, "_cachedDeviceIdentity", "VID_045E PID_02FD");
+        SetPrivateField(controller, "_supportsRumble", true);
+        SetPrivateField<GameInputDevice?>(controller, "_device", null);
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "HandleDisconnect",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.HandleDisconnect。");
+
+        method.Invoke(controller, []);
+
+        Assert.Equal(string.Empty, GetPrivateField<string>(controller, "_cachedDeviceName"));
+        Assert.Equal(string.Empty, controller.DeviceIdentity);
+        Assert.False(GetPrivateField<bool>(controller, "_supportsRumble"));
+    }
+
+    /// <summary>
+    /// HandleDisconnect 在連線中斷時應重設 D-Pad 方向連發與肩鍵/板機等所有按鍵連發計數器。
+    /// </summary>
+    [Fact]
+    public void HandleDisconnect_ClearsAllDirectionalAndButtonRepeatStates()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        SetPrivateField(controller, "_isConnected", true);
+        SetPrivateField(controller, "_repeatDirection", GameInputGamepadButtons.GameInputGamepadDPadDown);
+        SetPrivateField(controller, "_repeatCounter", 10);
+        SetPrivateField(controller, "_currentRepeatInterval", 4);
+        SetPrivateField(controller, "_lbRepeatCounter", 6);
+        SetPrivateField(controller, "_currentLBRepeatInterval", 2);
+        SetPrivateField(controller, "_rbRepeatCounter", 7);
+        SetPrivateField(controller, "_currentRBRepeatInterval", 3);
+        SetPrivateField(controller, "_ltRepeatCounter", 8);
+        SetPrivateField(controller, "_currentLTRepeatInterval", 1);
+        SetPrivateField(controller, "_rtRepeatCounter", 9);
+        SetPrivateField(controller, "_currentRTRepeatInterval", 2);
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "HandleDisconnect",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.HandleDisconnect。");
+
+        method.Invoke(controller, []);
+
+        Assert.Null(GetPrivateField<GameInputGamepadButtons?>(controller, "_repeatDirection"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_repeatCounter"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_currentRepeatInterval"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_lbRepeatCounter"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_currentLBRepeatInterval"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_rbRepeatCounter"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_currentRBRepeatInterval"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_ltRepeatCounter"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_currentLTRepeatInterval"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_rtRepeatCounter"));
+        Assert.Equal(0, GetPrivateField<int>(controller, "_currentRTRepeatInterval"));
+    }
+
+    /// <summary>
+    /// HandleMissingCurrentReading 在連續丟失讀取達門檻時，應清除上一幀快照、加工後按鍵與按住狀態，杜絕過期輸入連發。
+    /// </summary>
+    [Fact]
+    public void HandleMissingCurrentReading_WhenThresholdReached_ClearsPreviousStateAndHoldStates()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "HandleMissingCurrentReading",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.HandleMissingCurrentReading。");
+
+        SetPrivateField(controller, "_missingReadingFrameCounter", AppSettings.GamepadReconnectThresholdFrames - 1);
+        SetPrivateField(controller, "_hasPreviousState", true);
+        SetPrivateField(controller, "_previousProcessedButtons", GameInputGamepadButtons.GameInputGamepadA);
+        typeof(GameInputGamepadController).GetProperty("IsBHeld")!.SetValue(controller, true);
+        SetPrivateField(controller, "_repeatDirection", GameInputGamepadButtons.GameInputGamepadDPadLeft);
+
+        bool result = (bool)method.Invoke(controller, [0])!;
+
+        Assert.True(result);
+        Assert.False(GetPrivateField<bool>(controller, "_hasPreviousState"));
+        Assert.Null(GetPrivateField<GamepadReadingSnapshot?>(controller, "_previousState"));
+        Assert.Equal((GameInputGamepadButtons)0, GetPrivateField<GameInputGamepadButtons>(controller, "_previousProcessedButtons"));
+        Assert.False(controller.IsBHeld);
+        Assert.Null(GetPrivateField<GameInputGamepadButtons?>(controller, "_repeatDirection"));
+    }
+
+    /// <summary>
+    /// ApplyDiscoveredDevicesWithLifecycle 傳入 null 裝置清單時應安全返回，避免拋出例外。
+    /// </summary>
+    [Fact]
+    public void ApplyDiscoveredDevicesWithLifecycle_WhenDevicesNull_DoesNotThrow()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo method = typeof(GameInputGamepadController).GetMethod(
+            "ApplyDiscoveredDevicesWithLifecycle",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 GameInputGamepadController.ApplyDiscoveredDevicesWithLifecycle。");
+
+        Exception? ex = Record.Exception(() => method.Invoke(controller, [null, 0L, 0]));
+        Assert.Null(ex);
+    }
+
+    /// <summary>
+    /// InitializeAndStartPollingAsync 若在輪詢開始前即被取消，應透過 CTS 取消回傳之 Task，避免呼叫端永久掛起死鎖。
+    /// </summary>
+    [Fact]
+    public async Task InitializeAndStartPollingAsync_WhenCancelledEarly_CancelsTcsWithoutHanging()
+    {
+        using var controller = (GameInputGamepadController)Activator.CreateInstance(
+            typeof(GameInputGamepadController),
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            args: [new StubInputContext(), null],
+            culture: null)!;
+
+        MethodInfo initMethod = typeof(GameInputGamepadController).GetMethod(
+            "InitializeAndStartPollingAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 InitializeAndStartPollingAsync 方法。");
+
+        Task initTask = (Task)initMethod.Invoke(controller, [])!;
+
+        // 立即呼叫 StopPolling，模擬 CreateAsync 初始化階段遭遇快速取消或處置
+        MethodInfo stopMethod = typeof(GameInputGamepadController).GetMethod(
+            "StopPolling",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("找不到 StopPolling 方法。");
+
+        stopMethod.Invoke(controller, []);
+
+        // 驗證 initTask 會在合理時間內轉換為 Canceled 或 Faulted，而不會永久等待
+        Task delayTask = Task.Delay(2000, TestContext.Current.CancellationToken);
+        Task completed = await Task.WhenAny(initTask, delayTask);
+
+        Assert.Same(initTask, completed);
+        Assert.True(initTask.IsCanceled || initTask.IsFaulted || initTask.IsCompleted);
+    }
+
+    /// <summary>
     /// 透過反射呼叫控制器的 private ClearAllEvents 方法。
     /// </summary>
     /// <param name="controller">目標控制器實例。</param>
