@@ -26,7 +26,13 @@ public static class ButtonEyeTrackerExtensions
         /// <summary>
         /// 是否按壓按鈕（包含實際的鼠標按壓或鍵盤焦點狀態下的強視覺反饋）
         /// </summary>
-        public bool IsPressed { get; set; }
+        public bool IsPressed => IsPointerPressed || IsKeyboardPressed;
+
+        /// <summary>滑鼠按壓狀態，與鍵盤狀態獨立清理。</summary>
+        public bool IsPointerPressed { get; set; }
+
+        /// <summary>Space 按壓狀態，失焦時必須清理。</summary>
+        public bool IsKeyboardPressed { get; set; }
 
         /// <summary>
         /// 凝視進度（Dwell Progress），表示使用者注視按鈕的時間比例
@@ -126,10 +132,36 @@ public static class ButtonEyeTrackerExtensions
         btn.MouseUp -= HandleButtonMouseUp;
         btn.MouseUp += HandleButtonMouseUp;
 
+        btn.KeyDown -= HandleButtonKeyDown;
+        btn.KeyDown += HandleButtonKeyDown;
+        btn.KeyUp -= HandleButtonKeyUp;
+        btn.KeyUp += HandleButtonKeyUp;
+
         btn.SystemColorsChanged -= HandleButtonSystemColorsChanged;
         btn.SystemColorsChanged += HandleButtonSystemColorsChanged;
     }
 
+    /// <summary>Space 按住時套用獨立按下視覺，不攔截原生鍵盤點擊。</summary>
+    private static void HandleButtonKeyDown(object? sender, KeyEventArgs eventArgs)
+    {
+        if (eventArgs.KeyCode == Keys.Space && sender is Button { Enabled: true, Focused: true } button &&
+            _buttonStates.TryGetValue(button, out ButtonVisualState? state) && !state.IsKeyboardPressed)
+        {
+            state.IsKeyboardPressed = true;
+            StartAnimationFeedback(button);
+        }
+    }
+
+    /// <summary>Space 放開後還原目前焦點或懸停狀態。</summary>
+    private static void HandleButtonKeyUp(object? sender, KeyEventArgs eventArgs)
+    {
+        if (eventArgs.KeyCode == Keys.Space && sender is Button button &&
+            _buttonStates.TryGetValue(button, out ButtonVisualState? state))
+        {
+            state.IsKeyboardPressed = false;
+            StopFeedback(button);
+        }
+    }
     /// <summary>
     /// 系統色或高對比改變時重新套用目前互動狀態，避免保留上一個配色。
     /// 深淺色模式仍由框架的啟動設定決定，不取代既有重啟提示。
@@ -244,7 +276,8 @@ public static class ButtonEyeTrackerExtensions
         {
             if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                state.IsPressed = false;
+                state.IsPointerPressed = false;
+                state.IsKeyboardPressed = false;
                 state.OnFocusStateChanged?.Invoke(state.IsHovered);
             }
 
@@ -293,7 +326,8 @@ public static class ButtonEyeTrackerExtensions
             if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
                 state.IsHovered = false;
-                state.IsPressed = false;
+                state.IsPointerPressed = false;
+                state.IsKeyboardPressed = false;
                 state.OnFocusStateChanged?.Invoke(btn.Focused);
             }
 
@@ -313,7 +347,7 @@ public static class ButtonEyeTrackerExtensions
         {
             if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                state.IsPressed = true;
+                state.IsPointerPressed = true;
             }
 
             StartAnimationFeedback(btn);
@@ -332,7 +366,7 @@ public static class ButtonEyeTrackerExtensions
         {
             if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
-                state.IsPressed = false;
+                state.IsPointerPressed = false;
             }
 
             StartAnimationFeedback(btn);
@@ -480,16 +514,16 @@ public static class ButtonEyeTrackerExtensions
 
         st.DwellProgress = 0f;
 
-        if (btn.Focused)
+        if (st.IsHovered || st.IsPressed)
         {
-            ApplyStrongVisual(btn);
+            StartAnimationFeedback(btn);
 
             return;
         }
 
-        if (st.IsHovered)
+        if (btn.Focused)
         {
-            StartAnimationFeedback(btn);
+            ApplyStrongVisual(btn);
 
             return;
         }

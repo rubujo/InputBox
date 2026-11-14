@@ -33,6 +33,14 @@ public sealed class ButtonFeedbackRenderingTests
     [InlineData(false, "focus")]
     [InlineData(false, "hover")]
     [InlineData(false, "pressed")]
+    [InlineData(true, "focus-hover")]
+    [InlineData(false, "focus-hover")]
+    [InlineData(true, "keyboard-pressed")]
+    [InlineData(false, "keyboard-pressed")]
+    [InlineData(true, "keyboard-release")]
+    [InlineData(false, "keyboard-release")]
+    [InlineData(true, "keyboard-cancel")]
+    [InlineData(false, "keyboard-cancel")]
     public void Render_InteractiveState_PreservesCustomContrast(bool isDefault, string state)
     {
         RunSta(() =>
@@ -72,13 +80,43 @@ public sealed class ButtonFeedbackRenderingTests
             else
             {
                 Assert.True(button.Focus());
-                button.Press();
+                if (state == "focus-hover")
+                {
+                    button.Hover();
+                }
+                else if (state.StartsWith("keyboard", StringComparison.Ordinal))
+                {
+                    button.PressSpace();
+                    if (state == "keyboard-release")
+                    {
+                        button.ReleaseSpace();
+                    }
+                    else if (state == "keyboard-cancel")
+                    {
+                        Assert.True(input.Focus());
+                        Assert.True(button.Focus());
+                    }
+                }
+                else
+                {
+                    button.Press();
+                }
             }
+            bool hovered = state is "hover" or "focus-hover";
+            bool pressed = state is "pressed" or "keyboard-pressed";
 
             button.BackColor = Color.Magenta;
             button.ForeColor = Color.Magenta;
             button.RefreshSystemColors();
             Assert.NotEqual(Color.Magenta, button.BackColor);
+            if (!SystemInformation.HighContrast)
+            {
+                bool dark = button.IsDarkModeActive();
+                Color expectedBackground = pressed ? (dark ? Color.FromArgb(255, 200, 120) : Color.FromArgb(28, 28, 28)) :
+                    hovered ? (dark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220)) :
+                    (dark ? Color.White : Color.Black);
+                Assert.Equal(expectedBackground, button.BackColor);
+            }
 
             using var bitmap = new Bitmap(button.Width, button.Height);
             button.DrawToBitmap(bitmap, button.ClientRectangle);
@@ -101,15 +139,15 @@ public sealed class ButtonFeedbackRenderingTests
                 }
             }
 
-            Color border = button.GetButtonInteractiveBorderColor(state != "hover", button.IsDarkModeActive());
+            Color border = button.GetButtonInteractiveBorderColor(!hovered, button.IsDarkModeActive());
             Assert.Equal(border.ToArgb(), bitmap.GetPixel(2, 20).ToArgb());
-            double borderMinimum = SystemInformation.HighContrast || state == "pressed" ? 3 :
-                state == "focus" ? (button.IsDarkModeActive() ? 11.16 : 16.75) :
+            double borderMinimum = SystemInformation.HighContrast || pressed ? 3 :
+                !hovered ? (button.IsDarkModeActive() ? 11.16 : 16.75) :
                 (button.IsDarkModeActive() ? 7.2 : 8.14);
             double borderContrast = Contrast(bitmap.GetPixel(2, 20), bitmap.GetPixel(0, 20));
             Assert.True(borderContrast >= 3 && borderContrast + 0.005 >= borderMinimum);
-            Assert.Equal(state != "hover", button.Font.Bold);
-            if (state == "pressed" && button.IsDarkModeActive() && !SystemInformation.HighContrast)
+            Assert.Equal(!hovered, button.Font.Bold);
+            if (pressed && button.IsDarkModeActive() && !SystemInformation.HighContrast)
             {
                 double red = LinearComponent(button.BackColor.R);
                 double green = LinearComponent(button.BackColor.G);
@@ -292,22 +330,62 @@ public sealed class ButtonFeedbackRenderingTests
         });
     }
     /// <summary>
+    /// 沒有文字的停用按鈕即使保有斜線裝飾，也必須被文字檢查拒絕。
+    /// </summary>
+    [Fact(Skip = "Requires explicit UI test opt-in.",
+        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    public void Render_DisabledWithoutText_DoesNotPassTextCheck()
+    {
+        RunSta(() =>
+        {
+            using var form = new Form();
+            using var button = new FeedbackButton
+            {
+                Text = string.Empty, Bounds = new Rectangle(10, 50, 240, 90),
+                Enabled = false, FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
+            };
+            using var lifetime = new CancellationTokenSource();
+            form.Controls.Add(button);
+            button.AttachEyeTrackerFeedback("Button", null, null, lifetime.Token);
+            form.Show();
+            Assert.Throws<Xunit.Sdk.TrueException>(() => CheckNeutralRendering(button, false));
+            lifetime.Cancel();
+        });
+    }
+    /// <summary>
     /// 確認一般及停用狀態仍由 Latest 繪製可辨識文字，並保留實際像素供人工檢視。
     /// </summary>
     private static void CheckNeutralRendering(Button button, bool isDefault)
     {
+        string caption = button.Text;
+        button.Text = string.Empty;
+        using var baseline = new Bitmap(button.Width, button.Height);
+        button.DrawToBitmap(baseline, button.ClientRectangle);
+        button.Text = caption;
         using var bitmap = new Bitmap(button.Width, button.Height);
         button.DrawToBitmap(bitmap, button.ClientRectangle);
+        button.Text = string.Empty;
+        using var after = new Bitmap(button.Width, button.Height);
+        button.DrawToBitmap(after, button.ClientRectangle);
+        button.Text = caption;
+        int textPixels = 0;
         Color background = bitmap.GetPixel(25, 20);
         double contrast = 1;
         for (int y = 30; y < 60; y++)
         {
             for (int x = 35; x < 205; x++)
             {
-                contrast = Math.Max(contrast, Contrast(background, bitmap.GetPixel(x, y)));
+                Color pixel = bitmap.GetPixel(x, y);
+                if (baseline.GetPixel(x, y).ToArgb() == after.GetPixel(x, y).ToArgb() &&
+                    pixel.ToArgb() != baseline.GetPixel(x, y).ToArgb())
+                {
+                    textPixels++;
+                    contrast = Math.Max(contrast, Contrast(background, pixel));
+                }
             }
         }
 
+        Assert.True(textPixels > 10, "排除裝飾後未找到文字像素。");
         Assert.True(contrast >= (button.Enabled ? 4.5 : 1.5), $"按鈕文字無法辨識：contrast={contrast}");
         string? artifacts = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
         if (artifacts != null)
@@ -400,6 +478,8 @@ public sealed class ButtonFeedbackRenderingTests
             table.GetType().GetMethod("TryGetValue")!.Invoke(table, args);
             args[1]!.GetType().GetProperty("DwellProgress")!.SetValue(args[1], progress);
         }
+        public void PressSpace() => OnKeyDown(new KeyEventArgs(Keys.Space));
+        public void ReleaseSpace() => OnKeyUp(new KeyEventArgs(Keys.Space));
         public void RefreshSystemColors() => OnSystemColorsChanged(EventArgs.Empty);
         public void Press() => OnMouseDown(new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
         public void ExitHover() => OnMouseLeave(EventArgs.Empty);
