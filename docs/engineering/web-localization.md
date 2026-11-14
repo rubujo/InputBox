@@ -19,3 +19,5 @@
   - 德文（DE）：Eingabefeld（產品名稱，依微軟 DE 在地化規範；Eingabe = 輸入，Feld = 欄位）。
   - 法文（FR）：Zone de saisie（產品名稱，依微軟 FR 在地化規範；Zone = 區域，saisie = 輸入）；作為主詞時性別為陰性，代名詞用 Elle。
   - 韓文（KO）：입력 상자（產品名稱，依微軟 KO 控件命名慣例；입력 = 輸入，상자 = 盒子，與 텍스트 상자 / 콤보 상자 一致）。
+
+- **Xbox 模式術語**：指 Windows 上的 Xbox 使用模式時，七語統一使用「Xbox 模式」（zh-Hant／zh-Hans）、Xbox mode（en）、Xbox-Modus（de）、mode Xbox（fr）、Xbox モード（ja）、Xbox 모드（ko）。統一採用以上名稱；Xbox 控制器的主按鍵配置名稱仍為 Xbox，不與此模式混用。
