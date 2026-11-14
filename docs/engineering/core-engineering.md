@@ -43,7 +43,7 @@
 - C# 15 使用正式語言版本；集合需要預設容量時可使用 `[with(capacity: count)]`，保留原有容量與元素語意，不為採用新語法改變輸入／輸出行為。
 - 保留 `Application.SetColorMode(SystemColorMode.System)`、既有高對比與 Color.Empty 配色還原，並在建立視窗前呼叫 `Application.SetDefaultFormRevealMode(FormRevealMode.Deferred)`，避免初次套用深色主題時閃白。
 - 依維護者偏好啟用 `Application.SetDefaultVisualStylesMode(VisualStylesMode.Latest)`，子控制項沿用繼承值。Latest 隨 runtime 解析為最新渲染器，因此 runtime 升級時必須重跑深／淺色、高對比及原生多 DPI UI 矩陣。
-- 2026-11-14 查閱的 [WinForms .NET 11 官方文件](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/whats-new/net110) 仍標示 RC 1，說明延後顯示與深色工具提示、選單、標題列等修正；API 可用性須以正式 SDK 建置為準。[C# 15 官方文件](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-15) 確認 net11.0 預設採用 C# 15，集合建構參數不需 preview。
+- 發行狀態以 [Microsoft 正式下載頁](https://dotnet.microsoft.com/en-us/download/dotnet/11.0) 與 [支援政策](https://dotnet.microsoft.com/en-us/platform/support/policy) 為準：.NET 11.0.0 已於 2026-11-10 正式發布（GA），正式 SDK 為 11.0.100。[WinForms 功能文件](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/whats-new/net110) 的 RC 1 標題描述該階段的功能資訊，不代表 .NET 11 目前仍為 RC。[C# 15 官方文件](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-15) 確認 net11.0 預設採用 C# 15，集合建構參數與 union 等正式功能不需 preview。
 
 ## C# 15 適用性審查（2026-11-14）
 
