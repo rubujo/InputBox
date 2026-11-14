@@ -1,7 +1,7 @@
 # InputBox.Tests 🧪
 
 [![作業系統](https://img.shields.io/badge/作業系統-Windows-003A6D?style=for-the-badge)](https://www.microsoft.com/windows)
-[![.NET](https://img.shields.io/badge/Runtime-.NET%2010-512BD4?logo=dotnet&logoColor=white&style=for-the-badge)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/Runtime-.NET%2011-512BD4?logo=dotnet&logoColor=white&style=for-the-badge)](https://dotnet.microsoft.com/)
 [![測試框架](https://img.shields.io/badge/Test%20Framework-xUnit%20v3-5C2D91?style=for-the-badge)](https://xunit.net/)
 [![UI%20Smoke](https://img.shields.io/badge/Desktop%20UI-FlaUI-2E8B57?style=for-the-badge)](https://github.com/FlaUI/FlaUI)
 
@@ -153,4 +153,26 @@ xUnit v3 為每個 `[Fact]` 建立獨立的測試類別實例，`IDisposable.Dis
 
 ### 6. 目標框架
 
-測試專案使用 `net10.0-windows`（需要 WinForms 執行環境），**僅支援 Windows**。
+測試專案使用 `net11.0-windows`（需要 WinForms 執行環境），**僅支援 Windows**。
+
+### UIA 搜尋範圍回歸保護
+
+既有 11 項 UI 冒煙測試維持真實點擊與對話框生命週期檢查；先以 Win32 HWND／ProcessId 篩選可見頂層視窗，再搜尋 InputBox 視窗內與浮動選單，避免遍歷瀏覽器等無關 UIA 子樹造成延遲、選單失效與測試逾時。測試數量不變。
+
+UI 測試宿主在啟動 UIA 前使用 Application.SetHighDpiMode(PerMonitorV2)，關閉受測視窗後才處置 UIA；初始視窗直接由受測程序 HWND 綁定，啟動失敗時清理該受測程序。設定 INPUTBOX_CAPTURE_UI=1 時，UiVisualSnapshot 會擷取主視窗及對話框，記錄 HWND 的原生 DPI、高對比旗標與視窗邊界，並檢查可見按鈕未超出視窗。可用 INPUTBOX_EXPECTED_DPI=144 等值要求實際 DPI 必須符合預期；圖片不做 DPI 模擬。
+
+### .NET 11／Latest 原生 UI 矩陣（2026-11-14）
+
+| Windows 縮放／實際 HWND DPI | 淺色 Classic | 深色 Dark | Windows 高對比 |
+|---|---|---|---|
+| 100%／96 | 11/11 | 11/11 | 11/11 |
+| 125%／120 | 11/11 | 11/11 | 11/11 |
+| 150%／144 | 11/11 | 11/11 | 11/11 |
+
+矩陣使用同一實體顯示器的 Windows 原生縮放；隔離副本只覆寫啟動色彩模式以強制 Classic／Dark，保留 Latest 與 Deferred、所有 UI 與測試來源。appearance.txt 記錄 Application.IsDarkModeEnabled、SystemInformation.HighContrast 與 Application.DefaultVisualStylesMode，三者均符合預期；每一組保留主視窗、說明、片語管理／編輯、確認與校正視窗擷圖。原縮放 125% 與主題／高對比設定於結束後還原。
+
+原始 .NET 10 測試亦可重現 NoClickablePointException（10/11）；限制搜尋範圍後，.NET 10、.NET 11 未啟用 Deferred、.NET 11 啟用 Deferred 的對照均為 11/11。後續納入 Win32 HWND 探索、PerMonitorV2 測試宿主與 UIA 處置順序修正，避免其他無回應 provider、座標虛擬化及殘留測試程序干擾驗證。
+
+最終 dev 正式 System + Latest + Deferred 路徑於 125%／120 DPI 為 11/11，非 UI 回歸為 456/456，行覆蓋率 32.58%。Release 建置使用 -warnaserror 為 0 警告／0 錯誤；完整 style 與 analyzers 的 severity info 檢查報告皆為空清單。七語系資源的鍵名與格式預留位置一致；Xbox 使用模式術語已對齊文件與網站，應用程式資源未發現舊稱，控制器 Xbox 配置名稱維持既有語意。
+
+合規查核（2026-11-14）：以可執行 JavaScript 的官方頁面確認 FFXIV 使用者合約、USERJOY 使用條款與隱私政策，並讀取第三方授權及免責聲明。此次輸入相關來源僅清理多餘初值、索引與必要回呼參數名稱，保持既有剪貼簿輸出邊界與控制器行為。

@@ -44,6 +44,17 @@ public sealed class MainFormUiSmokeTests : IDisposable
     private string _lastUiStep = "UI smoke test initialized.";
 
     /// <summary>
+    /// UIA 與螢幕擷取必須使用實體座標，避免非 100% 縮放時滑鼠位置與圖片裁切失準。
+    /// </summary>
+    static MainFormUiSmokeTests()
+    {
+        if (UiSmokeTestRequirements.IsEnabled)
+        {
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+        }
+    }
+
+    /// <summary>
     /// 建構子：在符合前置條件時啟動受測 WinForms 應用程式。
     /// </summary>
     public MainFormUiSmokeTests()
@@ -59,7 +70,16 @@ public sealed class MainFormUiSmokeTests : IDisposable
 
         _application = FlaUiApplication.Launch(applicationPath);
         _automation = new UIA3Automation();
-        _mainWindow = WaitForMainWindow(_application, _automation);
+        try
+        {
+            _mainWindow = WaitForMainWindow(_application, _automation);
+        }
+        catch
+        {
+            _application.Kill();
+            _automation.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -73,7 +93,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void Launch_ShowsPrimaryControls()
     {
-        RunWithFailureArtifacts(nameof(Launch_ShowsPrimaryControls), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(Launch_ShowsPrimaryControls), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             Assert.NotNull(_mainWindow);
 
@@ -84,6 +104,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
             Assert.False(string.IsNullOrWhiteSpace(_mainWindow.Title));
             Assert.True(inputTextBox.IsEnabled);
             Assert.True(copyButton.IsEnabled);
+            UiVisualSnapshot.Capture(_mainWindow, nameof(Launch_ShowsPrimaryControls));
         });
     }
 
@@ -98,7 +119,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void ContextMenu_Open_ShowsCoreCommands()
     {
-        RunWithFailureArtifacts(nameof(ContextMenu_Open_ShowsCoreCommands), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(ContextMenu_Open_ShowsCoreCommands), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement privacyModeMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_PrivacyMode);
@@ -123,7 +144,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void HelpDialog_Open_And_CloseSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(HelpDialog_Open_And_CloseSuccessfully), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(HelpDialog_Open_And_CloseSuccessfully), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement helpMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Help);
@@ -159,7 +180,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void MinimizeOnReturn_ConfirmDialog_Open_And_CancelSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(MinimizeOnReturn_ConfirmDialog_Open_And_CancelSuccessfully), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(MinimizeOnReturn_ConfirmDialog_Open_And_CancelSuccessfully), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement minimizeOnReturnMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_MinimizeOnReturn);
@@ -193,7 +214,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void SettingsGamepadSubMenu_Open_ShowsCoreCommands()
     {
-        RunWithFailureArtifacts(nameof(SettingsGamepadSubMenu_Open_ShowsCoreCommands), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(SettingsGamepadSubMenu_Open_ShowsCoreCommands), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
@@ -225,7 +246,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void GamepadCalibrationDialog_Open_And_CloseSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(GamepadCalibrationDialog_Open_And_CloseSuccessfully), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(GamepadCalibrationDialog_Open_And_CloseSuccessfully), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement settingsMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Settings);
@@ -266,7 +287,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void PhraseSubMenu_Open_ShowsManagementCommands()
     {
-        RunWithFailureArtifacts(nameof(PhraseSubMenu_Open_ShowsManagementCommands), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(PhraseSubMenu_Open_ShowsManagementCommands), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement phrasesMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Phrases);
@@ -294,7 +315,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void PhraseManagerDialog_Open_And_CloseSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(PhraseManagerDialog_Open_And_CloseSuccessfully), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(PhraseManagerDialog_Open_And_CloseSuccessfully), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement phrasesMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Phrases);
@@ -333,7 +354,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void PhraseEditDialog_Open_And_CancelSuccessfully()
     {
-        RunWithFailureArtifacts(nameof(PhraseEditDialog_Open_And_CancelSuccessfully), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(PhraseEditDialog_Open_And_CancelSuccessfully), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             AutomationElement contextMenu = OpenContextMenu();
             AutomationElement phrasesMenuItem = FindMenuItemByLabel(contextMenu, Strings.Menu_Phrases);
@@ -386,7 +407,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void CopyButton_Click_ClearsInput()
     {
-        RunWithFailureArtifacts(nameof(CopyButton_Click_ClearsInput), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(CopyButton_Click_ClearsInput), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             FlaUiTextBox inputTextBox = FindInputBox();
             FlaUiButton copyButton = FindCopyButton();
@@ -417,13 +438,13 @@ public sealed class MainFormUiSmokeTests : IDisposable
     [Trait("Category", "UI")]
     public void RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground()
     {
-        RunWithFailureArtifacts(nameof(RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground), TestContext.Current.CancellationToken, () =>
+        RunWithFailureArtifacts(nameof(RestartPrompt_ConfirmYes_RelaunchedWindowStaysForeground), cancellationToken: TestContext.Current.CancellationToken, testAction: () =>
         {
             Assert.NotNull(_application);
             Assert.NotNull(_mainWindow);
 
             string applicationPath = GetApplicationPath();
-            int originalProcessId = _application!.ProcessId;
+            int originalProcessId = _application.ProcessId;
             AppSettings.GamepadProvider originalProvider = AppSettings.Current.GamepadProviderType;
             string targetProvider = originalProvider == AppSettings.GamepadProvider.XInput ?
                 AppSettings.GamepadProvider.GameInput.ToString() :
@@ -505,8 +526,6 @@ public sealed class MainFormUiSmokeTests : IDisposable
     {
         RestartActivationCoordinator.Shared.ClearPendingActivationRequest();
 
-        _automation?.Dispose();
-
         if (_application == null)
         {
             return;
@@ -534,6 +553,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
         catch
         {
         }
+        _automation?.Dispose();
     }
 
     /// <summary>
@@ -617,6 +637,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
             failureMessage);
 
         MarkStep($"Dialog ready: {dialogTitle}");
+        UiVisualSnapshot.Capture(dialogWindow, dialogTitle);
 
         return dialogWindow;
     }
@@ -663,7 +684,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     /// <param name="labelText">來自資源檔的目前語系標籤文字。</param>
     /// <param name="failureMessage">等待逾時後要拋出的錯誤訊息。</param>
     /// <returns>成功找到的控制項元素。</returns>
-    private AutomationElement FindDescendantByLabel(AutomationElement rootElement, ControlType controlType, string labelText, string failureMessage)
+    private static AutomationElement FindDescendantByLabel(AutomationElement rootElement, ControlType controlType, string labelText, string failureMessage)
     {
         return WaitForElement(
             () => FindFirstDescendantContainingText(rootElement, controlType, labelText),
@@ -760,7 +781,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
             return null;
         }
 
-        foreach (AutomationElement menuElement in _automation.GetDesktop().FindAllDescendants(cf => cf.ByControlType(ControlType.Menu)))
+        foreach (AutomationElement menuElement in EnumerateApplicationMenus())
         {
             if (!BelongsToApplication(menuElement))
             {
@@ -784,7 +805,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     /// <param name="menuElement">已開啟的右鍵選單元素。</param>
     /// <param name="labelText">來自資源檔的目前語系標籤文字。</param>
     /// <returns>成功找到的選單項目元素。</returns>
-    private AutomationElement FindMenuItemByLabel(AutomationElement menuElement, string labelText)
+    private static AutomationElement FindMenuItemByLabel(AutomationElement menuElement, string labelText)
     {
         return WaitForElement(
             () => FindFirstMenuItemContainingText(menuElement, labelText),
@@ -904,7 +925,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
             return null;
         }
 
-        foreach (AutomationElement menuElement in _automation.GetDesktop().FindAllDescendants(cf => cf.ByControlType(ControlType.Menu)))
+        foreach (AutomationElement menuElement in EnumerateApplicationMenus())
         {
             if (!BelongsToApplication(menuElement))
             {
@@ -922,17 +943,42 @@ public sealed class MainFormUiSmokeTests : IDisposable
     }
 
     /// <summary>
+    /// 先以 Win32 HWND 篩選受測行程，再搜尋視窗內的選單，避免存取無關程式的 UIA provider。
+    /// </summary>
+    /// <returns>目前屬於受測應用程式的選單。</returns>
+    private IEnumerable<AutomationElement> EnumerateApplicationMenus()
+    {
+        if (_automation == null || _application == null)
+        {
+            yield break;
+        }
+
+        foreach (AutomationElement root in UiWindowDiscovery.FindRoots(_automation, _application.ProcessId))
+        {
+            if (root.ControlType == ControlType.Menu)
+            {
+                yield return root;
+            }
+
+            foreach (AutomationElement menu in root.FindAllDescendants(cf => cf.ByControlType(ControlType.Menu)))
+            {
+                yield return menu;
+            }
+        }
+    }
+
+    /// <summary>
     /// 列舉目前屬於受測 InputBox 行程的頂層視窗。
     /// </summary>
     /// <returns>所有屬於 InputBox.exe 的頂層視窗元素。</returns>
     private IEnumerable<AutomationElement> EnumerateApplicationWindows()
     {
-        if (_automation == null)
+        if (_automation == null || _application == null)
         {
             yield break;
         }
 
-        foreach (AutomationElement windowElement in _automation.GetDesktop().FindAllChildren(cf => cf.ByControlType(ControlType.Window)))
+        foreach (AutomationElement windowElement in UiWindowDiscovery.FindRoots(_automation, _application.ProcessId).Where(root => root.ControlType == ControlType.Window))
         {
             if (BelongsToApplication(windowElement))
             {
@@ -1004,7 +1050,9 @@ public sealed class MainFormUiSmokeTests : IDisposable
 
         while (stopwatch.Elapsed < TimeSpan.FromSeconds(15))
         {
-            Window? window = application.GetMainWindow(automation);
+            using Process process = Process.GetProcessById(application.ProcessId);
+            nint handle = process.MainWindowHandle;
+            Window? window = handle == 0 ? null : automation.FromHandle(handle).AsWindow();
             if (window != null)
             {
                 return window;
@@ -1176,7 +1224,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
     /// <param name="testName">目前執行中的測試名稱。</param>
     /// <param name="cancellationToken">xUnit 測試逾時所提供的取消權杖。</param>
     /// <param name="testAction">實際要執行的測試邏輯。</param>
-    private void RunWithFailureArtifacts(string testName, CancellationToken cancellationToken, Action testAction)
+    private void RunWithFailureArtifacts(string testName, Action testAction, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -1307,7 +1355,7 @@ public sealed class MainFormUiSmokeTests : IDisposable
 
         bool hasMenu = false;
 
-        foreach (AutomationElement menuElement in _automation.GetDesktop().FindAllDescendants(cf => cf.ByControlType(ControlType.Menu)))
+        foreach (AutomationElement menuElement in EnumerateApplicationMenus())
         {
             if (!BelongsToApplication(menuElement))
             {

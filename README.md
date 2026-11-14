@@ -1,7 +1,7 @@
 # 輸入框（InputBox）⌨️
 
 [![Windows 11 22H2 (Build 22621+)](https://img.shields.io/badge/作業系統-Windows%2011%2022H2%20(22621%2B)-003A6D?style=for-the-badge)](https://www.microsoft.com/zh-tw/windows)
-[![.NET Runtime](https://img.shields.io/badge/Runtime-.NET%2010-512BD4?logo=dotnet&logoColor=white&style=for-the-badge)](https://dotnet.microsoft.com/zh-tw/download/dotnet/10.0)
+[![.NET Runtime](https://img.shields.io/badge/Runtime-.NET%2011-512BD4?logo=dotnet&logoColor=white&style=for-the-badge)](https://dotnet.microsoft.com/zh-tw/download/dotnet/11.0)
 [![程式語言](https://img.shields.io/badge/程式語言-C%23-1B5E20?style=for-the-badge)](https://learn.microsoft.com/zh-tw/dotnet/csharp/)
 [![XInput](https://img.shields.io/badge/遊戲控制器輸入%20API-XInput-107C10?style=for-the-badge)](https://learn.microsoft.com/zh-tw/windows/win32/xinput/getting-started-with-xinput)
 [![GameInput](https://img.shields.io/badge/遊戲控制器輸入%20API-GameInput-A84300?style=for-the-badge)](https://learn.microsoft.com/zh-tw/gaming/gdk/docs/features/common/input/overviews/input-overview)
@@ -521,7 +521,7 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 發佈完成後，編譯好的單一執行檔會生成在以下路徑：
 ```
-bin\Release\net10.0-windows\publish\win-x64\InputBox.exe
+bin\Release\net11.0-windows\publish\win-x64\InputBox.exe
 ```
 
 ### 2. 使用 Visual Studio 發佈 🚀

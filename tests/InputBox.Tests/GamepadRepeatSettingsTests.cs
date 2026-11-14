@@ -30,7 +30,7 @@ public class GamepadRepeatSettingsTests
     {
         var settings = new GamepadRepeatSettings();
 
-        var capturedException = Record.Exception(settings.Validate);
+        Exception? capturedException = Record.Exception(settings.Validate);
 
         Assert.Null(capturedException);
     }
@@ -93,7 +93,7 @@ public class GamepadRepeatSettingsTests
             IntervalFrames = 1
         };
 
-        var capturedException = Record.Exception(settings.Validate);
+        Exception? capturedException = Record.Exception(settings.Validate);
 
         Assert.Null(capturedException);
     }

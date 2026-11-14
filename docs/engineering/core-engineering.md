@@ -1,7 +1,7 @@
 # 核心工程與架構標準 (Core Engineering)
 
-- **目標框架**：`.NET 10 (net10.0-windows)`。
-- **C# 13 特性**：
+- **目標框架**：`.NET 11 (net11.0-windows)`。
+- **C# 15 語言版本（LangVersion=15.0）與既有鎖定規範**：
   - **執行緒鎖定**：必須使用宣告為 `private readonly Lock _lock = new();` 的專用物件。
 - **非同步與 UI 安全 (Threading)**：
   - **同步與非同步調度**：
@@ -22,7 +22,7 @@
   - **計算標記**：計算縮放時除數/被除數必須包含 `96.0f` 或 `(float)` 強制轉型，杜絕整數截斷誤差。
   - **智慧重定位 (Smart Positioning)**：視窗初始顯示或版面配置擴張時，須執行 `ApplySmartPosition` 螢幕邊界檢查。
 - **系統偏好同步**：
-  - **主題還原**：還原預設配色時應將屬性設為 `Color.Empty`，由 .NET 10 主題引擎自動判斷 (禁：硬式編碼 `SystemColors.Control`)。
+  - **主題還原**：還原預設配色時應將屬性設為 `Color.Empty`，由 .NET 11 主題引擎自動判斷 (禁：硬式編碼 `SystemColors.Control`)。
 - **程式內重啟與前景恢復**：
   - **單次啟用標記**：若為本程式主動要求重新啟動，舊執行個體必須先寫入具短時效的一次性啟用標記，供新執行個體在首次顯示時消費；標記必須於讀取後立即清除，避免重複生效。
   - **前景授權交接**：由 `RestartProcessLauncher` 自行啟動新執行個體（取代 `Application.Restart()`），並在舊視窗關閉前以 `AllowSetForegroundWindow(新程序 PID)` 只授權該程序搶回前景；不得使用 `ASFW_ANY` 開放給所有程序，僅在無法啟動新程序而退回 `Application.Restart()` 時例外。授權必須在舊視窗仍位於前景時完成，因為控制器操作不會產生 Windows 輸入事件。
@@ -36,3 +36,28 @@
   - **`var` 使用原則**：依 [Microsoft C# 編碼慣例](https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions#implicitly-typed-local-variables) 與 [.NET Runtime 程式碼風格](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md)，僅在型別可由右側直接看出（`new`、明確轉型）時使用 `var`，此時亦可使用 target-typed `new()`；內建型別、方法回傳值與 `foreach` 迴圈變數一律使用明確型別，不以方法或變數名稱推測型別；LINQ 匿名型別等必須使用 `var` 的情況除外。對應設定見 `.editorconfig`（IDE0007／IDE0008）。
   - **Release 日誌門檻**：正式版預設只寫入 `Warning` 以上；`Info` 僅供 Debug、測試主機或 `INPUTBOX_LOG_LEVEL=Info` 臨時診斷使用。
   - **可行動診斷原則**：正常 lifecycle、成功 probe、成功或略過震動、一般輪詢健康資料應維持 `Info`；會影響使用者操作、裝置可用性、API 呼叫失敗或資料修復失敗的訊號才可升級為 `Warning` 或 `Error`。
+
+## .NET 11 遷移與主題
+
+- SDK 基線由根目錄 global.json 固定為 11.0.100，僅允許同 feature band 的修補更新；主程式、測試與 CI／release 均使用 .NET 11。
+- C# 15 使用正式語言版本；集合需要預設容量時可使用 `[with(capacity: count)]`，保留原有容量與元素語意，不為採用新語法改變輸入／輸出行為。
+- 保留 `Application.SetColorMode(SystemColorMode.System)`、既有高對比與 Color.Empty 配色還原，並在建立視窗前呼叫 `Application.SetDefaultFormRevealMode(FormRevealMode.Deferred)`，避免初次套用深色主題時閃白。
+- 依維護者偏好啟用 `Application.SetDefaultVisualStylesMode(VisualStylesMode.Latest)`，子控制項沿用繼承值。Latest 隨 runtime 解析為最新渲染器，因此 runtime 升級時必須重跑深／淺色、高對比及原生多 DPI UI 矩陣。
+- 2026-11-14 查閱的 [WinForms .NET 11 官方文件](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/whats-new/net110) 仍標示 RC 1，說明延後顯示與深色工具提示、選單、標題列等修正；API 可用性須以正式 SDK 建置為準。[C# 15 官方文件](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-15) 確認 net11.0 預設採用 C# 15，集合建構參數不需 preview。
+
+## C# 15 適用性審查（2026-11-14）
+
+依上述官方版本說明及語言參考，採用能改善現有語意的功能，保留適合的值型別與控制流程。
+
+| 新功能 | 目前實作與判斷 |
+|---|---|
+| 集合建構參數 | SingleInstanceHandoff 容量配置改用 `[with(capacity: commandLineArgs.Count)]`，保留容量及元素行為。其餘集合多已使用 `[]` 或展開語法，沒有需要批次改寫的等價比較器／容量建構式。 |
+| union | PhraseService.ImportOutcome／ExportOutcome 的成功旗標、錯誤碼及計數是可重新建模的候選。語言升級本身不要求改變公開回傳型別、預設值、相等性及解構契約；目前保留既有 record 與測試。未來調整 API 時可拆成成功／失敗 case，避免矛盾狀態。 |
+| union 的成本與安全 | 生成的 union 使用 object? 儲存，值型別 case 會裝箱，default 內容為 null。採用時應明確處理 null，避免以 `_` 掩蓋未來新增 case。控制器輪詢、NavigationResult、VibrationProfile 及設定快照維持 record struct／enum，不引入額外配置。 |
+| closed 階層 | 沒有僅用於 case 分組且需要窮盡比對的 abstract class／record 階層。WinForms 類別及控制器介面具實際共用行為，維持現有契約。 |
+| 具標籤 break／continue | 未發現 goto 或布林旗標跨多層迴圈退出的待簡化模式；既有提前 return／continue 已清楚。 |
+| 擴充索引子 | 現有 API 使用 List、IReadOnlyList 或陣列，不為一般 IEnumerable 加入隱藏列舉成本的索引子。 |
+| 舊 runtime 的非虛擬 static 介面成員 | 只以 net11.0-windows 為目標，沒有此相容性需求。 |
+| 記憶體安全 preview | 不啟用 preview 或 updated-memory-safety-rules，保留原生互通既有 unsafe 審查範圍。 |
+
+取捨依據：[官方 union 參考](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/union)、[官方跳躍語句參考](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/jump-statements)。以上是對目前程式碼的工程評估，並非官方要求所有專案採用新語法。

@@ -19,7 +19,7 @@ public class InputHistoryServiceTests
         var svc = new InputHistoryService();
         svc.Add(string.Empty);
 
-        var result = svc.Navigate(-1);
+        InputHistoryService.NavigationResult result = svc.Navigate(-1);
 
         Assert.False(result.Success);
         Assert.Equal(0, result.TotalCount);
@@ -37,7 +37,7 @@ public class InputHistoryServiceTests
         };
         svc.Add("secret");
 
-        var result = svc.Navigate(-1);
+        InputHistoryService.NavigationResult result = svc.Navigate(-1);
 
         Assert.Equal(0, result.TotalCount);
     }
@@ -84,7 +84,7 @@ public class InputHistoryServiceTests
 
         // 一路向上導覽，追蹤最後一個成功結果（撞牆時 Text 為 null）
         InputHistoryService.NavigationResult last = default;
-        var result = svc.Navigate(-1);
+        InputHistoryService.NavigationResult result = svc.Navigate(-1);
         while (!result.IsBoundaryHit)
         {
             last = result;
@@ -109,7 +109,7 @@ public class InputHistoryServiceTests
             svc.Add($"item-{i}");
         }
 
-        var result = svc.NavigatePage(-1, 5);
+        InputHistoryService.NavigationResult result = svc.NavigatePage(-1, 5);
 
         Assert.True(result.Success);
         Assert.Equal("item-4", result.Text);
@@ -132,7 +132,7 @@ public class InputHistoryServiceTests
 
         _ = svc.NavigatePage(-1, 5);
 
-        var result = svc.NavigatePage(1, 5);
+        InputHistoryService.NavigationResult result = svc.NavigatePage(1, 5);
 
         Assert.True(result.Success);
         Assert.True(result.IsCleared);
@@ -149,7 +149,7 @@ public class InputHistoryServiceTests
     public void Navigate_EmptyHistory_ReturnsBoundaryHit()
     {
         var svc = new InputHistoryService();
-        var result = svc.Navigate(-1);
+        InputHistoryService.NavigationResult result = svc.Navigate(-1);
 
         Assert.False(result.Success);
         Assert.True(result.IsBoundaryHit);
@@ -168,7 +168,7 @@ public class InputHistoryServiceTests
         svc.Add("older");
         svc.Add("newer");
 
-        var result = svc.Navigate(-1);
+        InputHistoryService.NavigationResult result = svc.Navigate(-1);
 
         Assert.True(result.Success);
         Assert.Equal("newer", result.Text);
@@ -187,7 +187,7 @@ public class InputHistoryServiceTests
 
         svc.Navigate(-1); // b (index 0)
         svc.Navigate(-1); // a (index 1)
-        var result = svc.Navigate(-1); // 已在最舊，撞牆
+        InputHistoryService.NavigationResult result = svc.Navigate(-1); // 已在最舊，撞牆
 
         Assert.False(result.Success);
         Assert.True(result.IsBoundaryHit);
@@ -207,7 +207,7 @@ public class InputHistoryServiceTests
 
         svc.Navigate(-1); // b
         svc.Navigate(-1); // a（最舊）
-        var result = svc.Navigate(1); // 回到 b
+        InputHistoryService.NavigationResult result = svc.Navigate(1); // 回到 b
 
         Assert.True(result.Success);
         Assert.Equal("b", result.Text);
@@ -223,7 +223,7 @@ public class InputHistoryServiceTests
         svc.Add("hello");
 
         svc.Navigate(-1); // hello
-        var result = svc.Navigate(1); // 回到空白
+        InputHistoryService.NavigationResult result = svc.Navigate(1); // 回到空白
 
         Assert.True(result.Success);
         Assert.True(result.IsCleared);
@@ -241,7 +241,7 @@ public class InputHistoryServiceTests
         svc.Add("hello");
 
         // 不先向上，直接向下（已在底部）
-        var result = svc.Navigate(1);
+        InputHistoryService.NavigationResult result = svc.Navigate(1);
 
         Assert.False(result.Success);
         Assert.True(result.IsBoundaryHit);
@@ -262,7 +262,7 @@ public class InputHistoryServiceTests
 
         svc.Clear();
 
-        var result = svc.Navigate(-1);
+        InputHistoryService.NavigationResult result = svc.Navigate(-1);
         Assert.Equal(0, result.TotalCount);
     }
 
@@ -280,7 +280,7 @@ public class InputHistoryServiceTests
         svc.Navigate(-1); // a
         svc.ResetIndex();  // 重置
 
-        var result = svc.Navigate(-1); // 應再次從 b 開始
+        InputHistoryService.NavigationResult result = svc.Navigate(-1); // 應再次從 b 開始
 
         Assert.True(result.Success);
         Assert.Equal("b", result.Text);

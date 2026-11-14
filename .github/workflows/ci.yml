@@ -46,12 +46,18 @@ jobs:
             - '**/*.props'
             - '**/*.targets'
           ui:
+            - 'global.json'
+            - 'src/InputBox/InputBox.csproj'
+            - 'src/InputBox/Program.cs'
+            - 'tests/InputBox.Tests/InputBox.Tests.csproj'
             - 'src/InputBox/MainForm*.cs'
             - 'src/InputBox/MainForm.resx'
             - 'src/InputBox/Core/Controls/**'
             - 'src/InputBox/Resources/**'
             - 'tests/InputBox.Tests/MainFormUiSmokeTests.cs'
             - 'tests/InputBox.Tests/UiSmokeTestRequirements.cs'
+            - 'tests/InputBox.Tests/UiVisualSnapshot.cs'
+            - 'tests/InputBox.Tests/UiWindowDiscovery.cs'
 
   build-check:
     if: needs.changes.outputs.code == 'true'
@@ -64,7 +70,7 @@ jobs:
 
     # 定義環境變數，方便統一管理。
     env:
-      DOTNET_MAJOR_VERSION: '10'
+      DOTNET_MAJOR_VERSION: '11'
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
       # xUnit v3 MTP 的 coverage 輸出在 bin 輸出目錄的 TestResults 子目錄下。
@@ -140,7 +146,7 @@ jobs:
     - name: 建置應用程式與測試專案（Build App + Tests）
       working-directory: ./tests/InputBox.Tests
       # 測試專案會連同主專案相依一起建置，避免重複編譯浪費資源。
-      run: dotnet build InputBox.Tests.csproj -c Release --no-incremental
+      run: dotnet build InputBox.Tests.csproj -c Release --no-incremental -warnaserror
 
     - name: 上傳建置產出（供 ui-smoke 重用）
       if: needs.changes.outputs.ui == 'true'
@@ -215,7 +221,7 @@ jobs:
       contents: read
 
     env:
-      DOTNET_MAJOR_VERSION: '10'
+      DOTNET_MAJOR_VERSION: '11'
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
       INPUTBOX_RUN_UI_TESTS: '1'

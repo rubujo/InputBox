@@ -2141,7 +2141,7 @@ public partial class MainForm
 
         // 與上一份快照相同，不重複儲存。
         if (_undoStack.Count > 0 &&
-            _undoStack[_undoStack.Count - 1] == current)
+            _undoStack[^1] == current)
         {
             return;
         }
@@ -2166,7 +2166,7 @@ public partial class MainForm
         // 優先使用快照堆疊（覆蓋 B 清空、歷程導覽等程式賦值後的還原）。
         if (_undoStack.Count > 0)
         {
-            string previous = _undoStack[_undoStack.Count - 1];
+            string previous = _undoStack[^1];
 
             _undoStack.RemoveAt(_undoStack.Count - 1);
 

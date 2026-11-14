@@ -243,8 +243,8 @@ public class VibrationPatternsTests
             context: VibrationContext.PrivacyMode,
             motorSupport: VibrationMotorSupport.DualMain);
 
-        Assert.Single(sequence);
-        Assert.Equal(VibrationPatterns.PrivacyModeToggle, sequence[0].Profile);
+        VibrationSequenceStep item = Assert.Single(sequence);
+        Assert.Equal(VibrationPatterns.PrivacyModeToggle, item.Profile);
     }
 
     /// <summary>

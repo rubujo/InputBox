@@ -2097,8 +2097,8 @@ internal sealed partial class GameInputGamepadController : IGamepadController
     /// <param name="pollingGeneration">目前輪詢迴圈的世代編號。</param>
     private void CheckAndApplyDiscoveryResults(int pollingGeneration = 0)
     {
-        Task<IReadOnlyList<GameInputDevice>>? task = null;
-        long capturedVersion = 0;
+        Task<IReadOnlyList<GameInputDevice>>? task;
+        long capturedVersion;
 
         lock (_discoveryLock)
         {

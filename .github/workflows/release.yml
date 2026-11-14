@@ -24,7 +24,7 @@ jobs:
 
     # 定義環境變數，方便統一管理。
     env:
-      DOTNET_MAJOR_VERSION: '10'
+      DOTNET_MAJOR_VERSION: '11'
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
       DOTNET_NOLOGO: '1'
@@ -582,7 +582,7 @@ jobs:
           ## 📦 輸入框發佈摘要
           - **版本號碼**：`${{ github.ref_name }}`
           - **目標平台**：Windows x64
-          - **執行環境**：.NET 10（已隨附 Runtime，無需額外安裝）
+          - **執行環境**：.NET 11（已隨附 Runtime，無需額外安裝）
           - **執行檔案的雜湊值（SHA256）**：`${{ env.SHA256_HASH }}`
           - **GameInput Redist（選用手動安裝）SHA256**：`${{ env.GAMEINPUT_REDIST_SHA256 }}`
 

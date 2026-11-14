@@ -4,7 +4,7 @@
 
 - **框架**：[xUnit v3](https://xunit.net/)（選用理由：每個 `[Fact]` 獨立實例化、`IDisposable` 自動呼叫、語法精簡）。
 - **測試專案路徑**：`tests/InputBox.Tests/InputBox.Tests.csproj`
-- **目標框架**：`net10.0-windows`（與主專案一致，僅支援 Windows）。
+- **目標框架**：`net11.0-windows`（與主專案一致，僅支援 Windows）。
 - **InternalsVisibleTo**：主專案透過 `<AssemblyAttribute>` 授予測試專案存取 `internal` 類別的權限，無需建立手動的 `AssemblyInfo.cs`。
 
 ## 2. 執行測試
