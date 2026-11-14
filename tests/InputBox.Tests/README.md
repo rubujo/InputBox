@@ -51,7 +51,8 @@
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
 | `ButtonFeedbackRenderingTests` | Latest 預設／一般按鈕實際文字與背景、焦點／預設動作同步及對比襯底、四種底色進度條與色覺紋理、粗體、按下亮度差、零抖動與配色還原、焦點懸停組合、Space 按放／失焦及空文字反例 | 23 |
-| **合計** | | **490** |
+| `BlinkFrameRenderingTests` | 實際螢幕非客戶區像素：Blink 完成／取消、有／無焦點還原；HWND、選取範圍及尺寸不變 | 4 |
+| **合計** | | **494** |
 
 ## 二、執行方式 🚀
 
@@ -202,3 +203,8 @@ PR #92 審查補強：重新套色時保留焦點與懸停組合，Space 與滑�
 即時安全邊界檢查：本次 Space 事件僅更新 InputBox 自己按鈕的視覺狀態，不模擬輸入、不攔截外部輸入、不改變剪貼簿或第三方程式行為。已抓取工程規範列出的五個官方網址；FFXIV 合約與 USERJOY 隱私／使用條款僅取得頁面框架，未能擷取完整本文，因此不宣稱完整條款審查通過，亦不進行高風險核心輸入／輸出異動。
 
 審查修正驗證：按鈕三種主題各 23 項（淺色包含於完整 UI 執行），完整 UI 34/34、非 UI 456/456；Release -warnaserror 為 0 警告／0 錯誤。高對比已還原，未改變原生 Space 點擊及輸出邊界。
+
+
+Blink 非客戶區殘框修正：.NET 11 Latest 文字框在警示中重繪非客戶區後，僅還原 BackColor／ForeColor 不會清除舊框色；還原配色與焦點提示後明確重繪框架及子控制項，保留 HWND、選取範圍、尺寸與焦點。新增 4 項完成／取消及有／無焦點的實際螢幕像素測試。v0.0.69、原版 v0.0.71 與本機修正版在 125%／120 DPI 下完成淺色、深色、高對比的 Blink 前／中／後截圖；一般主題原版 v0.0.71 殘留 2517 個警示色像素，v0.0.69 與修正版均為 0。高對比三組均正常，驗證後還原系統設定。
+
+本輪驗證：三種主題新增測試各 4/4，完整 UI 38/38、非 UI 456/456；Release -warnaserror 建置 0 警告／0 錯誤；修改 C# 的 severity info style／analyzers 報告皆為空。非客戶區繪製參考：[.NET 11 TextBoxBase](https://github.com/dotnet/winforms/blob/v11.0.0/src/System.Windows.Forms/System/Windows/Forms/Controls/TextBox/TextBoxBase.cs)。
