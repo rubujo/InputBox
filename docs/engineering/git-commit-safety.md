@@ -33,12 +33,50 @@
 - **若簽章失敗**，Agent 應回報錯誤並提醒使用者自行檢查或授權其簽章環境；**不得** 自動修改設定檔案作為修復手段。
 - **不得** 為了繞過本機 pinentry、gpg-agent 或終端互動問題，而使用 `--no-gpg-sign`、`git -c commit.gpgsign=false` 等方式提交；除非維護者明確授權，否則應先由使用者調整其簽章環境後再提交。
 
-## 4. 分支策略與合併守門
-- **採用 main-first 工作流**：`main` 必須隨時保持為可發布版本；每次新功能、修補或熱修開始前，`dev` 必須先同步或重設到目前 `main` 的最新提交，確保兩者起點一致。
-- **合併路徑固定**：功能完成後，必須由 `dev` 提出 Pull Request 合併回 `main`；不得直接將應用程式變更推入 `main`。
-- **CI 為必要守門**：Pull Request 在合併前，必須先確認 `.github/workflows/ci.yml` 全部必要檢查為成功狀態，未通過不得合併。
-- **保留分支但每輪重對齊**：`dev` 分支可保留且 Pull Request 合併完成後**不得刪除**，但下一輪開發開始前必須重新對齊 `main`；不得讓 `dev` 長期累積與 `main` 不一致的未發布差異。
-- **發版來源限制**：建立正式版本標籤時，只能以 `main` 分支最新提交為基準；不得從 `dev`、舊提交或其他分支直接打 tag 發布。
+## 4. Trunk-based 分支策略與合併守門
+
+### 4.1 分支角色與開始條件
+
+- **`main` 是唯一主幹**，必須隨時保持為可發布版本；`dev` 是保留名稱、每輪重新對齊的開發分支，不是另一條長期整合主幹。
+- 開始工作前先執行 `git fetch origin`，確認工作區、`origin/dev` 與 `origin/main` 的最新狀態。未提交變更或其他人的新提交不得被覆蓋。
+- **`dev` 必須先 rebase 到最新 `origin/main`**：有待發布提交時使用 `git rebase --gpg-sign origin/main`，以使用者既有金鑰簽署重建的提交；沒有待發布差異時依 4.5 對齊。不得以 `git merge origin/main`、`git pull` 產生的 merge 或 GitHub 的 Update branch 合併操作代替。
+- PR 開啟期間若 `main` 前進，必須再次 fetch、簽章 rebase、驗證並更新 `dev`，重新等待最新 SHA 的 CI；不能因先前 CI 已通過便略過同步。
+
+### 4.2 線性歷史與 GPG 簽章
+
+- **禁止多餘的 merge commit**：不得為同步 `main` 到 `dev` 或將 `dev` 整合回 `main` 新增 merge commit；不得使用 `--no-ff`、GitHub Create a merge commit 或 `--rebase-merges` 保留本輪不必要的分叉。檢查範圍是本輪 `origin/main..dev`，不要求重寫既有主幹歷史。
+- **保留既有 GPG 簽章環境與簽章要求**：新提交使用 `git commit -S`；rebase 會改變提交物件，舊簽章不能原封不動移植，必須用既有金鑰重新簽署，而不是讓重建提交變成未簽章。
+- rebase 後逐筆執行 `git verify-commit <SHA>`，驗證本輪所有提交；`git rev-list --merges origin/main..dev` 必須沒有輸出。任何簽章失敗都依第 3 節停止，不得修改 GPG 設定或關閉簽章。
+- 發布到 `main` 時必須保留已驗證的提交 SHA 與 GPG 簽章；僅有相同檔案樹、只在 `dev` 留下原簽章，或只看到 GitHub 的 Verified 標籤，均不足以證明符合使用者既有金鑰的簽章要求。
+
+### 4.3 推送與 PR 守門
+
+- 功能、修補與文件變更均由 `dev` 提出 PR 回到 `main`；不得繞過 PR、必要 CI 或分支保護直接推送主幹。
+- 首次正常推送不需強制；已推送的 `dev` 因 rebase 或對齊而改寫時，先記錄 fetch 後的遠端 SHA，經既有授權後使用 `git push --force-with-lease=refs/heads/dev:<已記錄的遠端 SHA> origin dev`。不得使用不帶保護的 `--force`，不得遇到 lease 失敗就改用新的預期值覆蓋遠端。
+- 合併前必須確認：`origin/main` 是 `dev` 的祖先、本輪無 merge commit、每筆簽章有效，且 PR 最新 head SHA 的全部必要檢查成功；不得使用舊 SHA、取消、仍執行中或僅工作流外層成功的結果代替實際測試通過。
+- `.github/workflows/ci.yml` 所要求的建置與測試均須通過。若某步驟允許 `continue-on-error`，仍須讀取實際日誌，確認測試失敗數為零；MSBuild 不得有警告或錯誤。
+
+### 4.4 合併方法與遠端限制
+
+- **預設整合語意是 fast-forward**：經 PR 審查與 CI 守門後，讓 `main` 前移到已驗證的 `dev` 提交，不建立額外提交、不改寫 SHA，也不丟失既有 GPG 簽章。
+- **不得直接選用 GitHub Rebase and merge**：GitHub 會重建提交，不能保留原提交的簽章驗證。Squash and merge 也會建立新的提交，不能視為保留原 GPG 簽章的等價方式。一般 Create a merge commit 則違反本節的線性歷史要求。
+- 執行前必須確認實際平台與 repository ruleset 是否提供同時滿足 PR 守門、fast-forward 與保留簽章的整合方式；不得假設 GitHub 標準合併按鈕提供 fast-forward-only。
+- 若現有遠端規則無法同時滿足上述要求，**停止合併並向維護者具體回報衝突**，取得對整合方式或規則調整的明確授權後才可繼續。不得自行改成 merge commit、丟棄簽章、繞過保護或直接推送 `main`。
+- 合併後確認 PR 已 merged、`main` 新增的提交沒有 merge commit、簽章仍有效，並核對合併內容與通過 CI 的版本一致。追蹤合併後實際觸發的所有必要檢查至完成；若建置僅由 PR 觸發，須如實說明，不能聲稱 main push 已重跑建置與測試。
+
+### 4.5 合併後立即重新對齊 dev
+
+- **保留 `dev`，不得刪除；每次 PR 合併完成後就立即對齊 `main`**，不得延後到下一輪開發才處理。
+- 重新 fetch，確認 PR 已合併、工作區沒有未提交變更，且 `dev` 沒有其他尚未發布或他人新增的工作；如有則停止重設並回報，不能直接捨棄。
+- 在已授權重設與推送的範圍內，切到 `dev`，執行 `git reset --hard origin/main`，再以 4.3 的精確 `--force-with-lease` 更新遠端 `dev`。若尚無破壞性操作或外部寫入授權，先取得授權再執行。
+- 完成後驗證本機 `dev`、`origin/dev` 與最新遠端 `main` SHA 完全相同，且工作區乾淨；若主幹又前進或遠端 dev 已變動，重新檢查，不能盲目重設或重試強制推送。
+
+### 4.6 發版來源
+
+- 正式版本標籤只能從最新遠端 `main` 建立；不得從未整合的 `dev`、舊提交或其他分支打 tag 發布。
+- 標籤依第 3 節使用既有 GPG 環境簽署並驗證，推送後追蹤實際發佈結果；不得只看到 tag 已推送便聲稱 Release 成功。
+
+參考：[Git rebase 簽章選項](https://git-scm.com/docs/git-rebase)、[GitHub rebase and merge 的簽章限制](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)、[GitHub 合併方法](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github)。
 
 ## 5. 法律合規工作流
 1. 若任務涉及「按鍵處理」、「剪貼簿自動化」或「控制器映射」。
