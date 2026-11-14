@@ -1633,42 +1633,17 @@ public partial class MainForm
             // 情境感知焦點邊框色（Context-Aware Focus Border Color）：
             // 依據 TBInput.BackColor 實際值動態選取，確保在強視覺（反轉底色）
             // 與中性（懸停灰）兩種狀態下皆達 WCAG AA（≥ 4.5:1）以上。
-            Color borderColor;
-
-            if (SystemInformation.HighContrast)
-            {
-                borderColor = SystemColors.Highlight;
-            }
-            else if (TBInput.BackColor == Color.Black)
-            {
-                // 淺色強視覺（黑底）16.75:1 AAA。
-                borderColor = Color.Cyan;
-            }
-            else if (TBInput.BackColor == Color.White)
-            {
-                // 深色強視覺（白底）11.16:1 AAA。
-                borderColor = Color.MediumBlue;
-            }
-            else if (TBInput.IsDarkModeActive())
-            {
-                // TBInput 尚未反轉，視為深色中性背景。
-                // 深色中性 / 懸停 ≥ 7.2:1 AAA。
-                borderColor = Color.LightBlue;
-            }
-            else
-            {
-                // TBInput 尚未反轉，視為淺色中性背景。
-                // 淺色中性 / 懸停 8.14:1 AAA。
-                borderColor = Color.MediumBlue;
-            }
-
-            PInputHost.BackColor = borderColor;
+            PInputHost.BackColor = ControlExtensions.GetContextualFocusColors(
+                TBInput.BackColor, TBInput.IsDarkModeActive()).Border;
         }
         else
         {
             // 失去焦點：還原為透明／預設色。
             PInputHost.BackColor = Color.Empty;
         }
+
+        // 預設動作提示依輸入框實際底色同步，包含反轉與高對比變更。
+        BtnCopy.Invalidate();
     }
 
     /// <summary>

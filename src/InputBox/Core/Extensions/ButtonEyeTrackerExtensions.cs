@@ -125,8 +125,22 @@ public static class ButtonEyeTrackerExtensions
 
         btn.MouseUp -= HandleButtonMouseUp;
         btn.MouseUp += HandleButtonMouseUp;
+
+        btn.SystemColorsChanged -= HandleButtonSystemColorsChanged;
+        btn.SystemColorsChanged += HandleButtonSystemColorsChanged;
     }
 
+    /// <summary>
+    /// 系統色或高對比改變時重新套用目前互動狀態，避免保留上一個配色。
+    /// 深淺色模式仍由框架的啟動設定決定，不取代既有重啟提示。
+    /// </summary>
+    private static void HandleButtonSystemColorsChanged(object? sender, EventArgs eventArgs)
+    {
+        if (sender is Button { IsDisposed: false } button)
+        {
+            StopFeedback(button);
+        }
+    }
     /// <summary>
     /// 點擊後重置進度，
     /// 並執行視線重新接合（Gaze Re-engagement），
@@ -381,7 +395,6 @@ public static class ButtonEyeTrackerExtensions
             $"{st.BaseDescription} ({Strings.A11y_State_Pressed})" :
             $"{st.BaseDescription} ({Strings.A11y_State_Focused})";
 
-        btn.Padding = new Padding(0);
         btn.Invalidate();
     }
 
@@ -416,7 +429,7 @@ public static class ButtonEyeTrackerExtensions
 
         if (SystemInformation.HighContrast)
         {
-            btn.BackColor = SystemColors.HotTrack;
+            btn.BackColor = SystemColors.Highlight;
             btn.ForeColor = SystemColors.HighlightText;
         }
         else
@@ -441,7 +454,6 @@ public static class ButtonEyeTrackerExtensions
 
         btn.AccessibleDescription = $"{st.BaseDescription} ({Strings.A11y_State_Hover})";
 
-        btn.Padding = new Padding(0);
         btn.Invalidate();
 
         btn.RunDwellAnimationAsync(
@@ -500,6 +512,36 @@ public static class ButtonEyeTrackerExtensions
     }
 
     /// <summary>
+    /// 為現有文字按鈕繪製一致的互動配色，不受 Net11 預設動作強調色覆蓋。
+    /// </summary>
+    /// <param name="button">目前處於自訂回饋狀態的按鈕。</param>
+    /// <param name="graphics">按鈕繪圖內容。</param>
+    private static void DrawFeedbackSurface(Button button, Graphics graphics)
+    {
+        using Brush background = new SolidBrush(button.BackColor);
+        graphics.FillRectangle(background, button.ClientRectangle);
+
+        int inset = (int)Math.Ceiling(4 * button.DeviceDpi / AppSettings.BaseDpi);
+        Rectangle textBounds = Rectangle.FromLTRB(
+            inset + button.Padding.Left, inset + button.Padding.Top,
+            button.Width - inset - button.Padding.Right, button.Height - inset - button.Padding.Bottom);
+        TextFormatFlags flags = TextFormatFlags.HorizontalCenter |
+            TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak |
+            TextFormatFlags.PreserveGraphicsClipping;
+        if (!button.UseMnemonic)
+        {
+            flags |= TextFormatFlags.NoPrefix;
+        }
+
+        if (button.RightToLeft == RightToLeft.Yes)
+        {
+            flags |= TextFormatFlags.RightToLeft;
+        }
+
+        TextRenderer.DrawText(graphics, button.Text, button.Font, textBounds, button.ForeColor, flags);
+    }
+
+    /// <summary>
     /// 負責接管原生的 Paint 事件以繪製包含基礎邊框、
     /// 互動邊框、對比色、與 Dwell 進度條的所有按鈕客製化視覺
     /// </summary>
@@ -530,6 +572,14 @@ public static class ButtonEyeTrackerExtensions
                 return;
             }
 
+            // Net11 的預設按鈕強制使用強調色背景，但仍接受自訂文字色。
+            // 自訂回饋期間成對繪製背景與文字，避免背景被覆寫而失去對比；
+            // 高對比的一般狀態也保留系統色配對；其他一般與停用狀態沿用原生渲染。
+            if (st != null && (SystemInformation.HighContrast || st.IsPressed || isFocused || isHoveredOrDwell))
+            {
+                DrawFeedbackSurface(btn, g);
+            }
+
             Form? parentForm = btn.FindForm();
 
             bool isDefault = parentForm != null &&
@@ -552,13 +602,28 @@ public static class ButtonEyeTrackerExtensions
                 isDefault)
             {
                 Color borderColor = btn.GetButtonInteractiveBorderColor(isStrongVisual, isDark);
+                Color? backingColor = null;
+                if (isDefault && !isFocused && !isHoveredOrDwell && !(st?.IsPressed ?? false))
+                {
+                    Control? context = parentForm?.ActiveControl;
+                    while (context is ContainerControl { ActiveControl: not null } container)
+                    {
+                        context = container.ActiveControl;
+                    }
+
+                    (Color Border, Color Backing) = ControlExtensions.GetContextualFocusColors(
+                        context?.BackColor ?? Color.Empty, isDark);
+                    borderColor = Border;
+                    backingColor = Backing;
+                }
 
                 btn.DrawButtonInteractiveBorder(
                     g,
                     borderColor,
                     scale,
                     out int inset,
-                    out int borderThickness);
+                    out int borderThickness,
+                    backingColor);
 
                 if (!SystemInformation.HighContrast &&
                     (st?.IsPressed ?? false))

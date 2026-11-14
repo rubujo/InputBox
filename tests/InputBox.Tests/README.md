@@ -50,7 +50,8 @@
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
-| **合計** | | **467** |
+| `ButtonFeedbackRenderingTests` | Latest 預設／一般按鈕實際文字與背景、焦點／預設動作同步及對比襯底、四種底色進度條與色覺紋理、粗體、按下亮度差、零抖動與配色還原 | 14 |
+| **合計** | | **481** |
 
 ## 二、執行方式 🚀
 
@@ -176,3 +177,21 @@ UI 測試宿主在啟動 UIA 前使用 Application.SetHighDpiMode(PerMonitorV2)�
 最終 dev 正式 System + Latest + Deferred 路徑於 125%／120 DPI 為 11/11，非 UI 回歸為 456/456，行覆蓋率 32.58%。Release 建置使用 -warnaserror 為 0 警告／0 錯誤；完整 style 與 analyzers 的 severity info 檢查報告皆為空清單。七語系資源的鍵名與格式預留位置一致；Xbox 使用模式術語已對齊文件與網站，應用程式資源未發現舊稱，控制器 Xbox 配置名稱維持既有語意。
 
 合規查核（2026-11-14）：以可執行 JavaScript 的官方頁面確認 FFXIV 使用者合約、USERJOY 使用條款與隱私政策，並讀取第三方授權及免責聲明。此次輸入相關來源僅清理多餘初值、索引與必要回呼參數名稱，保持既有剪貼簿輸出邊界與控制器行為。
+
+## .NET 11 Latest 按鈕配色回歸（2026-11-14）
+
+`ButtonFeedbackRenderingTests` 是需 `INPUTBOX_RUN_UI_TESTS=1` 才執行的 14 項 UI 測試。它以實際點陣圖檢查預設／一般按鈕的焦點、懸停、按下背景、文字及焦點邊框，並檢查文字對比至少 4.5:1、尺寸／內距不變，以及回饋結束後的一般／停用外觀。停用狀態只檢查文字仍可辨識，不套用一般可操作文字的 4.5:1 門檻。
+
+以獨立測試程序分別執行淺色與深色（測試主機設定 `INPUTBOX_BUTTON_TEST_DARK=1`）；高對比必須實際啟用 Windows 高對比，並在驗證後還原。`Latest` 在高對比下由框架解析為 `Classic`，測試保留此無障礙行為。這些測試只改變測試控制項的狀態，不向其他視窗送出模擬輸入。`INPUTBOX_BUTTON_ARTIFACTS` 可指定點陣圖輸出目錄。
+
+缺陷來源是 Net11 的預設按鈕強調色會優先於自訂背景，但自訂文字色仍生效；回饋期間改為成對繪製既有背景與文字，再疊加既有焦點／按下提示。高對比使用配對的系統色，一般非高對比及停用狀態保留原生渲染。全域 Latest、System 色彩模式、Deferred 首次顯示與必要的主題重啟提示均保留。
+
+參考：[.NET 11.0.0 ButtonDarkModeAdapter](https://github.com/dotnet/winforms/blob/v11.0.0/src/System.Windows.Forms/System/Windows/Forms/Controls/Buttons/ButtonInternal/DarkMode/ButtonDarkModeAdapter.cs)。
+
+前一輪配色修正驗證：淺色、深色與實際 Windows 高對比各 8/8；完整 UI 19/19、非 UI 456/456；Release -warnaserror 建置 0 警告／0 錯誤。修改 C# 的 style／analyzers severity info 報告均為空；高對比設定已還原。暫時略過配色修正時，像素測試有 6 項失敗，確認可偵測原本缺陷。系統色變更會重套目前回饋；主題重啟提示相關程式碼未移除，既有回歸測試通過。
+
+預設動作提示補強：輸入框與 AcceptButton 共用情境選色。Latest 按鈕本體保留原生強調色，提示邊框加入固定像素的對比襯底；不改變尺寸、Margin 或 Padding。回歸測試以實際邊框及緊鄰襯底像素驗證反轉 16.75／11.16:1、中性 8.14／至少 7.2:1；四種底色進度條主填色對比為 5.14／9.91／3.75／5.21:1，另檢查色覺紋理仍有實際像素。HatchBrush 的縮放抗鋸齒像素允許落在指定填色與紋理色的混色範圍；不將裝飾紋理每個像素誤當成主填色對比門檻。
+
+測試另外驗證焦點粗體、按下第三層視覺及深色琥珀色 Tritanopia ΔL*≥13。文件比值顯示到小數兩位，數值斷言僅容許四捨五入的 0.005 差距；4.5:1 文字及 3:1 非文字最低門檻不因顯示取整而降低。
+
+補強後最終驗證（實際 125%／120 DPI）：淺色、深色及 Windows 高對比各 14/14；完整 UI 25/25、非 UI 456/456；Release -warnaserror 建置 0 警告／0 錯誤；四個修改 C# 的 severity info style／analyzers 報告均為空。預設動作提示實測：淺色反轉 16.748:1／中性 8.139:1，深色反轉 11.161:1／中性 7.218:1，高對比 7.893:1。進度條四種底色實測 5.137／9.914／3.746／5.208:1，高對比 7.893:1。已還原 Windows 高對比狀態；必要重啟提示與其既有回歸測試保留。

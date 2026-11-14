@@ -513,6 +513,33 @@ public static class ControlExtensions
     }
 
     /// <summary>
+    /// 取得輸入焦點與預設動作共用的提示色及對比襯底，保留專案四種情境配色。
+    /// </summary>
+    /// <param name="background">焦點控制項實際背景。</param>
+    /// <param name="isDark">目前深色模式。</param>
+    /// <returns>提示邊框色與緊鄰邊框的對比襯底。</returns>
+    internal static (Color Border, Color Backing) GetContextualFocusColors(Color background, bool isDark)
+    {
+        if (SystemInformation.HighContrast)
+        {
+            return (SystemColors.Highlight, SystemColors.HighlightText);
+        }
+
+        if (background.ToArgb() == Color.Black.ToArgb())
+        {
+            return (Color.Cyan, Color.Black);
+        }
+
+        if (background.ToArgb() == Color.White.ToArgb())
+        {
+            return (Color.MediumBlue, Color.White);
+        }
+
+        return isDark ?
+            (Color.LightBlue, Color.FromArgb(60, 60, 60)) :
+            (Color.MediumBlue, Color.FromArgb(220, 220, 220));
+    }
+    /// <summary>
     /// 依互動情境取得焦點/懸停邊框色。
     /// </summary>
     /// <param name="button">目標按鈕。</param>
@@ -523,7 +550,8 @@ public static class ControlExtensions
     {
         if (SystemInformation.HighContrast)
         {
-            return SystemColors.HighlightText;
+            return button.BackColor.ToArgb() == SystemColors.Highlight.ToArgb() ?
+                SystemColors.HighlightText : SystemColors.ControlText;
         }
 
         static bool IsSameColor(Color left, Color right) => left.ToArgb() == right.ToArgb();
@@ -557,17 +585,25 @@ public static class ControlExtensions
     /// <param name="scale">目前 DPI 縮放比例。</param>
     /// <param name="inset">輸出的內縮像素數，供後續繪製疊層使用。</param>
     /// <param name="borderThickness">輸出的邊框厚度，供後續繪製疊層使用。</param>
+    /// <param name="backingColor">預設動作提示的對比襯底；不改變控制項尺寸或內距。</param>
     public static void DrawButtonInteractiveBorder(
         this Button button,
         Graphics graphics,
         Color borderColor,
         float scale,
         out int inset,
-        out int borderThickness)
+        out int borderThickness,
+        Color? backingColor = null)
     {
         borderThickness = (int)Math.Max(3, 3 * scale);
         inset = (int)Math.Max(2, 2 * scale);
 
+        if (backingColor is Color backing)
+        {
+            using Pen backingPen = new(backing, borderThickness + 2 * Math.Max(1f, scale));
+            graphics.DrawRectangle(backingPen, inset, inset,
+                button.Width - (inset * 2) - 1, button.Height - (inset * 2) - 1);
+        }
         using Pen borderPen = new(borderColor, borderThickness);
 
         graphics.DrawRectangle(
