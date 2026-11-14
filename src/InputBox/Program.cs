@@ -200,7 +200,10 @@ internal static class Program
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+            Application.SetDefaultVisualStylesMode(VisualStylesMode.Latest);
             Application.SetColorMode(SystemColorMode.System);
+            // 等待初次版面與主題套用完成，避免深色模式啟動時閃白。
+            Application.SetDefaultFormRevealMode(FormRevealMode.Deferred);
 
             // 載入設定檔（若無檔案會自動建立）。
             AppSettings.Load();

@@ -108,7 +108,7 @@ public sealed class PhraseServiceTests : IDisposable
         var svc = new PhraseService();
         svc.Add("TestName", "TestContent");
 
-        var entry = svc.Phrases[0];
+        PhraseService.PhraseEntry entry = svc.Phrases[0];
 
         Assert.Equal("TestName", entry.Name);
         Assert.Equal("TestContent", entry.Content);
@@ -623,8 +623,8 @@ public sealed class PhraseServiceTests : IDisposable
             Assert.Equal(PhraseService.ImportError.None, result.Error);
             Assert.Equal(1, result.Imported);
             Assert.Equal(1, result.Total);
-            Assert.Single(svc.Phrases);
-            Assert.Equal("新片語", svc.Phrases[0].Name);
+            PhraseService.PhraseEntry item = Assert.Single(svc.Phrases);
+            Assert.Equal("新片語", item.Name);
             Assert.Equal("新內容", svc.Phrases[0].Content);
         }
         finally

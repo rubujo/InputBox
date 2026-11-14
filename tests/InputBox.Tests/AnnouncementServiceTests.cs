@@ -102,7 +102,7 @@ public class AnnouncementServiceTests : IDisposable
     {
         _svc = new AnnouncementService(async (_, _, _) => await Task.CompletedTask);
 
-        var capturedException = Record.Exception(() =>
+        Exception? capturedException = Record.Exception(() =>
         {
             _svc.Dispose();
             _svc.Dispose();

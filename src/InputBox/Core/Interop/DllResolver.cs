@@ -22,13 +22,13 @@ internal class DllResolver
     /// 自訂的 native 載入解析器，用於覆寫 XInput 的載入邏輯。
     /// </summary>
     /// <param name="libraryName">開啟端要求載入的 DLL 名稱</param>
-    /// <param name="assembly">觸發載入的組件。</param>
-    /// <param name="searchPath">DllImportSearchPath 設定。</param>
+    /// <param name="_1">觸發載入的組件。</param>
+    /// <param name="_2">DllImportSearchPath 設定。</param>
     /// <returns>成功載入時回傳 DLL handle；若無法載入或名稱不符則回傳 IntPtr.Zero。</returns>
     public static nint ResolveNativeLibrary(
         string libraryName,
-        Assembly assembly,
-        DllImportSearchPath? searchPath)
+        Assembly _1,
+        DllImportSearchPath? _2)
     {
         // 僅攔截 xinput1_4.dll，其餘 DLL 交由系統處理。
         if (!libraryName.Equals("xinput1_4.dll", StringComparison.OrdinalIgnoreCase))

@@ -116,7 +116,7 @@ internal static class SingleInstanceHandoff
     {
         ArgumentNullException.ThrowIfNull(commandLineArgs);
 
-        List<string> result = new(commandLineArgs.Count);
+        List<string> result = [with(capacity: commandLineArgs.Count)];
 
         for (int i = 0; i < commandLineArgs.Count; i++)
         {

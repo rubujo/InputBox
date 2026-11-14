@@ -14,3 +14,5 @@
   - 允許在 Designer 中硬式編碼正體中文以供預覽。
   - 執行階段必須透過 `ApplyLocalization` 再次賦值以確保多語系正確性。
   - 嚴禁手動修改 `MainForm.Designer.cs` 中自動生成的版面配置結構。
+
+- **Xbox 模式術語**：Windows 的 Xbox 使用模式統一為「Xbox 模式」（zh-Hant／zh-Hans）、Xbox mode（en）、Xbox-Modus（de）、mode Xbox（fr）、Xbox モード（ja）、Xbox 모드（ko）。此術語適用於應用程式、文件與網站；控制器主按鍵配置中的 Xbox 名稱維持不變。

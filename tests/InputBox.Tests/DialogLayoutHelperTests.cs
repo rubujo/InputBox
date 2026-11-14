@@ -83,7 +83,7 @@ public class DialogLayoutHelperTests
     public void GetMaxFitSize_NormalWorkArea_ReturnsWidthAndHeightMinusMargin()
     {
         Rectangle workArea = new(0, 0, 1920, 1080);
-        var (w, h) = DialogLayoutHelper.GetMaxFitSize(workArea, margin: 40);
+        (int w, int h) = DialogLayoutHelper.GetMaxFitSize(workArea, margin: 40);
 
         Assert.Equal(1880, w);
         Assert.Equal(1040, h);
@@ -96,7 +96,7 @@ public class DialogLayoutHelperTests
     public void GetMaxFitSize_DefaultMargin_Is40()
     {
         Rectangle workArea = new(0, 0, 800, 600);
-        var (w, h) = DialogLayoutHelper.GetMaxFitSize(workArea);
+        (int w, int h) = DialogLayoutHelper.GetMaxFitSize(workArea);
 
         Assert.Equal(760, w);
         Assert.Equal(560, h);
@@ -109,7 +109,7 @@ public class DialogLayoutHelperTests
     public void GetMaxFitSize_WorkAreaSmallerThanMargin_ReturnsAtLeastOne()
     {
         Rectangle workArea = new(0, 0, 30, 30);
-        var (w, h) = DialogLayoutHelper.GetMaxFitSize(workArea, margin: 40);
+        (int w, int h) = DialogLayoutHelper.GetMaxFitSize(workArea, margin: 40);
 
         Assert.Equal(1, w);
         Assert.Equal(1, h);
@@ -122,7 +122,7 @@ public class DialogLayoutHelperTests
     public void GetMaxFitSize_ZeroMargin_ReturnsExactWorkAreaSize()
     {
         Rectangle workArea = new(0, 0, 1280, 720);
-        var (w, h) = DialogLayoutHelper.GetMaxFitSize(workArea, margin: 0);
+        (int w, int h) = DialogLayoutHelper.GetMaxFitSize(workArea, margin: 0);
 
         Assert.Equal(1280, w);
         Assert.Equal(720, h);

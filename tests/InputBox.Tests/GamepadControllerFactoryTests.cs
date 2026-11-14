@@ -97,14 +97,9 @@ public sealed class GamepadControllerFactoryTests
     /// <summary>
     /// 測試用控制器替身。
     /// </summary>
-    private sealed class StubGamepadController : IGamepadController
+    private sealed class StubGamepadController(string deviceName) : IGamepadController
     {
-        public StubGamepadController(string deviceName)
-        {
-            DeviceName = deviceName;
-        }
-
-        public string DeviceName { get; }
+        public string DeviceName { get; } = deviceName;
 
         public string DeviceIdentity => DeviceName;
 
