@@ -767,8 +767,27 @@ public static class ControlExtensions
     }
 
     /// <summary>
+    /// 在最終配色套用後重繪控制項樹的客戶區及非客戶區，清除 Latest 邊框／內距的舊色。
+    /// 僅在 UI 執行緒上使用；不重建 HWND，不改變焦點、選取範圍或版面尺寸。
+    /// </summary>
+    /// <param name="control">需要還原框架的自家控制項。</param>
+    public static void RedrawVisualFrameRecursive(this Control control)
+    {
+        if (control.IsDisposed || !control.IsHandleCreated)
+        {
+            return;
+        }
+
+        _ = User32.RedrawWindow(control.Handle, 0, 0,
+            User32.RedrawFlags.Invalidate | User32.RedrawFlags.Frame | User32.RedrawFlags.UpdateNow);
+        foreach (Control child in control.Controls)
+        {
+            child.RedrawVisualFrameRecursive();
+        }
+    }
+    /// <summary>
     /// 將控制項及其所有子控制項的顏色屬性重設為 Color.Empty，
-    /// 這將觸發 .NET 10 的原生主題引擎自動套用正確的系統配色。
+    /// 這將觸發原生主題引擎自動套用正確的系統配色。
     /// </summary>
     /// <param name="parent">父控制項。</param>
     public static void ResetThemeRecursive(this Control parent)

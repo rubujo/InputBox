@@ -1605,6 +1605,9 @@ public partial class MainForm
 
         // BackColor 設定完畢後再恢復邊框，確保情境感知選色與當前背景一致。
         UpdateBorderColor(TBInput.Focused);
+
+        // Latest 的內距屬於非客戶區，顏色屬性還原不會自動清除該處的警示舊色。
+        PInputHost.RedrawVisualFrameRecursive();
     }
 
     /// <summary>

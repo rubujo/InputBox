@@ -126,6 +126,8 @@ internal sealed partial class PhraseEditDialog
                     {
                         ResetInputBoxVisual(target);
                     }
+
+                    target.RedrawVisualFrameRecursive();
                 }
                 catch (Exception ex)
                 {

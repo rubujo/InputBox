@@ -96,6 +96,7 @@ internal sealed partial class NumericInputDialog
 
                     // 恢復焦點視覺狀態。
                     UpdateFocusVisuals(_nud.Focused || _nud.ContainsFocus);
+                    _nud.RedrawVisualFrameRecursive();
                 }
                 catch (Exception ex)
                 {

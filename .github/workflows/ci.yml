@@ -58,6 +58,7 @@ jobs:
             - 'src/InputBox/Resources/**'
             - 'tests/InputBox.Tests/MainFormUiSmokeTests.cs'
             - 'tests/InputBox.Tests/ButtonFeedbackRenderingTests.cs'
+            - 'tests/InputBox.Tests/BlinkFrameRenderingTests.cs'
             - 'tests/InputBox.Tests/UiSmokeTestRequirements.cs'
             - 'tests/InputBox.Tests/UiVisualSnapshot.cs'
             - 'tests/InputBox.Tests/UiWindowDiscovery.cs'
