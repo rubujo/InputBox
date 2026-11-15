@@ -15,7 +15,7 @@ public sealed class ButtonFeedbackRenderingTests
 {
     static ButtonFeedbackRenderingTests()
     {
-        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+        Application.SetHighDpiMode(Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_TEST_96DPI") == "1" ? HighDpiMode.DpiUnaware : HighDpiMode.PerMonitorV2);
         Application.EnableVisualStyles();
         Application.SetColorMode(Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_TEST_DARK") == "1" ? SystemColorMode.Dark : SystemColorMode.Classic);
         Application.SetDefaultVisualStylesMode(VisualStylesMode.Latest);
@@ -120,12 +120,14 @@ public sealed class ButtonFeedbackRenderingTests
         int backing = (int)Math.Max(1, Math.Ceiling(scale));
         int height = (int)Math.Ceiling(6 * scale) + 2 * backing;
         int top = button.Height - inset - height;
-        Color track = image.GetPixel(inset + 1, top + 1);
+        Color track = image.GetPixel(inset, top);
         bool dark = button.IsDarkModeActive();
         Color fill = SystemInformation.HighContrast ? SystemColors.HighlightText : dark ? Color.LimeGreen : Color.Green;
         Color expectedTrack = SystemInformation.HighContrast ? SystemColors.Highlight : dark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220);
         Assert.Equal(expectedTrack.ToArgb(), track.ToArgb());
-        Assert.Equal(track.ToArgb(), image.GetPixel(inset + 1, top + height - 1).ToArgb());
+        Assert.Equal(track.ToArgb(), image.GetPixel(inset, top + height - 1).ToArgb());
+        Assert.Equal(track.ToArgb(), image.GetPixel(button.Width - inset - 1, top + height / 2).ToArgb());
+        Assert.Equal(track.ToArgb(), image.GetPixel(inset, top + height / 2).ToArgb());
         int ink = 0;
         for (int y = top + backing; y < top + height - backing; y++)
         {
@@ -393,6 +395,7 @@ public sealed class ButtonFeedbackRenderingTests
         internal Scene(bool isDefault)
         {
             Button.Font = Regular; Form.Controls.AddRange([Input, Button]);
+            if (Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_TEST_96DPI") == "1") { Assert.Equal(96, Button.DeviceDpi); }
             Button.AttachEyeTrackerFeedback("Button", Regular, Bold, Lifetime.Token);
             if (isDefault) { Form.AcceptButton = Button; }
             if (Form.Bounds.Contains(Cursor.Position)) { Form.Location = new Point(30, 450); }

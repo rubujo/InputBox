@@ -233,3 +233,7 @@ UI 程序必須可顯示自家視窗；測試以有界重試確認實際前景�
 本輪正式整合驗證（實際 125%／120 DPI）：淺色、深色與 Windows 高對比各 52/52；完整 UI 67/67，非 UI 重跑 456/456，皆無略過。Release -warnaserror 建置為 0 警告／0 錯誤，修改 C# 的 severity info style／analyzers 報告皆為空；git diff --check 及 UTF-8 BOM／CRLF 檢查通過。高對比設定已讀回確認還原為原值 126。原生強調色由渲染器決定，本輪未切換其他系統強調色或其他實際 DPI，不將目前色彩宣稱為 Latest 固定配色。
 
 非 UI 首輪 455/456：既有 WriteConfigToFile_ConcurrentWrites_LeavesValidJsonAndNoTempFiles 偶發看到暫存檔。測試使用每行程新的隔離目錄，不能歸因於舊工作區產物；未修改設定持久化程式碼。完整重跑 456/456，該案例另以三個獨立程序連續重驗皆通過，首次原因尚未確定。保留首輪與重驗日誌於 TestResults/StandardIntegration，後續若重現須調查檔案刪除或並行寫入時序，不以重試掩蓋持續失敗。
+
+PR #95 的 GitHub Runner 為 100%／96 DPI，Dwell 襯底只有 1px；舊測試從 (inset+1, top+1) 取樣時已進入填色，導致四項假失敗。正式繪圖無需修改，測試改從實際四邊襯底取樣；另可用 INPUTBOX_BUTTON_TEST_96DPI=1 啟動 DPI-unaware 的隔離按鈕測試程序，明確驗證 DeviceDpi=96 並重現 Runner 幾何條件。此為 96 DPI 渲染驗證，不代表已切換實際顯示器縮放。
+
+修正驗證：96 DPI 隔離按鈕完整 52/52；淺色 120 DPI、深色 96／120 DPI、高對比 96／120 DPI 的 Dwell 各 4/4。搭配完整 96 DPI 淺色測試，共覆蓋三主題與兩種渲染 DPI。建置 0 警告／0 錯誤，資訊層級診斷皆為空，高對比還原原值。
