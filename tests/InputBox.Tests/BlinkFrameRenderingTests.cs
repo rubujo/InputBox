@@ -2,7 +2,9 @@
 using InputBox.Core.Extensions;
 using InputBox.Core.Feedback;
 using InputBox.Core.Interop;
+using InputBox.Core.Services;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace InputBox.Tests;
@@ -10,7 +12,7 @@ namespace InputBox.Tests;
 /// <summary>以實際畫面驗證 Blink 完成／取消後的非客戶區框架，不以重新繪圖的截圖 API 掩蓋殘影。</summary>
 [Collection(UiSmokeTestRequirements.CollectionName)]
 [Trait("Category", "UI")]
-public sealed class BlinkFrameRenderingTests
+public sealed partial class BlinkFrameRenderingTests
 {
     /// <summary>以明確色彩模式建立獨立驗證程序，保留實際 Windows 高對比判斷。</summary>
     static BlinkFrameRenderingTests()
@@ -51,6 +53,10 @@ public sealed class BlinkFrameRenderingTests
             {
                 try
                 {
+                    _ = User32.ShowWindow(form.Handle, User32.ShowWindowCommand.Restore);
+                    _ = await WindowFocusService.RestoreWindowAsync(form.Handle, TestContext.Current.CancellationToken);
+                    form.Activate();
+                    Assert.Equal(form.Handle, User32.GetForegroundWindow());
                     if (focused)
                     {
                         Assert.True(input.Focus());
@@ -102,6 +108,8 @@ public sealed class BlinkFrameRenderingTests
                     }
                     await Task.Delay(500, TestContext.Current.CancellationToken);
                     using Bitmap after = Capture(input);
+                    SaveCapture(before, $"blink-{focused}-{cancel}-before");
+                    SaveCapture(after, $"blink-{focused}-{cancel}-after");
                     Assert.True(framePaintedDuringAlert);
                     Assert.Equal(expectedBack, input.BackColor);
                     Assert.Equal(expectedFore, input.ForeColor);
@@ -146,9 +154,16 @@ public sealed class BlinkFrameRenderingTests
     /// <summary>容許螢幕合成的兩階 RGB 量化差；警示殘色仍會產生遠大於此值的差異。</summary>
     private static void AssertFramePixel(Color expected, Color actual)
     {
-        Assert.InRange(Math.Abs(expected.R - actual.R), 0, 2);
-        Assert.InRange(Math.Abs(expected.G - actual.G), 0, 2);
-        Assert.InRange(Math.Abs(expected.B - actual.B), 0, 2);
+        Assert.True(Math.Abs(expected.R - actual.R) <= 2 && Math.Abs(expected.G - actual.G) <= 2 &&
+            Math.Abs(expected.B - actual.B) <= 2, $"Frame pixel expected {expected}, actual {actual}.");
+    }
+
+    private static void SaveCapture(Bitmap image, string name)
+    {
+        string? path = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
+        if (path is null) { return; }
+        Directory.CreateDirectory(path);
+        image.Save(Path.Combine(path, name + ".png"));
     }
     /// <summary>依與主視窗相同的還原順序先重設主題，再套用焦點背景與外框。</summary>
     private static void Restore(Panel host, TextBox input)
@@ -167,10 +182,38 @@ public sealed class BlinkFrameRenderingTests
     /// <summary>只讀取自家控制項所在的螢幕像素，不透過 DrawToBitmap 觸發額外框架重繪。</summary>
     private static Bitmap Capture(Control control)
     {
-        Point origin = control.Parent!.PointToScreen(control.Location);
-        var bitmap = new Bitmap(control.Width, control.Height);
-        using Graphics graphics = Graphics.FromImage(bitmap);
-        graphics.CopyFromScreen(origin, Point.Empty, control.Size);
-        return bitmap;
+        Assert.Equal(control.FindForm()!.Handle, User32.GetForegroundWindow());
+        // Classic／高對比的游標會碰到首列像素；只在擷取期間隱藏並成對還原，
+        // 避免把游標閃爍的相位差誤當成框架殘色，不重繪或修改框架像素。
+        bool caretHidden = control.Focused && HideCaret(control.Handle);
+        try
+        {
+            Assert.Equal(0, DwmFlush());
+            Point origin = control.Parent!.PointToScreen(control.Location);
+            var bitmap = new Bitmap(control.Width, control.Height);
+            try
+            {
+                using Graphics graphics = Graphics.FromImage(bitmap);
+                graphics.CopyFromScreen(origin, Point.Empty, control.Size);
+                AssertFramePixel(control.BackColor, bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 2));
+                return bitmap;
+            }
+            catch
+            {
+                bitmap.Dispose();
+                throw;
+            }
+        }
+        finally
+        {
+            if (caretHidden) { _ = User32.ShowCaret(control.Handle); }
+        }
     }
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool HideCaret(nint window);
+
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmFlush();
 }

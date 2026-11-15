@@ -30,7 +30,7 @@ internal sealed partial class NumericInputDialog
         set
         {
             // 如果控制器相同，不執行任何操作。
-            if (ReferenceEquals(_gamepadController, value))
+            if (IsDisposed || Disposing || _cts == null || ReferenceEquals(_gamepadController, value))
             {
                 return;
             }

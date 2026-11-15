@@ -36,7 +36,7 @@ internal sealed class GamepadMessageBox : Form
         get => _gamepadController;
         set
         {
-            if (ReferenceEquals(_gamepadController, value))
+            if (IsDisposed || Disposing || _cts == null || ReferenceEquals(_gamepadController, value))
             {
                 return;
             }
@@ -722,7 +722,15 @@ internal sealed class GamepadMessageBox : Form
             return;
         }
 
+        ReleaseRuntimeResources();
+    }
+
+    /// <summary>正常關閉及直接處置共用清理；控制器與共享字型不屬於此視窗。</summary>
+    private void ReleaseRuntimeResources()
+    {
         UnsubscribeGamepadEvents();
+        _gamepadController = null;
+        SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
 
         Interlocked.Exchange(ref _announcer, null)?.Dispose();
 
@@ -738,6 +746,22 @@ internal sealed class GamepadMessageBox : Form
         _lblText = null;
         _contentPanel = null;
         _buttonFlow = null;
+    }
+
+    /// <summary>未顯示或未經 FormClosing 的對話框也必須解除外部訂閱。</summary>
+    protected override void Dispose(bool disposing)
+    {
+        try
+        {
+            if (disposing)
+            {
+                ReleaseRuntimeResources();
+            }
+        }
+        finally
+        {
+            base.Dispose(disposing);
+        }
     }
 
     /// <summary>

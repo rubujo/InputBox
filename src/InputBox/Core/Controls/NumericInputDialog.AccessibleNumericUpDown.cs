@@ -22,6 +22,47 @@ internal sealed partial class NumericInputDialog
         /// </summary>
         private readonly NumericInputDialog _parent = parent;
 
+        /// <summary>依原生行高及有效範圍預留完整字形，僅在字型、DPI 或系統樣式更新時調整。</summary>
+        protected override void OnFontChanged(EventArgs e)
+        {
+            base.OnFontChanged(e);
+            UpdateEditorSize();
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            UpdateEditorSize();
+        }
+
+        protected override void OnDpiChangedAfterParent(EventArgs e)
+        {
+            base.OnDpiChangedAfterParent(e);
+            UpdateEditorSize();
+        }
+
+        protected override void OnSystemColorsChanged(EventArgs e)
+        {
+            base.OnSystemColorsChanged(e);
+            UpdateEditorSize();
+        }
+
+        private void UpdateEditorSize()
+        {
+            if (!IsDisposed && !Disposing)
+            {
+                string format = $"{(ThousandsSeparator ? 'N' : 'F')}{DecimalPlaces}";
+                int textWidth = Math.Max(TextRenderer.MeasureText(Minimum.ToString(format), Font).Width,
+                    TextRenderer.MeasureText(Maximum.ToString(format), Font).Width);
+                int buttonsWidth = Controls.Cast<Control>().Where(control => control is not TextBox)
+                    .Select(control => control.Width).DefaultIfEmpty().Max();
+                int inset = (int)Math.Ceiling(12 * (DeviceDpi / 96.0f));
+                MinimumSize = new Size(textWidth + buttonsWidth + inset, 0);
+                Width = Math.Max((int)Math.Ceiling(220 * (DeviceDpi / 96.0f)), MinimumSize.Width);
+                Height = PreferredHeight;
+            }
+        }
+
         /// <summary>
         /// 遞增數值，若已達上限則通知父對話框播放邊界回饋。
         /// </summary>

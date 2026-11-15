@@ -34,7 +34,9 @@
 | `GamepadRepeatStateMachineTests` | `GamepadRepeatStateMachine.AdvanceDirectionRepeat` / `AdvanceHeldRepeat` | 11 |
 | `GamepadSignalEvaluatorTests` | `GamepadSignalEvaluator.IsActive` / `IsIdle`（int / float 多載） | 13 |
 | `GaussianDelayHelperTests` | `GaussianDelayHelper` 延遲計算 | 5 |
-| `GamepadMessageBoxTests` | `GamepadMessageBox` 關閉取消、生命週期資源保護與已連線控制器提示同步 | 5 |
+| `GamepadMessageBoxTests` | 訊息框／數值框直接 Dispose 解除事件及拒絕重新綁定、訊息框關閉取消、生命週期資源保護與已連線控制器提示同步 | 7 |
+| `FeedbackButtonLifetimeTests` | 已處置按鈕不得由重新綁定的長生命週期權杖持有 | 1 |
+| `NumericInputLayoutTests` | Latest 大字型完整數字字形與有效範圍寬度（24／35／48 pt）、數值更新零抖動、重新啟用後焦點配色還原 | 4 |
 | `InputBoxLayoutManagerTests` | `InputBoxLayoutManager` 版面管理 | 4 |
 | `InputHistoryServiceTests` | `InputHistoryService` 歷程記錄 CRUD 與 5 筆翻頁導覽 | 15 |
 | `LoggerServiceTests` | `LoggerService` 測試環境專屬日誌分流、Release-like 日誌門檻、環境變數覆寫與正式日誌隔離保護 | 8 |
@@ -51,8 +53,8 @@
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
 | `ButtonFeedbackRenderingTests` | Standard／Latest 原生色彩、焦點與高對比按壓、Dwell 可見襯底與全進度、Space／滑鼠交錯、Capture 取消、生命週期、字型更新、過期點擊接合、三主題過渡、七語系／RTL | 72 |
-| `BlinkFrameRenderingTests` | 實際螢幕非客戶區像素：Blink 完成／取消、有／無焦點還原；HWND、選取範圍及尺寸不變 | 4 |
-| **合計** | | **543** |
+| `BlinkFrameRenderingTests` | 實際螢幕非客戶區像素：前景視窗與背景色守門、擷取時平衡隱藏／還原游標以排除相位差、保留原始前後圖；Blink 完成／取消、有／無焦點還原，HWND、選取範圍及尺寸不變 | 4 |
+| **合計** | | **550** |
 
 ## 二、執行方式 🚀
 

@@ -53,6 +53,7 @@ public class FeedbackButton : Button
     internal void ConfigureFeedback(string description, Font? regular, Font? bold,
         Action<bool>? onFocusStateChanged, CancellationToken formToken)
     {
+        if (IsDisposed || Disposing) { return; }
         _regular = regular ?? Font;
         _bold = bold;
         _description = description;
@@ -95,12 +96,14 @@ public class FeedbackButton : Button
     /// <summary>更新呼叫端提供的共享字型，保留描述、回呼與正在進行的互動。</summary>
     internal void UpdateFeedbackFonts(Font regular, Font? bold)
     {
+        if (IsDisposed || Disposing) { return; }
         _regular = regular;
         _bold = bold;
         Reconcile();
     }
     internal void CancelDwell()
     {
+        if (IsDisposed || Disposing) { return; }
         ++_interactionVersion;
         StopDwell();
         Reconcile();
@@ -109,6 +112,7 @@ public class FeedbackButton : Button
     /// <summary>點擊結束後依實際游標重接視線；新的互動會使舊接合失效。</summary>
     internal async Task ReGazeAfterClickAsync()
     {
+        if (IsDisposed || Disposing) { return; }
         int version = ++_interactionVersion;
         StopDwell();
         Invalidate();

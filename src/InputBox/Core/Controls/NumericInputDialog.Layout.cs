@@ -18,6 +18,19 @@ partial class DesignerBlocker { };
 /// </summary>
 internal sealed partial class NumericInputDialog
 {
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+        // 等原生焦點還原完成，再重接 DPI／主題更新期間清除的焦點反轉。
+        this.SafeBeginInvoke(() =>
+        {
+            if (ContainsFocus)
+            {
+                UpdateFocusVisuals(_nud?.Focused == true || _nud?.ContainsFocus == true);
+            }
+        });
+    }
+
     protected override void OnResizeEnd(EventArgs e)
     {
         try
@@ -221,6 +234,7 @@ internal sealed partial class NumericInputDialog
             {
                 UpdateCaretWidth();
             }
+            _btnOk?.Invalidate();
         }
         catch (Exception ex)
         {

@@ -14,6 +14,42 @@ namespace InputBox.Tests;
 /// </summary>
 public sealed class GamepadMessageBoxTests
 {
+    [Fact]
+    public void NumericDialog_Dispose_DetachesControllerAndRejectsRebinding()
+    {
+        StubGamepadController controller = new();
+        using NumericInputDialog dialog = new("number", 100, 100, 0, 1, 1, 10000);
+        dialog.GamepadController = controller;
+        FieldInfo[] events = [.. typeof(StubGamepadController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => typeof(Delegate).IsAssignableFrom(field.FieldType))];
+        Assert.Contains(events, field => field.GetValue(controller) != null);
+
+        dialog.Dispose();
+        dialog.GamepadController = controller;
+
+        Assert.Null(dialog.GamepadController);
+        Assert.All(events, field => Assert.Null(field.GetValue(controller)));
+    }
+
+    [Fact]
+    public void Dispose_WithoutClosing_DetachesControllerAndRejectsRebinding()
+    {
+        StubGamepadController controller = new();
+        using GamepadMessageBox dialog = new("message", "caption", MessageBoxButtons.OK, MessageBoxIcon.None);
+        dialog.GamepadController = controller;
+        FieldInfo[] events = [.. typeof(StubGamepadController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(field => typeof(Delegate).IsAssignableFrom(field.FieldType))];
+        Assert.Contains(events, field => field.GetValue(controller) != null);
+        CancellationToken token = ((CancellationTokenSource)typeof(GamepadMessageBox)
+            .GetField("_cts", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(dialog)!).Token;
+
+        dialog.Dispose();
+        dialog.GamepadController = controller;
+        dialog.Dispose();
+
+        Assert.True(token.IsCancellationRequested);
+        Assert.Null(dialog.GamepadController);
+        Assert.All(events, field => Assert.Null(field.GetValue(controller)));
+    }
+
     /// <summary>
     /// 測試替身控制器：可指定連線狀態，供對話框初始化提示列與事件綁定驗證使用。
     /// </summary>

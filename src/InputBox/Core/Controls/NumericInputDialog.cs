@@ -154,6 +154,7 @@ internal sealed partial class NumericInputDialog : Form
                 // 優先解除控制器事件訂閱，確保事件解除先於控制項處置，
                 // 防止控制器輪詢在 UI 控制項釋放後仍觸發事件。
                 UnsubscribeGamepadEvents();
+                _gamepadController = null;
 
                 // 處置取消權杖來源（主要任務與 Flash Alert 各自獨立處置）。
                 Interlocked.Exchange(ref _cts, null)?.CancelAndDispose();
@@ -420,7 +421,7 @@ internal sealed partial class NumericInputDialog : Form
             // 使用 Math.Clamp 確保數值在有效範圍內，防止異常。
             Value = Math.Clamp(currentValue, minimum, maximum),
             TextAlign = HorizontalAlignment.Center,
-            // 動態縮放寬度，高度則由 Font 自動決定。
+            // 動態縮放寬度；AccessibleNumericUpDown 依原生偏好高度同步字型與 DPI。
             Width = (int)(220 * scale),
             Font = _nudFont,
             BackColor = Color.Empty,
