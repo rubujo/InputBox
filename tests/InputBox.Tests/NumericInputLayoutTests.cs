@@ -19,14 +19,12 @@ public sealed class NumericInputLayoutTests
         Application.SetDefaultVisualStylesMode(VisualStylesMode.Latest);
     }
 
-    [Theory]
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
     [InlineData(24)]
     [InlineData(35)]
     [InlineData(48)]
     public void LatestNumericEditor_LargeFont_FitsCompleteLine(float size)
     {
-        // 正式數值對話框由 MainForm 開啟，共用相同的已初始化字型快取。
-        using MainForm owner = new();
         using NumericInputDialog dialog = new("number", 100, 100, 2, 1, -10000, 10000);
         NumericUpDown number = (NumericUpDown)typeof(NumericInputDialog)
             .GetField("_nud", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(dialog)!;
@@ -59,7 +57,6 @@ public sealed class NumericInputLayoutTests
         {
             try
             {
-                using MainForm owner = new();
                 using NumericInputDialog dialog = new("number", 100, 100, 0, 1, 1, 10000);
                 using Form other = new() { Location = new Point(850, 550), StartPosition = FormStartPosition.Manual };
                 NumericUpDown number = (NumericUpDown)typeof(NumericInputDialog)
