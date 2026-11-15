@@ -20,6 +20,8 @@ public class FeedbackButton : Button
     private string _description = string.Empty;
     private Action<bool>? _onFocusStateChanged;
     private CancellationToken _formToken;
+    private CancellationTokenRegistration _formRegistration;
+    private int _lifetimeVersion;
     private int _interactionVersion;
 
     public FeedbackButton()
@@ -54,11 +56,41 @@ public class FeedbackButton : Button
         _regular = regular ?? Font;
         _bold = bold;
         _description = description;
-        _formToken = formToken;
         _onFocusStateChanged = onFocusStateChanged;
         FlatStyle = FlatStyle.Standard;
+        bool replaceLifetime = !_configured || _formToken != formToken;
         _configured = true;
+        if (replaceLifetime)
+        {
+            int version = ++_lifetimeVersion;
+            _formRegistration.Dispose();
+            _formToken = formToken;
+            _formRegistration = formToken.Register(() =>
+            {
+                if (IsDisposed || Disposing || !IsHandleCreated) { return; }
+                this.SafeBeginInvoke(() =>
+                {
+                    if (_configured && version == _lifetimeVersion && _formToken.IsCancellationRequested)
+                    {
+                        CancelDwell();
+                    }
+                });
+            });
+        }
         Reconcile();
+    }
+
+    /// <summary>初始化版面時在置中文字上下保留固定空間，讓底部 Dwell 不遮住字形。</summary>
+    public override Size GetPreferredSize(Size proposedSize)
+    {
+        Size preferred = base.GetPreferredSize(proposedSize);
+        Font measuringFont = _bold ?? _regular ?? Font;
+        Size text = TextRenderer.MeasureText(Text, measuringFont);
+        float scale = DeviceDpi / AppSettings.BaseDpi;
+        int dwellSpace = (int)Math.Ceiling(7 * scale) + (int)Math.Ceiling(6 * scale) +
+            2 * (int)Math.Max(1, Math.Ceiling(scale)) + (int)Math.Ceiling(2 * scale);
+        return new Size(Math.Max(preferred.Width, text.Width + Padding.Horizontal + (int)Math.Ceiling(8 * scale)),
+            Math.Max(preferred.Height, text.Height + Padding.Vertical + 2 * dwellSpace));
     }
     /// <summary>更新呼叫端提供的共享字型，保留描述、回呼與正在進行的互動。</summary>
     internal void UpdateFeedbackFonts(Font regular, Font? bold)
@@ -265,6 +297,8 @@ public class FeedbackButton : Button
         if (disposing)
         {
             _configured = false;
+            ++_lifetimeVersion;
+            _formRegistration.Dispose();
             StopDwell();
             _regular = null;
             _bold = null;

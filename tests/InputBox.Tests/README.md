@@ -50,9 +50,9 @@
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
-| `ButtonFeedbackRenderingTests` | Standard／Latest 原生色彩、焦點與高對比按壓、Dwell 可見襯底與全進度、Space／滑鼠交錯、Capture 取消、生命週期、字型更新、過期點擊接合、三主題過渡、七語系／RTL | 52 |
+| `ButtonFeedbackRenderingTests` | Standard／Latest 原生色彩、焦點與高對比按壓、Dwell 可見襯底與全進度、Space／滑鼠交錯、Capture 取消、生命週期、字型更新、過期點擊接合、三主題過渡、七語系／RTL | 72 |
 | `BlinkFrameRenderingTests` | 實際螢幕非客戶區像素：Blink 完成／取消、有／無焦點還原；HWND、選取範圍及尺寸不變 | 4 |
-| **合計** | | **523** |
+| **合計** | | **543** |
 
 ## 二、執行方式 🚀
 
@@ -218,7 +218,7 @@ Dwell／Latest 交接：所有共用回饋按鈕改用 FeedbackButton，在還�
 
 ## Standard／Latest 正式整合（2026-11-15）
 
-`ButtonFeedbackRenderingTests` 現有 52 項需 `INPUTBOX_RUN_UI_TESTS=1` 的 UI 測試。一般／懸停／停用沿用原生 Standard，焦點、按壓、情境預設動作與 Dwell 使用必要疊層，不將系統強調色假設成藍色，不寫入 BackColor／ForeColor。按鈕沿用全域 Latest；高對比自動解析為 Classic。既有 Blink 還原及主題重啟提示保留。
+`ButtonFeedbackRenderingTests` 現有 72 項需 `INPUTBOX_RUN_UI_TESTS=1` 的 UI 測試。一般／懸停／停用沿用原生 Standard，焦點、按壓、情境預設動作與 Dwell 使用必要疊層，不將系統強調色假設成藍色，不寫入 BackColor／ForeColor。按鈕沿用全域 Latest；高對比自動解析為 Classic。既有 Blink 還原及主題重啟提示保留。
 
 Dwell 在 100% 時保留四邊可見襯底；測試直接量測實際填色像素與相鄰襯底，至少 3:1。淺色 Green／#DCDCDC 約 3.746:1，深色 LimeGreen／#3C3C3C 約 5.208:1；高對比配對 HighlightText／Highlight。文字採空／有／空三次繪圖排除裝飾，以主要墨色驗證一般文字 ≥4.5:1。停用不使用可操作文字的門檻，但需可辨識；空文字必須被檢查拒絕。
 
@@ -237,3 +237,7 @@ UI 程序必須可顯示自家視窗；測試以有界重試確認實際前景�
 PR #95 的 GitHub Runner 為 100%／96 DPI，Dwell 襯底只有 1px；舊測試從 (inset+1, top+1) 取樣時已進入填色，導致四項假失敗。正式繪圖無需修改，測試改從實際四邊襯底取樣；另可用 INPUTBOX_BUTTON_TEST_96DPI=1 啟動 DPI-unaware 的隔離按鈕測試程序，明確驗證 DeviceDpi=96 並重現 Runner 幾何條件。此為 96 DPI 渲染驗證，不代表已切換實際顯示器縮放。
 
 修正驗證：96 DPI 隔離按鈕完整 52/52；淺色 120 DPI、深色 96／120 DPI、高對比 96／120 DPI 的 Dwell 各 4/4。搭配完整 96 DPI 淺色測試，共覆蓋三主題與兩種渲染 DPI。建置 0 警告／0 錯誤，資訊層級診斷皆為空，高對比還原原值。
+
+PR #95 審查補強：新增 20 項（總數 543，UI 87、非 UI 456）。其中 6 項覆蓋滿格／停用 UI 特效後的生命週期取消、換權杖及 Dispose；14 項依訊息框 AutoSize 與最小尺寸規則量測七語系、預設／一般按鈕，逐像素確認部分與完整 Dwell 不遮住任何標題字形，且尺寸、Padding、Margin 與 HWND 不變。偏好尺寸在初始化量測時固定預留 Dwell 區域，保留原生 Latest 標題置中與動態強調色。
+
+審查修正本機驗證：淺色、深色及實際 Windows 高對比各 72/72；96 DPI 隔離渲染 72/72；實際關閉 Windows UI 特效後，滿格取消／換權杖／Dispose 共 6/6，高對比與 UI 特效皆已還原。完整本機 UI 82/87：5 項 FlaUI 選單／對話框操作失敗，失敗截圖顯示本機另有 pinentry 與觸控鍵盤，鍵盤遮住選單下方項目；保留失敗日誌，未略過或改寫這些測試，需以最新提交在乾淨 GitHub Runner 的完整 87 項結果確認。非 UI 另行完整重跑；Release 建置零警告零錯誤，資訊層級診斷報告皆為空。

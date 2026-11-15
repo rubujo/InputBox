@@ -1,5 +1,6 @@
 ﻿using InputBox.Core.Extensions;
 using InputBox.Core.Interop;
+using InputBox.Core.Services;
 using InputBox.Resources;
 using System.ComponentModel;
 using System.Globalization;
@@ -218,6 +219,7 @@ public sealed class ButtonFeedbackRenderingTests
         using Form other = new() { StartPosition = FormStartPosition.Manual, Location = new Point(850, 550), Size = new Size(100, 80) };
         if (!active) { other.Show(); other.Activate(); }
         Form target = active ? scene.Form : other;
+        _ = await WindowFocusService.RestoreWindowAsync(target.Handle, TestContext.Current.CancellationToken);
         for (int attempt = 0; attempt < 8; attempt++)
         {
             _ = User32.ShowWindow(target.Handle, User32.ShowWindowCommand.Restore);
@@ -291,6 +293,93 @@ public sealed class ButtonFeedbackRenderingTests
         Assert.Equal(0, scene.Button.Progress);
         AssertAmbient(scene.Button);
     });
+    /// <summary>滿格或停用 UI 特效後，取消仍須清除提示，換權杖及處置也不得殘留註冊。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, "cancel")][InlineData(false, "cancel")]
+    [InlineData(true, "rebind")][InlineData(false, "rebind")]
+    [InlineData(true, "dispose")][InlineData(false, "dispose")]
+    public void Interaction_CompletedDwellLifetime_ClearsWithoutTimer(bool isDefault, string action) => RunUi(isDefault, async scene =>
+    {
+        ProbeButton button = scene.Button;
+        button.EnterHover();
+        await WaitProgress(button, 1);
+        using CancellationTokenSource replacement = new();
+        CancellationTokenSource cancellation = scene.Lifetime;
+        if (action == "rebind")
+        {
+            button.AttachEyeTrackerFeedback("Replacement", scene.Regular, scene.Bold, replacement.Token);
+            await Task.Run(scene.Lifetime.Cancel, TestContext.Current.CancellationToken);
+            await Task.Delay(60);
+            Assert.Equal(1, button.Progress);
+            cancellation = replacement;
+        }
+        if (action == "dispose") { button.Dispose(); }
+        await Task.Run(cancellation.Cancel, TestContext.Current.CancellationToken);
+        for (int i = 0; i < 100 && button.Progress > 0; i++) { await Task.Delay(16); }
+        Assert.Equal(0, button.Progress);
+        if (!button.IsDisposed) { AssertAmbient(button); AssertText(button, 4.5); }
+    });
+
+    /// <summary>以訊息框的 AutoSize 與最小尺寸規則驗證七語系較矮按鈕，完整 Dwell 不得遮字或抖動。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, "zh-Hant")][InlineData(false, "zh-Hant")]
+    [InlineData(true, "en")][InlineData(false, "en")]
+    [InlineData(true, "de")][InlineData(false, "de")]
+    [InlineData(true, "fr")][InlineData(false, "fr")]
+    [InlineData(true, "ja")][InlineData(false, "ja")]
+    [InlineData(true, "ko")][InlineData(false, "ko")]
+    [InlineData(true, "zh-Hans")][InlineData(false, "zh-Hans")]
+    public void Render_MessageBoxSizedDwell_PreservesEveryCaptionPixel(bool isDefault, string culture) => RunUi(isDefault, async scene =>
+    {
+        ProbeButton button = scene.Button;
+        button.Text = Strings.ResourceManager.GetString("Btn_CopyDefault", new CultureInfo(culture))!;
+        button.Padding = Padding.Empty;
+        button.AutoSize = true;
+        float scale = button.DeviceDpi / 96f;
+        InputBox.Core.Utilities.DialogLayoutHelper.UpdateButtonMinimumSize(button, scene.Bold, scale, 88, 0, 24, 8);
+        button.Size = button.GetPreferredSize(Size.Empty);
+        button.AutoSize = false;
+        Size size = button.Size; Padding padding = button.Padding; Padding margin = button.Margin; nint handle = button.Handle;
+        button.EnterHover();
+        HashSet<Point> caption = GetCaptionPixels(button);
+        Assert.True(caption.Count > 10);
+        int trackTop = button.Height - (int)Math.Ceiling(7 * scale) - (int)Math.Ceiling(6 * scale) - 2 * (int)Math.Max(1, Math.Ceiling(scale));
+        Assert.True(caption.Max(point => point.Y) < trackTop, "原生標題與 Dwell 區域重疊。");
+        for (int phase = 0; phase < 2; phase++)
+        {
+            float progress = phase == 0 ? .4f : 1f;
+            await WaitProgress(button, progress);
+            Assert.True(caption.IsSubsetOf(GetCaptionPixels(button)), "Dwell 遮住部分標題像素。");
+            AssertText(button, 4.5); AssertAmbient(button);
+            Assert.Equal(size, button.Size); Assert.Equal(padding, button.Padding);
+            Assert.Equal(margin, button.Margin); Assert.Equal(handle, button.Handle);
+        }
+        using Bitmap image = Render(button);
+        Save(image, $"compact-{isDefault}-{culture}");
+    });
+
+    private static HashSet<Point> GetCaptionPixels(Button button)
+    {
+        string caption = button.Text;
+        button.Text = string.Empty; using Bitmap before = Render(button);
+        button.Text = caption; using Bitmap image = Render(button);
+        button.Text = string.Empty; using Bitmap after = Render(button);
+        button.Text = caption;
+        HashSet<Point> pixels = [];
+        for (int y = 0; y < button.Height; y++)
+        {
+            for (int x = 0; x < button.Width; x++)
+            {
+                int background = before.GetPixel(x, y).ToArgb();
+                if (background == after.GetPixel(x, y).ToArgb() && background != image.GetPixel(x, y).ToArgb())
+                {
+                    pixels.Add(new Point(x, y));
+                }
+            }
+        }
+        return pixels;
+    }
+
     private static void AssertAmbient(ProbeButton button)
     {
         Assert.Equal(FlatStyle.Standard, button.FlatStyle);
@@ -370,6 +459,7 @@ public sealed class ButtonFeedbackRenderingTests
                     {
                         _ = User32.ShowWindow(scene.Form.Handle, User32.ShowWindowCommand.Restore);
                         _ = User32.SetForegroundWindow(scene.Form.Handle);
+                        _ = await WindowFocusService.RestoreWindowAsync(scene.Form.Handle, TestContext.Current.CancellationToken);
                         scene.Form.Activate(); scene.Input.Focus(); await Task.Delay(40);
                         await action(scene);
                     }
