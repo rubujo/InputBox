@@ -175,7 +175,7 @@ internal sealed class HelpDialog : Form
             AutoSize = true,
             Anchor = AnchorStyles.Right,
             Margin = Padding.Empty, // 移除預設外距避免被底部面板裁切
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             AccessibleName = Strings.Help_Btn_Close,
             AccessibleRole = AccessibleRole.PushButton,
             DialogResult = DialogResult.Cancel,

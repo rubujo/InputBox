@@ -1,618 +1,414 @@
 ﻿using InputBox.Core.Extensions;
 using InputBox.Core.Interop;
-using System.Reflection;
+using InputBox.Resources;
+using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.ExceptionServices;
 using Xunit;
 
 namespace InputBox.Tests;
 
-/// <summary>
-/// 驗證 Latest 預設按鈕的實際像素與自訂互動配色一致，避免強調色覆寫背景。
-/// </summary>
+/// <summary>Standard／Latest 的原生表面、必要提示及完整互動交接像素驗證。</summary>
 [Collection(UiSmokeTestRequirements.CollectionName)]
 [Trait("Category", "UI")]
 public sealed class ButtonFeedbackRenderingTests
 {
-    /// <summary>
-    /// 在獨立測試程序中選擇淺色或深色，讓同一組像素檢查覆蓋兩種渲染路徑。
-    /// </summary>
     static ButtonFeedbackRenderingTests()
     {
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-        Application.SetColorMode(Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_TEST_DARK") == "1" ?
-            SystemColorMode.Dark : SystemColorMode.Classic);
+        Application.EnableVisualStyles();
+        Application.SetColorMode(Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_TEST_DARK") == "1" ? SystemColorMode.Dark : SystemColorMode.Classic);
+        Application.SetDefaultVisualStylesMode(VisualStylesMode.Latest);
     }
 
-    /// <summary>
-    /// 預設與一般按鈕的焦點、懸停、按下背景及文字應成對呈現，且互動不改變尺寸或內距。
-    /// </summary>
-    [Theory(Skip = "Requires explicit UI test opt-in.",
-        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
-    [InlineData(true, "focus")]
-    [InlineData(true, "hover")]
-    [InlineData(true, "pressed")]
-    [InlineData(false, "focus")]
-    [InlineData(false, "hover")]
-    [InlineData(false, "pressed")]
-    [InlineData(true, "focus-hover")]
-    [InlineData(false, "focus-hover")]
-    [InlineData(true, "keyboard-pressed")]
-    [InlineData(false, "keyboard-pressed")]
-    [InlineData(true, "keyboard-release")]
-    [InlineData(false, "keyboard-release")]
-    [InlineData(true, "keyboard-cancel")]
-    [InlineData(false, "keyboard-cancel")]
-    public void Render_InteractiveState_PreservesCustomContrast(bool isDefault, string state)
+    /// <summary>驗證預設與一般按鈕各互動狀態的實際文字、提示及按壓對比。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, "focus")][InlineData(false, "focus")]
+    [InlineData(true, "hover")][InlineData(false, "hover")]
+    [InlineData(true, "pressed")][InlineData(false, "pressed")]
+    [InlineData(true, "focus-hover")][InlineData(false, "focus-hover")]
+    [InlineData(true, "keyboard-pressed")][InlineData(false, "keyboard-pressed")]
+    [InlineData(true, "keyboard-release")][InlineData(false, "keyboard-release")]
+    [InlineData(true, "keyboard-cancel")][InlineData(false, "keyboard-cancel")]
+    public void Render_InteractiveState_PreservesContrast(bool isDefault, string state) => RunUi(isDefault, async scene =>
     {
-        RunSta(() =>
+        ProbeButton button = scene.Button;
+        bool hover = state is "hover" or "focus-hover";
+        bool pressed = state is "pressed" or "keyboard-pressed";
+        if (state != "hover") { Assert.True(button.Focus()); }
+        if (hover) { button.EnterHover(); }
+        if (state == "pressed") { button.PressMouse(); }
+        if (state.StartsWith("keyboard", StringComparison.Ordinal))
         {
-            using var form = new Form();
-            using var input = new TextBox();
-            using var bold = new Font(form.Font, FontStyle.Bold);
-            using var button = new FeedbackButton
+            button.PressSpace();
+            if (state == "keyboard-release") { button.ReleaseSpace(); }
+            if (state == "keyboard-cancel") { scene.Input.Focus(); button.Focus(); }
+        }
+        button.RefreshSystemColors();
+        await Task.Delay(50);
+        using Bitmap image = Render(button);
+        Color actualBack = image.GetPixel(25, 20);
+        AssertText(button, 4.5);
+        AssertAmbient(button);
+        Assert.Equal(!hover, button.Font.Bold);
+        if (!hover)
+        {
+            bool dark = button.IsDarkModeActive();
+            Color expectedBack = SystemInformation.HighContrast ? (pressed ? SystemColors.HighlightText : SystemColors.Highlight) :
+                pressed ? (dark ? Color.FromArgb(255, 200, 120) : Color.FromArgb(28, 28, 28)) : dark ? Color.White : Color.Black;
+            Assert.Equal(expectedBack.ToArgb(), actualBack.ToArgb());
+            double cue = Contrast(image.GetPixel(2, 20), image.GetPixel(0, 20));
+            double minimum = SystemInformation.HighContrast || pressed ? 3 : dark ? 11.16 : 16.75;
+            Assert.True(cue >= 3 && cue + .005 >= minimum);
+            if (pressed)
             {
-                Text = "Button text",
-                Bounds = new Rectangle(10, 50, 240, 90),
-                FlatStyle = FlatStyle.Flat,
-                VisualStylesMode = VisualStylesMode.Latest,
-                Padding = new Padding(7)
-            };
-            using var lifetime = new CancellationTokenSource();
-            form.Controls.AddRange([input, button]);
-            button.AttachEyeTrackerFeedback("Button", button.Font, bold, lifetime.Token);
-            if (isDefault)
-            {
-                form.AcceptButton = button;
+                double inner = Enumerable.Range(5, 6).Max(x => Contrast(actualBack, image.GetPixel(x, 20)));
+                Assert.True(inner >= 3, "按壓缺少可見內框，包括高對比。");
+                if (dark && !SystemInformation.HighContrast) { Assert.True(100 - TritanLightness(actualBack) >= 13); }
             }
+        }
+        else
+        {
+            double cue = Contrast(image.GetPixel(2, 20), image.GetPixel(0, 20));
+            double minimum = SystemInformation.HighContrast ? 3 : button.IsDarkModeActive() ? 7.2 : 8.14;
+            Assert.True(cue >= 3 && cue + .005 >= minimum);
+        }
+        Save(image, $"{isDefault}-{state}");
+    });
 
-            form.Show();
-            form.Activate();
-            Application.DoEvents();
-            input.Focus();
-            if (state == "focus")
+    /// <summary>驗證中性與停用狀態保留原生表面和可辨識文字。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, true)][InlineData(false, true)][InlineData(true, false)][InlineData(false, false)]
+    public void Render_NeutralAndDisabled_KeepNativeSurface(bool isDefault, bool enabled) => RunUi(isDefault, async scene =>
+    {
+        scene.Button.Enabled = enabled;
+        await Task.Delay(450);
+        AssertAmbient(scene.Button);
+        AssertText(scene.Button, enabled ? 4.5 : 1.5);
+    });
+
+    /// <summary>驗證預設動作提示與實際輸入焦點的情境色一致。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true)][InlineData(false)]
+    public void Render_DefaultAction_FollowsInputContext(bool strong) => RunUi(true, async scene =>
+    {
+        bool dark = scene.Button.IsDarkModeActive();
+        scene.Input.BackColor = strong ? (dark ? Color.White : Color.Black) : Color.Empty;
+        scene.Button.Invalidate();
+        await Task.Delay(30);
+        using Bitmap image = Render(scene.Button);
+        (Color border, Color backing) = ControlExtensions.GetContextualFocusColors(scene.Input.BackColor, dark);
+        Assert.Equal(border.ToArgb(), image.GetPixel(2, 20).ToArgb());
+        Assert.Equal(backing.ToArgb(), image.GetPixel(0, 20).ToArgb());
+        Assert.True(Contrast(image.GetPixel(2, 20), image.GetPixel(0, 20)) >= 3);
+        AssertAmbient(scene.Button);
+    });
+
+    /// <summary>驗證部分與完整 Dwell 皆保留可見襯底及足夠相鄰對比。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, false)][InlineData(false, false)][InlineData(true, true)][InlineData(false, true)]
+    public void Render_Dwell_HasVisibleBackingAtPartialAndFullProgress(bool isDefault, bool complete) => RunUi(isDefault, async scene =>
+    {
+        ProbeButton button = scene.Button;
+        int clicks = 0;
+        button.Click += (_, _) => clicks++;
+        button.EnterHover();
+        await WaitProgress(button, complete ? 1 : .4f);
+        using Bitmap image = Render(button);
+        float scale = button.DeviceDpi / 96f;
+        int inset = (int)Math.Ceiling(7 * scale);
+        int backing = (int)Math.Max(1, Math.Ceiling(scale));
+        int height = (int)Math.Ceiling(6 * scale) + 2 * backing;
+        int top = button.Height - inset - height;
+        Color track = image.GetPixel(inset + 1, top + 1);
+        bool dark = button.IsDarkModeActive();
+        Color fill = SystemInformation.HighContrast ? SystemColors.HighlightText : dark ? Color.LimeGreen : Color.Green;
+        Color expectedTrack = SystemInformation.HighContrast ? SystemColors.Highlight : dark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220);
+        Assert.Equal(expectedTrack.ToArgb(), track.ToArgb());
+        Assert.Equal(track.ToArgb(), image.GetPixel(inset + 1, top + height - 1).ToArgb());
+        int ink = 0;
+        for (int y = top + backing; y < top + height - backing; y++)
+        {
+            for (int x = inset + backing; x < inset + backing + 40; x++)
             {
-                Assert.True(button.Focus());
+                if (image.GetPixel(x, y).ToArgb() == fill.ToArgb()) { ink++; }
             }
-            else if (state == "hover")
+        }
+        Assert.True(ink > 20);
+        double ratio = Contrast(fill, track);
+        double minimum = SystemInformation.HighContrast ? 3 : dark ? 5.21 : 3.75;
+        Assert.True(ratio >= 3 && ratio + .005 >= minimum);
+        Assert.Equal(0, clicks);
+        AssertAmbient(button);
+        AssertText(button, 4.5);
+        Save(image, $"dwell-{isDefault}-{complete}");
+    });
+
+    /// <summary>驗證鍵盤與滑鼠交錯、Capture 取消及生命週期清理不殘留回饋。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, "space-leave")][InlineData(false, "space-leave")]
+    [InlineData(true, "pointer-space-release")][InlineData(false, "pointer-space-release")]
+    [InlineData(true, "capture")][InlineData(false, "capture")]
+    [InlineData(true, "disable")][InlineData(false, "disable")]
+    [InlineData(true, "cancel")][InlineData(false, "cancel")]
+    [InlineData(true, "reconfigure")][InlineData(false, "reconfigure")]
+    [InlineData(true, "lifetime")][InlineData(false, "lifetime")]
+    public void Interaction_InterleavingAndLifecycle_DoNotLeaveFeedback(bool isDefault, string action) => RunUi(isDefault, async scene =>
+    {
+        ProbeButton button = scene.Button;
+        if (action is "space-leave" or "pointer-space-release")
+        {
+            button.Focus(); button.PressSpace(); button.EnterHover();
+            if (action == "space-leave") { button.ExitHover(); }
+            else { button.Capture = true; button.PressMouse(); button.ReleaseMouse(); }
+            Assert.True(button.Pressed, "滑鼠狀態不應清除仍按住的 Space。");
+            button.ReleaseSpace();
+            Assert.False(button.Pressed);
+        }
+        else if (action == "capture")
+        {
+            button.EnterHover(); button.Capture = true;
+            Assert.True(button.Capture);
+            button.PressMouse(); Assert.True(button.Pressed);
+            button.Capture = false;
+            Assert.False(button.Pressed);
+            button.ReleaseMouse();
+        }
+        else
+        {
+            button.EnterHover(); await WaitProgress(button, .2f);
+            if (action == "disable")
             {
-                button.Hover();
-                Assert.NotEqual(form.BackColor, button.BackColor);
+                button.Enabled = false; Assert.Equal(0, button.Progress); Assert.False(button.Pressed);
+                button.Enabled = true; Assert.Equal(0, button.Progress);
+            }
+            else if (action == "cancel")
+            {
+                Task pending = button.CompleteClickAndReGazeAsync();
+                button.CancelDwellAnimation(); await pending; await Task.Delay(60);
+                Assert.Equal(0, button.Progress);
+            }
+            else if (action == "lifetime")
+            {
+                scene.Lifetime.Cancel(); await Task.Delay(60);
+                Assert.Equal(0, button.Progress);
             }
             else
             {
-                Assert.True(button.Focus());
-                if (state == "focus-hover")
-                {
-                    button.Hover();
-                }
-                else if (state.StartsWith("keyboard", StringComparison.Ordinal))
-                {
-                    button.PressSpace();
-                    if (state == "keyboard-release")
-                    {
-                        button.ReleaseSpace();
-                    }
-                    else if (state == "keyboard-cancel")
-                    {
-                        Assert.True(input.Focus());
-                        Assert.True(button.Focus());
-                    }
-                }
-                else
-                {
-                    button.Press();
-                }
-            }
-            bool hovered = state is "hover" or "focus-hover";
-            bool pressed = state is "pressed" or "keyboard-pressed";
-
-            button.BackColor = Color.Magenta;
-            button.ForeColor = Color.Magenta;
-            button.RefreshSystemColors();
-            Assert.NotEqual(Color.Magenta, button.BackColor);
-            if (!SystemInformation.HighContrast)
-            {
-                bool dark = button.IsDarkModeActive();
-                Color expectedBackground = pressed ? (dark ? Color.FromArgb(255, 200, 120) : Color.FromArgb(28, 28, 28)) :
-                    hovered ? (dark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220)) :
-                    (dark ? Color.White : Color.Black);
-                Assert.Equal(expectedBackground, button.BackColor);
-            }
-
-            using var bitmap = new Bitmap(button.Width, button.Height);
-            button.DrawToBitmap(bitmap, button.ClientRectangle);
-            string? artifacts = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
-            if (artifacts != null)
-            {
-                Directory.CreateDirectory(artifacts);
-                bitmap.Save(Path.Combine(artifacts, $"{isDefault}-{state}.png"));
-            }
-            Assert.Equal(button.BackColor.ToArgb(), bitmap.GetPixel(25, 20).ToArgb());
-            int textPixels = 0;
-            for (int y = 25; y < 65; y++)
-            {
-                for (int x = 35; x < 205; x++)
-                {
-                    if (bitmap.GetPixel(x, y).ToArgb() == button.ForeColor.ToArgb())
-                    {
-                        textPixels++;
-                    }
-                }
-            }
-
-            Color border = button.GetButtonInteractiveBorderColor(!hovered, button.IsDarkModeActive());
-            Assert.Equal(border.ToArgb(), bitmap.GetPixel(2, 20).ToArgb());
-            double borderMinimum = SystemInformation.HighContrast || pressed ? 3 :
-                !hovered ? (button.IsDarkModeActive() ? 11.16 : 16.75) :
-                (button.IsDarkModeActive() ? 7.2 : 8.14);
-            double borderContrast = Contrast(bitmap.GetPixel(2, 20), bitmap.GetPixel(0, 20));
-            Assert.True(borderContrast >= 3 && borderContrast + 0.005 >= borderMinimum);
-            Assert.Equal(!hovered, button.Font.Bold);
-            if (pressed && button.IsDarkModeActive() && !SystemInformation.HighContrast)
-            {
-                double red = LinearComponent(button.BackColor.R);
-                double green = LinearComponent(button.BackColor.G);
-                double tritanLuminance = (red * 0.2126 + green * 0.7152) / 0.9278;
-                double lightness = 116 * Math.Cbrt(tritanLuminance) - 16;
-                Assert.True(100 - lightness >= 13);
-            }
-            Assert.True(Contrast(button.BackColor, button.ForeColor) >= 4.5);
-            Assert.True(textPixels > 10, "自訂文字色沒有實際繪製到按鈕。");
-            Assert.Equal(new Padding(7), button.Padding);
-            Assert.Equal(new Size(240, 90), button.Size);
-            Assert.Equal(SystemInformation.HighContrast ? VisualStylesMode.Classic : VisualStylesMode.Latest, button.ResolvedMode);
-            lifetime.Cancel();
-        });
-    }
-
-    /// <summary>
-    /// 回饋結束後必須還原環境配色，不得留下硬編碼顏色或破壞主題渲染。
-    /// </summary>
-    [Theory(Skip = "Requires explicit UI test opt-in.",
-        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void Render_AfterMouseLeave_RestoresAmbientColors(bool isDefault)
-    {
-        RunSta(() =>
-        {
-            using var form = new Form();
-            using var input = new TextBox();
-            using var button = new FeedbackButton
-            {
-                Text = "Button text", Bounds = new Rectangle(10, 50, 240, 90),
-                FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
-            };
-            using var lifetime = new CancellationTokenSource();
-            form.Controls.AddRange([input, button]);
-            button.AttachEyeTrackerFeedback("Button", null, null, lifetime.Token);
-            if (isDefault)
-            {
-                form.AcceptButton = button;
-            }
-
-            form.Show();
-            form.Activate();
-            Application.DoEvents();
-            input.Focus();
-            button.Press();
-            button.ExitHover();
-            Assert.Equal(form.BackColor, button.BackColor);
-            Assert.Equal(form.ForeColor, button.ForeColor);
-            CheckNeutralRendering(button, isDefault);
-            button.Enabled = false;
-            CheckNeutralRendering(button, isDefault);
-            lifetime.Cancel();
-        });
-    }
-
-    /// <summary>
-    /// 預設動作邊框須跟隨輸入框反轉／中性背景，並在實際相鄰襯底達到專案對比目標。
-    /// </summary>
-    [Theory(Skip = "Requires explicit UI test opt-in.",
-        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void Render_DefaultAction_MatchesInputContextWithContrast(bool strong)
-    {
-        RunSta(() =>
-        {
-            bool dark = Application.IsDarkModeEnabled;
-            Color contextColor = strong ? (dark ? Color.White : Color.Black) :
-                (dark ? Color.FromArgb(60, 60, 60) : Color.FromArgb(220, 220, 220));
-            using var form = new Form();
-            using var input = new TextBox { BackColor = contextColor };
-            using var button = new FeedbackButton
-            {
-                Text = "Button text", Bounds = new Rectangle(10, 50, 240, 90),
-                FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
-            };
-            using var lifetime = new CancellationTokenSource();
-            form.Controls.AddRange([input, button]);
-            form.AcceptButton = button;
-            button.AttachEyeTrackerFeedback("Button", null, null, lifetime.Token);
-            form.Show();
-            Assert.True(input.Focus());
-            Assert.Same(input, form.ActiveControl);
-            Color expected = SystemInformation.HighContrast ? SystemColors.Highlight :
-                strong ? (dark ? Color.MediumBlue : Color.Cyan) :
-                (dark ? Color.LightBlue : Color.MediumBlue);
-            using var bitmap = new Bitmap(button.Width, button.Height);
-            button.DrawToBitmap(bitmap, button.ClientRectangle);
-            Assert.Equal(expected.ToArgb(), bitmap.GetPixel(2, 20).ToArgb());
-            double minimum = SystemInformation.HighContrast ? 3 :
-                strong ? (dark ? 11.16 : 16.75) : (dark ? 7.2 : 8.14);
-            double contrast = Contrast(bitmap.GetPixel(2, 20), bitmap.GetPixel(0, 20));
-            Assert.True(contrast >= 3 && contrast + 0.005 >= minimum, $"預設動作邊框對比不足：{contrast:F3} < {minimum}");
-            Assert.Equal(new Size(240, 90), button.Size);
-            string? artifacts = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
-            if (artifacts != null)
-            {
-                Directory.CreateDirectory(artifacts);
-                bitmap.Save(Path.Combine(artifacts, $"default-context-{strong}.png"));
-                File.AppendAllText(Path.Combine(artifacts, "contrast.txt"), $"default strong={strong}, dpi={button.DeviceDpi}: {contrast:F3}:1{Environment.NewLine}");
-            }
-            lifetime.Cancel();
-        });
-    }
-
-    /// <summary>
-    /// 凝視進度條須依實際底色選用 Green／LimeGreen，保留色覺紋理並達至少 3:1。
-    /// </summary>
-    [Theory(Skip = "Requires explicit UI test opt-in.",
-        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    public void Render_Dwell_UsesActualBackgroundWithNonTextContrast(int palette)
-    {
-        RunSta(() =>
-        {
-            Color[] backgrounds = [Color.White, Color.Black, Color.FromArgb(220, 220, 220), Color.FromArgb(60, 60, 60)];
-            using var form = new Form();
-            using var input = new TextBox();
-            using var button = new FeedbackButton
-            {
-                Text = "Button text", Bounds = new Rectangle(10, 50, 240, 90),
-                FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
-            };
-            using var lifetime = new CancellationTokenSource();
-            form.Controls.AddRange([input, button]);
-            button.AttachEyeTrackerFeedback("Button", null, null, lifetime.Token);
-            form.Show();
-            input.Focus();
-            button.Hover();
-            button.CancelDwellAnimation();
-            button.BackColor = SystemInformation.HighContrast ? SystemColors.Highlight : backgrounds[palette];
-            button.SetProgress(0.5f);
-            using var bitmap = new Bitmap(button.Width, button.Height);
-            button.DrawToBitmap(bitmap, button.ClientRectangle);
-            Color fill = SystemInformation.HighContrast ? SystemColors.HighlightText :
-                palette is 0 or 2 ? Color.Green : Color.LimeGreen;
-            Color texture = palette is 0 or 2 ? Color.PaleGreen : Color.DarkGreen;
-            int fillPixels = 0;
-            int texturePixels = 0;
-            for (int y = button.Height - 5; y < button.Height; y++)
-            {
-                for (int x = 10; x < 110; x++)
-                {
-                    Color actual = bitmap.GetPixel(x, y);
-                    int pixel = actual.ToArgb();
-                    if (pixel == fill.ToArgb())
-                    {
-                        fillPixels++;
-                    }
-                    if (pixel != fill.ToArgb() && IsTextureBlend(actual, fill, texture))
-                    {
-                        texturePixels++;
-                    }
-                }
-            }
-            string? debugArtifacts = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
-            if (debugArtifacts != null)
-            {
-                Directory.CreateDirectory(debugArtifacts);
-                bitmap.Save(Path.Combine(debugArtifacts, $"dwell-{palette}.png"));
-            }
-            Assert.True(fillPixels > 100);
-            Assert.True(SystemInformation.HighContrast || texturePixels > 20);
-            double contrast = Contrast(fill, bitmap.GetPixel(25, 20));
-            double[] targets = [5.14, 9.91, 3.75, 5.21];
-            Assert.True(contrast >= 3 && contrast + 0.005 >= (SystemInformation.HighContrast ? 3 : targets[palette]), $"進度條對比不足：{contrast:F3}");
-            string? artifacts = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
-            if (artifacts != null)
-            {
-                Directory.CreateDirectory(artifacts);
-                bitmap.Save(Path.Combine(artifacts, $"dwell-{palette}.png"));
-                File.AppendAllText(Path.Combine(artifacts, "contrast.txt"), $"dwell palette={palette}: {contrast:F3}:1{Environment.NewLine}");
-            }
-            lifetime.Cancel();
-        });
-    }
-    /// <summary>
-    /// 沒有文字的停用按鈕即使保有斜線裝飾，也必須被文字檢查拒絕。
-    /// </summary>
-    [Fact(Skip = "Requires explicit UI test opt-in.",
-        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
-    public void Render_DisabledWithoutText_DoesNotPassTextCheck()
-    {
-        RunSta(() =>
-        {
-            using var form = new Form();
-            using var button = new FeedbackButton
-            {
-                Text = string.Empty, Bounds = new Rectangle(10, 50, 240, 90),
-                Enabled = false, FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
-            };
-            using var lifetime = new CancellationTokenSource();
-            form.Controls.Add(button);
-            button.AttachEyeTrackerFeedback("Button", null, null, lifetime.Token);
-            form.Show();
-            Assert.Throws<Xunit.Sdk.TrueException>(() => CheckNeutralRendering(button, false));
-            lifetime.Cancel();
-        });
-    }
-    /// <summary>
-    /// 確認一般及停用狀態仍由 Latest 繪製可辨識文字，並保留實際像素供人工檢視。
-    /// </summary>
-    private static void CheckNeutralRendering(Button button, bool isDefault)
-    {
-        string caption = button.Text;
-        button.Text = string.Empty;
-        using var baseline = new Bitmap(button.Width, button.Height);
-        button.DrawToBitmap(baseline, button.ClientRectangle);
-        button.Text = caption;
-        using var bitmap = new Bitmap(button.Width, button.Height);
-        button.DrawToBitmap(bitmap, button.ClientRectangle);
-        button.Text = string.Empty;
-        using var after = new Bitmap(button.Width, button.Height);
-        button.DrawToBitmap(after, button.ClientRectangle);
-        button.Text = caption;
-        int textPixels = 0;
-        Color background = bitmap.GetPixel(25, 20);
-        double contrast = 1;
-        for (int y = 30; y < 60; y++)
-        {
-            for (int x = 35; x < 205; x++)
-            {
-                Color pixel = bitmap.GetPixel(x, y);
-                if (baseline.GetPixel(x, y).ToArgb() == after.GetPixel(x, y).ToArgb() &&
-                    pixel.ToArgb() != baseline.GetPixel(x, y).ToArgb())
-                {
-                    textPixels++;
-                    contrast = Math.Max(contrast, Contrast(background, pixel));
-                }
+                float progress = button.Progress;
+                button.AttachEyeTrackerFeedback("Updated", scene.Regular, scene.Bold, scene.Lifetime.Token);
+                button.UpdateEyeTrackerFonts(scene.Regular, scene.Bold);
+                button.RefreshSystemColors(); await Task.Delay(25);
+                Assert.True(button.Progress >= progress, "更新字型或系統色不應重新開始凝視。");
+                Assert.Contains("Updated", button.AccessibleDescription);
             }
         }
+        AssertAmbient(button);
+        AssertText(button, 4.5);
+    });
 
-        Assert.True(textPixels > 10, "排除裝飾後未找到文字像素。");
-        Assert.True(contrast >= (button.Enabled ? 4.5 : 1.5), $"按鈕文字無法辨識：contrast={contrast}");
-        string? artifacts = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
-        if (artifacts != null)
+    /// <summary>逐幀驗證視窗有無焦點時懸停過渡的對比與版面不變。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, true)][InlineData(true, false)][InlineData(false, true)][InlineData(false, false)]
+    public void Render_Transition_EverySamplePreservesContrastAndGeometry(bool isDefault, bool active) => RunUi(isDefault, async scene =>
+    {
+        ProbeButton button = scene.Button;
+        using Form other = new() { StartPosition = FormStartPosition.Manual, Location = new Point(850, 550), Size = new Size(100, 80) };
+        if (!active) { other.Show(); other.Activate(); }
+        Form target = active ? scene.Form : other;
+        for (int attempt = 0; attempt < 8; attempt++)
         {
-            Directory.CreateDirectory(artifacts);
-            bitmap.Save(Path.Combine(artifacts, $"{isDefault}-enabled-{button.Enabled}.png"));
-        }
-    }
-    /// <summary>
-    /// HatchBrush 在 DPI 縮放時會混合紋理與填色，檢查實際像素仍落於指定色對的範圍。
-    /// </summary>
-    private static bool IsTextureBlend(Color pixel, Color fill, Color texture)
-    {
-        static bool Between(byte value, byte first, byte second) =>
-            value >= Math.Min(first, second) && value <= Math.Max(first, second);
-        return Between(pixel.R, fill.R, texture.R) &&
-            Between(pixel.G, fill.G, texture.G) && Between(pixel.B, fill.B, texture.B);
-    }
-    /// <summary>
-    /// 取得 sRGB 分量的線性值，供色覺友善的按下亮度差驗證使用。
-    /// </summary>
-    private static double LinearComponent(byte component)
-    {
-        double value = component / 255.0;
-        return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
-    }
-    /// <summary>逐幀檢查 Dwell 進出與未啟用視窗的配色，不能只等原生動畫完成再驗證。</summary>
-    [Theory(Skip = "Requires explicit UI test opt-in.",
-        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
-    public void Render_DwellHandoff_PreservesEveryFrame(bool isDefault, bool active)
-    {
-        RunSta(() =>
-        {
-            using var form = new Form { ClientSize = new Size(300, 200), TopMost = true };
-            using var input = new TextBox { Top = 150 };
-            using var button = new FeedbackButton
-            {
-                Text = "Button text", Bounds = new Rectangle(10, 30, 240, 90),
-                FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
-            };
-            using var lifetime = new CancellationTokenSource();
-            form.Controls.AddRange([input, button]);
-            button.AttachEyeTrackerFeedback("Button", button.Font, null, lifetime.Token);
-            if (isDefault)
-            {
-                form.AcceptButton = button;
-            }
-            Exception? frameFailure = null;
-            form.Shown += (_, _) =>
-            {
-                try
-                {
-            form.Activate();
-            input.Focus();
-            using var other = new Form { Location = new Point(850, 500), Size = new Size(100, 80) };
-            if (!active)
-            {
-                other.Show();
-                other.Activate();
-            }
-            Form target = active ? form : other;
             _ = User32.ShowWindow(target.Handle, User32.ShowWindowCommand.Restore);
             _ = User32.SetForegroundWindow(target.Handle);
             target.Activate();
-            Settle(500);
-            if (active)
-            {
-                Assert.Same(form, Form.ActiveForm);
-            }
-            else
-            {
-                Assert.NotSame(form, Form.ActiveForm);
-            }
-            using var expected = new Bitmap(button.Width, button.Height);
-            button.DrawToBitmap(expected, button.ClientRectangle);
-            Color neutralBack = expected.GetPixel(25, 20);
-            Color neutralBorder = expected.GetPixel(2, 20);
-            Size size = button.Size;
-            Padding padding = button.Padding;
-            nint handle = button.Handle;
-            button.EnterHover();
+            await Task.Delay(60);
+            if ((Form.ActiveForm == scene.Form) == active) { break; }
+        }
+        Assert.Equal(active, Form.ActiveForm == scene.Form);
+        Size size = button.Size; Padding padding = button.Padding; Padding margin = button.Margin; nint handle = button.Handle;
+        for (int phase = 0; phase < 4; phase++)
+        {
+            if (phase is 0 or 2) { button.EnterHover(); } else { button.ExitHover(); }
             for (int i = 0; i < 25; i++)
             {
-                Settle(16);
-                using var hover = new Bitmap(button.Width, button.Height);
-                button.DrawToBitmap(hover, button.ClientRectangle);
-                Assert.Equal(button.BackColor.ToArgb(), hover.GetPixel(25, 20).ToArgb());
-                Assert.True(Contrast(hover.GetPixel(25, 20), button.ForeColor) >= 4.5);
-                int ink = 0;
-                for (int y = 25; y < 65; y++)
+                AssertText(button, 4.5);
+                AssertAmbient(button);
+                Assert.Equal(size, button.Size); Assert.Equal(padding, button.Padding);
+                Assert.Equal(margin, button.Margin); Assert.Equal(handle, button.Handle);
+                if (isDefault || phase is 0 or 2)
                 {
-                    for (int x = 35; x < 205; x++)
-                    {
-                        if (hover.GetPixel(x, y).ToArgb() == button.ForeColor.ToArgb())
-                        {
-                            ink++;
-                        }
-                    }
+                    using Bitmap image = Render(button);
+                    Assert.True(Contrast(image.GetPixel(2, 20), image.GetPixel(0, 20)) >= 3);
                 }
-                Assert.True(ink > 10, "懸停文字未以配對前景色繪製。");
-                Assert.True(Contrast(hover.GetPixel(2, 20), hover.GetPixel(0, 20)) >= 3);
+                await Task.Delay(16);
             }
-            button.ExitHover();
-            for (int i = 0; i < 40; i++)
-            {
-                Application.DoEvents();
-                using var frame = new Bitmap(button.Width, button.Height);
-                button.DrawToBitmap(frame, button.ClientRectangle);
-                Assert.True(neutralBack.ToArgb() == frame.GetPixel(25, 20).ToArgb(), $"frame={i}; expected={neutralBack}; actual={frame.GetPixel(25, 20)}; back={button.BackColor}; fore={button.ForeColor}; active={form.ActiveControl?.GetType().Name}; default={button.NativeDefault}");
-                Assert.Equal(neutralBorder.ToArgb(), frame.GetPixel(2, 20).ToArgb());
-                CheckNeutralRendering(button, isDefault);
-                if (isDefault)
-                {
-                    Assert.True(Contrast(frame.GetPixel(2, 20), frame.GetPixel(0, 20)) >= 3);
-                }
-                Assert.Equal(size, button.Size);
-                Assert.Equal(padding, button.Padding);
-                Assert.Equal(handle, button.Handle);
-                Assert.False(button.Focused);
-                Settle(16);
-            }
-            lifetime.Cancel();
-            other.Close();
-                }
-                catch (Exception ex)
-                {
-                    frameFailure = ex;
-                }
-                finally
-                {
-                    form.Close();
-                }
-            };
-            Application.Run(form);
-            if (frameFailure != null)
-            {
-                ExceptionDispatchInfo.Capture(frameFailure).Throw();
-            }
-        });
-
-        static void Settle(int milliseconds)
-        {
-            long start = Environment.TickCount64;
-            do
-            {
-                Application.DoEvents();
-                Thread.Sleep(1);
-            } while (Environment.TickCount64 - start < milliseconds);
         }
-    }
-    /// <summary>
-    /// 以 WCAG 相對亮度檢查實際文字與背景的對比，不以色彩名稱推測可讀性。
-    /// </summary>
-    private static double Contrast(Color background, Color foreground)
+        other.Close();
+    });
+
+    /// <summary>驗證文字量測會拒絕空標題，避免僅量到裝飾的假陽性。</summary>
+    [Fact(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    public void Render_EmptyCaption_DoesNotPassTextCheck() => RunUi(false, scene =>
     {
-        static double Linear(byte component)
-        {
-            double value = component / 255.0;
-            return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
-        }
+        scene.Button.Enabled = false; scene.Button.Text = string.Empty;
+        Assert.Throws<Xunit.Sdk.TrueException>(() => AssertText(scene.Button, 1.5));
+        return Task.CompletedTask;
+    });
 
-        static double Luminance(Color color) =>
-            0.2126 * Linear(color.R) + 0.7152 * Linear(color.G) + 0.0722 * Linear(color.B);
-        double back = Luminance(background);
-        double fore = Luminance(foreground);
-        return (Math.Max(back, fore) + 0.05) / (Math.Min(back, fore) + 0.05);
+    /// <summary>驗證七語系及左右文字方向下的實際文字對比與內距。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData("zh-Hant")][InlineData("en")][InlineData("de")][InlineData("fr")][InlineData("ja")][InlineData("ko")][InlineData("zh-Hans")]
+    public void Render_LocalizedAndRtlCaption_PreservesTextAndPadding(string culture) => RunUi(true, async scene =>
+    {
+        scene.Button.Text = Strings.ResourceManager.GetString("Btn_CopyDefault", new CultureInfo(culture))!;
+        Assert.False(string.IsNullOrWhiteSpace(scene.Button.Text));
+        Padding original = scene.Button.Padding;
+        foreach (RightToLeft rtl in new[] { RightToLeft.No, RightToLeft.Yes })
+        {
+            scene.Button.RightToLeft = rtl; scene.Button.Focus();
+            await Task.Delay(30); AssertText(scene.Button, 4.5);
+            Assert.Equal(original, scene.Button.Padding); AssertAmbient(scene.Button);
+            scene.Input.Focus();
+        }
+    });
+
+    /// <summary>驗證舊點擊的非同步重新接合不能覆寫新懸停狀態。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.", SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true)][InlineData(false)]
+    public void Interaction_StaleClickRegaze_DoesNotReplaceNewHover(bool isDefault) => RunUi(isDefault, async scene =>
+    {
+        List<bool> notifications = [];
+        scene.Button.AttachEyeTrackerFeedback("Button", scene.Regular, scene.Bold, scene.Lifetime.Token, notifications.Add);
+        Task oldClick = scene.Button.CompleteClickAndReGazeAsync();
+        scene.Button.EnterHover();
+        await oldClick;
+        await WaitProgress(scene.Button, .1f);
+        Assert.True(notifications[^1]);
+        scene.Button.ExitHover();
+        Assert.False(notifications[^1]);
+        Assert.Equal(0, scene.Button.Progress);
+        AssertAmbient(scene.Button);
+    });
+    private static void AssertAmbient(ProbeButton button)
+    {
+        Assert.Equal(FlatStyle.Standard, button.FlatStyle);
+        Assert.False(TypeDescriptor.GetProperties(button)[nameof(button.BackColor)]!.ShouldSerializeValue(button));
+        Assert.False(TypeDescriptor.GetProperties(button)[nameof(button.ForeColor)]!.ShouldSerializeValue(button));
+        Assert.Equal(SystemInformation.HighContrast ? VisualStylesMode.Classic : VisualStylesMode.Latest, button.ResolvedMode);
     }
-    /// <summary>
-    /// 將 WinForms 驗證隔離於 STA，並將背景執行緒的實際失敗傳回測試執行緒。
-    /// </summary>
-    private static void RunSta(Action action)
+
+    private static Bitmap Render(Button button)
+    {
+        Bitmap image = new(button.Width, button.Height);
+        button.DrawToBitmap(image, button.ClientRectangle);
+        return image;
+    }
+
+    private static void AssertText(Button button, double minimum)
+    {
+        string caption = button.Text;
+        button.Text = string.Empty; using Bitmap before = Render(button);
+        button.Text = caption; using Bitmap image = Render(button);
+        button.Text = string.Empty; using Bitmap after = Render(button);
+        button.Text = caption;
+        Dictionary<int, int> colors = [];
+        for (int y = button.Height / 4; y < button.Height * 3 / 4; y++)
+        {
+            for (int x = 25; x < button.Width - 25; x++)
+            {
+                int pixel = image.GetPixel(x, y).ToArgb();
+                if (before.GetPixel(x, y).ToArgb() != after.GetPixel(x, y).ToArgb() || pixel == before.GetPixel(x, y).ToArgb()) { continue; }
+                colors.TryGetValue(pixel, out int count); colors[pixel] = count + 1;
+            }
+        }
+        Assert.True(colors.Values.Sum() > 10, "沒有找到實際文字墨色。");
+        Color ink = Color.FromArgb(colors.MaxBy(pair => pair.Value).Key);
+        double ratio = Contrast(image.GetPixel(25, 20), ink);
+        Assert.True(ratio >= minimum, $"文字對比 {ratio:F3} < {minimum}");
+    }
+
+    private static async Task WaitProgress(ProbeButton button, float minimum)
+    {
+        for (int i = 0; i < 200 && button.Progress < minimum; i++) { await Task.Delay(16); }
+        Assert.True(button.Progress >= minimum, "Dwell 未到達驗證進度。");
+    }
+
+    private static double Contrast(Color a, Color b)
+    {
+        static double Linear(byte value) { double s = value / 255.0; return s <= .04045 ? s / 12.92 : Math.Pow((s + .055) / 1.055, 2.4); }
+        static double Lum(Color c) => .2126 * Linear(c.R) + .7152 * Linear(c.G) + .0722 * Linear(c.B);
+        double first = Lum(a); double second = Lum(b);
+        return (Math.Max(first, second) + .05) / (Math.Min(first, second) + .05);
+    }
+
+    private static double TritanLightness(Color c)
+    {
+        static double Linear(byte v) { double s = v / 255.0; return s <= .04045 ? s / 12.92 : Math.Pow((s + .055) / 1.055, 2.4); }
+        return 116 * Math.Cbrt((.2126 * Linear(c.R) + .7152 * Linear(c.G)) / .9278) - 16;
+    }
+
+    private static void Save(Bitmap image, string name)
+    {
+        string? path = Environment.GetEnvironmentVariable("INPUTBOX_BUTTON_ARTIFACTS");
+        if (path is null) { return; }
+        Directory.CreateDirectory(path); image.Save(Path.Combine(path, name + ".png"));
+    }
+
+    private static void RunUi(bool isDefault, Func<Scene, Task> action)
     {
         Exception? failure = null;
-        var thread = new Thread(() =>
+        Thread thread = new(() =>
         {
             try
             {
-                action();
+                using Scene scene = new(isDefault);
+                scene.Form.Shown += async (_, _) =>
+                {
+                    try
+                    {
+                        _ = User32.ShowWindow(scene.Form.Handle, User32.ShowWindowCommand.Restore);
+                        _ = User32.SetForegroundWindow(scene.Form.Handle);
+                        scene.Form.Activate(); scene.Input.Focus(); await Task.Delay(40);
+                        await action(scene);
+                    }
+                    catch (Exception ex) { failure = ex; }
+                    finally { scene.Form.Close(); }
+                };
+                Application.Run(scene.Form);
             }
-            catch (Exception ex)
-            {
-                failure = ex;
-            }
+            catch (Exception ex) { failure = ex; }
         });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        if (failure != null)
-        {
-            ExceptionDispatchInfo.Capture(failure).Throw();
-        }
+        thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join();
+        if (failure is not null) { ExceptionDispatchInfo.Capture(failure).Throw(); }
     }
 
-    /// <summary>
-    /// 僅在測試控制項本身觸發事件，不向任何其他視窗模擬輸入。
-    /// </summary>
-    private sealed class FeedbackButton : InputBox.Core.Controls.FeedbackButton
+    private sealed class Scene : IDisposable
     {
-        public VisualStylesMode ResolvedMode => EffectiveVisualStylesMode;
-        public bool NativeDefault => IsDefault;
-        public void Hover()
+        internal Form Form { get; } = new() { ClientSize = new Size(410, 250), StartPosition = FormStartPosition.Manual, Location = new Point(10, 10), TopMost = true };
+        internal TextBox Input { get; } = new() { Bounds = new Rectangle(10, 195, 280, 30) };
+        internal ProbeButton Button { get; } = new() { Text = "Button text", Bounds = new Rectangle(10, 50, 370, 120), Padding = new Padding(7) };
+        internal Font Regular { get; } = new("Segoe UI", 18);
+        internal Font Bold { get; } = new("Segoe UI", 18, FontStyle.Bold);
+        internal CancellationTokenSource Lifetime { get; } = new();
+        internal Scene(bool isDefault)
         {
-            // 僅驗證繪製：不依賴 Windows 是否允許測試主機搶到前景。
-            object table = typeof(ButtonEyeTrackerExtensions).GetField("_buttonStates", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
-            object?[] args = [this, null];
-            table.GetType().GetMethod("TryGetValue")!.Invoke(table, args);
-            object state = args[1]!;
-            state.GetType().GetProperty("IsHovered")!.SetValue(state, true);
-            typeof(ButtonEyeTrackerExtensions).GetMethod("StartAnimationFeedback", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [this]);
+            Button.Font = Regular; Form.Controls.AddRange([Input, Button]);
+            Button.AttachEyeTrackerFeedback("Button", Regular, Bold, Lifetime.Token);
+            if (isDefault) { Form.AcceptButton = Button; }
+            if (Form.Bounds.Contains(Cursor.Position)) { Form.Location = new Point(30, 450); }
         }
-        public void SetProgress(float progress)
-        {
-            object table = typeof(ButtonEyeTrackerExtensions).GetField("_buttonStates", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
-            object?[] args = [this, null];
-            table.GetType().GetMethod("TryGetValue")!.Invoke(table, args);
-            args[1]!.GetType().GetProperty("DwellProgress")!.SetValue(args[1], progress);
-        }
-        public void PressSpace() => OnKeyDown(new KeyEventArgs(Keys.Space));
-        public void ReleaseSpace() => OnKeyUp(new KeyEventArgs(Keys.Space));
-        public void RefreshSystemColors() => OnSystemColorsChanged(EventArgs.Empty);
-        public void Press() => OnMouseDown(new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
-        public void EnterHover() => OnMouseEnter(EventArgs.Empty);
-        public void ExitHover() => OnMouseLeave(EventArgs.Empty);
+        public void Dispose() { Lifetime.Cancel(); Form.Dispose(); Lifetime.Dispose(); Regular.Dispose(); Bold.Dispose(); }
+    }
+
+    private sealed class ProbeButton : InputBox.Core.Controls.FeedbackButton
+    {
+        internal VisualStylesMode ResolvedMode => EffectiveVisualStylesMode;
+        internal void EnterHover() => OnMouseEnter(EventArgs.Empty);
+        internal void ExitHover() => OnMouseLeave(EventArgs.Empty);
+        internal void PressMouse() => OnMouseDown(new MouseEventArgs(MouseButtons.Left, 1, 30, 30, 0));
+        internal void ReleaseMouse() => OnMouseUp(new MouseEventArgs(MouseButtons.Left, 1, 30, 30, 0));
+        internal void PressSpace() => OnKeyDown(new KeyEventArgs(Keys.Space));
+        internal void ReleaseSpace() => OnKeyUp(new KeyEventArgs(Keys.Space));
+        internal void RefreshSystemColors() => OnSystemColorsChanged(EventArgs.Empty);
     }
 }

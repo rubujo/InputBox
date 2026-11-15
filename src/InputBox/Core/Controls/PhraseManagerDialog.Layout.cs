@@ -127,7 +127,7 @@ internal sealed partial class PhraseManagerDialog
         {
             Text = ControlExtensions.GetMnemonicText(text, mnemonic),
             AutoSize = true,
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             AccessibleName = text,
             AccessibleDescription = a11yDesc,
             AccessibleRole = AccessibleRole.PushButton,

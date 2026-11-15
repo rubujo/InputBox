@@ -50,9 +50,9 @@
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
-| `ButtonFeedbackRenderingTests` | Latest 預設／一般按鈕實際文字與背景、焦點／預設動作同步及對比襯底、四種底色進度條與色覺紋理、粗體、按下亮度差、零抖動與配色還原、焦點懸停組合、Space 按放／失焦、空文字反例與 Dwell 交接逐幀對比 | 27 |
+| `ButtonFeedbackRenderingTests` | Standard／Latest 原生色彩、焦點與高對比按壓、Dwell 可見襯底與全進度、Space／滑鼠交錯、Capture 取消、生命週期、字型更新、過期點擊接合、三主題過渡、七語系／RTL | 52 |
 | `BlinkFrameRenderingTests` | 實際螢幕非客戶區像素：Blink 完成／取消、有／無焦點還原；HWND、選取範圍及尺寸不變 | 4 |
-| **合計** | | **498** |
+| **合計** | | **523** |
 
 ## 二、執行方式 🚀
 
@@ -179,7 +179,7 @@ UI 測試宿主在啟動 UIA 前使用 Application.SetHighDpiMode(PerMonitorV2)�
 
 合規查核（2026-11-14）：以可執行 JavaScript 的官方頁面確認 FFXIV 使用者合約、USERJOY 使用條款與隱私政策，並讀取第三方授權及免責聲明。此次輸入相關來源僅清理多餘初值、索引與必要回呼參數名稱，保持既有剪貼簿輸出邊界與控制器行為。
 
-## .NET 11 Latest 按鈕配色回歸（2026-11-14）
+## 歷史：.NET 11 Latest 按鈕配色回歸（2026-11-14，Standard 整合前）
 
 `ButtonFeedbackRenderingTests` 是需 `INPUTBOX_RUN_UI_TESTS=1` 才執行的 27 項 UI 測試。它以實際點陣圖檢查預設／一般按鈕的焦點、懸停、按下背景、文字及焦點邊框，並檢查文字對比至少 4.5:1、尺寸／內距不變，以及回饋結束後的一般／停用外觀。停用狀態只檢查文字仍可辨識，不套用一般可操作文字的 4.5:1 門檻。
 
@@ -215,3 +215,21 @@ Dwell／Latest 交接：所有共用回饋按鈕改用 FeedbackButton，在還�
 新增四組逐幀測試：預設／一般 Flat 按鈕 × 啟用／未啟用視窗。每組檢查 25 個懸停樣本及還原後 40 個樣本（約每 16ms），以實際渲染文字、背景及提示邊框驗證文字至少 4.5:1、互動提示至少 3:1；還原首幀即須符合原生穩定底色與提示邊框，並保留尺寸、Padding、HWND 與按鈕焦點狀態。測試明確驗證視窗啟用狀態，因此需在可顯示視窗的測試程序執行；不能以未取得前景的執行結果宣稱啟用情境通過。
 
 最終驗證：完整非 UI 456/456、UI 42/42；淺色、深色及實際 Windows 高對比各 27/27；暫時略過原生快取重設時，新增四組逐幀測試均失敗，恢復修正後通過。高對比設定已還原。Release -warnaserror 建置 0 警告／0 錯誤；所有修改 C# 的 severity info style／analyzers 報告均為空。
+
+## Standard／Latest 正式整合（2026-11-15）
+
+`ButtonFeedbackRenderingTests` 現有 52 項需 `INPUTBOX_RUN_UI_TESTS=1` 的 UI 測試。一般／懸停／停用沿用原生 Standard，焦點、按壓、情境預設動作與 Dwell 使用必要疊層，不將系統強調色假設成藍色，不寫入 BackColor／ForeColor。按鈕沿用全域 Latest；高對比自動解析為 Classic。既有 Blink 還原及主題重啟提示保留。
+
+Dwell 在 100% 時保留四邊可見襯底；測試直接量測實際填色像素與相鄰襯底，至少 3:1。淺色 Green／#DCDCDC 約 3.746:1，深色 LimeGreen／#3C3C3C 約 5.208:1；高對比配對 HighlightText／Highlight。文字採空／有／空三次繪圖排除裝飾，以主要墨色驗證一般文字 ≥4.5:1。停用不使用可操作文字的門檻，但需可辨識；空文字必須被檢查拒絕。
+
+高對比焦點與按壓交換系統色對，並在按壓增加固定內框。深色琥珀色按壓保留 Tritanopia ΔL*≥13。進度、提示及字體切換不改變尺寸、Margin、Padding 或 HWND。
+
+回歸另外覆蓋視窗啟用／未啟用、預設／一般、逐幀懸停進出、Space 與滑鼠交錯、真正先取得 Capture 再取消、取消與表單權杖、設定／系統色更新保留進度，以及舊點擊接合不得覆蓋新互動。DPI 字型更新透過保留狀態的設定入口同步 Regular／Bold；七語系與 RTL 檢查渲染文字及 Padding。
+
+UI 程序必須可顯示自家視窗；測試以有界重試確認實際前景狀態，未取得前景不能宣稱啟用情境通過。測試只對 InputBox 自家控制項觸發鉤點，不向第三方視窗送出輸入。
+
+即時安全邊界查核：已讀取工程規範列出的五個官方網址；FFXIV 合約及 USERJOY 使用條款／隱私頁面只回傳框架，未取得完整條款本文。本次限定自家視覺回饋與原生按鈕事件傳遞，不改變核心剪貼簿輸出、控制器映射、第三方輸入或前景恢復；不宣稱完成完整條款合規審查。
+
+本輪正式整合驗證（實際 125%／120 DPI）：淺色、深色與 Windows 高對比各 52/52；完整 UI 67/67，非 UI 重跑 456/456，皆無略過。Release -warnaserror 建置為 0 警告／0 錯誤，修改 C# 的 severity info style／analyzers 報告皆為空；git diff --check 及 UTF-8 BOM／CRLF 檢查通過。高對比設定已讀回確認還原為原值 126。原生強調色由渲染器決定，本輪未切換其他系統強調色或其他實際 DPI，不將目前色彩宣稱為 Latest 固定配色。
+
+非 UI 首輪 455/456：既有 WriteConfigToFile_ConcurrentWrites_LeavesValidJsonAndNoTempFiles 偶發看到暫存檔。測試使用每行程新的隔離目錄，不能歸因於舊工作區產物；未修改設定持久化程式碼。完整重跑 456/456，該案例另以三個獨立程序連續重驗皆通過，首次原因尚未確定。保留首輪與重驗日誌於 TestResults/StandardIntegration，後續若重現須調查檔案刪除或並行寫入時序，不以重試掩蓋持續失敗。

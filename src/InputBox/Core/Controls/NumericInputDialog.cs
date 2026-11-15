@@ -916,7 +916,7 @@ internal sealed partial class NumericInputDialog : Form
             AutoSize = true,
             MinimumSize = new Size(baseMinWidth, baseMinHeight),
             Margin = new Padding((int)(12 * scale)),
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             BackColor = Color.Empty,
             ForeColor = Color.Empty
         };

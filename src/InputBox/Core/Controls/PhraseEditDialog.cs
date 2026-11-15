@@ -338,7 +338,7 @@ internal sealed partial class PhraseEditDialog : Form
         {
             Text = profile.FormatCancelButtonText(Strings.Phrase_Btn_Cancel),
             AutoSize = true,
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             DialogResult = DialogResult.Cancel,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
@@ -354,7 +354,7 @@ internal sealed partial class PhraseEditDialog : Form
         {
             Text = profile.FormatConfirmButtonText(Strings.Phrase_Btn_Confirm),
             AutoSize = true,
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             // 重要：確認按鈕不可直接回傳 OK，必須先經過 HandleConfirm 驗證。
             DialogResult = DialogResult.None,
             BackColor = Color.Empty,

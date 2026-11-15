@@ -361,7 +361,7 @@ internal sealed partial class PhraseManagerDialog : Form
             Text = profile.FormatCancelButtonText(Strings.Phrase_Btn_Close),
             AutoSize = true,
             Anchor = AnchorStyles.Right,
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             AccessibleName = Strings.Phrase_Btn_Close,
             AccessibleDescription = Strings.Phrase_A11y_Btn_Close_Desc,
             AccessibleRole = AccessibleRole.PushButton,

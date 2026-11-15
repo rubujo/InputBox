@@ -429,7 +429,7 @@ internal sealed class GamepadMessageBox : Form
             AccessibleRole = AccessibleRole.PushButton,
             Font = font,
             AutoSize = true,
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             BackColor = Color.Empty,
             ForeColor = Color.Empty,
         };
@@ -785,7 +785,7 @@ internal sealed class GamepadMessageBox : Form
                 continue;
             }
 
-            btn.Font = shared;
+            btn.UpdateEyeTrackerFonts(shared, boldFont);
 
             DialogLayoutHelper.UpdateButtonMinimumSize(btn, boldFont, scale, 88, 0, 24, 8);
         }

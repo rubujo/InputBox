@@ -70,9 +70,9 @@ internal sealed partial class GamepadCalibrationDialog
 
                         _lblStatus?.Font = _a11yFont;
 
-                        _btnReset?.Font = _a11yFont;
+                        _btnReset?.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
 
-                        _btnClose?.Font = _a11yFont;
+                        _btnClose?.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
                     }
 
                     UpdateMinimumSize(forceRecalculate: true);

@@ -393,7 +393,7 @@ internal sealed partial class GamepadCalibrationDialog : Form
             AutoSize = true,
             MinimumSize = new Size(Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)), Math.Max((int)(56 * scale), boldTextSize.Height + (int)(20 * scale))),
             Margin = new Padding((int)(8 * scale), (int)(6 * scale), (int)(8 * scale), (int)(4 * scale)),
-            FlatStyle = FlatStyle.Flat,
+            FlatStyle = FlatStyle.Standard,
             BackColor = Color.Empty,
             ForeColor = Color.Empty
         };

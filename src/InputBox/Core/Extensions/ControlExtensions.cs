@@ -435,82 +435,9 @@ public static class ControlExtensions
         return Application.IsDarkModeEnabled;
     }
 
-    /// <summary>
-    /// 繪製按鈕停用態提示（虛線邊框 + 斜線），並回傳是否已處理停用態。
-    /// </summary>
-    /// <param name="button">目標按鈕</param>
-    /// <param name="graphics">繪圖物件</param>
-    /// <param name="isDark">是否深色模式</param>
-    /// <param name="scale">DPI 縮放</param>
-    /// <returns>若按鈕為停用且已繪製提示則回傳 true</returns>
-    public static bool TryDrawDisabledButtonCue(
-        this Button button,
-        Graphics graphics,
-        bool isDark,
-        float scale)
-    {
-        if (button.Enabled)
-        {
-            return false;
-        }
 
-        int thickness = (int)Math.Max(1, scale);
 
-        Color disabledColor = SystemInformation.HighContrast ?
-            SystemColors.GrayText :
-            (isDark ? Color.FromArgb(140, 140, 140) : Color.FromArgb(120, 120, 120));
 
-        using Pen disabledPen = new(disabledColor, thickness)
-        {
-            DashStyle = DashStyle.Dot
-        };
-
-        graphics.DrawRectangle(disabledPen, 0, 0, button.Width - 1, button.Height - 1);
-
-        // 美觀 + A11y：在一般模式加入低透明度斜線紋理，避免僅靠單一線段提示停用。
-        if (!SystemInformation.HighContrast &&
-            button.Width > 4 &&
-            button.Height > 4)
-        {
-            Rectangle innerRect = new(2, 2, Math.Max(1, button.Width - 4), Math.Max(1, button.Height - 4));
-
-            using Brush hatchBrush = new HatchBrush(
-                HatchStyle.ForwardDiagonal,
-                Color.FromArgb(isDark ? 60 : 45, disabledColor),
-                Color.Transparent);
-
-            graphics.FillRectangle(hatchBrush, innerRect);
-        }
-
-        using Pen cuePen = new(disabledColor, Math.Max(1f, scale));
-        graphics.DrawLine(cuePen, 2, button.Height - 3, button.Width - 3, 2);
-
-        return true;
-    }
-
-    /// <summary>
-    /// 繪製按鈕基礎邊框（非焦點、非懸停狀態）。
-    /// </summary>
-    /// <param name="button">目標按鈕。</param>
-    /// <param name="graphics">繪圖物件。</param>
-    /// <param name="isDark">是否為深色模式。</param>
-    /// <param name="scale">目前 DPI 縮放比例。</param>
-    public static void DrawButtonBaseBorder(
-        this Button button,
-        Graphics graphics,
-        bool isDark,
-        float scale)
-    {
-        int thickness = (int)Math.Max(1, scale);
-
-        using Pen basePen = new(
-            SystemInformation.HighContrast ?
-                SystemColors.WindowFrame :
-                (isDark ? Color.DimGray : Color.DarkGray),
-            thickness);
-
-        graphics.DrawRectangle(basePen, 0, 0, button.Width - 1, button.Height - 1);
-    }
 
     /// <summary>
     /// 取得輸入焦點與預設動作共用的提示色及對比襯底，保留專案四種情境配色。
@@ -539,42 +466,7 @@ public static class ControlExtensions
             (Color.LightBlue, Color.FromArgb(60, 60, 60)) :
             (Color.MediumBlue, Color.FromArgb(220, 220, 220));
     }
-    /// <summary>
-    /// 依互動情境取得焦點/懸停邊框色。
-    /// </summary>
-    /// <param name="button">目標按鈕。</param>
-    /// <param name="isStrongVisual">是否為強視覺場景（按下或眼動儀目視狀態）。</param>
-    /// <param name="isDark">是否為深色模式。</param>
-    /// <returns>對應情境的邊框顏色。</returns>
-    public static Color GetButtonInteractiveBorderColor(this Button button, bool isStrongVisual, bool isDark)
-    {
-        if (SystemInformation.HighContrast)
-        {
-            return button.BackColor.ToArgb() == SystemColors.Highlight.ToArgb() ?
-                SystemColors.HighlightText : SystemColors.ControlText;
-        }
 
-        static bool IsSameColor(Color left, Color right) => left.ToArgb() == right.ToArgb();
-
-        // 強視覺場景依實際背景色決策，避免僅依主題旗標造成對比不足。
-        if (isStrongVisual)
-        {
-            if (IsSameColor(button.BackColor, Color.Black))
-            {
-                return Color.Cyan;
-            }
-
-            if (IsSameColor(button.BackColor, Color.White))
-            {
-                return Color.MediumBlue;
-            }
-
-            return isDark ? Color.MediumBlue : Color.Cyan;
-        }
-
-        // 中性場景保持主題感知對比（深色 LightBlue、淺色 MediumBlue）。
-        return isDark ? Color.LightBlue : Color.MediumBlue;
-    }
 
     /// <summary>
     /// 繪製按鈕焦點/懸停邊框。
@@ -614,116 +506,9 @@ public static class ControlExtensions
             button.Height - (inset * 2) - 1);
     }
 
-    /// <summary>
-    /// 繪製 Pressed 內緣提示（非顏色線索）。
-    /// </summary>
-    /// <param name="button">目標按鈕。</param>
-    /// <param name="graphics">繪圖物件。</param>
-    /// <param name="scale">目前 DPI 縮放比例。</param>
-    /// <param name="inset">焦點邊框內縮量（由 DrawButtonInteractiveBorder 取得）。</param>
-    /// <param name="borderThickness">焦點邊框厚度（由 DrawButtonInteractiveBorder 取得）。</param>
-    public static void DrawPressedInnerCue(
-        this Button button,
-        Graphics graphics,
-        float scale,
-        int inset,
-        int borderThickness)
-    {
-        int pressedInset = inset + borderThickness;
 
-        if (button.Width - (pressedInset * 2) - 1 <= 0 ||
-            button.Height - (pressedInset * 2) - 1 <= 0)
-        {
-            return;
-        }
 
-        using Pen pressedCuePen = new(button.ForeColor, Math.Max(1f, scale));
 
-        graphics.DrawRectangle(
-            pressedCuePen,
-            pressedInset,
-            pressedInset,
-            button.Width - (pressedInset * 2) - 1,
-            button.Height - (pressedInset * 2) - 1);
-    }
-
-    /// <summary>
-    /// 執行通用的眼動儀注視填滿動畫
-    /// </summary>
-    /// <param name="control">要執行動畫的控制項。</param>
-    /// <param name="id">本次動畫的目標序號；與 <paramref name="animationIdGetter"/> 回傳值比對，序號失效時立即停止。</param>
-    /// <param name="animationIdGetter">讀取目前最新動畫序號的委派（通常讀取以 Interlocked 維護的欄位）。</param>
-    /// <param name="progressSetter">設定進度值（0.0 ~ 1.0）的回呼委派。</param>
-    /// <param name="durationMs">動畫總時長（毫秒），預設 1000ms。</param>
-    /// <param name="ct">取消權杖。</param>
-    /// <returns>代表眼動儀注視動畫非同步執行的工作任務。</returns>
-    public static async Task RunDwellAnimationAsync(
-        this Control control,
-        long id,
-        Func<long> animationIdGetter,
-        Action<float> progressSetter,
-        int durationMs = 1000,
-        CancellationToken ct = default)
-    {
-        if (control == null ||
-            control.IsDisposed)
-        {
-            return;
-        }
-
-        // 系統動畫服從性：若使用者關閉了 UI 特效，直接跳至完成狀態。
-        if (!SystemInformation.UIEffectsEnabled)
-        {
-            // 確保在 UI 執行緒執行。
-            control.SafeInvoke(() =>
-            {
-                progressSetter(1.0f);
-
-                control.Invalidate();
-            });
-
-            return;
-        }
-
-        // 防禦性寫法：避免除以零。
-        int safeDuration = Math.Max(1, durationMs);
-
-        Stopwatch stopwatch = Stopwatch.StartNew();
-
-        // 根據規範：統一使用 60 FPS（16.6ms）物理頻率。
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(AppSettings.TargetFrameTimeMs));
-
-        try
-        {
-            while (await timer.WaitForNextTickAsync(ct) &&
-                animationIdGetter() == id &&
-                !control.IsDisposed &&
-                control.IsHandleCreated)
-            {
-                double elapsed = stopwatch.Elapsed.TotalMilliseconds;
-
-                float progress = (float)Math.Min(1.0, elapsed / safeDuration);
-
-                // 由於 PeriodicTimer 可能在 ThreadPool 執行緒恢復，
-                // 雖然 WinForms 有 SynchronizationContext，但此處顯式使用 SafeInvokeAsync 以策萬全。
-                await control.SafeInvokeAsync(() =>
-                {
-                    progressSetter(progress);
-
-                    control.Invalidate();
-                });
-
-                if (progress >= 1.0f)
-                {
-                    break;
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 正常取消。
-        }
-    }
 
     /// <summary>
     /// 遞歸更新控制項及其所有子控制項的背景色與前景色。

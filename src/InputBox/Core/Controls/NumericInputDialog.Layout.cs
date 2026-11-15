@@ -89,11 +89,11 @@ internal sealed partial class NumericInputDialog
                     // 同步更新所有按鈕的基礎字體。
                     if (_a11yFont != null)
                     {
-                        _btnOk!.Font = _a11yFont;
-                        _btnCancel!.Font = _a11yFont;
-                        _btnPlus!.Font = _a11yFont;
-                        _btnMinus!.Font = _a11yFont;
-                        _btnReset!.Font = _a11yFont;
+                        _btnOk!.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
+                        _btnCancel!.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
+                        _btnPlus!.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
+                        _btnMinus!.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
+                        _btnReset!.UpdateEyeTrackerFonts(_a11yFont, MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, _a11yFont.FontFamily));
                     }
 
                     // 數值顯示區字體需重新依據新縮放比例建立。
