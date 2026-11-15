@@ -334,7 +334,7 @@ internal sealed partial class PhraseEditDialog : Form
         // profile 用於同步片語編輯對話框中的確認／取消按鈕提示與目前控制器配置。
         GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
 
-        _btnCancel = new Button()
+        _btnCancel = new FeedbackButton()
         {
             Text = profile.FormatCancelButtonText(Strings.Phrase_Btn_Cancel),
             AutoSize = true,
@@ -350,7 +350,7 @@ internal sealed partial class PhraseEditDialog : Form
         };
         _btnCancel.FlatAppearance.BorderSize = 0;
 
-        _btnOk = new Button()
+        _btnOk = new FeedbackButton()
         {
             Text = profile.FormatConfirmButtonText(Strings.Phrase_Btn_Confirm),
             AutoSize = true,

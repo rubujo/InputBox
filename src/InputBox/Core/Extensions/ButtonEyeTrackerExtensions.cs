@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Configuration;
+using InputBox.Core.Controls;
 using InputBox.Resources;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -43,6 +44,9 @@ public static class ButtonEyeTrackerExtensions
         /// 動畫識別碼，用於取消過時的動畫回饋，確保視覺狀態與當前互動一致
         /// </summary>
         public long AnimId;
+
+        /// <summary>重設原生色彩快取期間避免系統色事件重入。</summary>
+        public bool IsResettingNativeColors { get; set; }
 
         /// <summary>
         /// 基礎無障礙描述，供不同互動狀態下的 AccessibleDescription 組合使用
@@ -168,7 +172,8 @@ public static class ButtonEyeTrackerExtensions
     /// </summary>
     private static void HandleButtonSystemColorsChanged(object? sender, EventArgs eventArgs)
     {
-        if (sender is Button { IsDisposed: false } button)
+        if (sender is Button { IsDisposed: false } button &&
+            _buttonStates.TryGetValue(button, out ButtonVisualState? state) && !state.IsResettingNativeColors)
         {
             StopFeedback(button);
         }
@@ -296,11 +301,6 @@ public static class ButtonEyeTrackerExtensions
     {
         if (sender is Button btn)
         {
-            if (Form.ActiveForm != btn.FindForm())
-            {
-                return;
-            }
-
             if (_buttonStates.TryGetValue(btn, out ButtonVisualState? state))
             {
                 state.IsHovered = true;
@@ -493,7 +493,13 @@ public static class ButtonEyeTrackerExtensions
         btn.RunDwellAnimationAsync(
             id: currentId,
             animationIdGetter: () => Interlocked.Read(ref st.AnimId),
-            progressSetter: p => st.DwellProgress = p,
+            progressSetter: p =>
+            {
+                if (Interlocked.Read(ref st.AnimId) == currentId)
+                {
+                    st.DwellProgress = p;
+                }
+            },
             durationMs: 1000,
             ct: st.FormCt
         ).SafeFireAndForget();
@@ -542,9 +548,31 @@ public static class ButtonEyeTrackerExtensions
         btn.AccessibleDescription = st.BaseDescription;
 
         btn.Padding = st.OriginalPadding;
+        ResetNativeColors(btn, st);
         btn.Invalidate();
     }
 
+    /// <summary>
+    /// 使用自家按鈕的框架主題刷新路徑清除原生動畫快取；不改主題、尺寸或焦點。
+    /// Color.Empty 已先還原，因此下一幀直接以 Latest 的目前原生配色繪製。
+    /// </summary>
+    private static void ResetNativeColors(Button button, ButtonVisualState state)
+    {
+        if (button is not FeedbackButton feedbackButton || button.IsDisposed || state.IsResettingNativeColors)
+        {
+            return;
+        }
+
+        state.IsResettingNativeColors = true;
+        try
+        {
+            feedbackButton.ResetNativeColorTransition();
+        }
+        finally
+        {
+            state.IsResettingNativeColors = false;
+        }
+    }
     /// <summary>
     /// 為現有文字按鈕繪製一致的互動配色，不受 Net11 預設動作強調色覆蓋。
     /// </summary>

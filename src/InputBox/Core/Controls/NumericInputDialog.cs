@@ -906,7 +906,7 @@ internal sealed partial class NumericInputDialog : Form
         int baseMinWidth = Math.Max((int)(120 * scale), boldTextSize.Width + (int)(32 * scale)),
             baseMinHeight = Math.Max((int)(60 * scale), boldTextSize.Height + (int)(24 * scale));
 
-        Button btn = new()
+        Button btn = new FeedbackButton()
         {
             Text = text,
             AccessibleName = text,

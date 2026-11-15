@@ -32,7 +32,7 @@ partial class MainForm
         TLPHost = new TableLayoutPanel();
         PInputHost = new Panel();
         TBInput = new TextBox();
-        BtnCopy = new Button();
+        BtnCopy = new InputBox.Core.Controls.FeedbackButton();
         TLPHost.SuspendLayout();
         PInputHost.SuspendLayout();
         SuspendLayout();

@@ -169,7 +169,7 @@ internal sealed class HelpDialog : Form
         // profile 用來讓關閉按鈕與說明表的顯示文字跟著目前控制器模式同步。
         GamepadFaceButtonProfile profile = GamepadFaceButtonProfile.GetActiveProfile();
 
-        _btnClose = new Button()
+        _btnClose = new FeedbackButton()
         {
             Text = profile.FormatCancelButtonText(Strings.Help_Btn_Close),
             AutoSize = true,

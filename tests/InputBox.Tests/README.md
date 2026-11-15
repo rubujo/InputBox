@@ -50,9 +50,9 @@
 | `TextBoxSelectionExtensionsTests` | 右搖桿延伸選取共用的 `ResolveSelectionAnchor` 錨點解析（無選取、正向、反向、錨點失效）與 `GetWordJumpTarget` 單字跳轉目標（不改變目前選取、方向與邊界）；原本三處複本集中後的一致性保護 | 6 |
 | `VibrationPatternsTests` | `VibrationPatterns` 與方向性震動設定、語意情境解析、能力感知的多段式微震動序列，以及歷程滾輪阻尼感、字數上限硬牆、震動強度預覽、右搖桿選取粒度、組合鍵進入提示與喚起握手回饋的回歸保護 | 37 |
 | `VibrationSafetyLimiterTests` | `VibrationSafetyLimiter` 熱保護、Duty Cycle 限制器與極端邊界保護；馬達數量熱成本倍率正規化，以及所有內建震動模式在冷啟動下不得被拒絕、單次超出預算改為降強度，以及Critical 自動連發（含不同模式交錯）降級、熱負載不失控，以及冷啟動短序列仍完整送出的回歸保護 | 20 |
-| `ButtonFeedbackRenderingTests` | Latest 預設／一般按鈕實際文字與背景、焦點／預設動作同步及對比襯底、四種底色進度條與色覺紋理、粗體、按下亮度差、零抖動與配色還原、焦點懸停組合、Space 按放／失焦及空文字反例 | 23 |
+| `ButtonFeedbackRenderingTests` | Latest 預設／一般按鈕實際文字與背景、焦點／預設動作同步及對比襯底、四種底色進度條與色覺紋理、粗體、按下亮度差、零抖動與配色還原、焦點懸停組合、Space 按放／失焦、空文字反例與 Dwell 交接逐幀對比 | 27 |
 | `BlinkFrameRenderingTests` | 實際螢幕非客戶區像素：Blink 完成／取消、有／無焦點還原；HWND、選取範圍及尺寸不變 | 4 |
-| **合計** | | **494** |
+| **合計** | | **498** |
 
 ## 二、執行方式 🚀
 
@@ -181,7 +181,7 @@ UI 測試宿主在啟動 UIA 前使用 Application.SetHighDpiMode(PerMonitorV2)�
 
 ## .NET 11 Latest 按鈕配色回歸（2026-11-14）
 
-`ButtonFeedbackRenderingTests` 是需 `INPUTBOX_RUN_UI_TESTS=1` 才執行的 23 項 UI 測試。它以實際點陣圖檢查預設／一般按鈕的焦點、懸停、按下背景、文字及焦點邊框，並檢查文字對比至少 4.5:1、尺寸／內距不變，以及回饋結束後的一般／停用外觀。停用狀態只檢查文字仍可辨識，不套用一般可操作文字的 4.5:1 門檻。
+`ButtonFeedbackRenderingTests` 是需 `INPUTBOX_RUN_UI_TESTS=1` 才執行的 27 項 UI 測試。它以實際點陣圖檢查預設／一般按鈕的焦點、懸停、按下背景、文字及焦點邊框，並檢查文字對比至少 4.5:1、尺寸／內距不變，以及回饋結束後的一般／停用外觀。停用狀態只檢查文字仍可辨識，不套用一般可操作文字的 4.5:1 門檻。
 
 以獨立測試程序分別執行淺色與深色（測試主機設定 `INPUTBOX_BUTTON_TEST_DARK=1`）；高對比必須實際啟用 Windows 高對比，並在驗證後還原。`Latest` 在高對比下由框架解析為 `Classic`，測試保留此無障礙行為。這些測試只改變測試控制項的狀態，不向其他視窗送出模擬輸入。`INPUTBOX_BUTTON_ARTIFACTS` 可指定點陣圖輸出目錄。
 
@@ -208,3 +208,10 @@ PR #92 審查補強：重新套色時保留焦點與懸停組合，Space 與滑�
 Blink 非客戶區殘框修正：.NET 11 Latest 文字框在警示中重繪非客戶區後，僅還原 BackColor／ForeColor 不會清除舊框色；還原配色與焦點提示後明確重繪框架及子控制項，保留 HWND、選取範圍、尺寸與焦點。新增 4 項完成／取消及有／無焦點的實際螢幕像素測試。v0.0.69、原版 v0.0.71 與本機修正版在 125%／120 DPI 下完成淺色、深色、高對比的 Blink 前／中／後截圖；一般主題原版 v0.0.71 殘留 2517 個警示色像素，v0.0.69 與修正版均為 0。高對比三組均正常，驗證後還原系統設定。
 
 本輪驗證：三種主題新增測試各 4/4，完整 UI 38/38、非 UI 456/456；Release -warnaserror 建置 0 警告／0 錯誤；修改 C# 的 severity info style／analyzers 報告皆為空。非客戶區繪製參考：[.NET 11 TextBoxBase](https://github.com/dotnet/winforms/blob/v11.0.0/src/System.Windows.Forms/System/Windows/Forms/Controls/TextBox/TextBoxBase.cs)。
+
+
+Dwell／Latest 交接：所有共用回饋按鈕改用 FeedbackButton，在還原 Color.Empty 後透過框架的受保護主題刷新路徑清除舊背景動畫，不切換 VisualStylesMode、不重建 HWND。視窗未啟用時也套用成對懸停配色；動畫識別碼在寫入進度前再次驗證，防止過期 UI 更新重新啟用已結束的回饋。
+
+新增四組逐幀測試：預設／一般 Flat 按鈕 × 啟用／未啟用視窗。每組檢查 25 個懸停樣本及還原後 40 個樣本（約每 16ms），以實際渲染文字、背景及提示邊框驗證文字至少 4.5:1、互動提示至少 3:1；還原首幀即須符合原生穩定底色與提示邊框，並保留尺寸、Padding、HWND 與按鈕焦點狀態。測試明確驗證視窗啟用狀態，因此需在可顯示視窗的測試程序執行；不能以未取得前景的執行結果宣稱啟用情境通過。
+
+最終驗證：完整非 UI 456/456、UI 42/42；淺色、深色及實際 Windows 高對比各 27/27；暫時略過原生快取重設時，新增四組逐幀測試均失敗，恢復修正後通過。高對比設定已還原。Release -warnaserror 建置 0 警告／0 錯誤；所有修改 C# 的 severity info style／analyzers 報告均為空。

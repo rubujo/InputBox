@@ -1,4 +1,5 @@
 ﻿using InputBox.Core.Extensions;
+using InputBox.Core.Interop;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Xunit;
@@ -412,6 +413,134 @@ public sealed class ButtonFeedbackRenderingTests
         double value = component / 255.0;
         return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
     }
+    /// <summary>逐幀檢查 Dwell 進出與未啟用視窗的配色，不能只等原生動畫完成再驗證。</summary>
+    [Theory(Skip = "Requires explicit UI test opt-in.",
+        SkipUnless = nameof(UiSmokeTestRequirements.IsEnabled), SkipType = typeof(UiSmokeTestRequirements))]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void Render_DwellHandoff_PreservesEveryFrame(bool isDefault, bool active)
+    {
+        RunSta(() =>
+        {
+            using var form = new Form { ClientSize = new Size(300, 200), TopMost = true };
+            using var input = new TextBox { Top = 150 };
+            using var button = new FeedbackButton
+            {
+                Text = "Button text", Bounds = new Rectangle(10, 30, 240, 90),
+                FlatStyle = FlatStyle.Flat, VisualStylesMode = VisualStylesMode.Latest
+            };
+            using var lifetime = new CancellationTokenSource();
+            form.Controls.AddRange([input, button]);
+            button.AttachEyeTrackerFeedback("Button", button.Font, null, lifetime.Token);
+            if (isDefault)
+            {
+                form.AcceptButton = button;
+            }
+            Exception? frameFailure = null;
+            form.Shown += (_, _) =>
+            {
+                try
+                {
+            form.Activate();
+            input.Focus();
+            using var other = new Form { Location = new Point(850, 500), Size = new Size(100, 80) };
+            if (!active)
+            {
+                other.Show();
+                other.Activate();
+            }
+            Form target = active ? form : other;
+            _ = User32.ShowWindow(target.Handle, User32.ShowWindowCommand.Restore);
+            _ = User32.SetForegroundWindow(target.Handle);
+            target.Activate();
+            Settle(500);
+            if (active)
+            {
+                Assert.Same(form, Form.ActiveForm);
+            }
+            else
+            {
+                Assert.NotSame(form, Form.ActiveForm);
+            }
+            using var expected = new Bitmap(button.Width, button.Height);
+            button.DrawToBitmap(expected, button.ClientRectangle);
+            Color neutralBack = expected.GetPixel(25, 20);
+            Color neutralBorder = expected.GetPixel(2, 20);
+            Size size = button.Size;
+            Padding padding = button.Padding;
+            nint handle = button.Handle;
+            button.EnterHover();
+            for (int i = 0; i < 25; i++)
+            {
+                Settle(16);
+                using var hover = new Bitmap(button.Width, button.Height);
+                button.DrawToBitmap(hover, button.ClientRectangle);
+                Assert.Equal(button.BackColor.ToArgb(), hover.GetPixel(25, 20).ToArgb());
+                Assert.True(Contrast(hover.GetPixel(25, 20), button.ForeColor) >= 4.5);
+                int ink = 0;
+                for (int y = 25; y < 65; y++)
+                {
+                    for (int x = 35; x < 205; x++)
+                    {
+                        if (hover.GetPixel(x, y).ToArgb() == button.ForeColor.ToArgb())
+                        {
+                            ink++;
+                        }
+                    }
+                }
+                Assert.True(ink > 10, "懸停文字未以配對前景色繪製。");
+                Assert.True(Contrast(hover.GetPixel(2, 20), hover.GetPixel(0, 20)) >= 3);
+            }
+            button.ExitHover();
+            for (int i = 0; i < 40; i++)
+            {
+                Application.DoEvents();
+                using var frame = new Bitmap(button.Width, button.Height);
+                button.DrawToBitmap(frame, button.ClientRectangle);
+                Assert.True(neutralBack.ToArgb() == frame.GetPixel(25, 20).ToArgb(), $"frame={i}; expected={neutralBack}; actual={frame.GetPixel(25, 20)}; back={button.BackColor}; fore={button.ForeColor}; active={form.ActiveControl?.GetType().Name}; default={button.NativeDefault}");
+                Assert.Equal(neutralBorder.ToArgb(), frame.GetPixel(2, 20).ToArgb());
+                CheckNeutralRendering(button, isDefault);
+                if (isDefault)
+                {
+                    Assert.True(Contrast(frame.GetPixel(2, 20), frame.GetPixel(0, 20)) >= 3);
+                }
+                Assert.Equal(size, button.Size);
+                Assert.Equal(padding, button.Padding);
+                Assert.Equal(handle, button.Handle);
+                Assert.False(button.Focused);
+                Settle(16);
+            }
+            lifetime.Cancel();
+            other.Close();
+                }
+                catch (Exception ex)
+                {
+                    frameFailure = ex;
+                }
+                finally
+                {
+                    form.Close();
+                }
+            };
+            Application.Run(form);
+            if (frameFailure != null)
+            {
+                ExceptionDispatchInfo.Capture(frameFailure).Throw();
+            }
+        });
+
+        static void Settle(int milliseconds)
+        {
+            long start = Environment.TickCount64;
+            do
+            {
+                Application.DoEvents();
+                Thread.Sleep(1);
+            } while (Environment.TickCount64 - start < milliseconds);
+        }
+    }
     /// <summary>
     /// 以 WCAG 相對亮度檢查實際文字與背景的對比，不以色彩名稱推測可讀性。
     /// </summary>
@@ -458,9 +587,10 @@ public sealed class ButtonFeedbackRenderingTests
     /// <summary>
     /// 僅在測試控制項本身觸發事件，不向任何其他視窗模擬輸入。
     /// </summary>
-    private sealed class FeedbackButton : Button
+    private sealed class FeedbackButton : InputBox.Core.Controls.FeedbackButton
     {
         public VisualStylesMode ResolvedMode => EffectiveVisualStylesMode;
+        public bool NativeDefault => IsDefault;
         public void Hover()
         {
             // 僅驗證繪製：不依賴 Windows 是否允許測試主機搶到前景。
@@ -482,6 +612,7 @@ public sealed class ButtonFeedbackRenderingTests
         public void ReleaseSpace() => OnKeyUp(new KeyEventArgs(Keys.Space));
         public void RefreshSystemColors() => OnSystemColorsChanged(EventArgs.Empty);
         public void Press() => OnMouseDown(new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+        public void EnterHover() => OnMouseEnter(EventArgs.Empty);
         public void ExitHover() => OnMouseLeave(EventArgs.Empty);
     }
 }

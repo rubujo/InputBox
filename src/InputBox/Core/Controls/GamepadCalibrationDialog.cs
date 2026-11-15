@@ -383,7 +383,7 @@ internal sealed partial class GamepadCalibrationDialog : Form
         Font boldFont = MainForm.GetSharedA11yFont(DeviceDpi, FontStyle.Bold, font.FontFamily);
         Size boldTextSize = TextRenderer.MeasureText(text, boldFont);
 
-        Button btn = new()
+        Button btn = new FeedbackButton()
         {
             Text = text,
             AccessibleName = accessibleName,

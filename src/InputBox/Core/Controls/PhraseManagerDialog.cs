@@ -356,7 +356,7 @@ internal sealed partial class PhraseManagerDialog : Form
         _tlpMain.Controls.Add(_flpButtons, 1, 0);
 
         // 底部關閉按鈕。
-        _btnClose = new Button()
+        _btnClose = new FeedbackButton()
         {
             Text = profile.FormatCancelButtonText(Strings.Phrase_Btn_Close),
             AutoSize = true,

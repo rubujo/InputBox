@@ -421,7 +421,7 @@ internal sealed class GamepadMessageBox : Form
 
         string description = StripMnemonic(label) ?? label;
 
-        Button btn = new()
+        Button btn = new FeedbackButton()
         {
             Text = label,
             AccessibleName = description,

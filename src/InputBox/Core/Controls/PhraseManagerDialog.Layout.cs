@@ -123,7 +123,7 @@ internal sealed partial class PhraseManagerDialog
         string a11yDesc,
         char mnemonic)
     {
-        Button btn = new()
+        Button btn = new FeedbackButton()
         {
             Text = ControlExtensions.GetMnemonicText(text, mnemonic),
             AutoSize = true,
